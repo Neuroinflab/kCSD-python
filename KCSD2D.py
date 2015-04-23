@@ -2,8 +2,9 @@ import numpy as np
 from scipy import integrate, interpolate
 from scipy.spatial import distance
 from utility_functions import faster_inverse
+
+import KCSD2D_Helpers as defaults
 from CSD import CSD
-from KCSD2D_Helpers import *
 
 class KCSD2D(CSD):
     """
@@ -45,13 +46,14 @@ class KCSD2D(CSD):
         self.estimate_at(params) 
         self.place_basis(src_type) 
         self.method()
+        return
 
     def estimate_at(self, params):
         '''Locations where the estimation is wanted, this func must define
         self.space_X and self.space_Y
         '''
         #override defaults if params is passed
-        for (prop, default) in KCSD2D_params.iteritems(): 
+        for (prop, default) in defaults.KCSD2D_params.iteritems(): 
             setattr(self, prop, params.get(prop, default))
         #If no estimate plane given, take electrode plane as estimate plane
         xmin = params.get('xmin', np.min(self.ele_pos[:, 0]))
@@ -79,16 +81,16 @@ class KCSD2D(CSD):
         and
         self.dist_max '''
         #If Valid basis source type passed?
-        if source_type not in basis_types.keys():
-            raise Exception('Invalid source_type for basis! available are:', basis_types.keys())
+        if source_type not in defaults.basis_types.keys():
+            raise Exception('Invalid source_type for basis! available are:', defaults.basis_types.keys())
         else:
-            self.basis = basis_types.get(source_type)
+            self.basis = defaults.basis_types.get(source_type)
         #Mesh where the source basis are placed is at self.X_src 
-        (self.X_src, self.Y_src, self.R) = make_src_2D(self.space_X,
-                                                       self.space_Y,
-                                                       self.n_srcs_init,
-                                                       self.ext_x, self.ext_y,
-                                                       self.R_init ) #WHY R_init and R?!
+        (self.X_src, self.Y_src, self.R) = defaults.make_src_2D(self.space_X,
+                                                                self.space_Y,
+                                                                self.n_srcs_init,
+                                                                self.ext_x, self.ext_y,
+                                                                self.R_init ) #WHY R_init and R?!
         #Total diagonal distance of the area covered by the basis sources
         Lx = np.max(self.X_src) - np.min(self.X_src) + self.R
         Ly = np.max(self.Y_src) - np.min(self.Y_src) + self.R
