@@ -314,7 +314,7 @@ class KCSD2D(CSD):
         lambdas = np.logspace(-2,-25,25,base=10.)
         and Rs = np.array(self.R).flatten()
         otherwise pass necessary numpy arrays'''
-        def calc_error(lambd, idx_test, idx_train):
+        def calc_error(lambd, idx_train, idx_test):
             '''Useful for Cross validation'''
             B_train = self.k_pot[np.ix_(idx_train, idx_train)]
             V_train = self.pots[idx_train]
@@ -335,19 +335,24 @@ class KCSD2D(CSD):
         if Rs == None:
             Rs = np.array((self.R)).flatten() #Default
         errs = np.zeros((Rs.size, lambdas.size))
+
+        #index generator
+        index_generator = []
+        for ii in range(self.n_obs):
+            idx_test = [ii] #Leave one out
+            idx_train = range(self.n_obs)
+            idx_train.remove(ii)
+            index_generator.append((idx_train, idx_test))
+
         #Iterate over R
         for R_idx,R in enumerate(Rs): 
             self.update_R(R)
             #Iterate over lambdas
             for lambd_idx,lambd in enumerate(lambdas):
                 err = 0
-                for ii in range(self.n_obs):
-                    #Leave one out
-                    idx_test = [ii]
-                    idx_train = range(self.n_obs)
-                    idx_train.remove(ii)
+                for idx_train,idx_test in index_generator:
                     #Calculate the error
-                    err += calc_error(lambd, idx_test, idx_train)
+                    err += calc_error(lambd, idx_train, idx_test)
                 errs[R_idx, lambd_idx] = err 
         err_idx = np.where(errs==np.min(errs)) #Where is the least error
         self.err_idx = err_idx

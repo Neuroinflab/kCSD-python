@@ -95,3 +95,6 @@ if __name__ == '__main__':
 
     print k.cross_validate()
     print k.values()
+
+
+
