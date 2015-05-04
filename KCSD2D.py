@@ -67,10 +67,8 @@ class KCSD2D(CSD):
         nx = (xmax - xmin)/gdX + 1
         ny = (ymax - ymin)/gdY + 1
         #Making a mesh of points where estimation is to be made.
-        lin_x = np.linspace(xmin, xmax, nx)
-        lin_y = np.linspace(ymin, ymax, ny)
-        #Mesh of interest where we are interested to see the CSD
-        self.space_X, self.space_Y = np.meshgrid(lin_x, lin_y)
+        self.space_X, self.space_Y = np.mgrid[xmin:xmax:np.complex(0,nx), 
+                                              ymin:ymax:np.complex(0,ny)]
         return
 
     def place_basis(self, source_type):

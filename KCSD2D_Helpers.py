@@ -82,10 +82,8 @@ def make_src_2D(X, Y, n_src, ext_x, ext_y, R_init):
     ext_x_n = (Lx_nn - Lx)/2
     ext_y_n = (Ly_nn - Ly)/2
 
-    lin_x = np.linspace(np.min(X) - ext_x_n, np.max(X) + ext_x_n, nx)
-    lin_y = np.linspace(np.min(Y) - ext_y_n, np.max(Y) + ext_y_n, ny)
-
-    X_src, Y_src = np.meshgrid(lin_x, lin_y)
+    X_src, Y_src = np.mgrid[(np.min(X) - ext_x_n):(np.max(X) + ext_x_n):np.complex(0,nx),
+                            (np.min(Y) - ext_y_n):(np.max(Y) + ext_y_n):np.complex(0,ny)]
 
     d = round(R_init/ds)
     R = d * ds
