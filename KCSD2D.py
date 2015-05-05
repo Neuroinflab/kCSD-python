@@ -1,9 +1,8 @@
 import numpy as np
-from scipy import integrate, interpolate
-from scipy.spatial import distance
 import utility_functions as utils
-
 import KCSD2D_Helpers as defaults
+from scipy import integrate
+from scipy.spatial import distance
 from CSD import CSD
 
 class KCSD2D(CSD):

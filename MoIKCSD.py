@@ -1,7 +1,7 @@
 import numpy as np
-from scipy import integrate, interpolate
-from KCSD2D import KCSD2D
 import KCSD2D_Helpers as defaults
+from scipy import integrate
+from KCSD2D import KCSD2D
 
 def int_pot_2D(xp, yp, x, R, h, basis_func, MoI_iters, W_TS): #This can be done better!
     """
@@ -16,7 +16,6 @@ def int_pot_2D(xp, yp, x, R, h, basis_func, MoI_iters, W_TS): #This can be done 
     y = ((x-xp)**2 + yp**2)**(0.5)
     if y < 0.00001:
         y = 0.00001
-
     #Eq 20, Ness(2015)
     correction = np.sum(np.arcsinh(h-(2*h*np.arange(MoI_iters))/y))
     correction += np.sum(np.arcsinh(h-(2*h*np.arange(MoI_iters))/y))
@@ -76,7 +75,6 @@ class MoIKCSD(KCSD2D):
         Returns the value of the potential at point (x,0) generated
         by a basis source located at (0,0)
         """
-
         pot, err = integrate.dblquad(int_pot_2D, -R, R, #Eq 22 kCSD by Jan,2012 
                                      lambda x: -R, 
                                      lambda x: R, 
@@ -96,7 +94,6 @@ if __name__ == '__main__':
     k = MoIKCSD(ele_pos, pots, params=params)
 
     print k.cross_validate()
-    k.values()
 
 
 

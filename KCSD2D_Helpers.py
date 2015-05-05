@@ -1,6 +1,5 @@
 import numpy as np
-from scipy import integrate, interpolate
-from scipy.spatial import distance
+from scipy import interpolate
 
 def sparse_dist_table(R, dist_max, dt_len):
     """

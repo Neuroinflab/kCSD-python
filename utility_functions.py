@@ -1,7 +1,6 @@
 import numpy as np
 from numpy.linalg import lapack_lite
 
-
 def check_for_duplicated_electrodes(elec_pos):
     """
     **Parameters**
