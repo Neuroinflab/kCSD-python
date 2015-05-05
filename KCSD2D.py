@@ -303,5 +303,4 @@ if __name__ == '__main__':
     k = KCSD2D(ele_pos, pots, params=params)
     #print k.cross_validate(Rs=np.array((0.01,0.02,0.04)))
     print k.cross_validate()
-    k.values()
 
