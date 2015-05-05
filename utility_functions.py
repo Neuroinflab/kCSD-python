@@ -1,6 +1,7 @@
 import numpy as np
 from numpy.linalg import lapack_lite
 
+
 def check_for_duplicated_electrodes(elec_pos):
     """
     **Parameters**
@@ -26,3 +27,21 @@ def faster_inverse(A): #Taken from http://stackoverflow.com/a/11999063/603292
             raise LinAlgError('Singular matrix')
         return b
     return lapack_inverse(A)
+
+def calc_error(k_pot, pots, lambd, index_generator):
+    '''Useful for Cross validation - when done in parallel'''
+    err = 0
+    for idx_train, idx_test in index_generator:
+        B_train = k_pot[np.ix_(idx_train, idx_train)]
+        V_train = pots[idx_train]
+        V_test = pots[idx_test]
+        I = np.identity(len(idx_train))
+        B_new = np.matrix(B_train) + (lambd*I)
+        beta_new = np.dot(np.matrix(B_new).I, np.matrix(V_train))
+        #beta_new = np.dot(faster_inverse(B_new), np.matrix(V_train))
+        B_test = k_pot[np.ix_(idx_test, idx_train)]
+        V_est = np.zeros((len(idx_test),1))
+        for ii in range(len(idx_train)):
+            V_est += beta_new[ii,0] * B_test[:, ii]
+        err += np.linalg.norm(V_est-V_test)
+    return err
