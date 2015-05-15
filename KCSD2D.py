@@ -63,8 +63,8 @@ class KCSD2D(CSD):
         gdX = params.get('gdX', 0.01 * (xmax - xmin)) 
         gdY = params.get('gdY', 0.01 * (ymax - ymin))
         #Number of points where estimation is to be made.
-        nx = (xmax - xmin)/gdX + 1
-        ny = (ymax - ymin)/gdY + 1
+        nx = (xmax - xmin)/gdX
+        ny = (ymax - ymin)/gdY
         #Making a mesh of points where estimation is to be made.
         self.space_X, self.space_Y = np.mgrid[xmin:xmax:np.complex(0,nx), 
                                               ymin:ymax:np.complex(0,ny)]
