@@ -115,13 +115,8 @@ class KCSD2D(CSD):
             estimation_table = self.k_interp_pot
         else:
             print 'Invalid quantity to be measured, pass either CSD or POT'
-        try: 
-            k_inv = utils.faster_inverse(self.k_pot + self.lambd *
-                                         np.identity(self.k_pot.shape[0]))
-        except LinAlgError:
-            print 'Error with faster_inverse - Falling back to regular inv'
-            k_inv = np.linalg.inv(self.k_pot + self.lambd *
-                                  np.identity(self.k_pot.shape[0]))
+        k_inv = np.linalg.inv(self.k_pot + self.lambd *
+                              np.identity(self.k_pot.shape[0]))
         nt = self.pots.shape[1] #Number of time points
         (nx, ny) = self.space_X.shape
         estimation = np.zeros((nx * ny, nt))
@@ -140,14 +135,14 @@ class KCSD2D(CSD):
         '''
 
         dt_len = dist_table_density
-        xs = defaults.sparse_dist_table(self.R, self.dist_max, #Find pots at sparse points
+        xs = utils.sparse_dist_table(self.R, self.dist_max, #Find pots at sparse points
                                         dist_table_density)
         dist_table = np.zeros(len(xs))
         for i, x in enumerate(xs):
             pos = (x/dt_len) * self.dist_max
             dist_table[i] = self.b_pot_2d_cont(pos, self.R, self.h, self.sigma,
                                                self.basis)
-        self.dist_table = defaults.interpolate_dist_table(xs, dist_table, dt_len) #and then interpolated
+        self.dist_table = utils.interpolate_dist_table(xs, dist_table, dt_len) #and then interpolated
         return self.dist_table #basis potentials in a look up table
 
     def update_b_pot(self):

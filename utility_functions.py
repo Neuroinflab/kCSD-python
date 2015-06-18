@@ -1,5 +1,5 @@
 import numpy as np
-from numpy.linalg import lapack_lite
+from scipy import interpolate
 
 def check_for_duplicated_electrodes(elec_pos):
     """
@@ -12,20 +12,40 @@ def check_for_duplicated_electrodes(elec_pos):
     has_duplicated_elec = unique_elec_pos.shape == elec_pos.shape
     return has_duplicated_elec
 
-def faster_inverse(A): #Taken from http://stackoverflow.com/a/11999063/603292
-    b = np.identity(A.shape[1], dtype=A.dtype)
-    n_eq = A.shape[0]
-    n_rhs = A.shape[1]
-    pivots = np.zeros(n_eq, np.intc)
-    identity  = np.eye(n_eq)
-    def lapack_inverse(a):
-        b = np.copy(identity)
-        pivots = np.zeros(n_eq, np.intc)
-        results = lapack_lite.dgesv(n_eq, n_rhs, a, n_eq, pivots, b, n_eq, 0)
-        if results['info'] > 0:
-            raise LinAlgError('Singular matrix')
-        return b
-    return lapack_inverse(A)
+def sparse_dist_table(R, dist_max, dt_len):
+    """
+    **Returns**
+
+    xs : np.array
+        sparsely probed indices from the distance table
+    """
+    dense_step = 3
+    denser_step = 1
+    sparse_step = 9
+    border1 = 0.9 * R/dist_max * dt_len
+    border2 = 1.3 * R/dist_max * dt_len
+
+    xs = np.arange(0, border1, dense_step)
+    xs = np.append(xs, border1)
+    zz = np.arange((border1 + denser_step), border2, dense_step)
+
+    xs = np.concatenate((xs, zz))
+    xs = np.append(xs, [border2, (border2 + denser_step)])
+    xs = np.concatenate((xs, np.arange((border2 + denser_step +
+                                        sparse_step/2), 
+                                       dt_len,
+                                       sparse_step)))
+    xs = np.append(xs, dt_len + 1)
+    xs = np.unique(np.array(xs))
+    return xs
+
+def interpolate_dist_table(xs, probed_dist_table, dt_len):
+    '''Interpolates the dist tables values over the required density'''
+    inter = interpolate.interp1d(x=xs, y=probed_dist_table,
+                                    kind='cubic', fill_value=0.0 )
+    dt_int = np.array([inter(i) for i in xrange(dt_len)])
+    dt_int.flatten()
+    return dt_int
 
 def calc_error(k_pot, pots, lambd, index_generator):
     '''Useful for Cross validation - when done in parallel'''
