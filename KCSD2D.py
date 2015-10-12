@@ -277,7 +277,8 @@ class KCSD2D(CSD):
             index_generator.append((idx_train, idx_test))
 
         for R_idx,R in enumerate(Rs):  #Iterate over R
-            self.update_R(R) 
+            self.update_R(R)
+            print 'Cross validating R (all lambda) :', R
             for lambd_idx,lambd in enumerate(lambdas): #Iterate over lambdas
                 errs[R_idx, lambd_idx] = utils.calc_error(self.k_pot, 
                                                           self.pots, 
@@ -291,6 +292,7 @@ class KCSD2D(CSD):
         #Update solver
         self.update_R(cv_R) 
         self.update_lambda(cv_lambda)
+        print 'R, lambda :', cv_R, cv_lambda
         return cv_R, cv_lambda
 
 if __name__ == '__main__':
@@ -303,6 +305,6 @@ if __name__ == '__main__':
              'ymax': 2.0}
 
     k = KCSD2D(ele_pos, pots, params=params)
-    R, Lambda = k.cross_validate()
-    print 'R, Lambda: ', R, Lambda
+    k.cross_validate()
+
 
