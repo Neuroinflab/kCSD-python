@@ -1,6 +1,43 @@
 import numpy as np
 from scipy import interpolate
 
+def interpolate_dist_table(xs, probed_dist_table, dt_len):
+    """
+    Interpolates the dist tables values over the required density
+    """
+    inter = interpolate.interp1d(x=xs, y=probed_dist_table,
+                                    kind='cubic', fill_value=0.0 )
+    dt_int = np.array([inter(i) for i in xrange(dt_len)])
+    dt_int.flatten()
+    return dt_int
+
+def sparse_dist_table(R, dist_max, dt_len):
+    """
+    **Returns**
+
+    xs : np.array
+        sparsely probed indices from the distance table
+    """
+    dense_step = 3
+    denser_step = 1
+    sparse_step = 9
+    border1 = 0.9 * R/dist_max * dt_len
+    border2 = 1.3 * R/dist_max * dt_len
+
+    xs = np.arange(0, border1, dense_step)
+    xs = np.append(xs, border1)
+    zz = np.arange((border1 + denser_step), border2, dense_step)
+
+    xs = np.concatenate((xs, zz))
+    xs = np.append(xs, [border2, (border2 + denser_step)])
+    xs = np.concatenate((xs, np.arange((border2 + denser_step +
+                                        sparse_step/2), 
+                                       dt_len,
+                                       sparse_step)))
+    xs = np.append(xs, dt_len + 1)
+    xs = np.unique(np.array(xs))
+    return xs
+
 def int_pot_2D(xp, yp, x, R, h, basis_func): #This can be done better!
     """
     FWD model functions
@@ -17,7 +54,6 @@ def int_pot_2D(xp, yp, x, R, h, basis_func): #This can be done better!
     pot = np.arcsinh(h/y) #Why is there no 2 here!? HMM?!
     pot *= basis_func(xp, yp, [0, 0], R) #[0, 0] is origin here
     return pot
-
 
 def step_rescale_2D(xp, yp, mu, R):
     """
@@ -92,12 +128,9 @@ def make_src_2D(X, Y, n_src, ext_x, ext_y, R_init):
     """
     Lx = np.max(X) - np.min(X)
     Ly = np.max(Y) - np.min(Y)
-
     Lx_n = Lx + 2*ext_x
     Ly_n = Ly + 2*ext_y
-
     [nx, ny, Lx_nn, Ly_nn, ds] = get_src_params_2D(Lx_n, Ly_n, n_src)
-
     ext_x_n = (Lx_nn - Lx)/2
     ext_y_n = (Ly_nn - Ly)/2
 
@@ -106,24 +139,7 @@ def make_src_2D(X, Y, n_src, ext_x, ext_y, R_init):
 
     d = round(R_init/ds)
     R = d * ds
-
     return X_src, Y_src, R
-
-# def get_src_params_2D_new(Lx, Ly, n_src):
-#     V = Lx*Ly
-#     V_unit = V/n_src
-#     L_unit = V_unit**(0.5)
-
-#     nx = np.ceil(Lx/L_unit)
-#     ny = np.ceil(Ly/L_unit)
-
-#     ds = Lx/(nx-1)
-
-#     Lx_n = (nx-1)*ds
-#     Ly_n = (ny-1)*ds
-
-#     return (nx, ny, Lx_n, Ly_n, ds)
-
 
 def get_src_params_2D(Lx, Ly, n_src):
     """
@@ -148,20 +164,15 @@ def get_src_params_2D(Lx, Ly, n_src):
         spacing between the sources
     """
     coeff = [Ly, Lx - Ly, -Lx * n_src]
-
     rts = np.roots(coeff)
     r = [r for r in rts if type(r) is not complex and r > 0]
     nx = r[0]
     ny = n_src/nx
-
     ds = Lx/(nx-1)
-
     nx = np.floor(nx) + 1
     ny = np.floor(ny) + 1
-
     Lx_n = (nx - 1) * ds
     Ly_n = (ny - 1) * ds
-
     return (nx, ny, Lx_n, Ly_n, ds)
 
 
@@ -173,7 +184,7 @@ basis_types = {
 
 KCSD2D_params = {
     'sigma': 1.0,
-    'n_srcs_init': 300,
+    'n_srcs_init': 1000,
     'lambd': 0.0,
     'R_init': 0.23,
     'ext_x': 0.0,

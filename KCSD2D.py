@@ -38,6 +38,7 @@ class KCSD2D(CSD):
             regularization parameter for ridge regression
     """
     def __init__(self, ele_pos, pots, src_type='gauss', params={}):
+        self.cv_error = None
         self.validate(ele_pos, pots)        
         self.ele_pos = ele_pos
         self.pots = pots
@@ -48,9 +49,10 @@ class KCSD2D(CSD):
         return
 
     def estimate_at(self, params):
-        '''Locations where the estimation is wanted, this func must define
+        """
+        Locations where the estimation is wanted, this func must define
         self.space_X and self.space_Y
-        '''
+        """
         #override defaults if params is passed
         for (prop, default) in defaults.KCSD2D_params.iteritems(): 
             setattr(self, prop, params.get(prop, default))
@@ -71,12 +73,14 @@ class KCSD2D(CSD):
         return
 
     def place_basis(self, source_type):
-        '''Checks if a given source_type is defined, if so then defines it
+        """
+        Checks if a given source_type is defined, if so then defines it
         self.basis
         This function gives locations of the basis sources, and must define
         self.X_src, self.Y_src, self.R
         and
-        self.dist_max '''
+        self.dist_max
+        """
         #If Valid basis source type passed?
         if source_type not in defaults.basis_types.keys():
             raise Exception('Invalid source_type for basis! available are:', defaults.basis_types.keys())
@@ -95,7 +99,9 @@ class KCSD2D(CSD):
         return        
         
     def method(self):
-        '''Used to generate k_pot and k_interp_cross matrices'''
+        """
+        Used to generate k_pot and k_interp_cross matrices
+        """
         self.create_lookup() #Look up table ---- can we use errfunc instead - when sources are gaussian?
         self.update_b_pot()
         self.update_b_src()
@@ -103,12 +109,11 @@ class KCSD2D(CSD):
         return
 
     def values(self, estimate='CSD'):
-        '''
+        """
         takes estimation_table as an input - default input is None
         if interested in csd (default), pass estimate='CSD'
-        if interesting in pot pass estimate='POT'
-        '''
-
+        if interested in pot pass estimate='POT'
+        """
         if estimate == 'CSD': #Maybe used for estimating the potentials also.
             estimation_table = self.k_interp_cross #pass self.interp_pot in such a case
         elif estimate == 'POT':
@@ -129,20 +134,19 @@ class KCSD2D(CSD):
         return estimation
 
     def create_lookup(self, dist_table_density=100):
-        '''Updates and Returns the potentials due to a given basis source like a lookup
+        """
+        Updates and Returns the potentials due to a given basis source like a lookup
         table whose shape=(dist_table_density,)--> set in KCSD2D_Helpers.py
-
-        '''
-
+        """
         dt_len = dist_table_density
-        xs = utils.sparse_dist_table(self.R, self.dist_max, #Find pots at sparse points
+        xs = defaults.sparse_dist_table(self.R, self.dist_max, #Find pots at sparse points
                                         dist_table_density)
         dist_table = np.zeros(len(xs))
         for i, x in enumerate(xs):
             pos = (x/dt_len) * self.dist_max
             dist_table[i] = self.b_pot_2d_cont(pos, self.R, self.h, self.sigma,
                                                self.basis)
-        self.dist_table = utils.interpolate_dist_table(xs, dist_table, dt_len) #and then interpolated
+        self.dist_table = defaults.interpolate_dist_table(xs, dist_table, dt_len) #and then interpolated
         return self.dist_table #basis potentials in a look up table
 
     def update_b_pot(self):
@@ -233,7 +237,9 @@ class KCSD2D(CSD):
         return pot
 
     def update_R(self, R):
-        '''Useful for Cross validation'''
+        """
+        Used in Cross validation
+        """
         self.R = R
         Lx = np.max(self.X_src) - np.min(self.X_src) + self.R
         Ly = np.max(self.Y_src) - np.min(self.Y_src) + self.R
@@ -242,20 +248,24 @@ class KCSD2D(CSD):
         return
 
     def update_lambda(self, lambd):
-        '''Useful for Cross validation'''
+        """
+        Used in Cross validation
+        """
         self.lambd = lambd
         return
 
     def cross_validate(self, lambdas=None, Rs=None): #Pass index_generator here!
-        '''By default only cross_validates over lambda, 
+        """
+        By default only cross_validates over lambda, 
         When no argument is passed, it takes
         lambdas = np.logspace(-2,-25,25,base=10.)
         and Rs = np.array(self.R).flatten()
-        otherwise pass necessary numpy arrays'''
-        if lambdas == None:
-            lambdas = np.logspace(-2,-25,25,base=10.) #Default
-        if Rs == None:
-            Rs = np.array((self.R)).flatten() #Default
+        otherwise pass necessary numpy arrays
+        """
+        if not np.any(lambdas): #Goes into loop when None
+            lambdas = np.logspace(-2,-25,25,base=10.) #Default run over multiple lambda
+        if not np.any(Rs): #Goes into loop when None
+            Rs = np.array((self.R)).flatten() #Default over one R value
         errs = np.zeros((Rs.size, lambdas.size))
 
         #index generator
@@ -266,27 +276,25 @@ class KCSD2D(CSD):
             idx_train.remove(ii)
             index_generator.append((idx_train, idx_test))
 
-        #Iterate over R
-        for R_idx,R in enumerate(Rs): 
-            self.update_R(R)
-            #Iterate over lambdas
-            for lambd_idx,lambd in enumerate(lambdas):
+        for R_idx,R in enumerate(Rs):  #Iterate over R
+            self.update_R(R) 
+            for lambd_idx,lambd in enumerate(lambdas): #Iterate over lambdas
                 errs[R_idx, lambd_idx] = utils.calc_error(self.k_pot, 
                                                           self.pots, 
                                                           lambd, 
                                                           index_generator)
-        err_idx = np.where(errs==np.min(errs)) #Where is the least error
-        self.err_idx = err_idx
-        #Corresponding R, Lambda values
-        cv_R = Rs[err_idx[0]][0] 
+        err_idx = np.where(errs==np.min(errs)) #Index of the least error
+        #First occurance of the least error's corresponding R, Lambda values
+        cv_R = Rs[err_idx[0]][0]  
         cv_lambda = lambdas[err_idx[1]][0]
+        self.cv_error = np.min(errs) #otherwise is None
         #Update solver
         self.update_R(cv_R) 
         self.update_lambda(cv_lambda)
         return cv_R, cv_lambda
 
-
 if __name__ == '__main__':
+    #Sample data, not to be taken seriously
     ele_pos = np.array([[-0.2, -0.2],[0, 0], [0, 1], [1, 0], [1,1], [0.5, 0.5],
                         [1.2, 1.2]])
     pots = np.array([[-1], [-1], [-1], [0], [0], [1], [-1.5]])
@@ -295,6 +303,6 @@ if __name__ == '__main__':
              'ymax': 2.0}
 
     k = KCSD2D(ele_pos, pots, params=params)
-    #print k.cross_validate(Rs=np.array((0.01,0.02,0.04)))
-    print k.cross_validate()
+    R, Lambda = k.cross_validate()
+    print 'R, Lambda: ', R, Lambda
 
