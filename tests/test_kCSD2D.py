@@ -42,7 +42,7 @@ def grid(x, y, z, resX=100, resY=100):
     z = z.flatten()
     xi = linspace(min(x), max(x), resX)
     yi = linspace(min(y), max(y), resY)
-    Z = griddata(x, y, z, xi, yi, interp=='linear')
+    Z = griddata(x, y, z, xi, yi, interp='linear')
     X, Y = meshgrid(xi, yi)
     return X, Y, Z
 
