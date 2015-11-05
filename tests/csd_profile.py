@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 
-def csd_profile_large(x,y,z=0):
+def csd_profile_2d_large(x,y,z=0):
     '''Same as 'large source' profile in 2012 paper'''
     zz = [0.4, -0.3, -0.1, 0.6] 
     zs = [0.2, 0.3, 0.4, 0.2] 
@@ -14,7 +14,7 @@ def csd_profile_large(x,y,z=0):
     f = f1+f2+f3+f4
     return f
 
-def csd_profile_large_rand(x,y,z=0,states=0):
+def csd_profile_2d_large_rand(x,y,z=0,states=0):
     '''random source based on 'large source' profile in 2012 paper'''
     zz = states[0:4]
     zs = states[4:8]
@@ -28,14 +28,13 @@ def csd_profile_large_rand(x,y,z=0,states=0):
     f = f1+f2+f3+f4
     return f
 
-def csd_profile_small(x,y,z=0):
+def csd_profile_2d_small(x,y,z=0):
     def gauss2d(x,y,p):
         """
          p:     list of parameters of the Gauss-function
                 [XCEN,YCEN,SIGMAX,SIGMAY,AMP,ANGLE]
                 SIGMA = FWHM / (2*sqrt(2*log(2)))
                 ANGLE = rotation of the X,Y direction of the Gaussian in radians
-
         Returns
         -------
         the value of the Gaussian described by the parameters p
@@ -45,7 +44,6 @@ def csd_profile_small(x,y,z=0):
         rcen_y = p[0] * np.sin(p[5]) + p[1] * np.cos(p[5])
         xp = x * np.cos(p[5]) - y * np.sin(p[5])
         yp = x * np.sin(p[5]) + y * np.cos(p[5])
-
         g = p[4]*np.exp(-(((rcen_x-xp)/p[2])**2+
                           ((rcen_y-yp)/p[3])**2)/2.)
         return g
@@ -56,14 +54,13 @@ def csd_profile_small(x,y,z=0):
     f = f1+f2+f3+f4
     return f
 
-def csd_profile_small_rand(x,y,z=0,states=None):
+def csd_profile_2d_small_rand(x,y,states=None):
     def gauss2d(x,y,p):
         """
          p:     list of parameters of the Gauss-function
                 [XCEN,YCEN,SIGMAX,SIGMAY,AMP,ANGLE]
                 SIGMA = FWHM / (2*sqrt(2*log(2)))
                 ANGLE = rotation of the X,Y direction of the Gaussian in radians
-
         Returns
         -------
         the value of the Gaussian described by the parameters p
@@ -73,7 +70,6 @@ def csd_profile_small_rand(x,y,z=0,states=None):
         rcen_y = p[0] * np.sin(p[5]) + p[1] * np.cos(p[5])
         xp = x * np.cos(p[5]) - y * np.sin(p[5])
         yp = x * np.sin(p[5]) + y * np.cos(p[5])
-
         g = p[4]*np.exp(-(((rcen_x-xp)/p[2])**2+
                           ((rcen_y-yp)/p[3])**2)/2.)
         return g
@@ -88,18 +84,17 @@ def csd_profile_small_rand(x,y,z=0,states=None):
     return f
 
 if __name__=='__main__':
-    csd_profile = csd_profile_large_rand
-    #csd_profile = csd_profile_small_rand
+    csd_profile = csd_profile_2d_large_rand
+    #csd_profile = csd_profile_2d_small_rand
     rstate = np.random.RandomState(0) #seed here!
-    states = rstate.random_sample(24)
-    states[0:12] = 2*states[0:12] -1.
-
+    states = rstate.random_sample(24) #number of random values = 24
+    states[0:12] = 2*states[0:12] -1. #obtain values between -1 and 1
     chrg_x, chrg_y = np.mgrid[0.:1.:50j, 
                               0.:1.:50j]
-    f = csd_profile(chrg_x, chrg_y, np.zeros(len(chrg_y)), states=states) 
-
+    f = csd_profile(chrg_x, chrg_y, states=states) 
     fig = plt.figure(1)
     ax1 = plt.subplot(111, aspect='equal')
     im = ax1.contourf(chrg_x, chrg_y, f, 15, cmap=cm.bwr)
     cbar = plt.colorbar(im, shrink=0.5)
     plt.show()
+ 

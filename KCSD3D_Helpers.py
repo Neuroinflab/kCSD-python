@@ -1,4 +1,42 @@
 import numpy as np
+from scipy import interpolate
+
+def interpolate_dist_table(xs, probed_dist_table, dt_len):
+    """
+    Interpolates the dist tables values over the required density
+    """
+    inter = interpolate.interp1d(x=xs, y=probed_dist_table,
+                                    kind='cubic', fill_value=0.0 )
+    dt_int = np.array([inter(i) for i in xrange(dt_len)])
+    dt_int.flatten()
+    return dt_int
+
+def sparse_dist_table(R, dist_max, dt_len):
+    """
+    **Returns**
+
+    xs : np.array
+        sparsely probed indices from the distance table
+    """
+    dense_step = 3
+    denser_step = 1
+    sparse_step = 9
+    border1 = 0.9 * R/dist_max * dt_len
+    border2 = 1.3 * R/dist_max * dt_len
+
+    xs = np.arange(0, border1, dense_step)
+    xs = np.append(xs, border1)
+    zz = np.arange((border1 + denser_step), border2, dense_step)
+
+    xs = np.concatenate((xs, zz))
+    xs = np.append(xs, [border2, (border2 + denser_step)])
+    xs = np.concatenate((xs, np.arange((border2 + denser_step +
+                                        sparse_step/2), 
+                                       dt_len,
+                                       sparse_step)))
+    xs = np.append(xs, dt_len + 1)
+    xs = np.unique(np.array(xs))
+    return xs
 
 def int_pot_3D_mc(xyz, x, R, h, basis_func):
     """

@@ -99,7 +99,6 @@ def gauss_rescale_lim_2D(x, y, mu, three_stdev):
     Z *= ((x - mu[0])**2 + (y - mu[1])**2 < three_stdev**2)
     return Z
 
-
 def make_src_2D(X, Y, n_src, ext_x, ext_y, R_init):
     """
     **Parameters**
@@ -174,7 +173,6 @@ def get_src_params_2D(Lx, Ly, n_src):
     Lx_n = (nx - 1) * ds
     Ly_n = (ny - 1) * ds
     return (nx, ny, Lx_n, Ly_n, ds)
-
 
 basis_types = {
     "step": step_rescale_2D,

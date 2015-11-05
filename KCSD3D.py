@@ -1,5 +1,4 @@
 import numpy as np
-import utility_functions as utils
 import KCSD3D_Helpers as defaults
 from scipy import integrate
 from scipy.spatial import distance
@@ -100,7 +99,7 @@ class KCSD3D(KCSD2D):
 
         '''
         dt_len = dist_table_density
-        xs = utils.sparse_dist_table(self.R, 
+        xs = defaults.sparse_dist_table(self.R, 
                                      self.dist_max, #Find pots at sparse points
                                      dist_table_density)
         dist_table = np.zeros(len(xs))
@@ -117,7 +116,7 @@ class KCSD3D(KCSD2D):
                                              self.sigma,
                                              self.basis)
 
-        self.dist_table = utils.interpolate_dist_table(xs, dist_table, dt_len) #and then interpolated
+        self.dist_table = defaults.interpolate_dist_table(xs, dist_table, dt_len) #and then interpolated
         return self.dist_table #basis potentials in a look up table
 
     def update_b_pot(self):
