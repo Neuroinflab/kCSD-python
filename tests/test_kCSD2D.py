@@ -180,8 +180,8 @@ def do_kcsd(ele_pos, pots, params):
     num_ele = len(ele_pos)
     pots = pots.reshape(num_ele, 1)
     k = KCSD2D(ele_pos, pots, params=params)
-    k.cross_validate(Rs=np.arange(0.08,0.35,0.02))
-    #k.cross_validate(Rs=np.array(0.14).reshape(1,1))
+    #k.cross_validate(Rs=np.arange(0.08,0.35,0.02))
+    k.cross_validate(Rs=np.array(0.14).reshape(1))
     est_csd = k.values('CSD')
     return k, est_csd
 

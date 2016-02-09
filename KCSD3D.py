@@ -1,7 +1,9 @@
 import numpy as np
-import KCSD3D_Helpers as defaults
 from scipy import integrate
 from scipy.spatial import distance
+
+import KCSD3D_Helpers as defaults
+import utility_functions as utils
 from KCSD2D import KCSD2D
 from skmonaco import mcmiser
 
@@ -35,6 +37,8 @@ class KCSD3D(KCSD2D):
         self.space_X, self.space_Y, self.space_Z = np.mgrid[xmin:xmax:np.complex(0,nx), 
                                                             ymin:ymax:np.complex(0,ny),
                                                             zmin:zmax:np.complex(0,nz)]
+        self.n_est = self.space_X.size
+        self.ngx, self.ngy, self.ngz = self.space_X.shape
         return
 
     def place_basis(self, source_type):
@@ -64,6 +68,8 @@ class KCSD3D(KCSD2D):
         Ly = np.max(self.Y_src) - np.min(self.Y_src) + self.R
         Lz = np.max(self.Z_src) - np.min(self.Z_src) + self.R
         self.dist_max = (Lx**2 + Ly**2 + Lz**2)**0.5
+        self.n_src = self.X_src.size
+        self.nsx, self.nsy, self.nsz = self.X_src.shape
         return        
 
     def values(self, estimate='CSD'):
@@ -74,23 +80,20 @@ class KCSD3D(KCSD2D):
         '''
 
         if estimate == 'CSD': #Maybe used for estimating the potentials also.
-            estimation_table = self.k_interp_cross #pass self.interp_pot in such a case
+            estimation_table = self.k_interp_cross 
         elif estimate == 'POT':
             estimation_table = self.k_interp_pot
         else:
             print 'Invalid quantity to be measured, pass either CSD or POT'
-
         k_inv = np.linalg.inv(self.k_pot + self.lambd *
                               np.identity(self.k_pot.shape[0]))
         nt = self.pots.shape[1] #Number of time points
-        (nx, ny, nz) = self.space_X.shape
-        estimation = np.zeros((nx * ny * nz, nt))
-
+        estimation = np.zeros((self.n_est, nt))
         for t in xrange(nt):
             beta = np.dot(k_inv, self.pots[:, t])
             for i in xrange(self.ele_pos.shape[0]):
-                estimation[:, t] += beta[i] * estimation_table[:, i] # C*(x) Eq 18
-        estimation = estimation.reshape(nx, ny, nz, nt)
+                estimation[:, t] += estimation_table[:, i] *beta[i] # C*(x) Eq 18
+        estimation = estimation.reshape(self.ngx, self.ngy, self.ngz, nt)
         return estimation
 
     def create_lookup(self, dist_table_density=100):
@@ -99,9 +102,9 @@ class KCSD3D(KCSD2D):
 
         '''
         dt_len = dist_table_density
-        xs = defaults.sparse_dist_table(self.R, 
-                                     self.dist_max, #Find pots at sparse points
-                                     dist_table_density)
+        xs = utils.sparse_dist_table(self.R, 
+                                        self.dist_max, #Find pots at sparse points
+                                        dist_table_density)
         dist_table = np.zeros(len(xs))
         for i, x in enumerate(xs):
             pos = (x/dt_len) * self.dist_max
@@ -115,8 +118,7 @@ class KCSD3D(KCSD2D):
                                              self.h, 
                                              self.sigma,
                                              self.basis)
-
-        self.dist_table = defaults.interpolate_dist_table(xs, dist_table, dt_len) #and then interpolated
+        self.dist_table = utils.interpolate_dist_table(xs, dist_table, dt_len) #and then interpolated
         return self.dist_table #basis potentials in a look up table
 
     def update_b_pot(self):
@@ -141,15 +143,10 @@ class KCSD3D(KCSD2D):
         all the source basis functions in all the points at which we want to
         calculate the solution (essential for calculating the cross_matrix)
         """
-        (nsx, nsy, nsz) = self.X_src.shape #These should go elsewhere!
-        n = nsz * nsy * nsx  # total number of sources
-        (ngx, ngy, ngz) = self.space_X.shape
-        ng = ngx * ngy *ngz
-
-        self.b_src = np.zeros((ngx, ngy, ngz, n))
-        for i in xrange(n):
+        self.b_src = np.zeros((self.ngx, self.ngy, self.ngz, self.n_src))
+        for i in xrange(self.n_src):
             # getting the coordinates of the i-th source
-            (i_x, i_y, i_z) = np.unravel_index(i, (nsx, nsy, ngz), order='F')
+            (i_x, i_y, i_z) = np.unravel_index(i, (self.nsx, self.nsy, self.nsz), order='C')
             x_src = self.X_src[i_x, i_y, i_z]
             y_src = self.Y_src[i_x, i_y, i_z]
             z_src = self.Z_src[i_x, i_y, i_z]
@@ -158,8 +155,7 @@ class KCSD3D(KCSD2D):
                                                 self.space_Z,
                                                 [x_src, y_src, z_src],
                                                 self.R)
-
-        self.b_src = self.b_src.reshape(ng, n)
+        self.b_src = self.b_src.reshape(self.n_est, self.n_src)
         self.k_interp_cross = np.dot(self.b_src, self.b_pot) #K_t(x,y) Eq17
         return self.b_src
 
@@ -194,7 +190,7 @@ class KCSD3D(KCSD2D):
                                      lambda x, y: -R, 
                                      lambda x, y: R,
                                      args=(x, R, h, src_type))
-        pot *= 1./(2.0*np.pi*sigma)
+        pot *= 1./(4.0*np.pi*sigma)
         return pot
 
     def b_pot_3d_mc(self, x, R, h, sigma, src_type):
@@ -206,18 +202,20 @@ class KCSD3D(KCSD2D):
                            npoints=1e5,
                            xl=[-R, -R, -R], 
                            xu=[R, R, R],
+                           seed=42, 
                            nprocs=8, 
                            args=(x, R, h, src_type))
-        pot *= 1./(2.0*np.pi*sigma)
+        pot *= 1./(4.0*np.pi*sigma)
         return pot
 
     def update_R(self, R):
         '''Useful for Cross validation'''
+
         self.R = R
         Lx = np.max(self.X_src) - np.min(self.X_src) + self.R
         Ly = np.max(self.Y_src) - np.min(self.Y_src) + self.R
         Lz = np.max(self.Z_src) - np.min(self.Z_src) + self.R
-        self.dist_max = (Lx**2 + Ly**2 + Lz**2)**0.5
+        self.dist_max = np.sqrt((Lx**2 + Ly**2 + Lz**2))
         self.method()
         return
 
@@ -226,10 +224,9 @@ if __name__ == '__main__':
                         (0, 1, 1), (1, 1, 0), (1, 0, 1), (1, 1, 1),
                         (0.5, 0.5, 0.5)])
     pots = np.array([[-0.5], [0], [-0.5], [0], [0], [0.2], [0], [0], [1]])
-
     params = {'gdX': 0.02, 'gdY': 0.02, 'gdZ': 0.02, 'n_srcs_init': 1000}
-    
+
     k = KCSD3D(ele_pos, pots, params=params)
     #print k.values()
-    #k.cross_validate()
-    print k.cross_validate(Rs=np.array((0.01,0.02,0.04))) 
+    k.cross_validate(Rs=np.array(0.14).reshape(1))
+    #k.cross_validate(Rs=np.array((0.01,0.02,0.04))) 

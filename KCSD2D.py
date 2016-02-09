@@ -1,8 +1,9 @@
 import numpy as np
-import utility_functions as utils
-import KCSD2D_Helpers as defaults
 from scipy import integrate
 from scipy.spatial import distance
+
+import utility_functions as utils
+import KCSD2D_Helpers as defaults
 from CSD import CSD
 
 class KCSD2D(CSD):
@@ -43,6 +44,7 @@ class KCSD2D(CSD):
         self.ele_pos = ele_pos
         self.pots = pots
         self.n_obs = self.ele_pos.shape[0]
+        self.nt = self.pots.shape[1]
         self.estimate_at(params) 
         self.place_basis(src_type) 
         self.method()
@@ -71,6 +73,7 @@ class KCSD2D(CSD):
         self.space_X, self.space_Y = np.mgrid[xmin:xmax:np.complex(0,nx), 
                                               ymin:ymax:np.complex(0,ny)]
         self.n_est = self.space_X.size
+        self.ngx, self.ngy = self.space_X.shape
         return
 
     def place_basis(self, source_type):
@@ -100,6 +103,7 @@ class KCSD2D(CSD):
         Ly = np.max(self.Y_src) - np.min(self.Y_src) + self.R
         self.dist_max = (Lx**2 + Ly**2)**0.5
         self.n_src = self.X_src.size
+        self.nsx, self.nsy = self.X_src.shape
         return        
         
     def method(self):
@@ -126,14 +130,12 @@ class KCSD2D(CSD):
             print 'Invalid quantity to be measured, pass either CSD or POT'
         k_inv = np.linalg.inv(self.k_pot + self.lambd *
                               np.identity(self.k_pot.shape[0]))
-        nt = self.pots.shape[1]                             #Number of time points
-        (nx, ny) = self.space_X.shape
-        estimation = np.zeros((nx * ny, nt))
-        for t in xrange(nt):
+        estimation = np.zeros((self.n_est, self.nt))
+        for t in xrange(self.nt):
             beta = np.dot(k_inv, self.pots[:, t])
             for i in xrange(self.ele_pos.shape[0]):
                 estimation[:, t] += estimation_table[:, i] * beta[i]  #C*(x) Eq 18
-        estimation = estimation.reshape(nx, ny, nt)
+        estimation = estimation.reshape(self.ngx, self.ngy, self.nt)
         return estimation
 
     def create_lookup(self, dist_table_density=100):
@@ -142,15 +144,15 @@ class KCSD2D(CSD):
         table whose shape=(dist_table_density,)--> set in KCSD2D_Helpers.py
         """
         dt_len = dist_table_density
-        xs = defaults.sparse_dist_table(self.R,      #Find pots at sparse points
-                                        self.dist_max, 
-                                        dist_table_density)
+        xs = utils.sparse_dist_table(self.R,      #Find pots at sparse points
+                                     self.dist_max, 
+                                     dist_table_density)
         dist_table = np.zeros(len(xs))
         for i, x in enumerate(xs):
             pos = (x/dt_len) * self.dist_max
             dist_table[i] = self.b_pot_2d_cont(pos, self.R, self.h, self.sigma,
                                                self.basis)
-        self.dist_table = defaults.interpolate_dist_table(xs, dist_table, dt_len) 
+        self.dist_table = utils.interpolate_dist_table(xs, dist_table, dt_len) 
         return self.dist_table               #basis potentials in a look up table
 
     def update_b_pot(self):
@@ -175,13 +177,10 @@ class KCSD2D(CSD):
         all the source basis functions in all the points at which we want to
         calculate the solution (essential for calculating the cross_matrix)
         """
-        #WHY DO THIS for each point separately? SCOPE for improvement
-        nsx, nsy = self.X_src.shape     #shape of sources
-        ngx, ngy = self.space_X.shape   #shape of estimate
-        self.b_src = np.zeros((ngx, ngy, self.n_src))
+        self.b_src = np.zeros((self.ngx, self.ngy, self.n_src))
         for i in xrange(self.n_src):
             # getting the coordinates of the i-th source
-            (i_x, i_y) = np.unravel_index(i, (nsx, nsy), order='C')
+            (i_x, i_y) = np.unravel_index(i, (self.nsx, self.nsy), order='C')
             x_src = self.X_src[i_x, i_y]
             y_src = self.Y_src[i_x, i_y]
             self.b_src[:, :, i] = self.basis(self.space_X, 

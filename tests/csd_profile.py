@@ -2,8 +2,10 @@ from numpy import exp
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
+from matplotlib import gridspec
+from mpl_toolkits.mplot3d import axes3d
 
-def csd_profile_2d_large(x,y,z=0):
+def csd_profile_2d_large(x,y,z=0,states=None):
     '''Same as 'large source' profile in 2012 paper'''
     zz = [0.4, -0.3, -0.1, 0.6] 
     zs = [0.2, 0.3, 0.4, 0.2] 
@@ -14,21 +16,7 @@ def csd_profile_2d_large(x,y,z=0):
     f = f1+f2+f3+f4
     return f
 
-def csd_profile_2d_large_rand(x,y,z=0,states=0):
-    '''random source based on 'large source' profile in 2012 paper'''
-    zz = states[0:4]
-    zs = states[4:8]
-    mag = states[8:12]
-    loc = states[12:20]
-    scl = states[20:24]
-    f1 = mag[0]*exp( (-1*(x-loc[0])**2 - (y-loc[4])**2) /scl[0])* exp(-(z-zz[0])**2 / zs[0]) /exp(-(zz[0])**2/zs[0])
-    f2 = mag[1]*exp( (-2*(x-loc[1])**2 - (y-loc[5])**2) /scl[1])* exp(-(z-zz[1])**2 / zs[1]) /exp(-(zz[1])**2/zs[1]);
-    f3 = mag[2]*exp( (-3*(x-loc[2])**2 - (y-loc[6])**2) /scl[2])* exp(-(z-zz[2])**2 / zs[2]) /exp(-(zz[2])**2/zs[2]);
-    f4 = mag[3]*exp( (-4*(x-loc[3])**2 - (y-loc[7])**2) /scl[3])* exp(-(z-zz[3])**2 / zs[3]) /exp(-(zz[3])**2/zs[3]);
-    f = f1+f2+f3+f4
-    return f
-
-def csd_profile_2d_small(x,y,z=0):
+def csd_profile_2d_small(x,y,z=0,states=None):
     def gauss2d(x,y,p):
         """
          p:     list of parameters of the Gauss-function
@@ -51,6 +39,20 @@ def csd_profile_2d_small(x,y,z=0):
     f2 = gauss2d(x,y,[0.3,0.6,0.038,0.058,-0.5,0.])
     f3 = gauss2d(x,y,[0.45,0.7,0.038,0.058,0.5,0.])
     f4 = gauss2d(x,y,[0.45,0.6,0.038,0.058,-0.5,0.])
+    f = f1+f2+f3+f4
+    return f
+
+def csd_profile_2d_large_rand(x,y,z=0,states=None):
+    '''random source based on 'large source' profile in 2012 paper'''
+    zz = states[0:4]
+    zs = states[4:8]
+    mag = states[8:12]
+    loc = states[12:20]
+    scl = states[20:24]
+    f1 = mag[0]*exp( (-1*(x-loc[0])**2 - (y-loc[4])**2) /scl[0])* exp(-(z-zz[0])**2 / zs[0]) /exp(-(zz[0])**2/zs[0])
+    f2 = mag[1]*exp( (-2*(x-loc[1])**2 - (y-loc[5])**2) /scl[1])* exp(-(z-zz[1])**2 / zs[1]) /exp(-(zz[1])**2/zs[1]);
+    f3 = mag[2]*exp( (-3*(x-loc[2])**2 - (y-loc[6])**2) /scl[2])* exp(-(z-zz[2])**2 / zs[2]) /exp(-(zz[2])**2/zs[2]);
+    f4 = mag[3]*exp( (-4*(x-loc[3])**2 - (y-loc[7])**2) /scl[3])* exp(-(z-zz[3])**2 / zs[3]) /exp(-(zz[3])**2/zs[3]);
     f = f1+f2+f3+f4
     return f
 
@@ -83,18 +85,122 @@ def csd_profile_2d_small_rand(x,y,states=None):
     f = f1+f2+f3+f4
     return f
 
+def csd_profile_3d_small(x,y,z,states=None):
+    x0, y0, z0 = 0.3, 0.7, 0.3
+    x1, y1, z1 = 0.6, 0.5, 0.7
+    sig_2 = 0.023
+    A = (2*np.pi*sig_2)**-1
+    f1 = A*np.exp( (-(x-x0)**2 -(y-y0)**2 -(z-z0)**2) / (2*sig_2) )
+    f2 = -1*A*np.exp( (-(x-x1)**2 -(y-y1)**2 -(z-z1)**2) / (2*sig_2) )
+    f = f1+f2
+    return f
+
+def csd_profile_3d_mono_c(x,y,z,states=None):
+    x0, y0, z0 = 0.5, 0.5, 0.5
+    sig_2 = 0.023
+    A = (2*np.pi*sig_2)**-1
+    f1 = A*np.exp( (-(x-x0)**2 -(y-y0)**2 -(z-z0)**2) / (2*sig_2) )
+    return f1
+
+def csd_profile_3d_mono_oc(x,y,z,states=None):
+    x0, y0, z0 = 0.41, 0.41, 0.585
+    sig_2 = 0.023
+    A = (2*np.pi*sig_2)**-1
+    f1 = A*np.exp( (-(x-x0)**2 -(y-y0)**2 -(z-z0)**2) / (2*sig_2) )
+    return f1
+
+def csd_profile_3d_basis(x,y,z,states=None):
+    x0, y0, z0 = 0.55555556, 0.55555556, 0.55555556
+    stdev = 0.3
+    h = 1./((2*np.pi)**0.5 * stdev)**3
+    c = 0.5*stdev**(-2)
+    f1 = h*np.exp(-c*((x - x0)**2 + (y - y0)**2 + (z - z0)**2))
+    return f1
+
+def csd_profile_3d_small_rand(x,y,z,states=None):
+    x0, y0, z0 = states[0:3]
+    x1, y1, z1 = states[3:6]
+    if states[6] < 0.01:
+        states[6] *= 25
+    sig_2 = states[6] / 75.
+    p1, p2, p3 = (ii*0.5 for ii in states[8:11])
+    A = (2*np.pi*sig_2)**-1
+    f1 = A*np.exp( (-(x-x0)**2 -(y-y0)**2 -(z-z0)**2) / (2*sig_2) )
+    f2 = -1*A*np.exp( (-(x-x1)**2 -(y-y1)**2 -(z-z1)**2) / (2*sig_2) )
+    x2 = np.modf(x0+p1)[0]
+    y2 = np.modf(y0+p2)[0]
+    z2 = np.modf(z0+p3)[0]
+    f3 = A*np.exp( (-(x-x2)**2 -(y-y2)**2 -(z-z2)**2) / (2*sig_2) )
+    x3 = np.modf(x1+p1)[0]
+    y3 = np.modf(y1+p2)[0]
+    z3 = np.modf(z1+p3)[0]
+    f4 = -1*A*np.exp( (-(x-x3)**2 -(y-y3)**2 -(z-z3)**2) / (2*sig_2) )
+    f = f1+f2+f3+f4
+    return f
+
+def csd_profile_3d_large_rand(x,y,z,states=None):
+    x0, y0, z0 = states[7:10]
+    x1, y1, z1 = states[10:13]
+    if states[1] < 0.01:
+        states[1] *= 25
+    sig_2 = states[1] * 5
+    A = (2*np.pi*sig_2)**-1
+    f1 = A*np.exp( (-(x-x0)**2 -(y-y0)**2 -(z-z0)**2) / (2*sig_2) )
+    f2 = -1*A*np.exp( (-(x-x1)**2 -(y-y1)**2 -(z-z1)**2) / (2*sig_2) )
+    f = f1+f2
+    return f
+
+def neat_4d_plot(x, y, z, t, z_steps=5, cmap=cm.bwr_r):
+    t_max = np.max(np.abs(t))
+    levels = np.linspace(-1*t_max, t_max, 15)
+    ind_interest = np.mgrid[0:z.shape[2]:np.complex(0,z_steps+2)]
+    ind_interest = np.array(ind_interest, dtype=np.int)[1:-1]
+    fig = plt.figure(figsize=(4,12))
+    height_ratios = [1 for i in range(z_steps)]
+    height_ratios.append(0.1)
+    gs = gridspec.GridSpec(z_steps+1, 1, height_ratios=height_ratios)
+    for ii, idx in enumerate(ind_interest):
+        ax = plt.subplot(gs[ii,0])
+        im = plt.contourf(chrg_x[:,:,idx], chrg_y[:,:,idx], t[:,:,idx], 
+                          levels=levels, cmap=cmap)
+        ax.get_xaxis().set_visible(False)
+        ax.get_yaxis().set_visible(False)
+        title = str(z[:,:,idx][0][0])[:4]
+        ax.set_title(label=title, fontdict={'x':0.8, 'y':0.7})
+        ax.set_aspect('equal')
+    cax = plt.subplot(gs[z_steps,0])
+    cbar = plt.colorbar(im, cax=cax, orientation='horizontal')
+    cbar.set_ticks(levels[::2])
+    cbar.set_ticklabels(np.around(levels[::2], decimals=2))
+    gs.tight_layout(fig, rect=[0, 0.03, 1, 0.95])  
+    #plt.tight_layout()
+
 if __name__=='__main__':
-    csd_profile = csd_profile_2d_large_rand
-    #csd_profile = csd_profile_2d_small_rand
     rstate = np.random.RandomState(0) #seed here!
     states = rstate.random_sample(24) #number of random values = 24
-    states[0:12] = 2*states[0:12] -1. #obtain values between -1 and 1
-    chrg_x, chrg_y = np.mgrid[0.:1.:50j, 
-                              0.:1.:50j]
-    f = csd_profile(chrg_x, chrg_y, states=states) 
-    fig = plt.figure(1)
-    ax1 = plt.subplot(111, aspect='equal')
-    im = ax1.contourf(chrg_x, chrg_y, f, 15, cmap=cm.bwr)
-    cbar = plt.colorbar(im, shrink=0.5)
-    plt.show()
- 
+
+    # #2D CASE
+    # csd_profile = csd_profile_2d_large_rand
+    # #csd_profile = csd_profile_2d_small_rand
+    # states[0:12] = 2*states[0:12] -1. #obtain values between -1 and 1
+    # chrg_x, chrg_y = np.mgrid[0.:1.:50j, 
+    #                           0.:1.:50j]
+    # f = csd_profile(chrg_x, chrg_y, states=states) 
+    # fig = plt.figure(1)
+    # ax1 = plt.subplot(111, aspect='equal')
+    # im = ax1.contourf(chrg_x, chrg_y, f, 15, cmap=cm.bwr_r)
+    # cbar = plt.colorbar(im, shrink=0.5)
+    # plt.show()
+
+    #3D CASE
+    csd_profile = csd_profile_3d_mono_oc
+    #csd_profile = csd_profile_3d_small_rand
+    #csd_profile = csd_profile_3d_small
+    chrg_x, chrg_y, chrg_z = np.mgrid[0.:1.:50j, 
+                                      0.:1.:50j,
+                                      0.:1.:50j]
+
+    #f = csd_profile(chrg_x, chrg_y, chrg_z, states)
+    f = csd_profile(chrg_x, chrg_y, chrg_z)
+    neat_4d_plot(chrg_x, chrg_y, chrg_z, f)
+    plt.show() 

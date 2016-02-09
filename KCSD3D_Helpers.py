@@ -1,42 +1,4 @@
 import numpy as np
-from scipy import interpolate
-
-def interpolate_dist_table(xs, probed_dist_table, dt_len):
-    """
-    Interpolates the dist tables values over the required density
-    """
-    inter = interpolate.interp1d(x=xs, y=probed_dist_table,
-                                    kind='cubic', fill_value=0.0 )
-    dt_int = np.array([inter(i) for i in xrange(dt_len)])
-    dt_int.flatten()
-    return dt_int
-
-def sparse_dist_table(R, dist_max, dt_len):
-    """
-    **Returns**
-
-    xs : np.array
-        sparsely probed indices from the distance table
-    """
-    dense_step = 3
-    denser_step = 1
-    sparse_step = 9
-    border1 = 0.9 * R/dist_max * dt_len
-    border2 = 1.3 * R/dist_max * dt_len
-
-    xs = np.arange(0, border1, dense_step)
-    xs = np.append(xs, border1)
-    zz = np.arange((border1 + denser_step), border2, dense_step)
-
-    xs = np.concatenate((xs, zz))
-    xs = np.append(xs, [border2, (border2 + denser_step)])
-    xs = np.concatenate((xs, np.arange((border2 + denser_step +
-                                        sparse_step/2), 
-                                       dt_len,
-                                       sparse_step)))
-    xs = np.append(xs, dt_len + 1)
-    xs = np.unique(np.array(xs))
-    return xs
 
 def int_pot_3D_mc(xyz, x, R, h, basis_func):
     """
@@ -76,7 +38,7 @@ def gauss_rescale_3D(x, y, z, mu, three_stdev):
         3 * standard deviation of the distribution
     """
     stdev = three_stdev/3.0
-    h = 1./((2*np.pi)**0.5 * stdev)**3
+    h = 1./(((2*np.pi)**0.5) * stdev)**3
     c = 0.5 * stdev**(-2)
     Z = h * np.exp(-c * ((x - mu[0])**2 + (y - mu[1])**2 + (z - mu[2])**2))
     return Z
@@ -197,7 +159,7 @@ basis_types = {
 
 KCSD3D_params = {
     'sigma': 1.0,
-    'n_srcs_init': 300,
+    'n_srcs_init': 1000,
     'lambd': 0.0,
     'R_init': 0.23,
     'ext_x': 0.0,
