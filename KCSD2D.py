@@ -167,6 +167,7 @@ class KCSD2D(CSD):
         dists = distance.cdist(src.T, self.ele_pos, 'euclidean')
         self.b_pot = self.generated_potential(dists)
         self.k_pot = np.dot(self.b_pot.T, self.b_pot) #K(x,x') Eq9,Jan2012
+        self.k_pot /= self.n_src
         return self.b_pot
 
     def update_b_src(self):
@@ -189,6 +190,7 @@ class KCSD2D(CSD):
                                              self.R)
         self.b_src = self.b_src.reshape(self.n_est, self.n_src)
         self.k_interp_cross = np.dot(self.b_src, self.b_pot) #K_t(x,y) Eq17
+        self.k_interp_cross /= self.n_src
         return self.b_src
         
     def update_b_interp_pot(self):
@@ -203,6 +205,7 @@ class KCSD2D(CSD):
         dists = distance.cdist(src.T, est_loc.T,  'euclidean')
         self.b_interp_pot = self.generated_potential(dists).T
         self.k_interp_pot = np.dot(self.b_interp_pot, self.b_pot)
+        self.k_interp_pot /= self.n_src
         return self.b_interp_pot
 
     def generated_potential(self, dist):
