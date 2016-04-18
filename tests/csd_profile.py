@@ -1,22 +1,164 @@
-from numpy import exp
+'''
+This script is used to generate dummy CSD sources, 
+to test the various kCSD methods
+
+This script is in alpha phase.
+
+This was written by :
+Michal Czerwinski, Chaitanya Chintaluri, 
+Laboratory of Neuroinformatics,
+Nencki Institute of Exprimental Biology, Warsaw.
+'''
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
+
 from matplotlib import gridspec
 from mpl_toolkits.mplot3d import axes3d
+from numpy import exp
 
-def csd_profile_2d_large(x,y,z=0,states=None):
-    '''Same as 'large source' profile in 2012 paper'''
-    zz = [0.4, -0.3, -0.1, 0.6] 
-    zs = [0.2, 0.3, 0.4, 0.2] 
-    f1 = 0.5965*exp( (-1*(x-0.1350)**2 - (y-0.8628)**2) /0.4464)* exp(-(z-zz[0])**2 / zs[0]) /exp(-(zz[0])**2/zs[0])
-    f2 = -0.9269*exp( (-2*(x-0.1848)**2 - (y-0.0897)**2) /0.2046)* exp(-(z-zz[1])**2 / zs[1]) /exp(-(zz[1])**2/zs[1]);
-    f3 = 0.5910*exp( (-3*(x-1.3189)**2 - (y-0.3522)**2) /0.2129)* exp(-(z-zz[2])**2 / zs[2]) /exp(-(zz[2])**2/zs[2]);
-    f4 = -0.1963*exp( (-4*(x-1.3386)**2 - (y-0.5297)**2) /0.2507)* exp(-(z-zz[3])**2 / zs[3]) /exp(-(zz[3])**2/zs[3]);
+def get_states_1D(seed, n=1):
+    """
+    Used in the random seed generation
+    creates a matrix that will generate seeds, here for gaussians:
+    amplitude (-1., 1.), location (0,1)*ndim, sigma(0,1)
+    """
+    ndim = 1
+    if seed == 0:
+        states = np.array([1.,0.5,0.5], ndmin=2)
+    rstate = np.random.RandomState(seed)
+    states = rstate.random_sample(n*(ndim+2)).reshape((n,(ndim+2)))
+    states[:,0] = (2*states[:,0]) -1.
+    return states, rstate
+
+def add_1d_gaussians(x, states):
+    '''Function used for adding multiple 1D gaussians'''
+    f = np.zeros(x.shape)
+    for i in xrange(states.shape[0]):
+        gauss = states[i,0]*np.exp(-((x-states[i,1])**2)/(2.*states[i,2]))*(2*np.pi*states[i,2])**-0.5
+        f += gauss
+    #f *= np.hanning(gauss.size) #while this is cool in principle, its unpredictable 
+    return f
+
+def gauss_1d_mono(x, seed=0):
+    '''Random monopole in 1D'''
+    states, rstate = get_states_1D(seed, n=1)
+    f = add_1d_gaussians(x, states)
+    return f
+
+def gauss_1d_dipole(x, seed=0):
+    '''Random dipole source in 1D'''
+    states, rstate = get_states_1D(seed, n=1)
+    offset = rstate.random_sample(1) - 0.5
+    states = np.tile(states, (2,1))
+    states[1,0] *= -1. #A Sink
+    states[1,1] += offset
+    f = add_1d_gaussians(x, states)
+    return f
+
+def get_states_2D(seed):
+    """
+    Used in the random seed generation for 2d sources
+    """
+    rstate = np.random.RandomState(seed) 
+    states = rstate.random_sample(24)
+    states[0:12] = 2*states[0:12] -1.
+    return states
+
+def gauss_2d_large(x, y, seed=0):
+    '''random quadpolar'large source' profile in 2012 paper in 2D'''
+    states = get_states_2D(seed)
+    z = 0
+    zz = states[0:4]
+    zs = states[4:8]
+    mag = states[8:12]
+    loc = states[12:20]
+    scl = states[20:24]
+    f1 = mag[0]*exp( (-1*(x-loc[0])**2 - (y-loc[4])**2) /scl[0])* exp(-(z-zz[0])**2 / zs[0]) /exp(-(zz[0])**2/zs[0])
+    f2 = mag[1]*exp( (-2*(x-loc[1])**2 - (y-loc[5])**2) /scl[1])* exp(-(z-zz[1])**2 / zs[1]) /exp(-(zz[1])**2/zs[1]);
+    f3 = mag[2]*exp( (-3*(x-loc[2])**2 - (y-loc[6])**2) /scl[2])* exp(-(z-zz[2])**2 / zs[2]) /exp(-(zz[2])**2/zs[2]);
+    f4 = mag[3]*exp( (-4*(x-loc[3])**2 - (y-loc[7])**2) /scl[3])* exp(-(z-zz[3])**2 / zs[3]) /exp(-(zz[3])**2/zs[3]);
     f = f1+f2+f3+f4
     return f
 
-def csd_profile_2d_small(x,y,z=0,states=None):
+def gauss_2d_small(x, y, seed=0):
+    '''random quadpolar small source in 2D'''
+    def gauss2d(x,y,p):
+        """
+         p:     list of parameters of the Gauss-function
+                [XCEN,YCEN,SIGMAX,SIGMAY,AMP,ANGLE]
+                SIGMA = FWHM / (2*sqrt(2*log(2)))
+                ANGLE = rotation of the X,Y direction of the Gaussian in radians
+        Returns
+        -------
+        the value of the Gaussian described by the parameters p
+        at position (x,y)
+        """
+        rcen_x = p[0] * np.cos(p[5]) - p[1] * np.sin(p[5])
+        rcen_y = p[0] * np.sin(p[5]) + p[1] * np.cos(p[5])
+        xp = x * np.cos(p[5]) - y * np.sin(p[5])
+        yp = x * np.sin(p[5]) + y * np.cos(p[5])
+        g = p[4]*np.exp(-(((rcen_x-xp)/p[2])**2+
+                          ((rcen_y-yp)/p[3])**2)/2.)
+        return g
+    states = get_states_2D(seed)
+    angle = states[18]*180.
+    x_amp = 0.038
+    y_amp = 0.056
+    f1 = gauss2d(x,y,[states[12],states[14],x_amp,y_amp,0.5,angle])
+    f2 = gauss2d(x,y,[states[12],states[15],x_amp,y_amp,-0.5,angle])
+    f3 = gauss2d(x,y,[states[13],states[14],x_amp,y_amp,0.5,angle])
+    f4 = gauss2d(x,y,[states[13],states[15],x_amp,y_amp,-0.5,angle])
+    f = f1+f2+f3+f4
+    return f
+
+def get_states_3D(seed):
+    """
+    Used in the random seed generation for 3D sources
+    """
+    rstate = np.random.RandomState(seed) #seed here!
+    states = rstate.random_sample(24)
+    return states
+
+def gauss_3d_small(x, y, z, seed=0):
+    '''A random quadpole small souce in 3D'''
+    states = get_states_3D(seed)
+    x0, y0, z0 = states[0:3]
+    x1, y1, z1 = states[3:6]
+    if states[6] < 0.01:
+        states[6] *= 25
+    sig_2 = states[6] / 75.
+    p1, p2, p3 = (ii*0.5 for ii in states[8:11])
+    A = (2*np.pi*sig_2)**-1
+    f1 = A*np.exp( (-(x-x0)**2 -(y-y0)**2 -(z-z0)**2) / (2*sig_2) )
+    f2 = -1*A*np.exp( (-(x-x1)**2 -(y-y1)**2 -(z-z1)**2) / (2*sig_2) )
+    x2 = np.modf(x0+p1)[0]
+    y2 = np.modf(y0+p2)[0]
+    z2 = np.modf(z0+p3)[0]
+    f3 = A*np.exp( (-(x-x2)**2 -(y-y2)**2 -(z-z2)**2) / (2*sig_2) )
+    x3 = np.modf(x1+p1)[0]
+    y3 = np.modf(y1+p2)[0]
+    z3 = np.modf(z1+p3)[0]
+    f4 = -1*A*np.exp( (-(x-x3)**2 -(y-y3)**2 -(z-z3)**2) / (2*sig_2) )
+    f = f1+f2+f3+f4
+    return f
+
+def gauss_3d_large(x, y, z, seed=0):
+    '''A random dipolar Large source in 3D'''
+    states = get_states_3D(seed)
+    x0, y0, z0 = states[7:10]
+    x1, y1, z1 = states[10:13]
+    if states[1] < 0.01:
+        states[1] *= 25
+    sig_2 = states[1] * 5
+    A = (2*np.pi*sig_2)**-1
+    f1 = A*np.exp( (-(x-x0)**2 -(y-y0)**2 -(z-z0)**2) / (2*sig_2) )
+    f2 = -1*A*np.exp( (-(x-x1)**2 -(y-y1)**2 -(z-z1)**2) / (2*sig_2) )
+    f = f1+f2
+    return f
+
+def jan_2d_small_f(x, y):
+    '''Source from Jan 2012 kCSD  paper'''
     def gauss2d(x,y,p):
         """
          p:     list of parameters of the Gauss-function
@@ -42,50 +184,20 @@ def csd_profile_2d_small(x,y,z=0,states=None):
     f = f1+f2+f3+f4
     return f
 
-def csd_profile_2d_large_rand(x,y,z=0,states=None):
-    '''random source based on 'large source' profile in 2012 paper'''
-    zz = states[0:4]
-    zs = states[4:8]
-    mag = states[8:12]
-    loc = states[12:20]
-    scl = states[20:24]
-    f1 = mag[0]*exp( (-1*(x-loc[0])**2 - (y-loc[4])**2) /scl[0])* exp(-(z-zz[0])**2 / zs[0]) /exp(-(zz[0])**2/zs[0])
-    f2 = mag[1]*exp( (-2*(x-loc[1])**2 - (y-loc[5])**2) /scl[1])* exp(-(z-zz[1])**2 / zs[1]) /exp(-(zz[1])**2/zs[1]);
-    f3 = mag[2]*exp( (-3*(x-loc[2])**2 - (y-loc[6])**2) /scl[2])* exp(-(z-zz[2])**2 / zs[2]) /exp(-(zz[2])**2/zs[2]);
-    f4 = mag[3]*exp( (-4*(x-loc[3])**2 - (y-loc[7])**2) /scl[3])* exp(-(z-zz[3])**2 / zs[3]) /exp(-(zz[3])**2/zs[3]);
+def jan_2d_large_f(x, y):
+    '''Fixed 'large source' profile in 2012 paper'''
+    z = 0
+    zz = [0.4, -0.3, -0.1, 0.6] 
+    zs = [0.2, 0.3, 0.4, 0.2] 
+    f1 = 0.5965*exp( (-1*(x-0.1350)**2 - (y-0.8628)**2) /0.4464)* exp(-(z-zz[0])**2 / zs[0]) /exp(-(zz[0])**2/zs[0])
+    f2 = -0.9269*exp( (-2*(x-0.1848)**2 - (y-0.0897)**2) /0.2046)* exp(-(z-zz[1])**2 / zs[1]) /exp(-(zz[1])**2/zs[1]);
+    f3 = 0.5910*exp( (-3*(x-1.3189)**2 - (y-0.3522)**2) /0.2129)* exp(-(z-zz[2])**2 / zs[2]) /exp(-(zz[2])**2/zs[2]);
+    f4 = -0.1963*exp( (-4*(x-1.3386)**2 - (y-0.5297)**2) /0.2507)* exp(-(z-zz[3])**2 / zs[3]) /exp(-(zz[3])**2/zs[3]);
     f = f1+f2+f3+f4
     return f
 
-def csd_profile_2d_small_rand(x,y,states=None):
-    def gauss2d(x,y,p):
-        """
-         p:     list of parameters of the Gauss-function
-                [XCEN,YCEN,SIGMAX,SIGMAY,AMP,ANGLE]
-                SIGMA = FWHM / (2*sqrt(2*log(2)))
-                ANGLE = rotation of the X,Y direction of the Gaussian in radians
-        Returns
-        -------
-        the value of the Gaussian described by the parameters p
-        at position (x,y)
-        """
-        rcen_x = p[0] * np.cos(p[5]) - p[1] * np.sin(p[5])
-        rcen_y = p[0] * np.sin(p[5]) + p[1] * np.cos(p[5])
-        xp = x * np.cos(p[5]) - y * np.sin(p[5])
-        yp = x * np.sin(p[5]) + y * np.cos(p[5])
-        g = p[4]*np.exp(-(((rcen_x-xp)/p[2])**2+
-                          ((rcen_y-yp)/p[3])**2)/2.)
-        return g
-    angle = states[18]*180.
-    x_amp = 0.038
-    y_amp = 0.056
-    f1 = gauss2d(x,y,[states[12],states[14],x_amp,y_amp,0.5,angle])
-    f2 = gauss2d(x,y,[states[12],states[15],x_amp,y_amp,-0.5,angle])
-    f3 = gauss2d(x,y,[states[13],states[14],x_amp,y_amp,0.5,angle])
-    f4 = gauss2d(x,y,[states[13],states[15],x_amp,y_amp,-0.5,angle])
-    f = f1+f2+f3+f4
-    return f
-
-def csd_profile_3d_small(x,y,z,states=None):
+def gauss_3d_dipole_f(x, y, z):
+    '''Fixed dipole in 3 dimensions of the volume'''
     x0, y0, z0 = 0.3, 0.7, 0.3
     x1, y1, z1 = 0.6, 0.5, 0.7
     sig_2 = 0.023
@@ -95,21 +207,24 @@ def csd_profile_3d_small(x,y,z,states=None):
     f = f1+f2
     return f
 
-def csd_profile_3d_mono_c(x,y,z,states=None):
+def gauss_3d_mono1_f(x, y, z):
+    '''Fixed monopole in 3D at the center of the volume space'''
     x0, y0, z0 = 0.5, 0.5, 0.5
     sig_2 = 0.023
     A = (2*np.pi*sig_2)**-1
     f1 = A*np.exp( (-(x-x0)**2 -(y-y0)**2 -(z-z0)**2) / (2*sig_2) )
     return f1
 
-def csd_profile_3d_mono_oc(x,y,z,states=None):
+def gauss_3d_mono2_f(x, y, z):
+    '''Fixed monopole in 3D Offcentered wrt volume'''
     x0, y0, z0 = 0.41, 0.41, 0.585
     sig_2 = 0.023
     A = (2*np.pi*sig_2)**-1
     f1 = A*np.exp( (-(x-x0)**2 -(y-y0)**2 -(z-z0)**2) / (2*sig_2) )
     return f1
 
-def csd_profile_3d_basis(x,y,z,states=None):
+def gauss_3d_mono3_f(x, y, z):
+    '''Fixed monopole in 3D Offcentered wrt volume'''
     x0, y0, z0 = 0.55555556, 0.55555556, 0.55555556
     stdev = 0.3
     h = 1./((2*np.pi)**0.5 * stdev)**3
@@ -117,40 +232,8 @@ def csd_profile_3d_basis(x,y,z,states=None):
     f1 = h*np.exp(-c*((x - x0)**2 + (y - y0)**2 + (z - z0)**2))
     return f1
 
-def csd_profile_3d_small_rand(x,y,z,states=None):
-    x0, y0, z0 = states[0:3]
-    x1, y1, z1 = states[3:6]
-    if states[6] < 0.01:
-        states[6] *= 25
-    sig_2 = states[6] / 75.
-    p1, p2, p3 = (ii*0.5 for ii in states[8:11])
-    A = (2*np.pi*sig_2)**-1
-    f1 = A*np.exp( (-(x-x0)**2 -(y-y0)**2 -(z-z0)**2) / (2*sig_2) )
-    f2 = -1*A*np.exp( (-(x-x1)**2 -(y-y1)**2 -(z-z1)**2) / (2*sig_2) )
-    x2 = np.modf(x0+p1)[0]
-    y2 = np.modf(y0+p2)[0]
-    z2 = np.modf(z0+p3)[0]
-    f3 = A*np.exp( (-(x-x2)**2 -(y-y2)**2 -(z-z2)**2) / (2*sig_2) )
-    x3 = np.modf(x1+p1)[0]
-    y3 = np.modf(y1+p2)[0]
-    z3 = np.modf(z1+p3)[0]
-    f4 = -1*A*np.exp( (-(x-x3)**2 -(y-y3)**2 -(z-z3)**2) / (2*sig_2) )
-    f = f1+f2+f3+f4
-    return f
-
-def csd_profile_3d_large_rand(x,y,z,states=None):
-    x0, y0, z0 = states[7:10]
-    x1, y1, z1 = states[10:13]
-    if states[1] < 0.01:
-        states[1] *= 25
-    sig_2 = states[1] * 5
-    A = (2*np.pi*sig_2)**-1
-    f1 = A*np.exp( (-(x-x0)**2 -(y-y0)**2 -(z-z0)**2) / (2*sig_2) )
-    f2 = -1*A*np.exp( (-(x-x1)**2 -(y-y1)**2 -(z-z1)**2) / (2*sig_2) )
-    f = f1+f2
-    return f
-
 def neat_4d_plot(x, y, z, t, z_steps=5, cmap=cm.bwr_r):
+    '''Used to show 3D csd profile'''
     t_max = np.max(np.abs(t))
     levels = np.linspace(-1*t_max, t_max, 15)
     ind_interest = np.mgrid[0:z.shape[2]:np.complex(0,z_steps+2)]
@@ -176,31 +259,32 @@ def neat_4d_plot(x, y, z, t, z_steps=5, cmap=cm.bwr_r):
     #plt.tight_layout()
 
 if __name__=='__main__':
-    rstate = np.random.RandomState(0) #seed here!
-    states = rstate.random_sample(24) #number of random values = 24
+    seed = 3
+
+    # 1D CASE
+    csd_profile = gauss_1d_mono
+    chrg_x = np.arange(0., 1., 1./50.)
+    f = csd_profile(chrg_x, seed)
+    plt.plot(chrg_x, f)
 
     # #2D CASE
-    # csd_profile = csd_profile_2d_large_rand
-    # #csd_profile = csd_profile_2d_small_rand
+    # csd_profile = gauss_2d_large
     # states[0:12] = 2*states[0:12] -1. #obtain values between -1 and 1
     # chrg_x, chrg_y = np.mgrid[0.:1.:50j, 
     #                           0.:1.:50j]
-    # f = csd_profile(chrg_x, chrg_y, states=states) 
+    # f = csd_profile(chrg_x, chrg_y, seed=seed) 
     # fig = plt.figure(1)
     # ax1 = plt.subplot(111, aspect='equal')
     # im = ax1.contourf(chrg_x, chrg_y, f, 15, cmap=cm.bwr_r)
     # cbar = plt.colorbar(im, shrink=0.5)
     # plt.show()
 
-    #3D CASE
-    csd_profile = csd_profile_3d_mono_oc
-    #csd_profile = csd_profile_3d_small_rand
-    #csd_profile = csd_profile_3d_small
-    chrg_x, chrg_y, chrg_z = np.mgrid[0.:1.:50j, 
-                                      0.:1.:50j,
-                                      0.:1.:50j]
+    # #3D CASE
+    # csd_profile = gauss_3d_small
+    # chrg_x, chrg_y, chrg_z = np.mgrid[0.:1.:50j, 
+    #                                   0.:1.:50j,
+    #                                   0.:1.:50j]
+    # f = csd_profile(chrg_x, chrg_y, chrg_z, seed=seed)
+    # neat_4d_plot(chrg_x, chrg_y, chrg_z, f)
 
-    #f = csd_profile(chrg_x, chrg_y, chrg_z, states)
-    f = csd_profile(chrg_x, chrg_y, chrg_z)
-    neat_4d_plot(chrg_x, chrg_y, chrg_z, f)
     plt.show() 
