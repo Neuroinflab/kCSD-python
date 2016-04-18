@@ -30,7 +30,6 @@ class KCSD3D(KCSD2D):
     electrod positions and recorded potentials, in the case of 2D recording
     electrodes. The method implented here is based on the original paper
     by Jan Potworowski et.al. 2012.
-    
     """
     def __init__(self, ele_pos, pots, **kwargs):
         """Initialize KCSD3D Class.

@@ -312,7 +312,7 @@ class KCSD1D(KCSD2D):
             value of potential at specified distance from the source
         """
         pot, err = integrate.quad(self.int_pot_1D, -R, R, 
-                                args=(x, R, h, src_type))
+                                  args=(x, R, h, src_type))
         pot *= 1./(2.0*sigma)
         return pot
 
@@ -364,12 +364,13 @@ class KCSD1D(KCSD2D):
         return
 
 if __name__ == '__main__':
-    n = 10
-    ele_pos = np.linspace(0.1,0.9,n).reshape((n,1))
-    pots = np.zeros(n).reshape((n,1))
+    ele_pos = np.array(([-0.1],[0], [0.5], [1.], [1.4], [2.], [2.3]))
+    pots = np.array([[-1], [-1], [-1], [0], [0], [1], [-1.5]])
     k = KCSD1D(ele_pos, pots,
                gdx=0.01, n_src_init=100,
-               ext_x=0.1, src_type='gauss')
+               ext_x=0.0, src_type='gauss')
     k.cross_validate()
+    #print k.values()
     #k.cross_validate(Rs=np.array(0.14).reshape(1))
     #k.cross_validate(Rs=np.array((0.01,0.02,0.04))) 
+    #print k.values()

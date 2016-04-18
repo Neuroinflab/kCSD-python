@@ -26,7 +26,6 @@ class KCSD2D(CSD):
     electrod positions and recorded potentials, in the case of 2D recording
     electrodes. The method implented here is based on the original paper
     by Jan Potworowski et.al. 2012.
-    
     """
     def __init__(self, ele_pos, pots, **kwargs):
         """Initialize KCSD2D Class.
@@ -352,6 +351,7 @@ class KCSD2D(CSD):
     def forward_model(self, x, R, h, sigma, src_type):
         """FWD model functions
         Evaluates potential at point (x,0) by a basis source located at (0,0)
+        Eq 22 kCSD by Jan,2012
 
         Parameters
         ----------
@@ -370,10 +370,8 @@ class KCSD2D(CSD):
                                      -R, R, 
                                      lambda x: -R, 
                                      lambda x: R, 
-                                     args=(x, R, h, src_type))#,
-                                     #epsrel=1e-2, epsabs=0)
+                                     args=(x, R, h, src_type))
         pot *= 1./(2.0*np.pi*sigma)  #Potential basis functions bi_x_y
-        #Eq 22 kCSD by Jan,2012
         return pot
 
     def int_pot_2D(self, xp, yp, x, R, h, basis_func):
@@ -526,5 +524,6 @@ if __name__ == '__main__':
                xmin=-2.0, xmax=2.0,
                ymin=-2.0, ymax=2.0,
                src_type='gauss')
-    print k.cross_validate()
-    
+    k.cross_validate()
+    #print k.values('CSD')
+    #print k.values('POT')

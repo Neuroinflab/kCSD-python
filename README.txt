@@ -16,6 +16,7 @@ Status
 KCSD1D + tests - rc
 KCSD2D + tests - rc
 KCSD3D + tests - rc
+MoIKCSD (for MEA's with Saline)
 
 Requirements
 ------------
@@ -43,6 +44,7 @@ CSD.py - base class of CSD
 KCSD2D.py - relevant KCD2D reconstruction file (Includes Cross validation for R and lambd)
 KCSD3D.py - relevant KCD3D reconstruction file (inherits from KCSD2D.py)
 KCSD1D.py - relevant KCD1D reconstruction file (inherits from KCSD2D.py)
+MoIKCSD.py - relevant KCSD2D which includes the method of images - models saline conductivity
 
 basis_functions.py - necessary functions that are used as basis sources
 utility_functions.py - necessary generic functions 
