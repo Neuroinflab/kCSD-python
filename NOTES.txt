@@ -1,3 +1,9 @@
+2016_04_18
+Preparing for release
+Moved functions from KCSD1D_Helpers etc into something more sane.
+Using **kwargs instead of params to pass agruments
+Saner method names.
+
 2016_03_07
 Pushing KCSD1D + tests to beta phase
 
