@@ -72,6 +72,13 @@ class KCSD2D(CSD):
         Returns
         -------
         None
+
+        Raises
+        ------
+        LinAlgError 
+            Could not invert the matrix, try changing the ele_pos slightly
+        KeyError
+            Basis function (src_type) not implemented. See basis_functions.py for available
         """
         super(KCSD2D, self).__init__(ele_pos, pots)
         self.parameters(**kwargs)
@@ -153,13 +160,12 @@ class KCSD2D(CSD):
         -------
         None
         """
-        #If Valid basis source type passed?
         source_type = self.src_type
-        if source_type not in basis.basis_2D.keys():
-            raise Exception('Invalid source_type for basis! available are:', 
-                            basis.basis_2D.keys())
-        else:
-            self.basis = basis.basis_2D.get(source_type)
+        try:
+            self.basis = basis.basis_2D[source_type]
+        except:
+            print 'Invalid source_type for basis! available are:', basis.basis_2D.keys()
+            raise KeyError
         #Mesh where the source basis are placed is at self.src_x 
         (self.src_x, self.src_y, self.R) = utils.distribute_srcs_2D(self.estm_x,
                                                                     self.estm_y,
@@ -511,7 +517,7 @@ class KCSD2D(CSD):
                 err += np.linalg.norm(V_est-V_test)
             except LinAlgError:
                 print 'Encoutered Singular Matrix Error: try changing ele_pos'
-                err = 10000. #singluar matrix errors!
+                #err = 10000. #singluar matrix errors!
         return err
 
 if __name__ == '__main__':

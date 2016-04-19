@@ -4,6 +4,9 @@ Moved functions from KCSD1D_Helpers etc into something more sane.
 Using **kwargs instead of params to pass agruments
 Saner method names.
 
+Comments for future
+1) Possibility to use errfunc instead of gaussian
+
 2016_03_07
 Pushing KCSD1D + tests to beta phase
 

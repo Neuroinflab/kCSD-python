@@ -3,7 +3,7 @@ See Jan Potworowski et.al. 2012 kernel Current Source Density
 
 License
 -------
-???
+Modified BSD License
 
 
 Contact
@@ -28,7 +28,6 @@ Additional Packages
 -------------------
 scikit-monaco 0.2
 joblib
-multiprocessing
 
 Try
 ---

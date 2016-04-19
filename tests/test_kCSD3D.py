@@ -26,6 +26,7 @@ from scipy.spatial import distance
 try:
     from joblib import Parallel, delayed  
     import multiprocessing
+    num_cores = multiprocessing.cpu_count()-1
     parallel_available = True
 except ImportError:
     parallel_available = False
@@ -215,10 +216,10 @@ def calculate_potential_3D_parallel(true_csd, ele_xx, ele_yy, ele_zz,
     zlims = [zlin[0], zlin[-1]]
     sigma = 1.0
     #tic = time.time()
-    pots = Parallel(n_jobs=8)(delayed(integrate_3D)(ele_xx[ii],ele_yy[ii],ele_zz[ii],
-                                                    xlims, ylims, zlims, true_csd,
-                                                    xlin, ylin, zlin,
-                                                    csd_x, csd_y, csd_z) for ii in range(len(ele_xx)))
+    pots = Parallel(n_jobs=num_cores)(delayed(integrate_3D)(ele_xx[ii],ele_yy[ii],ele_zz[ii],
+                                                            xlims, ylims, zlims, true_csd,
+                                                            xlin, ylin, zlin,
+                                                            csd_x, csd_y, csd_z) for ii in range(len(ele_xx)))
     pots = np.array(pots)
     pots /= 4*np.pi*sigma
     #toc = time.time() - tic

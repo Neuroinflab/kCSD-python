@@ -15,6 +15,8 @@ from scipy.spatial import distance
 try:
     from skmonaco import mcmiser
     skmonaco_available = True
+    import multiprocessing
+    num_cores = multiprocessing.cpu_count()
 except ImportError:
     from scipy import integrate    
     skmonaco_available = False
@@ -79,6 +81,13 @@ class KCSD3D(KCSD2D):
         Returns
         -------
         None
+
+        Raises
+        ------
+        LinAlgError 
+            Could not invert the matrix, try changing the ele_pos slightly
+        KeyError
+            Basis function (src_type) not implemented. See basis_functions.py for available
         """
         super(KCSD3D, self).__init__(ele_pos, pots, **kwargs)
 
@@ -163,10 +172,11 @@ class KCSD3D(KCSD2D):
         """
         #If Valid basis source type passed?
         source_type = self.src_type
-        if source_type not in basis.basis_3D.keys():
-            raise Exception('Invalid source_type for basis! available are:', basis.basis_3D.keys())
-        else:
-            self.basis = basis.basis_3D.get(source_type)
+        try:
+            self.basis = basis.basis_3D[source_type]
+        except:
+            print 'Invalid source_type for basis! available are:', basis.basis_3D.keys()
+            raise KeyError
         #Mesh where the source basis are placed is at self.src_x 
         (self.src_x, self.src_y, self.src_z, self.R) = utils.distribute_srcs_3D(self.estm_x,
                                                                                 self.estm_y,
@@ -351,7 +361,7 @@ class KCSD3D(KCSD2D):
                                xl=[-R, -R, -R], 
                                xu=[R, R, R],
                                seed=42, 
-                               nprocs=8, 
+                               nprocs=num_cores, 
                                args=(x, R, h, src_type))
         else:
             pot, err = integrate.tplquad(self.int_pot_3D, 

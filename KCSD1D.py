@@ -70,6 +70,13 @@ class KCSD1D(KCSD2D):
         Returns
         -------
         None
+
+        Raises
+        ------
+        LinAlgException
+            If the matrix is not numerically invertible.
+        KeyError
+            Basis function (src_type) not implemented. See basis_functions.py for available
         """
         super(KCSD1D, self).__init__(ele_pos, pots, **kwargs)
 
@@ -142,11 +149,11 @@ class KCSD1D(KCSD2D):
         """
         # check If valid basis source type passed:
         source_type = self.src_type
-        if source_type not in basis.basis_1D.keys():
-            raise Exception('Invalid source_type for basis! available are:', 
-                            basis.basis_1D.keys())
-        else:
-            self.basis = basis.basis_1D.get(source_type)
+        try:
+            self.basis = basis.basis_1D[source_type]
+        except:
+            print 'Invalid source_type for basis! available are:', basis.basis_1D.keys()
+            raise KeyError
         #Mesh where the source basis are placed is at self.src_x
         (self.src_x, self.R) = utils.distribute_srcs_1D(self.estm_x,
                                                         self.n_src_init,

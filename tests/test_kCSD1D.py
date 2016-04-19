@@ -214,7 +214,7 @@ def test_calculating_potentials(csd_seed):
 if __name__=='__main__':
     total_ele = 30
     csd_seed = 65
-    csd_profile = CSD.gauss_1d_quadpole
+    csd_profile = CSD.gauss_1d_mono
     #test_calculating_potentials(csd_seed)
     a = main_loop(csd_profile, csd_seed, total_ele)
     #fig.savefig(os.path.join(plots_folder, save_as+'.png'))
