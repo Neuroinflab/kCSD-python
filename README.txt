@@ -1,5 +1,8 @@
-This is 1.0 version of kCSD inverse method.
-See Jan Potworowski et.al. 2012 kernel Current Source Density
+This is 1.0 version of kCSD inverse method proposed in
+
+J. Potworowski, W. Jakuczun, S. Łęski, D. K. Wójcik
+"Kernel Current Source Density Method"
+Neural Computation 24 (2012), 541–575
 
 License
 -------
@@ -40,7 +43,7 @@ In file test_kCSD1D.py, test_kCSD2D.py and test_kCSD3D.py play with
 Legend
 ------
 CSD.py - base class of CSD
-KCSD2D.py - relevant KCD2D reconstruction file (Includes Cross validation for R and lambd)
+KCSD2D.py - relevant KCD2D reconstruction file (Includes crossvalidation for R and lambd)
 KCSD3D.py - relevant KCD3D reconstruction file (inherits from KCSD2D.py)
 KCSD1D.py - relevant KCD1D reconstruction file (inherits from KCSD2D.py)
 MoIKCSD.py - relevant KCSD2D which includes the method of images - models saline conductivity
@@ -48,15 +51,15 @@ MoIKCSD.py - relevant KCSD2D which includes the method of images - models saline
 basis_functions.py - necessary functions that are used as basis sources
 utility_functions.py - necessary generic functions 
 
-./tests/test_kCSD2D.py - file generates, TrueCSD, potentails in a plane, and its kCSD reconstruction
+./tests/test_kCSD2D.py - file generates TrueCSD, potentials in a plane, and its kCSD reconstruction
 	     - use with relevant seed - for small sources and large sources.
 	     - illustrates the basic API of KCSD2D.py
 
-./tests/test_kCSD3D.py - file generates, TrueCSD, potentails in a volume, and its kCSD reconstruction
+./tests/test_kCSD3D.py - file generates TrueCSD, potentials in a volume, and its kCSD reconstruction
 	     - use with relevant seed - for small sources, large sources, monopoles, dipole sources
 	     - illustrates the basic API of KCSD3D.py
 
-./tests/test_kCSD1D.py - file generates, TrueCSD, potentails in a plane, and its kCSD reconstruction
+./tests/test_kCSD1D.py - file generates TrueCSD, potentials in a plane, and its kCSD reconstruction
 	     - use with relevant seed - for small sources and large sources.
 	     - illustrates the basic API of KCSD2D.py
 
