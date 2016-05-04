@@ -12,57 +12,69 @@ Nencki Institute of Experimental Biology, Warsaw.
 """
 import numpy as np
 
-def step_1D(xp, mu, R):
+def gauss(d, stdev, dim):
+    """Gaussian function
+
+    Parameters
+    ----------
+    d : floats or np.arrays
+        Distance array to the point of evaluation 
+    stdev : float
+        cutoff range
+    dim : int
+        dimension of the gaussian function
+
+    Returns
+    -------
+    Z : floats or np.arrays
+        function evaluated
+    """
+    Z = np.exp(-(d**2) / (2* stdev**2) ) / (np.sqrt(2*np.pi)*stdev)**dim
+    return Z
+
+def step_1D(d, R):
     """Returns normalized 1D step function.
 
     Parameters
     ----------
-    xp : floats or np.arrays
-        point or set of points where function should be calculated
-    mu : float
-        origin of the function
+    d : floats or np.arrays
+        Distance array to the point of evaluation 
     R : float
         cutoff range
 
     Returns
     -------
-    s : Value of the function (xp-mu[0])**2  <= R**2) / np.pi*R**2
+    s : Value of the function (d  <= R) / R
     """
-    s = ((xp-mu[0])**2  <= R**2)
-    s = s / (np.pi*R**2)
+    s = (d  <= R)
+    s = s / R #normalize with width
     return s        
 
-def gauss_1D(x, mu, three_stdev):
+def gauss_1D(d, three_stdev):
     """Returns normalized gaussian 2D scale function
 
     Parameters
     ----------
-    x : floats or np.arrays
-        coordinates of a point/points at which we calculate the density
-    mu : list
-        distribution mean vector
+    d : floats or np.arrays
+        Distance array to the point of evaluation
     three_stdev : float
         3 * standard deviation of the distribution
 
     Returns
     -------
-    Z : (three_std/3)*(1/2*pi)*(exp(-0.5)*stddev**(-2) *((x-mu)**2))
+    Z : (three_std/3)*(1/2*pi)*(exp(-0.5)*stddev**(-2) *(d**2))
     """
-    h = 1./(2*np.pi)
     stdev = three_stdev/3.0
-    h_n = h*stdev
-    Z = h_n*np.exp(-0.5 * stdev**(-2) * ((x - mu)**2 ))
+    Z = gauss(d, stdev, 1)
     return Z
 
-def gauss_lim_1D(x, y, mu, three_stdev):
+def gauss_lim_1D(d, three_stdev):
     """Returns gausian 2D function cut off after 3 standard deviations.
 
     Parameters
     ----------
-    x : floats or np.arrays
-        coordinates of a point/points at which we calculate the density
-    mu : list
-        distribution mean vector
+    d : floats or np.arrays
+        Distance array to the point of evaluation
     three_stdev : float
         3 * standard deviation of the distribution
 
@@ -71,19 +83,17 @@ def gauss_lim_1D(x, y, mu, three_stdev):
     Z : (three_std/3)*(1/2*pi)*(exp(-0.5)*stddev**(-2) *((x-mu)**2)), 
         cut off = three_stdev
     """
-    Z = gauss_2D(x, y, mu, three_stdev)
-    Z *= ((x - mu[0])**2 < three_stdev**2)
+    Z = gauss_1D(d, three_stdev)
+    Z *= (d < three_stdev)
     return Z
 
-def step_2D(xp, yp, mu, R):
+def step_2D(d, R):
     """Returns normalized 2D step function.
 
     Parameters
     ----------
-    xp, yp : floats or np.arrays
-        point or set of points where function should be calculated
-    mu : float
-        origin of the function
+    d : float or np.arrays
+        Distance array to the point of evaluation
     R : float
         cutoff range
     
@@ -91,19 +101,16 @@ def step_2D(xp, yp, mu, R):
     -------
     s : step function
     """
-    s = ((xp-mu[0])**2 + (yp-mu[1])**2 <= R**2)
-    s = s / (np.pi*R**2)
+    s = (d <= R) / (np.pi*(R**2))
     return s        
 
-def gauss_2D(x, y, mu, three_stdev):
+def gauss_2D(d, three_stdev):
     """Returns normalized gaussian 2D scale function
 
     Parameters
     ----------
-    x, y : floats or np.arrays
-        coordinates of a point/points at which we calculate the density
-    mu : list
-        distribution mean vector
+    d : floats or np.arrays
+         distance at which we need the function evaluated
     three_stdev : float
         3 * standard deviation of the distribution
 
@@ -112,21 +119,17 @@ def gauss_2D(x, y, mu, three_stdev):
     Z : function
         Normalized gaussian 2D function
     """
-    h = 1./(2*np.pi)
     stdev = three_stdev/3.0
-    h_n = h * stdev
-    Z = h_n * np.exp(-0.5 * stdev**(-2) * ((x - mu[0])**2 + (y - mu[1])**2))
+    Z = gauss(d, stdev, 2)
     return Z
 
-def gauss_lim_2D(x, y, mu, three_stdev):
+def gauss_lim_2D(d, three_stdev):
     """Returns gausian 2D function cut off after 3 standard deviations.
 
     Parameters
     ----------
-    x, y : floats or np.arrays
-        coordinates of a point/points at which we calculate the density
-    mu : list
-        distribution mean vector
+    d : floats or np.arrays
+         distance at which we need the function evaluated
     three_stdev : float
         3 * standard deviation of the distribution
 
@@ -135,19 +138,16 @@ def gauss_lim_2D(x, y, mu, three_stdev):
     Z : function
         Normalized gaussian 2D function cut off after three_stdev
     """
-    Z = gauss_2D(x, y, mu, three_stdev)
-    Z *= ((x - mu[0])**2 + (y - mu[1])**2 < three_stdev**2)
+    Z = (d <= three_stdev)*gauss_2D(d, three_stdev)
     return Z
 
-def gauss_3D(x, y, z, mu, three_stdev):
+def gauss_3D(d, three_stdev):
     """Returns normalized gaussian 3D scale function
 
     Parameters
     ----------
-    x, y, z : floats or np.arrays
-        coordinates of a point/points at which we calculate the density
-    mu : list
-        distribution mean vector
+    d : floats or np.arrays
+        distance at which we need the function evaluated        
     three_stdev : float
         3 * standard deviation of the distribution
 
@@ -157,20 +157,16 @@ def gauss_3D(x, y, z, mu, three_stdev):
         Normalized gaussian 3D function
     """
     stdev = three_stdev/3.0
-    h = 1./(((2*np.pi)**0.5) * stdev)**3
-    c = 0.5 * stdev**(-2)
-    Z = h * np.exp(-c * ((x - mu[0])**2 + (y - mu[1])**2 + (z - mu[2])**2))
+    Z = gauss(d, stdev, 3)
     return Z
 
-def gauss_lim_3D(x, y, z, mu, three_stdev):
+def gauss_lim_3D(d, three_stdev):
     """Returns normalized gaussian 3D scale function cut off after 3stdev
 
     Parameters
     ----------
-    x, y, z : floats or np.arrays
-        coordinates of a point/points at which we calculate the density
-    mu : list
-        distribution mean vector
+    d : floats or np.arrays
+        distance at which we need the function evaluated        
     three_stdev : float
         3 * standard deviation of the distribution
 
@@ -179,19 +175,17 @@ def gauss_lim_3D(x, y, z, mu, three_stdev):
     Z : funtion
         Normalized gaussian 3D function cutoff three_Stdev
     """
-    Z = gauss_3D(x, y, z, mu, three_stdev)
-    Z = Z * ((x - mu[0])**2 + (y - mu[1])**2 + (z - mu[2])**2 < three_stdev**2)
+    Z = gauss_3D(d, three_stdev)
+    Z = Z * (d < (three_stdev))
     return Z
 
-def step_3D(xp, yp, zp, mu, R):
+def step_3D(d, R):
     """Returns normalized 3D step function.
 
     Parameters
     ----------
-    xp, yp, zp : floats or np.arrays
-        point or set of points where function should be calculated
-    mu : float
-        origin of the function
+    d : floats or np.arrays
+        distance at which we need the function evaluated        
     R : float
         cutoff range
 
@@ -199,7 +193,8 @@ def step_3D(xp, yp, zp, mu, R):
     -------
     s : step function in 3D
     """
-    s = 3/(4*np.pi*R**3)*(xp**2 + yp**2 + zp**2 <= R**2)
+    
+    s = 3/(4*np.pi*R**3)*(d <= R)
     return s
 
 basis_1D = {

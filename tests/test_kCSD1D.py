@@ -22,11 +22,11 @@ import matplotlib.pyplot as plt
 import csd_profile as CSD 
 from KCSD1D import KCSD1D
 
-def generate_csd_1D(csd_profile, csd_seed, start_x=0., end_x=1., res=50):
+def generate_csd_1D(csd_profile, csd_seed, start_x=0., end_x=1., res_x=50):
     """
     Gives CSD profile at the requested spatial location, at 'res' resolution
     """
-    chrg_pos_x = np.linspace(start_x, end_x, res)
+    chrg_pos_x = np.linspace(start_x, end_x, res_x)
     f = csd_profile(chrg_pos_x, seed=csd_seed)
     return chrg_pos_x, f
 
@@ -61,7 +61,7 @@ def make_plots(title,
                chrg_x, csd, 
                ele_x, pots, 
                csd_x, est_csd, est_pot, 
-               TruePots = "none"):
+               true_pot=None):
     """
     Shows 2 subplots
     1_a true CSD generated based on the random seed given
@@ -88,12 +88,12 @@ def make_plots(title,
     ax2 = plt.subplot(212)
     ax2.plot( ele_x, np.zeros_like(ele_x),'ko',markersize=2.)
     im2b = ax2.plot(csd_x, est_pot, 'b', label = 'kPOT', linewidth=3)
-    im2a = ax2.plot(chrg_x, TruePots, color = 'orange', 
-                    linestyle='--', label='POT', linewidth=3)
+    im2a = ax2.plot(chrg_x,true_pot, color = 'orange', 
+                    linestyle='--', label='TruePOT', linewidth=3)
     ax2.set_xlim([0.,1.])
     #ax2.set_ylim(ax2.get_ylim()[::-1]) #Zero on the top --ASK?!
     ax2.plot(ele_x, pots, 'kx', markersize=8.)
-    max_pots = np.maximum(max(np.abs(TruePots)), max(np.abs(est_pot)))
+    max_pots = np.maximum(max(np.abs(true_pot)), max(np.abs(est_pot)))
     max_pots += max_pots*0.2
     ax2.set_xlabel('Depth mm')
     ax2.set_ylabel('Potential mV')
@@ -106,49 +106,39 @@ def make_plots(title,
 def integrate_1D(x0, csd_x, csd, h):
     m = np.sqrt((csd_x-x0)**2 + h**2) - abs(csd_x-x0)
     y = csd * m 
-    I = simps(y,csd_x)
+    I = simps(y, csd_x)
     return I
 
-def calculate_potential_1D(csd_profile, measure_locations, csd_seed, csd_space_lims=[0.,1.], CSDres=100):
-    csd_space_x = np.linspace(csd_space_lims[0], csd_space_lims[1], CSDres )
+def calculate_potential_1D(csd, measure_locations, csd_space_x, h):
     sigma = 1.0
-    h = 10.
-    csd = csd_profile(csd_space_x, seed=csd_seed)
     pots = np.zeros(len(measure_locations))
     for ii in range(len(measure_locations)):
         pots[ii] = integrate_1D(measure_locations[ii], csd_space_x, csd, h)
     pots *= 1/(2.*sigma) #eq.: 26 from Potworowski et al
     return pots
 
-def electrode_config(ele_lims, ele_res, csd_profile, csdlims, csd_seed, CSDres=100):
+def electrode_config(ele_lims, ele_res, true_csd, t_csd_x, h):
     """
     creates electrodes positions, and potentials on them
     electrode lims, electrode resolution, profile, states
     """
-    electrode_locations = generate_electrodes(ele_lims, ele_res)
-    pots = calculate_potential_1D(csd_profile, electrode_locations, csd_seed, csd_space_lims = csdlims, CSDres=CSDres)
-    ele_pos = electrode_locations.reshape((len(electrode_locations), 1))
+    ele_x = generate_electrodes(ele_lims, ele_res)
+    pots = calculate_potential_1D(true_csd, ele_x, t_csd_x, h)
+    ele_pos = ele_x.reshape((len(ele_x), 1))
     return ele_pos, pots
 
-def do_kcsd(ele_pos, pots, crosvalidate=True):
+def do_kcsd(ele_pos, pots, **params):
     """
     Function that calls the KCSD2D module
     """
     num_ele = len(ele_pos)
-    gdX = 0.01
-    xlims = [.0,1.] #CSD estimation space range
     pots = pots.reshape(num_ele, 1)
-    k = KCSD1D(ele_pos, pots, h=10., gdx=gdX, 
-               xmin=xlims[0], xmax=xlims[1], sigma=1.)
-    csd_x = generate_csd_space(xlims=xlims, gdX=gdX)
-    if crosvalidate:
-        #k.cross_validate(Rs=np.arange(0.2,0.35,0.025), lambdas= np.logspace(15,-25,25))
-        k.cross_validate(Rs=np.array([0.275]), lambdas=np.logspace(15,-25,35))
-    else:
-        k.cv_error = 0
+    k = KCSD1D(ele_pos, pots, **params)
+    #k.cross_validate(Rs=np.arange(0.01,0.2,0.01), lambdas= np.logspace(15,-25,25))
+    k.cross_validate(Rs=np.array([0.275]), lambdas=np.logspace(15,-25,35))
     est_csd = k.values()
     est_pot =  k.values('POT')
-    return csd_x, est_csd, est_pot, k.lambd, k.R, k.cv_error
+    return k, est_csd, est_pot
 
 def main_loop(csd_profile, csd_seed, total_ele):
     """
@@ -157,33 +147,42 @@ def main_loop(csd_profile, csd_seed, total_ele):
     """
     csd_name = csd_profile.func_name
     print 'Using sources %s - Seed: %d ' % (csd_name, csd_seed)
+    h = 10.
 
     #TrueCSD
     start_x, end_x, csd_res = [0.,1.,100]    
-    chrg_x, csd = generate_csd_1D(csd_profile, csd_seed, start_x=start_x, 
-                                  end_x=end_x, res=csd_res)
-
+    t_csd_x, true_csd = generate_csd_1D(csd_profile, csd_seed, 
+                                        start_x=start_x, 
+                                        end_x=end_x, 
+                                        res_x=csd_res)
+    
     #Electrodes 
     ele_res = int(total_ele) 
     ele_lims = [0.10, 0.9]
-    ele_pos, pots = electrode_config(ele_lims, ele_res, csd_profile,[0.,1.], csd_seed)
-    x_array_pots, true_pots = electrode_config([0.,1.], 100, csd_profile, [0.,1.], csd_seed)
+    ele_pos, pots = electrode_config(ele_lims, ele_res, true_csd, t_csd_x, h)
+    num_ele = ele_pos.shape[0]
+    print 'Number of electrodes:', num_ele
+    x_array_pots, true_pots = electrode_config(ele_lims, 100, true_csd, t_csd_x, h)
 
     #kCSD estimation
+    gdX = 0.01
+    x_lims = [0.,1.] #CSD estimation place
     tic = time.time() #time it
-    csd_x, est_csd, est_pot, lambd, R, cv_error = do_kcsd(ele_pos, pots)
+    k, est_csd, est_pot = do_kcsd(ele_pos, pots, h=h, gdx=gdX,
+                                  xmin=x_lims[0], xmax=x_lims[1], n_src_init=300)
     toc = time.time() - tic
 
     #RMS of estimation - gives estimate of how good the reconstruction was
-    chr_x, test_csd = generate_csd_1D(csd_profile, csd_seed, start_x=0., end_x=1., res=100)
+    chr_x, test_csd = generate_csd_1D(csd_profile, csd_seed,
+                                      start_x=x_lims[0], end_x=x_lims[1], 
+                                      res_x=int((x_lims[1]-x_lims[0])/gdX))
     rms = np.sqrt(abs(np.mean(np.square(test_csd)-np.square(est_csd.flatten()))))
     rms /= np.sqrt(np.mean(np.square(test_csd))) #Normalizing
 
     #Plots
-    title ="Lambda: %0.2E; R: %0.2f; CV_Error: %0.2E; RMS_Error: %0.2E; Time: %0.2f" %(lambd, R, cv_error, rms,toc)
-    make_plots(title, chrg_x, csd, ele_pos, pots, csd_x, est_csd, est_pot, TruePots = true_pots)
-    #make_plots(title, chrg_x, csd, ele_x, pots, csd_x, est_csd, est_pot, TruePots = "none")
-    return csd_x, est_csd[:,0], lambd, R, cv_error, rms, toc
+    title ="Lambda: %0.2E; R: %0.2f; CV_Error: %0.2E; RMS_Error: %0.2E; Time: %0.2f" %(k.lambd, k.R, k.cv_error, rms, toc)
+    make_plots(title, t_csd_x, true_csd, ele_pos, pots, k.estm_x, est_csd, est_pot, true_pots)
+    return
 
 def test_calculating_potentials(csd_seed):
     csd_profile = CSD.gauss_1d_mono
@@ -203,9 +202,7 @@ def test_calculating_potentials(csd_seed):
     plt.figure('changing measure res')
     for i in xrange(5):    
         measure_res= 20+i*50
-        #measure_locations = np.arange(0,1,1000)
         (x, V) = electrode_config([0.,1.], measure_res, csd_profile, [0.,1.], csd_seed, CSDres=1000)
-        #(x, V) = calculate_potential_1D(csd_profile, measure_locations, states, csd_space_lims=[0.,1.], CSDres=1000)    
         plt.plot(x,V, ms = 0.5, label =str(measure_res))
     plt.legend()
     plt.show()
@@ -213,7 +210,7 @@ def test_calculating_potentials(csd_seed):
 
 if __name__=='__main__':
     total_ele = 30
-    csd_seed = 65
+    csd_seed = 11
     csd_profile = CSD.gauss_1d_mono
     #test_calculating_potentials(csd_seed)
     a = main_loop(csd_profile, csd_seed, total_ele)

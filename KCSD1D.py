@@ -11,14 +11,14 @@ Laboratory of Neuroinformatics,
 Nencki Institute of Experimental Biology, Warsaw.
 """
 import numpy as np
-from scipy import integrate
+from scipy import integrate, interpolate
 from scipy.spatial import distance
 
-from KCSD2D import KCSD2D
+from KCSD import KCSD
 import utility_functions as utils
 import basis_functions as basis
 
-class KCSD1D(KCSD2D):
+class KCSD1D(KCSD):
     """KCSD1D - The 1D variant for the Kernel Current Source Density method.
 
     This estimates the Current Source Density, for a given configuration of 
@@ -28,8 +28,6 @@ class KCSD1D(KCSD2D):
     """
     def __init__(self, ele_pos, pots, **kwargs):
         """Initialize KCSD1D Class. 
-
-        Inherits KCSD2D Class.
 
         Parameters
         ----------
@@ -79,30 +77,6 @@ class KCSD1D(KCSD2D):
             Basis function (src_type) not implemented. See basis_functions.py for available
         """
         super(KCSD1D, self).__init__(ele_pos, pots, **kwargs)
-
-    def parameters(self, **kwargs):
-        """Defining the default values of the method passed as kwargs
-        Parameters
-        ----------
-        **kwargs
-            Same as those passed to initialize the Class
-
-        Returns
-        -------
-        None
-        """
-        self.src_type = kwargs.get('src_type', 'gauss')
-        self.sigma = kwargs.get('sigma', 1.0)
-        self.h = kwargs.get('h', 1.0)
-        self.n_src_init = kwargs.get('n_src_init', 300)
-        self.ext_x = kwargs.get('ext_x', 0.0)
-        self.lambd = kwargs.get('lambd', 0.0)
-        self.R_init = kwargs.get('R_init', 0.23)
-        #If no estimate plane given, take electrode plane as estimate plane
-        self.xmin = kwargs.get('xmin', np.min(self.ele_pos[:, 0]))
-        self.xmax = kwargs.get('xmax', np.max(self.ele_pos[:, 0]))
-        #Space increment size in estimation
-        self.gdx = kwargs.get('gdx', 0.01*(self.xmax - self.xmin)) 
         return
 
     def estimate_at(self):
@@ -120,9 +94,7 @@ class KCSD1D(KCSD2D):
         -------
         None
         """
-        #Number of points where estimation is to be made.
         nx = (self.xmax - self.xmin)/self.gdx
-        #Making a mesh of points where estimation is to be made.
         self.estm_x = np.mgrid[self.xmin:self.xmax:np.complex(0,nx)]
         self.n_estm = self.estm_x.size
         self.ngx = self.estm_x.shape[0]
@@ -159,128 +131,12 @@ class KCSD1D(KCSD2D):
                                                         self.n_src_init,
                                                         self.ext_x,
                                                         self.R_init )
-        #Total diagonal distance of the area covered by the basis sources
-        Lx = np.max(self.src_x) - np.min(self.src_x) + self.R
-        self.dist_max = abs(Lx)
         self.n_src = self.src_x.size
         self.nsx = self.src_x.shape
         return
 
-    def values(self, estimate='CSD'):
-        """Computes the values of the quantity of interest
-
-        Parameters
-        ----------
-        estimate : 'CSD' or 'POT'
-            What quantity is to be estimated
-            Defaults to 'CSD'
-
-        Returns
-        -------
-        estimated quantity of shape (ngx, ngy, nt)
-        """
-        if estimate == 'CSD': #May be used for estimating the potentials also.
-            estimation_table = self.k_interp_cross #self.interp_pot in passed
-        elif estimate == 'POT':
-            try:
-                estimation_table = self.k_interp_pot
-            except AttributeError:
-                self.update_b_interp_pot()
-                estimation_table = self.k_interp_pot
-        else:
-            print 'Invalid quantity to be measured, pass either CSD or POT'
-        k_inv = np.linalg.inv(self.k_pot + self.lambd *
-                              np.identity(self.k_pot.shape[0]))
-        estimation = np.zeros((self.ngx, self.n_time))
-        for t in xrange(self.n_time):
-            beta = np.dot(k_inv, self.pots[:, t])
-            for i in xrange(self.n_ele):
-                estimation[:, t] += beta[i] * estimation_table[:, i]
-        estimation = estimation.reshape(self.ngx, self.n_time)
-        return estimation
-
-    def create_lookup(self, dist_table_density=100):
-        """Creates a table for easy potential estimation from CSD.
-        Updates and Returns the potentials due to a 
-        given basis source like a lookup
-        table whose shape=(dist_table_density,)--> set in KCSD2D_Helpers.py
-
-        Parameters
-        ----------
-        dist_table_density : int
-            number of distance values at which potentials are computed.
-            Default 100
-
-        Returns
-        -------
-        None
-        """
-        dt_len = dist_table_density
-        xs = utils.sparse_dist_table(self.R, #Find pots at sparse points
-                                     self.dist_max, 
-                                     dt_len)
-        dist_table = np.zeros(len(xs))
-        for i, x in enumerate(xs):
-            pos = (x/dt_len) * self.dist_max
-            dist_table[i] = self.forward_model(pos, self.R, self.h, 
-                                               self.sigma, self.basis)
-        self.dist_table = utils.interpolate_dist_table(xs, dist_table, dt_len)
-        return self.dist_table #basis potentials in a look up table
-
-    def update_b_pot(self):
-        """Updates the b_pot  - array is (#_basis_sources, #_electrodes)
-        Updates the  k_pot - array is (#_electrodes, #_electrodes) 
-        K(x,x') Eq9,Jan2012
-        Calculates b_pot - matrix containing the values of all
-        the potential basis functions in all the electrode positions
-        (essential for calculating the cross_matrix).
-
-        Parameters
-        ----------
-        None
-
-        Returns
-        -------
-        None
-        """
-        src = np.array((self.src_x.ravel()))
-        src = src.reshape((len(src), 1))
-        dists = distance.cdist(src, self.ele_pos, 'euclidean')
-        self.b_pot = self.generated_potential(dists)
-        self.k_pot = np.dot(self.b_pot.T, self.b_pot)
-        self.k_pot /= self.n_src
-        return self.b_pot
-
-    def update_b_src(self):
-        """Updates the b_src in the shape of (#_est_pts, #_basis_sources)
-        Updates the k_interp_cross - K_t(x,y) Eq17
-        Calculate b_src - matrix containing containing the values of
-        all the source basis functions in all the points at which we want to
-        calculate the solution (essential for calculating the cross_matrix)
-
-        Parameters
-        ----------
-        None
-
-        Returns
-        -------
-        None
-        """
-        self.b_src = np.zeros((self.ngx,self.n_src))
-        for i in xrange(self.n_src):
-            # getting the coordinates of the i-th source
-            x_src = self.src_x[i]
-            self.b_src[:, i] = self.basis(self.estm_x, x_src, self.R)
-        self.b_src = self.b_src.reshape(self.n_estm, self.n_src)
-        self.k_interp_cross = np.dot(self.b_src, self.b_pot)
-        self.k_interp_cross /= self.n_src
-        return self.b_src
-
-    def update_b_interp_pot(self):
-        """Compute the matrix of potentials generated by every source
-        basis function at every position in the interpolated space.
-        Updates b_interp_pot
-        Updates k_interp_pot
+    def create_src_dist_tables(self):
+        """Creates distance tables between sources, electrode and estm points
 
         Parameters
         ----------
@@ -291,14 +147,13 @@ class KCSD1D(KCSD2D):
         None
         """
         src_loc = np.array((self.src_x.ravel()))
+        src_loc = src_loc.reshape((len(src_loc), 1))
         est_loc = np.array((self.estm_x.ravel()))
-        dists = distance.cdist(src_loc.reshape((len(src_loc),1)), 
-                               est_loc.reshape((len(est_loc),1)),
-                               'euclidean')
-        self.b_interp_pot = self.generated_potential(dists).T
-        self.k_interp_pot = np.dot(self.b_interp_pot, self.b_pot)
-        self.k_interp_pot /= self.n_src
-        return self.b_interp_pot
+        est_loc = est_loc.reshape((len(est_loc), 1))
+        self.src_ele_dists = distance.cdist(src_loc, self.ele_pos, 'euclidean')
+        self.src_estm_dists = distance.cdist(src_loc, est_loc,  'euclidean')
+        self.dist_max = max(np.max(self.src_ele_dists), np.max(self.src_estm_dists)) + self.R
+        return
 
     def forward_model(self, x, R, h, sigma, src_type):
         """FWD model functions
@@ -318,7 +173,8 @@ class KCSD1D(KCSD2D):
         pot : float
             value of potential at specified distance from the source
         """
-        pot, err = integrate.quad(self.int_pot_1D, -R, R, 
+        pot, err = integrate.quad(self.int_pot_1D, 
+                                  -R, R, 
                                   args=(x, R, h, src_type))
         pot *= 1./(2.0*sigma)
         return pot
@@ -350,31 +206,15 @@ class KCSD1D(KCSD2D):
         """
         #1/2sigma normalization not here
         m = np.sqrt((x-xp)**2 + h**2) - abs(x-xp)
-        m *= basis_func(xp, 0, R) 
+        m *= basis_func(abs(xp), R)  #xp is the distance
         return m
 
-    def update_R(self, R):
-        """Used in Cross validation
-
-        Parameters
-        ----------
-        R : float
-
-        Returns
-        -------
-        None
-        """
-        self.R = R
-        Lx = np.max(self.src_x) - np.min(self.src_x) + self.R
-        self.dist_max = abs(Lx)
-        self.method()
-        return
 
 if __name__ == '__main__':
     ele_pos = np.array(([-0.1],[0], [0.5], [1.], [1.4], [2.], [2.3]))
     pots = np.array([[-1], [-1], [-1], [0], [0], [1], [-1.5]])
     k = KCSD1D(ele_pos, pots,
-               gdx=0.01, n_src_init=100,
+               gdx=0.01, n_src_init=300,
                ext_x=0.0, src_type='gauss')
     k.cross_validate()
     #print k.values()

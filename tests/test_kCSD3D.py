@@ -254,7 +254,7 @@ def do_kcsd(ele_pos, pots, **params):
     pots = pots.reshape(num_ele, 1)
     k = KCSD3D(ele_pos, pots, **params)
     #k.cross_validate(Rs=np.arange(0.2,0.4,0.02))
-    #k.cross_validate(Rs=np.arange(0.27,0.36,0.01))
+    #k.cross_validate(Rs=np.arange(0.02,0.27,0.01))
     k.cross_validate(Rs=np.array(0.31).reshape(1))
     est_csd = k.values('CSD')
     return k, est_csd
@@ -302,7 +302,7 @@ def main_loop(csd_profile, csd_seed, total_ele, num_init_srcs=1000):
                          xmin=x_lims[0], xmax=x_lims[1], 
                          ymin=y_lims[0], ymax=y_lims[1],
                          zmin=z_lims[0], zmax=z_lims[1],
-                         n_src_init=num_init_srcs)
+                         n_src_init=num_init_srcs, src_type='step')
     toc = time.time() - tic
 
     #RMS of estimation - gives estimate of how good the reconstruction was

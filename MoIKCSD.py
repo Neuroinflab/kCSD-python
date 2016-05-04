@@ -139,7 +139,8 @@ class MoIKCSD(KCSD2D):
         correction = np.sum(np.arcsinh((h - (2*h*np.arange(self.MoI_iters))) /y))
         correction += np.sum(np.arcsinh((h + (2*h*np.arange(self.MoI_iters))) /y))
         pot = np.arcsinh(h/y) + (self.W_TS*correction)
-        pot *= basis_func(xp, yp, [0, 0], R) #[0, 0] is origin here
+        dist = np.sqrt(xp**2 + yp**2)
+        pot *= basis_func(dist, R) #[0, 0] is origin here
         return pot
 
 if __name__ == '__main__':
@@ -147,7 +148,7 @@ if __name__ == '__main__':
                         [1.2, 1.2]])
     pots = np.array([[-1], [-1], [-1], [0], [0], [1], [-1.5]])
     k = MoIKCSD(ele_pos, pots,
-                gdX=0.05, gdY=0.05,
+                gdx=0.05, gdx=0.05,
                 xmin=-2.0, xmax=2.0,
                 ymin=-2.0, ymax= 2.0)
     k.cross_validate()

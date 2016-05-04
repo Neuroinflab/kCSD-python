@@ -176,8 +176,8 @@ def do_kcsd(ele_pos, pots, **params):
     num_ele = len(ele_pos)
     pots = pots.reshape(num_ele, 1)
     k = KCSD2D(ele_pos, pots, **params)
-    #k.cross_validate(Rs=np.arange(0.08,0.35,0.02))
-    k.cross_validate(Rs=np.array(0.14).reshape(1))
+    #k.cross_validate(Rs=np.arange(0.01,0.10,0.02))
+    k.cross_validate(Rs=np.array(0.08).reshape(1))
     est_csd = k.values('CSD')
     return k, est_csd
 
@@ -194,7 +194,7 @@ def main_loop(csd_profile, csd_seed, total_ele):
                                                  start_y=0., end_y=1., 
                                                  res_x=100, res_y=100)
     #Electrodes
-    ele_lims = [0.15, 0.85] #square grid, xy min,max limits
+    ele_lims = [0.05, 0.95] #square grid, xy min,max limits
     ele_res = int(np.sqrt(total_ele)) #resolution of electrode grid
     ele_pos, pots = electrode_config(ele_lims, ele_res, true_csd, t_csd_x, t_csd_y)
     ele_x = ele_pos[:, 0]
@@ -232,7 +232,7 @@ def main_loop(csd_profile, csd_seed, total_ele):
 if __name__=='__main__':
     total_ele = 81
     #Normal run
-    csd_seed = 82 #0-49 are small sources, 50-99 are large sources 
+    csd_seed = 15 #0-49 are small sources, 50-99 are large sources 
     if csd_seed < 50:
         csd_profile = CSD.gauss_2d_small
     else:
