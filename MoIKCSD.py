@@ -1,9 +1,6 @@
 """
 This script is used to generate Current Source Density Estimates, 
-using the kCSD method Jan et.al (2012) for 2D case.
-
-These scripts are based on Grzegorz Parka's, 
-Google Summer of Code 2014, INFC/pykCSD  
+using the kCSD method described in Ness et.al (2015) for 2D case.
 
 This was written by :
 Chaitanya Chintaluri, 
@@ -78,7 +75,7 @@ class MoIKCSD(KCSD2D):
         self.MoI_iters = kwargs.get('MoI_iters', 20)
         self.sigma_S = kwargs.get('sigma_S', 5.0)
         self.sigma = kwargs.get('sigma', 1.0)
-        #Eq 17, Ness (2015)
+        #Eq 6, Ness (2015)
         W_TS = (self.sigma - self.sigma_S) / (self.sigma + self.sigma_S) 
         self.iters = np.arange(self.MoI_iters) + 1
         self.iter_factor = W_TS**self.iters
@@ -107,7 +104,7 @@ class MoIKCSD(KCSD2D):
                                      lambda x: -R, 
                                      lambda x: R, 
                                      args=(x, R, h, src_type))
-        pot *= 1./(2.0*np.pi*sigma) #Potential basis functions bi_x_y
+        pot *= 1./(2.0*np.pi*sigma)
         return pot
 
     def int_pot_2D_moi(self, xp, yp, x, R, h, basis_func):
@@ -141,7 +138,7 @@ class MoIKCSD(KCSD2D):
         correction = np.arcsinh((h-(2*h*self.iters))/L) + np.arcsinh((h+(2*h*self.iters))/L)
         pot = np.arcsinh(h/L) + np.sum(self.iter_factor*correction)
         dist = np.sqrt(xp**2 + yp**2)
-        pot *= basis_func(dist, R)
+        pot *= basis_func(dist, R) #Eq 20, Ness et.al.
         return pot
 
 if __name__ == '__main__':
@@ -153,7 +150,7 @@ if __name__ == '__main__':
                 xmin=-2.0, xmax=2.0,
                 ymin=-2.0, ymax= 2.0)
     k.cross_validate()
-    print k.values()
+    #print k.values()
 
 
 

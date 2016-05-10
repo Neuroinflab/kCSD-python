@@ -6,11 +6,9 @@ Neural Computation 24 (2012), 541–575
 
 For citation policy see the end of this file.
 
-
 License
 -------
 Modified BSD License
-
 
 Contact
 -------
@@ -19,9 +17,9 @@ d.wojcik[at]nencki[dot]gov[dot]pl
 
 Status
 ------
-KCSD1D + tests - rc
-KCSD2D + tests - rc
-KCSD3D + tests - rc
+KCSD1D + tests(rc)
+KCSD2D + tests(rc)
+KCSD3D + tests(rc)
 MoIKCSD (for MEA's with Saline)
 
 Requirements
@@ -29,8 +27,9 @@ Requirements
 python 2.7
 numpy 1.10
 scipy 0.17
+matplotlib 1.5 (Only For tests and visualization)
 
-Additional Packages
+Additional Packages - Only of 3D for newer basis functions only.
 -------------------
 scikit-monaco 0.2
 joblib
@@ -46,28 +45,28 @@ In file test_kCSD1D.py, test_kCSD2D.py and test_kCSD3D.py play with
 Legend
 ------
 CSD.py - base class of CSD
-KCSD2D.py - relevant KCD2D reconstruction file (Includes crossvalidation for R and lambd)
-KCSD3D.py - relevant KCD3D reconstruction file (inherits from KCSD2D.py)
-KCSD1D.py - relevant KCD1D reconstruction file (inherits from KCSD2D.py)
+KCSD.py - base class for kernel CSD methods.
+KCSD1D.py - relevant KCD1D reconstruction file (Inherits from KCSD.py)
+KCSD2D.py - relevant KCD2D reconstruction file (Inherits from KCSD.py)
+KCSD3D.py - relevant KCD3D reconstruction file (inherits from KCSD.py)
 MoIKCSD.py - relevant KCSD2D which includes the method of images - models saline conductivity
 
 basis_functions.py - necessary functions that are used as basis sources
 utility_functions.py - necessary generic functions 
 
-./tests/test_kCSD2D.py - file generates TrueCSD, potentials in a plane, and its kCSD reconstruction
+tests/test_kCSD1D.py - file generates TrueCSD, potentials in a plane, and its kCSD reconstruction
 	     - use with relevant seed - for small sources and large sources.
 	     - illustrates the basic API of KCSD2D.py
 
-./tests/test_kCSD3D.py - file generates TrueCSD, potentials in a volume, and its kCSD reconstruction
+tests/test_kCSD2D.py - file generates TrueCSD, potentials in a plane, and its kCSD reconstruction
+	     - use with relevant seed - for small sources and large sources.
+	     - illustrates the basic API of KCSD2D.py
+
+tests/test_kCSD3D.py - file generates TrueCSD, potentials in a volume, and its kCSD reconstruction
 	     - use with relevant seed - for small sources, large sources, monopoles, dipole sources
 	     - illustrates the basic API of KCSD3D.py
 
-./tests/test_kCSD1D.py - file generates TrueCSD, potentials in a plane, and its kCSD reconstruction
-	     - use with relevant seed - for small sources and large sources.
-	     - illustrates the basic API of KCSD2D.py
-
-./tests/csd_profile.py - used by test_kCSD1D.py, test_kCSD2D.py, test_kCSD3D.py for CSD profiles.
-
+tests/csd_profile.py - used by test_kCSD1D.py, test_kCSD2D.py, test_kCSD3D.py for CSD profiles.
 
 
 Citation policy

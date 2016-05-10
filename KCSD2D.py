@@ -140,10 +140,6 @@ class KCSD2D(KCSD):
                                                                     self.ext_x, 
                                                                     self.ext_y,
                                                                     self.R_init ) 
-        #Total diagonal distance of the area covered by the basis sources
-        #Lx = np.max(self.src_x) - np.min(self.src_x) + self.R
-        #Ly = np.max(self.src_y) - np.min(self.src_y) + self.R
-        #self.dist_max = (Lx**2 + Ly**2)**0.5
         self.n_src = self.src_x.size
         self.nsx, self.nsy = self.src_x.shape
         return        
