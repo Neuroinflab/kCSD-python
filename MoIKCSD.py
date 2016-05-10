@@ -79,7 +79,9 @@ class MoIKCSD(KCSD2D):
         self.sigma_S = kwargs.get('sigma_S', 5.0)
         self.sigma = kwargs.get('sigma', 1.0)
         #Eq 17, Ness (2015)
-        self.W_TS = (self.sigma - self.sigma_S) / (self.sigma + self.sigma_S) 
+        W_TS = (self.sigma - self.sigma_S) / (self.sigma + self.sigma_S) 
+        self.iters = np.arange(self.MoI_iters) + 1
+        self.iter_factor = W_TS**self.iters
         super(MoIKCSD, self).__init__(ele_pos, pots, **kwargs)
         return
 
@@ -133,14 +135,13 @@ class MoIKCSD(KCSD2D):
         -------
         pot : float
         """
-        y = ((x-xp)**2 + yp**2)**(0.5)
-        if y < 0.00001:
-            y = 0.00001
-        correction = np.sum(np.arcsinh((h - (2*h*np.arange(self.MoI_iters))) /y))
-        correction += np.sum(np.arcsinh((h + (2*h*np.arange(self.MoI_iters))) /y))
-        pot = np.arcsinh(h/y) + (self.W_TS*correction)
+        L = ((x-xp)**2 + yp**2)**(0.5)
+        if L < 0.00001:
+            L = 0.00001
+        correction = np.arcsinh((h-(2*h*self.iters))/L) + np.arcsinh((h+(2*h*self.iters))/L)
+        pot = np.arcsinh(h/L) + np.sum(self.iter_factor*correction)
         dist = np.sqrt(xp**2 + yp**2)
-        pot *= basis_func(dist, R) #[0, 0] is origin here
+        pot *= basis_func(dist, R)
         return pot
 
 if __name__ == '__main__':
@@ -148,10 +149,11 @@ if __name__ == '__main__':
                         [1.2, 1.2]])
     pots = np.array([[-1], [-1], [-1], [0], [0], [1], [-1.5]])
     k = MoIKCSD(ele_pos, pots,
-                gdx=0.05, gdx=0.05,
+                gdx=0.05, gdy=0.05,
                 xmin=-2.0, xmax=2.0,
                 ymin=-2.0, ymax= 2.0)
     k.cross_validate()
+    print k.values()
 
 
 
