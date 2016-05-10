@@ -216,7 +216,8 @@ if __name__ == '__main__':
     k = KCSD1D(ele_pos, pots,
                gdx=0.01, n_src_init=300,
                ext_x=0.0, src_type='gauss')
-    k.cross_validate()
+    #k.cross_validate(lambdas=np.array((0.0)), Rs=np.array([0.21, 0.23, 0.24]))
+    #k.cross_validate()
     #print k.values()
     #k.cross_validate(Rs=np.array(0.14).reshape(1))
     #k.cross_validate(Rs=np.array((0.01,0.02,0.04))) 

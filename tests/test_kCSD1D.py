@@ -135,7 +135,7 @@ def do_kcsd(ele_pos, pots, **params):
     pots = pots.reshape(num_ele, 1)
     k = KCSD1D(ele_pos, pots, **params)
     #k.cross_validate(Rs=np.arange(0.01,0.2,0.01), lambdas= np.logspace(15,-25,25))
-    k.cross_validate(Rs=np.array([0.275]), lambdas=np.logspace(15,-25,35))
+    k.cross_validate(Rs=np.array([0.275]), lambdas=np.logspace(15,-25, 35))
     est_csd = k.values()
     est_pot =  k.values('POT')
     return k, est_csd, est_pot
@@ -176,8 +176,8 @@ def main_loop(csd_profile, csd_seed, total_ele):
     chr_x, test_csd = generate_csd_1D(csd_profile, csd_seed,
                                       start_x=x_lims[0], end_x=x_lims[1], 
                                       res_x=int((x_lims[1]-x_lims[0])/gdX))
-    rms = np.sqrt(abs(np.mean(np.square(test_csd)-np.square(est_csd.flatten()))))
-    rms /= np.sqrt(np.mean(np.square(test_csd))) #Normalizing
+    rms = np.linalg.norm(abs(test_csd - est_csd.flatten()))
+    rms /= np.linalg.norm(test_csd)
 
     #Plots
     title ="Lambda: %0.2E; R: %0.2f; CV_Error: %0.2E; RMS_Error: %0.2E; Time: %0.2f" %(k.lambd, k.R, k.cv_error, rms, toc)
@@ -195,7 +195,7 @@ def test_calculating_potentials(csd_seed):
         csdres = 10+i*10
         (x, V) = electrode_config([0.,1.], 1000, csd_profile, [0.,1.], csd_seed, CSDres=csdres)
         #ans = calculate_potential_1D(csd_profile, measure_locations, states, csd_space_lims=[0.,1.], CSDres=csdres)    
-        plt.plot(x, V, label =str(csdres))
+        plt.plot(x, V, label=str(csdres))
     plt.legend()
     #changing olny measure resolution
     #measure_locations = np.arange(0,1,1000)

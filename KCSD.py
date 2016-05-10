@@ -266,9 +266,13 @@ class KCSD(CSD):
         R : post cross validation
         Lambda : post cross validation
         """
-        if not np.any(lambdas):                       #when None
+        if lambdas is None:                           #when None
+            print 'No lambda given, using defaults'
             lambdas = np.logspace(-2,-25,25,base=10.) #Default multiple lambda
-        if not np.any(Rs):                            #when None
+            lambdas = np.hstack((lambdas, np.array((0.0))))
+        elif lambdas.size == 1:                       #resize when one entry
+            lambdas = lambdas.flatten()
+        if Rs is None:                                #when None
             Rs = np.array((self.R)).flatten()         #Default over one R value
         errs = np.zeros((Rs.size, lambdas.size))
         index_generator = []                          

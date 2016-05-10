@@ -217,9 +217,8 @@ def main_loop(csd_profile, csd_seed, total_ele):
                                              start_y=y_lims[0], end_y=y_lims[1], 
                                              res_x=int((x_lims[1]-x_lims[0])/gdX), 
                                              res_y=int((y_lims[1]-y_lims[0])/gdY))
-    rms = np.sqrt(abs(np.mean(np.square(test_csd)-np.square(est_csd[:,:,0]))))
-    rms /= np.sqrt(np.mean(np.square(test_csd))) #Normalizing
-
+    rms = np.linalg.norm(abs(test_csd - est_csdest_csd[:,:,0]))
+    rms /= np.linalg.norm(test_csd)
     #Plots
     title = str(k.lambd)+', '+str(k.R)+', '+str(k.cv_error)+', '+str(rms)+', '+str(toc)
     #save_as = csd_name+'_'+str(csd_seed)+'of'+str(total_ele)
