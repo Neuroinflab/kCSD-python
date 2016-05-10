@@ -176,7 +176,7 @@ def main_loop(csd_profile, csd_seed, total_ele):
     chr_x, test_csd = generate_csd_1D(csd_profile, csd_seed,
                                       start_x=x_lims[0], end_x=x_lims[1], 
                                       res_x=int((x_lims[1]-x_lims[0])/gdX))
-    rms = np.linalg.norm(abs(test_csd - est_csd.flatten()))
+    rms = np.linalg.norm(abs(test_csd - est_csd[:,0]))
     rms /= np.linalg.norm(test_csd)
 
     #Plots
