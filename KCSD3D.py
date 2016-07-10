@@ -13,13 +13,15 @@ Nencki Institute of Experimental Biology, Warsaw.
 import numpy as np
 from scipy.spatial import distance
 from scipy import special, interpolate, integrate    
-try:
-    from skmonaco import mcmiser
-    skmonaco_available = True
-    import multiprocessing
-    num_cores = multiprocessing.cpu_count()
-except ImportError:
-    skmonaco_available = False
+### Dependencies of elephant!
+# try:
+#     from skmonaco import mcmiser
+#     skmonaco_available = True
+#     import multiprocessing
+#     num_cores = multiprocessing.cpu_count()
+# except ImportError:
+#     skmonaco_available = False
+skmonaco_available = False
     
 from KCSD import KCSD
 import utility_functions as utils
