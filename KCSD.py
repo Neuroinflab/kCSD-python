@@ -25,8 +25,8 @@ from numpy.linalg import LinAlgError
 #     skmonaco_available = False
 skmonaco_available = False
 
-import utility_functions as utils
-import basis_functions as basis
+from . import utility_functions as utils
+from . import basis_functions as basis
 
 class CSD(object):
     """CSD - The base class for CSD methods."""
