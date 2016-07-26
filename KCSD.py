@@ -498,9 +498,8 @@ class KCSD1D(KCSD):
         try:
             self.basis = basis.basis_1D[source_type]
         except KeyError:
-            print('Invalid source_type for basis! available are:', 
-                  basis.basis_1D.keys())
-            raise
+            raise KeyError('Invalid source_type for basis! available are:', 
+                           basis.basis_1D.keys())
         (self.src_x, self.R) = utils.distribute_srcs_1D(self.estm_x,
                                                         self.n_src_init,
                                                         self.ext_x,
@@ -691,9 +690,8 @@ class KCSD2D(KCSD):
         try:
             self.basis = basis.basis_2D[source_type]
         except KeyError:
-            print('Invalid source_type for basis! available are:', 
-                  basis.basis_2D.keys())
-            raise 
+            raise KeyError('Invalid source_type for basis! available are:', 
+                           basis.basis_2D.keys())
         (self.src_x, self.src_y, self.R) = utils.distribute_srcs_2D(self.estm_x,
                                                                     self.estm_y,
                                                                     self.n_src_init,
@@ -1020,9 +1018,8 @@ class KCSD3D(KCSD):
         try:
             self.basis = basis.basis_3D[source_type]
         except KeyError:
-            print('Invalid source_type for basis! available are:', 
-                  basis.basis_3D.keys())
-            raise
+            raise KeyError('Invalid source_type for basis! available are:', 
+                           basis.basis_3D.keys())
         (self.src_x, self.src_y, self.src_z, self.R) = utils.distribute_srcs_3D(self.estm_x,
                                                                                 self.estm_y,
                                                                                 self.estm_z,
