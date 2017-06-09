@@ -6,7 +6,7 @@ These scripts are based on Grzegorz Parka's,
 Google Summer of Code 2014, INFC/pykCSD  
 
 This was written by :
-Chaitanya Chintaluri  
+Jan Maka, Chaitanya Chintaluri  
 Laboratory of Neuroinformatics,
 Nencki Institute of Experimental Biology, Warsaw.
 """
@@ -21,11 +21,12 @@ try:
 except ImportError:
     skmonaco_available = False
     
-from KCSD import KCSD
+from KCSD3D import KCSD3D
+from sKCSDcell import sKCSDcell
 import utility_functions as utils
 import basis_functions as basis
     
-class KCSD3D(KCSD):
+class sKCSD3D(KCSD3D):
     """KCSD3D - The 3D variant for the Kernel Current Source Density method.
 
     This estimates the Current Source Density, for a given configuration of 
@@ -33,7 +34,7 @@ class KCSD3D(KCSD):
     electrodes. The method implented here is based on the original paper
     by Jan Potworowski et.al. 2012.
     """
-    def __init__(self, ele_pos, pots, **kwargs):
+    def __init__(self, ele_pos, pots,morphology, **kwargs):
         """Initialize KCSD3D Class.
 
         Parameters
@@ -42,6 +43,8 @@ class KCSD3D(KCSD):
             positions of electrodes
         pots : numpy array
             potentials measured by electrodes
+        morphology: numpy array
+            morphology of the cell
         **kwargs
             configuration parameters, that may contain the following keys:
             src_type : str
@@ -89,34 +92,8 @@ class KCSD3D(KCSD):
         KeyError
             Basis function (src_type) not implemented. See basis_functions.py for available
         """
+        self.morphology = morphology
         super(KCSD3D, self).__init__(ele_pos, pots, **kwargs)
-        return
-
-    def estimate_at(self):
-        """Defines locations where the estimation is wanted
-        Defines:         
-        self.n_estm = self.estm_x.size
-        self.ngx, self.ngy, self.ngz = self.estm_x.shape
-        self.estm_x, self.estm_y, self.estm_z : Pts. at which CSD is requested
-
-        Parameters
-        ----------
-        None
-
-        Returns
-        -------
-        None
-        """
-        #Number of points where estimation is to be made.
-        nx = (self.xmax - self.xmin)/self.gdx
-        ny = (self.ymax - self.ymin)/self.gdy
-        nz = (self.zmax - self.zmin)/self.gdz
-        #Making a mesh of points where estimation is to be made.
-        self.estm_x, self.estm_y, self.estm_z = np.mgrid[self.xmin:self.xmax:np.complex(0,nx), 
-                                                         self.ymin:self.ymax:np.complex(0,ny),
-                                                         self.zmin:self.zmax:np.complex(0,nz)]
-        self.n_estm = self.estm_x.size
-        self.ngx, self.ngy, self.ngz = self.estm_x.shape
         return
 
     def place_basis(self):
@@ -145,18 +122,13 @@ class KCSD3D(KCSD):
         except:
             print 'Invalid source_type for basis! available are:', basis.basis_3D.keys()
             raise KeyError
-        #Mesh where the source basis are placed is at self.src_x 
-        (self.src_x, self.src_y, self.src_z, self.R) = utils.distribute_srcs_3D(self.estm_x,
-                                                                                self.estm_y,
-                                                                                self.estm_z,
-                                                                                self.n_src_init,
-                                                                                self.ext_x, 
-                                                                                self.ext_y,
-                                                                                self.ext_z,
-                                                                                self.R_init)
-        print "sss", self.src_x.shape
+        #Mesh where the source basis are placed is at self.src_x
+        self.R = self.R_init
+        cell = sKCSDcell(self.morphology,self.n_src_init)
+        cell.distribute_srcs_3D_morph()
+        (self.src_x, self.src_y, self.src_z) = cell.get_xyz()
         self.n_src = self.src_x.size
-        self.nsx, self.nsy, self.nsz = self.src_x.shape
+        #self.nsx, self.nsy, self.nsz = self.src_x.shape
         return        
 
     def create_src_dist_tables(self):
@@ -313,7 +285,8 @@ if __name__ == '__main__':
                         (0.5, 0.5, 0.5)])
     pots = np.array([[-0.5], [0], [-0.5], [0], [0], [0.2], [0], [0], [1]])
     params = {}
-    k = KCSD3D(ele_pos, pots,
+    morphology = utils.loadswc('data/morpho1.swc')
+    k = sKCSD3D(ele_pos, pots,morphology,
                gdx=0.02, gdy=0.02, gdz=0.02,
                n_src_init=1000, src_type='gauss_lim')
     k.cross_validate()
