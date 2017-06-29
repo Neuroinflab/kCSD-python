@@ -13,9 +13,19 @@ Nencki Institute of Experimental Biology, Warsaw.
 import numpy as np
 from scipy import interpolate
 
-def loadswc(path):
+def load_swc(path):
     morphology = np.loadtxt(path)
     return morphology
+
+def load_elpos(path):
+    raw_ele_pos = np.loadtxt(path)
+    n_el = raw_ele_pos.shape[0]/3
+    ele_pos = np.zeros(shape=(n_el,3))
+    ele_pos[:,0] = raw_ele_pos[:n_el]
+    ele_pos[:,1] = raw_ele_pos[n_el:2*n_el]
+    ele_pos[:,2] = raw_ele_pos[2*n_el:]
+    print ele_pos.shape
+    return ele_pos
 
 def check_for_duplicated_electrodes(elec_pos):
     """Checks for duplicate electrodes

@@ -31,7 +31,7 @@ try:
 except ImportError:
     parallel_available = False
 import csd_profile as CSD
-from KCSD3D import KCSD3D
+from sKCSD3D import sKCSD3D
 from sKCSDcell import sKCSDcell
 import utility_functions as utils
 
@@ -254,8 +254,8 @@ def do_kcsd(ele_pos, pots, **params):
     """
     num_ele = len(ele_pos)
     pots = pots.reshape(num_ele, 1)
-    morphology = utils.loadswc('data/morpho1.swc')
-    k = KCSD3D(ele_pos, pots, morphology, **params)
+    morphology = utils.loadswc('../data/morpho1.swc')
+    k = sKCSD3D(ele_pos, pots, morphology, **params)
     #k.cross_validate(Rs=np.arange(0.2,0.4,0.02))
     #k.cross_validate(Rs=np.arange(0.02,0.27,0.01))
     k.cross_validate(Rs=np.array(0.31).reshape(1))
@@ -277,7 +277,7 @@ def main_loop(csd_profile, csd_seed, total_ele, num_init_srcs=1000):
                                                           start_z=0., end_z=1.,
                                                           res_x=100, res_y=100,
                                                           res_z=100)
-
+    
     #Electrodes
     ele_lims = [0.15, 0.85] #square grid, xy min,max limits
     ele_res = int(np.ceil(total_ele**(3**-1))) #resolution of electrode grid
@@ -307,7 +307,8 @@ def main_loop(csd_profile, csd_seed, total_ele, num_init_srcs=1000):
                          zmin=z_lims[0], zmax=z_lims[1],
                          n_src_init=num_init_srcs, src_type='step')
     toc = time.time() - tic
-
+    print est_csd.shape
+    print k.shape
     #RMS of estimation - gives estimate of how good the reconstruction was
     chr_x, chr_y, chr_z, test_csd = generate_csd_3D(csd_profile, csd_seed,
                                                     start_x=x_lims[0], end_x=x_lims[1],

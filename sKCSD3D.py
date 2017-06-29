@@ -25,6 +25,9 @@ from KCSD3D import KCSD3D
 from sKCSDcell import sKCSDcell
 import utility_functions as utils
 import basis_functions as basis
+
+#testing
+import pylab as plt
     
 class sKCSD3D(KCSD3D):
     """KCSD3D - The 3D variant for the Kernel Current Source Density method.
@@ -95,7 +98,36 @@ class sKCSD3D(KCSD3D):
         self.morphology = morphology
         super(KCSD3D, self).__init__(ele_pos, pots, **kwargs)
         return
+    
+    def estimate_at(self):
+        """Defines locations where the estimation is wanted
+        Defines:         
+        self.n_estm = self.estm_x.size
+        self.ngx, self.ngy, self.ngz = self.estm_x.shape
+        self.estm_x, self.estm_y, self.estm_z : Pts. at which CSD is requested
 
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+        """
+        #Number of points where estimation is to be made.
+        nx = (self.xmax - self.xmin)/self.gdx
+        ny = (self.ymax - self.ymin)/self.gdy
+        nz = (self.zmax - self.zmin)/self.gdz
+    
+        print nx, ny, nz
+        #Making a mesh of points where estimation is to be made.
+        self.estm_x, self.estm_y, self.estm_z = np.mgrid[self.xmin:self.xmax:np.complex(0,nx), 
+                                                         self.ymin:self.ymax:np.complex(0,ny),
+                                                         self.zmin:self.zmax:np.complex(0,nz)]
+        self.n_estm = self.estm_x.size
+        self.ngx, self.ngy, self.ngz = self.estm_x.shape
+        return
+    
     def place_basis(self):
         """Places basis sources of the defined type.
         Checks if a given source_type is defined, if so then defines it
@@ -124,11 +156,10 @@ class sKCSD3D(KCSD3D):
             raise KeyError
         #Mesh where the source basis are placed is at self.src_x
         self.R = self.R_init
-        cell = sKCSDcell(self.morphology,self.n_src_init)
-        cell.distribute_srcs_3D_morph()
-        (self.src_x, self.src_y, self.src_z) = cell.get_xyz()
+        self.cell = sKCSDcell(self.morphology,self.ele_pos,self.n_src_init)
+        self.cell.distribute_srcs_3D_morph()
+        (self.src_x, self.src_y, self.src_z) = self.cell.get_xyz()
         self.n_src = self.src_x.size
-        #self.nsx, self.nsy, self.nsz = self.src_x.shape
         return        
 
     def create_src_dist_tables(self):
@@ -283,12 +314,35 @@ if __name__ == '__main__':
     ele_pos = np.array([(0, 0, 0), (0, 0, 1), (0, 1, 0), (1, 0, 0),
                         (0, 1, 1), (1, 1, 0), (1, 0, 1), (1, 1, 1),
                         (0.5, 0.5, 0.5)])
-    pots = np.array([[-0.5], [0], [-0.5], [0], [0], [0.2], [0], [0], [1]])
+    ele_pos = utils.load_elpos("..\simData_skCSD\gang_7x7_200\elcoord_x_y_z")/100.
+    X,Y,Z = ele_pos[:,0], ele_pos[:,1], ele_pos[:,2]
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.set_aspect('equal')
+    ax.scatter(X,Y,Z)
+    plt.grid()
+    plt.show()
+    pots = np.loadtxt("..\simData_skCSD\gang_7x7_200\myLFP")[:,10:11]
+    
+    plt.plot(pots[10,:])
+    plt.show()
+    
     params = {}
-    morphology = utils.loadswc('data/morpho1.swc')
+    morphology = utils.load_swc('../morphology/Badea2011Fig2Du.CNG.swc')
+    morphology[:,2:5] = morphology[:,2:5]/100.
+    st = np.array([morphology[:,2],morphology[:,3],morphology[:,4]])
+    print np.min(st,axis=1), np.max(st,axis=1)
+
+    xmin, ymin, zmin, xmax,ymax,zmax = -4.3251,-4.8632,0.,4.4831,6.3881,0.875 
     k = sKCSD3D(ele_pos, pots,morphology,
-               gdx=0.02, gdy=0.02, gdz=0.02,
-               n_src_init=1000, src_type='gauss_lim')
+               #gdx=0.02, gdy=0.02, gdz=0.02,
+               xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, zmin=zmin, zmax=zmax,
+               n_src_init=200, src_type='gauss_lim')
     k.cross_validate()
+    est_csd = k.values('CSD')
+    est_pot = k.values("POT")
+    np.save("test_csd.npy", est_csd)
+    np.save("test_pot.npy", est_pot)
+    print est_csd.shape
     #k.cross_validate(Rs=np.array(0.14).reshape(1))
-    #k.cross_validate(Rs=np.array((0.01,0.02,0.04))) 
+    #k.cross_validate(Rs=np.array((0.01,0.02,0.04))) """
