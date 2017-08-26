@@ -332,7 +332,7 @@ if __name__ == '__main__':
     morphology[:,2:5] = morphology[:,2:5]/100.
     st = np.array([morphology[:,2],morphology[:,3],morphology[:,4]])
     print np.min(st,axis=1), np.max(st,axis=1)
-
+    """
     xmin, ymin, zmin, xmax,ymax,zmax = -4.3251,-4.8632,0.,4.4831,6.3881,0.875 
     k = sKCSD3D(ele_pos, pots,morphology,
                #gdx=0.02, gdy=0.02, gdz=0.02,
@@ -344,5 +344,13 @@ if __name__ == '__main__':
     np.save("test_csd.npy", est_csd)
     np.save("test_pot.npy", est_pot)
     print est_csd.shape
+    """
     #k.cross_validate(Rs=np.array(0.14).reshape(1))
-    #k.cross_validate(Rs=np.array((0.01,0.02,0.04))) """
+    #k.cross_validate(Rs=np.array((0.01,0.02,0.04)))
+    est_csd = np.load("testing/test_csd.npy")
+    est_pot = np.load("testing/test_pot.npy")
+    plt.imshow(est_csd[:,:,50,0],cmap=plt.cm.bwr_r)
+    plt.show()
+    
+    
+    

@@ -7,12 +7,21 @@ import utility_functions as utils
 #testing
 
 class sKCSDcell(object):
+    """
+    KCSD3D - The 3D variant for the Kernel Current Source Density method.
+
+    This estimates the Current Source Density, for a given configuration of 
+    electrod positions and recorded potentials, in the case of 2D recording
+    electrodes. The method implented here is based on the original paper
+    by Jan Potworowski et.al. 2012.
+    """
     def __init__(self, morphology, ele_pos, n_src):
         """
+        
         """
+        self.morphology = morphology
         self.ele_pos = ele_pos
         self.n_src = n_src
-        self.morphology = morphology
         self.min_dist = 0
         self.max_dist = 0
         self.src_distributed = 0
