@@ -4,6 +4,7 @@ import pylab as plt
 from mpl_toolkits.mplot3d import Axes3D
 import collections
 import utility_functions as utils
+import os
 #testing
 
 class sKCSDcell(object):
@@ -153,52 +154,63 @@ class sKCSDcell(object):
         points_in_line.append([x,y])
         return np.array(points_in_line)
     
-    def draw_cell2D(self,axis = 0, resolution = 1000):
+    def draw_cell2D(self,axis = 0, resolution=(176,225,17)):
         print self.morph_points_dist
         print self.src_distributed
         print self.branching
         print len(self.morphology)
-        image = np.zeros(shape = (resolution, resolution))
-        xgrid = np.arange(self.xmin, self.xmax, (self.xmax-self.xmin)/resolution)
-        ygrid = np.arange(self.ymin, self.ymax, (self.ymax-self.ymin)/resolution)
-        zgrid = np.arange(self.zmin, self.zmax, (self.zmax-self.zmin)/resolution)
+        xgrid = np.arange(self.xmin, self.xmax, (self.xmax-self.xmin)/resolution[0])
+        ygrid = np.arange(self.ymin, self.ymax, (self.ymax-self.ymin)/resolution[2])
+        zgrid = np.arange(self.zmin, self.zmax, (self.zmax-self.zmin)/resolution[1])
         print self.xmin, self.xmax, self.ymin, self.ymax, self.zmin, self.zmax
+        if axis == 0:
+            image = np.ones(shape=(resolution[1], resolution[0], 4), dtype=np.uint8) * 255
+        elif axis == 1:
+            image = np.ones(shape=(resolution[0], resolution[1], 4), dtype=np.uint8) * 255
+        elif axis == 2:
+            image = np.ones(shape=(resolution[2], resolution[1], 4), dtype=np.uint8) * 255
+        image[:, :, 3] = 0
         xs = []
         ys = []
         x0,y0 = 0,0
         for p in range(self.loop_xyz.shape[0]):
-            z = (np.abs(zgrid-self.loop_xyz[p,1])).argmin()
+            x = (np.abs(zgrid-self.loop_xyz[p,1])).argmin()
             y = (np.abs(ygrid-self.loop_xyz[p,2])).argmin()
-            x = (np.abs(xgrid-self.loop_xyz[p,0])).argmin()
+            z = (np.abs(xgrid-self.loop_xyz[p,0])).argmin()
             if axis == 0:
                 xi, yi = y,z
             elif axis == 1:
-                xi, yi = -z, x
+                xi, yi = z, x
             elif axis == 2:
-                xi, yi = x,y    
+                xi, yi = x,y
             xs.append(xi)
             ys.append(yi)
-            image[xi,yi] = 255
+            image[xi,yi,:] = np.array([0,0,0,1])
             if x0 !=0:
                 idx_arr = self.getlinepoints(xi,yi,x0,y0)
                 for i in range(len(idx_arr)):
-                    image[idx_arr[i,0]-2:idx_arr[i,0]+2,idx_arr[i,1]-2:idx_arr[i,1]+2] = 255
+                    print i
+                    image[idx_arr[i,0]-1:idx_arr[i,0]+1,idx_arr[i,1]-1:idx_arr[i,1]+1,:] = np.array([0,0,0,20])
             x0, y0 = xi, yi
-        #plt.imshow(image)
-        plt.plot(self.source_xyz[:,2],self.source_xyz[:,1],'ro')
-        plt.plot(self.loop_xyz[:,2],self.loop_xyz[:,1],'g-')
-        plt.plot(self.morphology[:,4],self.morphology[:,3],'o')
+        plt.imshow(image)
+        np.save(os.path.join(data_dir, "preprocessed_data/image.npy"), image)
+        print np.min(image)
+        #plt.plot(self.source_xyz[:,2],self.source_xyz[:,1],'ro')
+        #plt.plot(self.loop_xyz[:,2],self.loop_xyz[:,1],'g-')
+        #plt.plot(self.morphology[:,4],self.morphology[:,3],'o')
         plt.show()
-        
+
+
+
 if __name__ == '__main__':
-    morphology = np.loadtxt('../morphology/Badea2011Fig2Du.CNG.swc')  
-    ele_pos = utils.load_elpos("..\simData_skCSD\gang_7x7_200\elcoord_x_y_z")      
+    data_dir = "examples"
+    morphology = utils.load_swc(os.path.join(data_dir, 'raw_data/morphology/Badea2011Fig2Du.CNG.swc'))
+    ele_pos = utils.load_elpos(os.path.join(data_dir, "raw_data\simData_skCSD\gang_7x7_200\elcoord_x_y_z"))
     #morphology = np.loadtxt('data/morpho1.swc')
     n_src = 10000
     cell = sKCSDcell(morphology,ele_pos,n_src)
     cell.distribute_srcs_3D_morph()
-    cell.plot3Dloop()
-    #cell.draw_cell2D(axis=1)
-    plt.savefig("movied.png")
+    #cell.plot3Dloop()
+    cell.draw_cell2D(axis=1,resolution = (176,225,17))
 
 
