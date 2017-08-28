@@ -10,26 +10,20 @@ from matplotlib.widgets import Slider, Button, RadioButtons
 import matplotlib.gridspec as gridspec
 import os
 
-def skCSD_reconstruction_plot(pots,est_csd,est_pot,sKCSDcell,t_min=0):
-    """Places basis sources of the defined type.
-            Checks if a given source_type is defined, if so then defines it
-            self.basis, This function gives locations of the basis sources,
-            Defines
-            source_type : basis_fuctions.basis_2D.keys()
-            self.R based on R_init
-            self.dist_max as maximum distance between electrode and basis
-            self.nsx, self.nsy, self.nsz = self.src_x.shape
-            self.src_x, self.src_y, self.src_z : Locations at which basis sources are placed.
-
+def skCSD_reconstruction_plot(pots,est_csd,est_pot,image,t_min=0):
+    """Displays interactive skCSD reconstruction plot
             Parameters
             ----------
-            None
+            pots - potentials recorded with elecdrodes
+            est_csd - csd estimated with sKCSD3D class
+            est_pot - potentials estimated with sKCSD class
+            image - image of morphology constructed with sKCSDcell class
+            t_min - starting time of the simulation
 
             Returns
             -------
             None
     """
-    #sKCSDcell
     n_x,n_y,n_z,n_t = est_pot.shape
     y_max = np.max(pots[10,t_min:t_min+n_t])
     y_min = np.min(pots[10,t_min:t_min+n_t])
@@ -40,9 +34,11 @@ def skCSD_reconstruction_plot(pots,est_csd,est_pot,sKCSDcell,t_min=0):
     t_plot, = plt.plot(pots[10,t_min:t_min+n_t], color='black')
     l, v = plt.plot(t_min, y_min, t_min+n_t, y_min, linewidth=2, color='red')
     est_csd_sub = plt.subplot2grid((5, 4), (1, 0), colspan=2, rowspan=2)
+    est_csd_sub.set_title("skCSD")
     est_csd_plot = est_csd_sub.imshow(est_csd[:,:,n_z/2,0],cmap=plt.cm.bwr_r,vmin=np.min(est_csd),vmax=np.max(est_csd))
     est_csd_morph = est_csd_sub.imshow(image)
     est_pot_sub = plt.subplot2grid((5, 4), (1, 2), colspan=2, rowspan=2)
+    est_pot_sub.set_title("Potential")
     est_pot_plot = est_pot_sub.imshow(est_pot[:,:,n_z/2,0], cmap=plt.cm.PRGn,vmin=np.min(est_pot),vmax=np.max(est_pot))
     est_pot_morph = est_pot_sub.imshow(image)
 
