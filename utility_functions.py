@@ -11,11 +11,29 @@ Laboratory of Neuroinformatics,
 Nencki Institute of Experimental Biology, Warsaw.
 """
 import numpy as np
+import os
+import pickle
 from scipy import interpolate
 
 def load_swc(path):
     morphology = np.loadtxt(path)
     return morphology
+
+def save_sim(path,k):
+    est_csd = k.values('CSD')
+    est_pot = k.values("POT")
+    np.save(os.path.join(path,"csd.npy"), est_csd)
+    np.save(os.path.join(path,"pot.npy"), est_pot)
+    with open(os.path.join(path, "cell.pickle"), 'wb') as handle:
+        pickle.dump(k.cell, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+
+def load_sim(path):
+    est_csd = np.load(os.path.join(path,"csd.npy"))
+    est_pot = np.load(os.path.join(path,"pot.npy"))
+    with open(os.path.join(path,"cell.pickle"), 'rb') as handle:
+        cell_obj = pickle.load(handle)
+    return est_csd, est_pot, cell_obj
 
 def load_elpos(path):
     raw_ele_pos = np.loadtxt(path)

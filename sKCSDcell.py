@@ -193,12 +193,9 @@ class sKCSDcell(object):
                     image[idx_arr[i,0]-1:idx_arr[i,0]+1,idx_arr[i,1]-1:idx_arr[i,1]+1,:] = np.array([0,0,0,20])
             x0, y0 = xi, yi
         plt.imshow(image)
-        np.save(os.path.join(data_dir, "preprocessed_data/image.npy"), image)
         print np.min(image)
-        #plt.plot(self.source_xyz[:,2],self.source_xyz[:,1],'ro')
-        #plt.plot(self.loop_xyz[:,2],self.loop_xyz[:,1],'g-')
-        #plt.plot(self.morphology[:,4],self.morphology[:,3],'o')
         plt.show()
+        return image
 
 
 

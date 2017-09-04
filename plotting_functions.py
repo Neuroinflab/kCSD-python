@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+ # -*- coding: utf-8 -*-
 """
 Created on Mon Jun 26 15:11:07 2017
 
@@ -9,8 +9,9 @@ import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider, Button, RadioButtons
 import matplotlib.gridspec as gridspec
 import os
+import utility_functions as utils
 
-def skCSD_reconstruction_plot(pots,est_csd,est_pot,image,t_min=0):
+def skCSD_reconstruction_plot(pots,est_csd,est_pot,cell_obj,t_min=0):
     """Displays interactive skCSD reconstruction plot
             Parameters
             ----------
@@ -24,6 +25,7 @@ def skCSD_reconstruction_plot(pots,est_csd,est_pot,image,t_min=0):
             -------
             None
     """
+    image = cell_obj.draw_cell2D(axis=1, resolution=est_csd.shape[:3])
     n_x,n_y,n_z,n_t = est_pot.shape
     y_max = np.max(pots[10,t_min:t_min+n_t])
     y_min = np.min(pots[10,t_min:t_min+n_t])
@@ -91,9 +93,7 @@ def skCSD_reconstruction_plot(pots,est_csd,est_pot,image,t_min=0):
 
 if __name__ == '__main__':
     data_dir = "examples"
+    path = os.path.join(data_dir, "preprocessed_data/test")
     pots = np.loadtxt(os.path.join(data_dir, "raw_data\simData_skCSD\gang_7x7_200\myLFP"))
-    est_csd = np.load(os.path.join(data_dir,"preprocessed_data/test_csd_100.npy"))
-    image = np.load(os.path.join(data_dir, "preprocessed_data/image.npy"))
-    print est_csd.shape
-    est_pot = np.load(os.path.join(data_dir,"preprocessed_data/test_pot_100.npy"))
-    skCSD_reconstruction_plot(pots,est_csd,est_pot,image)
+    est_csd, est_pot, cell_obj = utils.load_sim(path)
+    skCSD_reconstruction_plot(pots,est_csd,est_pot,cell_obj)

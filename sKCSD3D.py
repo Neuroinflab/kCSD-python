@@ -313,41 +313,21 @@ class sKCSD3D(KCSD3D):
 if __name__ == '__main__':
     data_dir = "examples"
     ele_pos = utils.load_elpos(os.path.join(data_dir,"raw_data\simData_skCSD\gang_7x7_200\elcoord_x_y_z"))/100.
-    X,Y,Z = ele_pos[:,0], ele_pos[:,1], ele_pos[:,2]
-    '''fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
-    ax.set_aspect('equal')
-    ax.scatter(X,Y,Z)
-    #plt.grid()
-    plt.show()'''
-    pots = np.loadtxt(os.path.join(data_dir,"raw_data\simData_skCSD\gang_7x7_200\myLFP"))[:,:2000]
-    plt.plot(pots[10,:])
-    plt.show()
-
+    pots = np.loadtxt(os.path.join(data_dir,"raw_data\simData_skCSD\gang_7x7_200\myLFP"))[:,:200]
     params = {}
     morphology = utils.load_swc(os.path.join(data_dir,'raw_data/morphology/Badea2011Fig2Du.CNG.swc'))
     morphology[:,2:5] = morphology[:,2:5]/100.
-    st = np.array([morphology[:,2],morphology[:,3],morphology[:,4]])
-    print np.min(st,axis=1), np.max(st,axis=1)
-
     xmin, ymin, zmin, xmax,ymax,zmax = -4.3251,-4.8632,0.,4.4831,6.3881,0.875
     k = sKCSD3D(ele_pos, pots,morphology,
                gdx=0.1, gdy=0.1, gdz=0.05,
                xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, zmin=zmin, zmax=zmax,
                n_src_init=1000, src_type='gauss_lim')
     k.cross_validate()
+    path = os.path.join(data_dir,"preprocessed_data\\test")
+    utils.save_sim(path,k)
     est_csd = k.values('CSD')
     est_pot = k.values("POT")
-    np.save(os.path.join(data_dir,"preprocessed_data/test_csd_2000.npy"), est_csd)
-    np.save(os.path.join(data_dir,"preprocessed_data/test_pot_2000.npy"), est_pot)
-    print est_csd.shape
 
-    #k.cross_validate(Rs=np.array(0.14).reshape(1))
-    #k.cross_validate(Rs=np.array((0.01,0.02,0.04)))
-    est_csd = np.load(os.path.join(data_dir,"preprocessed_data/test_csd_50.npy"))
-    est_pot = np.load(os.path.join(data_dir,"preprocessed_data/test_pot.npy"))
-    plt.imshow(est_csd[:,:,7,11],cmap=plt.cm.bwr_r)
-    plt.show()
     
     
     
