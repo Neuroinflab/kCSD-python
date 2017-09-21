@@ -200,9 +200,9 @@ class sKCSDcell(object):
 
 
 if __name__ == '__main__':
-    data_dir = "examples"
+    data_dir = ""
     morphology = utils.load_swc(os.path.join(data_dir, 'raw_data/morphology/Badea2011Fig2Du.CNG.swc'))
-    ele_pos = utils.load_elpos(os.path.join(data_dir, "raw_data\simData_skCSD\gang_7x7_200\elcoord_x_y_z"))
+    ele_pos = utils.load_elpos(os.path.join(data_dir, "raw_data/simData_skCSD/gang_7x7_200/elcoord_x_y_z"))
     #morphology = np.loadtxt('data/morpho1.swc')
     n_src = 10000
     cell = sKCSDcell(morphology,ele_pos,n_src)

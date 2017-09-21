@@ -311,9 +311,9 @@ class sKCSD3D(KCSD3D):
 
 
 if __name__ == '__main__':
-    data_dir = "examples"
-    ele_pos = utils.load_elpos(os.path.join(data_dir,"raw_data\simData_skCSD\gang_7x7_200\elcoord_x_y_z"))/100.
-    pots = np.loadtxt(os.path.join(data_dir,"raw_data\simData_skCSD\gang_7x7_200\myLFP"))[:,:200]
+    data_dir = ""
+    ele_pos = utils.load_elpos(os.path.join(data_dir,"raw_data/simData_skCSD/gang_7x7_200/elcoord_x_y_z"))/100.
+    pots = np.loadtxt(os.path.join(data_dir,"raw_data/simData_skCSD/gang_7x7_200/myLFP"))[:,:200]
     params = {}
     morphology = utils.load_swc(os.path.join(data_dir,'raw_data/morphology/Badea2011Fig2Du.CNG.swc'))
     morphology[:,2:5] = morphology[:,2:5]/100.
@@ -323,7 +323,12 @@ if __name__ == '__main__':
                xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, zmin=zmin, zmax=zmax,
                n_src_init=1000, src_type='gauss_lim')
     k.cross_validate()
-    path = os.path.join(data_dir,"preprocessed_data\\test")
+
+    path = os.path.join(data_dir,"preprocessed_data/test")
+    if not os.path.exists(path):
+        print "Creating ", path
+        os.makedirs(path)
+   
     utils.save_sim(path,k)
     est_csd = k.values('CSD')
     est_pot = k.values("POT")

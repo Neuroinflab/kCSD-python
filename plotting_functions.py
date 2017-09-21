@@ -92,8 +92,8 @@ def skCSD_reconstruction_plot(pots,est_csd,est_pot,cell_obj,t_min=0):
     plt.show()
 
 if __name__ == '__main__':
-    data_dir = "examples"
+    data_dir = ""
     path = os.path.join(data_dir, "preprocessed_data/test")
-    pots = np.loadtxt(os.path.join(data_dir, "raw_data\simData_skCSD\gang_7x7_200\myLFP"))
+    pots = np.loadtxt(os.path.join(data_dir, "raw_data/simData_skCSD/gang_7x7_200/myLFP"))
     est_csd, est_pot, cell_obj = utils.load_sim(path)
     skCSD_reconstruction_plot(pots,est_csd,est_pot,cell_obj)
