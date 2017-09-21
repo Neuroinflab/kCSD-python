@@ -7,6 +7,7 @@ Chaitanya Chintaluri,
 Laboratory of Neuroinformatics,
 Nencki Institute of Exprimental Biology, Warsaw.
 """
+from __future__ import print_function, division
 import numpy as np
 from scipy import integrate, interpolate
 from scipy.spatial import distance
@@ -198,13 +199,13 @@ class KCSD(CSD):
         elif estimate == 'POT':
             estimation_table = self.k_interp_pot
         else:
-            print 'Invalid quantity to be measured, pass either CSD or POT'
+            print('Invalid quantity to be measured, pass either CSD or POT')
         k_inv = np.linalg.inv(self.k_pot + self.lambd *
                               np.identity(self.k_pot.shape[0]))
         estimation = np.zeros((self.n_estm, self.n_time))
-        for t in xrange(self.n_time):
+        for t in range(self.n_time):
             beta = np.dot(k_inv, self.pots[:, t])
-            for i in xrange(self.n_ele):
+            for i in range(self.n_ele):
                 estimation[:, t] += estimation_table[:, i] *beta[i] # C*(x) Eq 18
         return self.process_estimate(estimation)
 
@@ -267,7 +268,7 @@ class KCSD(CSD):
         Lambda : post cross validation
         """
         if lambdas is None:                           #when None
-            print 'No lambda given, using defaults'
+            print('No lambda given, using defaults')
             lambdas = np.logspace(-2,-25,25,base=10.) #Default multiple lambda
             lambdas = np.hstack((lambdas, np.array((0.0))))
         elif lambdas.size == 1:                       #resize when one entry
@@ -275,15 +276,15 @@ class KCSD(CSD):
         if Rs is None:                                #when None
             Rs = np.array((self.R)).flatten()         #Default over one R value
         errs = np.zeros((Rs.size, lambdas.size))
-        index_generator = []                          
+        index_generator = []
         for ii in range(self.n_ele):
             idx_test = [ii]                           
-            idx_train = range(self.n_ele)
+            idx_train = [x for x in range(self.n_ele)]
             idx_train.remove(ii)                      #Leave one out
             index_generator.append((idx_train, idx_test))
         for R_idx,R in enumerate(Rs):                 #Iterate over R
             self.update_R(R)
-            print 'Cross validating R (all lambda) :', R
+            print('Cross validating R (all lambda):', R)
             for lambd_idx,lambd in enumerate(lambdas): #Iterate over lambdas
                 errs[R_idx, lambd_idx] = self.compute_cverror(lambd, 
                                                               index_generator)
@@ -293,7 +294,7 @@ class KCSD(CSD):
         self.cv_error = np.min(errs)  #otherwise is None
         self.update_R(cv_R)           #Update solver
         self.update_lambda(cv_lambda)
-        print 'R, lambda :', cv_R, cv_lambda
+        print('R, lambda :', cv_R, cv_lambda)
         return cv_R, cv_lambda
 
     def compute_cverror(self, lambd, index_generator):
@@ -325,10 +326,10 @@ class KCSD(CSD):
                         V_est[:, tt] += beta_new[ii, tt] * B_test[:, ii]
                 err += np.linalg.norm(V_est-V_test)
             except LinAlgError:
-                print 'Encoutered Singular Matrix Error: try changing ele_pos'
+                print('Encoutered Singular Matrix Error: try changing ele_pos')
                 #err = 10000. #singluar matrix errors!
                 raise
         return err
 
 if __name__ == '__main__':
-    print 'Invalid usage, use this an inheritable class only'
+    print('Invalid usage, use this an inheritable class only')

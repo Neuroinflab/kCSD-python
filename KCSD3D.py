@@ -10,6 +10,7 @@ Chaitanya Chintaluri
 Laboratory of Neuroinformatics,
 Nencki Institute of Experimental Biology, Warsaw.
 """
+from __future__ import print_function, division
 import numpy as np
 from scipy.spatial import distance
 from scipy import special, interpolate, integrate    
@@ -143,7 +144,7 @@ class KCSD3D(KCSD):
         try:
             self.basis = basis.basis_3D[source_type]
         except:
-            print 'Invalid source_type for basis! available are:', basis.basis_3D.keys()
+            print('Invalid source_type for basis! available are:', basis.basis_3D.keys())
             raise KeyError
         #Mesh where the source basis are placed is at self.src_x 
         (self.src_x, self.src_y, self.src_z, self.R) = utils.distribute_srcs_3D(self.estm_x,
@@ -154,7 +155,7 @@ class KCSD3D(KCSD):
                                                                                 self.ext_y,
                                                                                 self.ext_z,
                                                                                 self.R_init)
-        print "sss", self.src_x.shape
+        print("sss", self.src_x.shape)
         self.n_src = self.src_x.size
         self.nsx, self.nsy, self.nsz = self.src_x.shape
         return        
@@ -202,10 +203,10 @@ class KCSD3D(KCSD):
         """
         if src_type.__name__ == "gauss_3D":
             if x == 0: x=0.0001
-            pot = special.erf(x/(np.sqrt(2)*R/3.0)) / x
+            pot = special.erf(x/(np.sqrt(2)*R/3)) / x
         elif src_type.__name__ == "gauss_lim_3D":
             if x == 0: x=0.0001
-            d = R/3.
+            d = R/3
             if x < R:
                 #4*pi*((1/a)*(integrate(r**2 * exp(-r**2 / (2*d**2)) *dr ) between 0 and a ) + 
                 #(integrate(r *exp(-r**2 / (2*d**2)) * dr) between a and 3*d))
@@ -218,9 +219,9 @@ class KCSD3D(KCSD):
                 pot = 15.28828*(d)**3 / x 
             pot /= (np.sqrt(2*np.pi)*d)**3
         elif src_type.__name__ == "step_3D":
-            Q = 4.*np.pi*(R**3)/3.
+            Q = 4.*np.pi*(R**3)/3
             if x < R:
-                pot = (Q * (3 - (x/R)**2)) / (2.*R)
+                pot = (Q * (3 - (x/R)**2)) / (2*R)
             else:
                 pot = Q / x
             pot *= 3/(4*np.pi*R**3)
@@ -242,7 +243,7 @@ class KCSD3D(KCSD):
                                              lambda x, y: -R, 
                                              lambda x, y: R,
                                              args=(x, R, h, src_type))
-        pot *= 1./(4.0*np.pi*sigma)
+        pot *= 1/(4*np.pi*sigma)
         return pot
 
     def int_pot_3D(self, xp, yp, zp, x, R, h, basis_func):
@@ -273,7 +274,7 @@ class KCSD3D(KCSD):
         if y < 0.00001:
             y = 0.00001
         dist = np.sqrt(xp**2 + yp**2 + zp**2)
-        pot = 1.0/y
+        pot = 1/y
         pot *= basis_func(dist, R)
         return pot
 

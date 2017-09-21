@@ -10,6 +10,7 @@ Michal Czerwinski, Chaitanya Chintaluri
 Laboratory of Neuroinformatics,
 Nencki Institute of Experimental Biology, Warsaw.
 """
+from __future__ import print_function, division
 import numpy as np
 import os
 import pickle
@@ -37,12 +38,12 @@ def load_sim(path):
 
 def load_elpos(path):
     raw_ele_pos = np.loadtxt(path)
-    n_el = raw_ele_pos.shape[0]/3
+    n_el = raw_ele_pos.shape[0]//3
     ele_pos = np.zeros(shape=(n_el,3))
     ele_pos[:,0] = raw_ele_pos[:n_el]
     ele_pos[:,1] = raw_ele_pos[n_el:2*n_el]
     ele_pos[:,2] = raw_ele_pos[2*n_el:]
-    print ele_pos.shape
+    print(ele_pos.shape)
     return ele_pos
 
 def check_for_duplicated_electrodes(elec_pos):
@@ -225,7 +226,7 @@ def get_src_params_3D(Lx, Ly, Lz, n_src):
     """
     V = Lx*Ly*Lz
     V_unit = V / n_src
-    L_unit = V_unit**(1./3.)
+    L_unit = V_unit**(1/3)
     nx = np.ceil(Lx / L_unit)
     ny = np.ceil(Ly / L_unit)
     nz = np.ceil(Lz / L_unit)

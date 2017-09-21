@@ -9,6 +9,7 @@ Chaitanya Chintaluri,
 Laboratory of Neuroinformatics,
 Nencki Institute of Exprimental Biology, Warsaw.
 '''
+from __future__ import print_function, division
 import os
 import time
 import sys
@@ -57,13 +58,12 @@ def generate_electrodes(xlims=[0.1,0.9], ylims=[0.1,0.9], res=5):
     return ele_x, ele_y
 
 def make_test_plot(csd, est_csd):
-    print csd.shape, est_csd.shape, 'Shapes of csd'
+    print(csd.shape, est_csd.shape, 'Shapes of csd')
     fig = plt.figure(1)
     ax1 = plt.subplot(111, aspect='equal')
     yy1 = csd.flatten()
     yy1.sort(axis=0)
     im = ax1.plot(np.arange(len(yy1)), yy1, 'r')
-    ax1.hold(True)
     yy2 = est_csd.flatten()
     yy2.sort(axis=0)
     im1 = ax1.plot(np.arange(len(yy2)), yy2, c='b')
@@ -94,7 +94,6 @@ def make_plots(title,
     X,Y,Z = grid(ele_x, ele_y, pots)
     ax2 = plt.subplot(132, aspect='equal')
     im2 = plt.contourf(X, Y, Z, levels=levels_pot, cmap=cm.PRGn) 
-    ax2.hold(True)
     #im3 = plt.scatter(ele_x, ele_y, 30, pots, cmap=cm.PRGn)
     im3 = plt.scatter(ele_x, ele_y, 5)
     ax2.set_xlim([0.,1.])
@@ -133,7 +132,7 @@ def integrate_2D(x, y, xlim, ylim, csd, h, xlin, ylin, X, Y):
     m[m < 0.0000001] = 0.0000001             # I increased acuracy
     y = np.arcsinh(2*h / m) * csd            # corrected
     I = np.zeros(Ny)                         # do a 1-D integral over every row
-    for i in xrange(Ny):
+    for i in range(Ny):
         I[i] = simps(y[:, i], ylin)          # I changed the integral
     F = simps(I, xlin)                       # then an integral over the result 
     return F 
@@ -166,7 +165,7 @@ def electrode_config(ele_lims, ele_res, true_csd, csd_x, csd_y):
     pots = calculate_potential_2D(true_csd, ele_x, ele_y, csd_x, csd_y)
     ele_pos = np.vstack((ele_x, ele_y)).T     #Electrode configs
     num_ele = ele_pos.shape[0]
-    print 'Number of electrodes:', num_ele
+    print('Number of electrodes:', num_ele)
     return ele_pos, pots
 
 def do_kcsd(ele_pos, pots, **params):
@@ -186,8 +185,11 @@ def main_loop(csd_profile, csd_seed, total_ele):
     Loop that decides the random number seed for the CSD profile, 
     electrode configurations and etc.
     """
-    csd_name = csd_profile.func_name
-    print 'Using sources %s - Seed: %d ' % (csd_name, csd_seed)
+    if sys.version_info < (3,0):
+        csd_name = csd_profile.func_name
+    else:
+        csd_name = csd_profile.__name__
+    print('Using sources %s - Seed: %d ' % (csd_name, csd_seed))
     #TrueCSD
     t_csd_x, t_csd_y, true_csd = generate_csd_2D(csd_profile, csd_seed,
                                                  start_x=0., end_x=1., 

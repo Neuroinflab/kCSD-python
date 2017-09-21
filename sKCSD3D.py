@@ -10,10 +10,12 @@ Jan Maka, Chaitanya Chintaluri
 Laboratory of Neuroinformatics,
 Nencki Institute of Experimental Biology, Warsaw.
 """
+from __future__ import print_function, division
 import numpy as np
 import os
 from scipy.spatial import distance
-from scipy import special, interpolate, integrate    
+from scipy import special, interpolate, integrate
+import sys
 try:
     from skmonaco import mcmiser
     skmonaco_available = True
@@ -119,7 +121,7 @@ class sKCSD3D(KCSD3D):
         ny = (self.ymax - self.ymin)/self.gdy
         nz = (self.zmax - self.zmin)/self.gdz
     
-        print nx, ny, nz
+        print(nx, ny, nz)
         #Making a mesh of points where estimation is to be made.
         self.estm_x, self.estm_y, self.estm_z = np.mgrid[self.xmin:self.xmax:np.complex(0,nx), 
                                                          self.ymin:self.ymax:np.complex(0,ny),
@@ -152,7 +154,7 @@ class sKCSD3D(KCSD3D):
         try:
             self.basis = basis.basis_3D[source_type]
         except:
-            print 'Invalid source_type for basis! available are:', basis.basis_3D.keys()
+            print('Invalid source_type for basis! available are:', basis.basis_3D.keys())
             raise KeyError
         #Mesh where the source basis are placed is at self.src_x
         self.R = self.R_init
@@ -311,9 +313,9 @@ class sKCSD3D(KCSD3D):
 
 
 if __name__ == '__main__':
-    data_dir = "examples"
-    ele_pos = utils.load_elpos(os.path.join(data_dir,"raw_data\simData_skCSD\gang_7x7_200\elcoord_x_y_z"))/100.
-    pots = np.loadtxt(os.path.join(data_dir,"raw_data\simData_skCSD\gang_7x7_200\myLFP"))[:,:200]
+    data_dir = ""
+    ele_pos = utils.load_elpos(os.path.join(data_dir,"raw_data/simData_skCSD/gang_7x7_200/elcoord_x_y_z"))/100.
+    pots = np.loadtxt(os.path.join(data_dir,"raw_data/simData_skCSD/gang_7x7_200/myLFP"))[:,:200]
     params = {}
     morphology = utils.load_swc(os.path.join(data_dir,'raw_data/morphology/Badea2011Fig2Du.CNG.swc'))
     morphology[:,2:5] = morphology[:,2:5]/100.
@@ -323,7 +325,15 @@ if __name__ == '__main__':
                xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, zmin=zmin, zmax=zmax,
                n_src_init=1000, src_type='gauss_lim')
     k.cross_validate()
-    path = os.path.join(data_dir,"preprocessed_data\\test")
+    if sys.version_info >= (3, 0):
+        path = os.path.join(data_dir,"preprocessed_data/test_Python_3")
+    else:
+        path = os.path.join(data_dir,"preprocessed_data/test_Python_2")
+
+    if not os.path.exists(path):
+        print("Creating",path)
+        os.makedirs(path)
+        
     utils.save_sim(path,k)
     est_csd = k.values('CSD')
     est_pot = k.values("POT")

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import print_function, division
 import numpy as np
 import pylab as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -97,9 +98,9 @@ class sKCSDcell(object):
         return total_dist
     
     def get_xyz(self):
-        print self.src_distributed, self.n_src
+        print(self.src_distributed, self.n_src)
         if self.src_distributed == self.n_src:
-            print "correct"
+            print("correct")
         X,Y,Z = self.source_xyz[:,0],self.source_xyz[:,1],self.source_xyz[:,2]
         return X,Y,Z
     
@@ -123,7 +124,7 @@ class sKCSDcell(object):
      
     def plot3Dmorph(self):
         for i in range(1,self.morphology.shape[0]):
-            print "s"
+            print("s")
     
     def getlinepoints(self,x0, y0, x1, y1):
         "Bresenham's line algorithm"
@@ -134,7 +135,7 @@ class sKCSDcell(object):
         sx = -1 if x0 > x1 else 1
         sy = -1 if y0 > y1 else 1
         if dx > dy:
-            err = dx / 2.0
+            err = dx / 2
             while x != x1:
                 points_in_line.append((x, y))
                 err -= dy
@@ -143,7 +144,7 @@ class sKCSDcell(object):
                     err += dx
                 x += sx
         else:
-            err = dy / 2.0
+            err = dy / 2
             while y != y1:
                 points_in_line.append((x, y))
                 err -= dx
@@ -155,14 +156,14 @@ class sKCSDcell(object):
         return np.array(points_in_line)
     
     def draw_cell2D(self,axis = 0, resolution=(176,225,17)):
-        print self.morph_points_dist
-        print self.src_distributed
-        print self.branching
-        print len(self.morphology)
+        print(self.morph_points_dist)
+        print(self.src_distributed)
+        print(self.branching)
+        print(len(self.morphology))
         xgrid = np.arange(self.xmin, self.xmax, (self.xmax-self.xmin)/resolution[0])
         ygrid = np.arange(self.ymin, self.ymax, (self.ymax-self.ymin)/resolution[2])
         zgrid = np.arange(self.zmin, self.zmax, (self.zmax-self.zmin)/resolution[1])
-        print self.xmin, self.xmax, self.ymin, self.ymax, self.zmin, self.zmax
+        print(self.xmin, self.xmax, self.ymin, self.ymax, self.zmin, self.zmax)
         if axis == 0:
             image = np.ones(shape=(resolution[1], resolution[0], 4), dtype=np.uint8) * 255
         elif axis == 1:
@@ -189,20 +190,20 @@ class sKCSDcell(object):
             if x0 !=0:
                 idx_arr = self.getlinepoints(xi,yi,x0,y0)
                 for i in range(len(idx_arr)):
-                    print i
+                    print(i)
                     image[idx_arr[i,0]-1:idx_arr[i,0]+1,idx_arr[i,1]-1:idx_arr[i,1]+1,:] = np.array([0,0,0,20])
             x0, y0 = xi, yi
         plt.imshow(image)
-        print np.min(image)
+        print(np.min(image))
         plt.show()
         return image
 
 
 
 if __name__ == '__main__':
-    data_dir = "examples"
+    data_dir = ""
     morphology = utils.load_swc(os.path.join(data_dir, 'raw_data/morphology/Badea2011Fig2Du.CNG.swc'))
-    ele_pos = utils.load_elpos(os.path.join(data_dir, "raw_data\simData_skCSD\gang_7x7_200\elcoord_x_y_z"))
+    ele_pos = utils.load_elpos(os.path.join(data_dir, "raw_data/simData_skCSD/gang_7x7_200/elcoord_x_y_z"))
     #morphology = np.loadtxt('data/morpho1.swc')
     n_src = 10000
     cell = sKCSDcell(morphology,ele_pos,n_src)

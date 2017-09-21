@@ -10,6 +10,7 @@ Michal Czerwinski, Chaitanya Chintaluri
 Laboratory of Neuroinformatics,
 Nencki Institute of Experimental Biology, Warsaw.
 """
+from __future__ import print_function, division
 import numpy as np
 from scipy import integrate, interpolate
 from scipy.spatial import distance
@@ -124,7 +125,7 @@ class KCSD1D(KCSD):
         try:
             self.basis = basis.basis_1D[source_type]
         except:
-            print 'Invalid source_type for basis! available are:', basis.basis_1D.keys()
+            print('Invalid source_type for basis! available are:', basis.basis_1D.keys())
             raise KeyError
         #Mesh where the source basis are placed is at self.src_x
         (self.src_x, self.R) = utils.distribute_srcs_1D(self.estm_x,
@@ -218,7 +219,7 @@ if __name__ == '__main__':
                ext_x=0.0, src_type='gauss')
     #k.cross_validate(lambdas=np.array((0.0)), Rs=np.array([0.21, 0.23, 0.24]))
     #k.cross_validate()
-    #print k.values()
+    #print(k.values())
     #k.cross_validate(Rs=np.array(0.14).reshape(1))
     #k.cross_validate(Rs=np.array((0.01,0.02,0.04))) 
-    #print k.values()
+    #print(k.values())

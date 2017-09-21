@@ -9,6 +9,7 @@ Michal Czerwinski, Chaitanya Chintaluri,
 Laboratory of Neuroinformatics,
 Nencki Institute of Exprimental Biology, Warsaw.
 '''
+from __future__ import print_function, division
 import time
 import os
 import sys
@@ -145,8 +146,11 @@ def main_loop(csd_profile, csd_seed, total_ele):
     Loop that decides the random number seed for the CSD profile,
     electrode configurations and etc.
     """
-    csd_name = csd_profile.func_name
-    print 'Using sources %s - Seed: %d ' % (csd_name, csd_seed)
+    if sys.version_info < (3,0):
+        csd_name = csd_profile.func_name
+    else:
+        csd_name = csd_profile.__name__
+    print('Using sources %s - Seed: %d ' % (csd_name, csd_seed))
     h = 10.
 
     #TrueCSD
@@ -161,7 +165,7 @@ def main_loop(csd_profile, csd_seed, total_ele):
     ele_lims = [0.10, 0.9]
     ele_pos, pots = electrode_config(ele_lims, ele_res, true_csd, t_csd_x, h)
     num_ele = ele_pos.shape[0]
-    print 'Number of electrodes:', num_ele
+    print('Number of electrodes:', num_ele)
     x_array_pots, true_pots = electrode_config(ele_lims, 100, true_csd, t_csd_x, h)
 
     #kCSD estimation
@@ -191,7 +195,7 @@ def test_calculating_potentials(csd_seed):
     plt.plot(_csdx, CSD.gauss_1d_mono(_csdx, csd_seed))
     #constant measure_locations, constant csd_space_lims, different csd resolution
     plt.figure('changing csd res')
-    for i in xrange(5):    
+    for i in range(5):    
         csdres = 10+i*10
         (x, V) = electrode_config([0.,1.], 1000, csd_profile, [0.,1.], csd_seed, CSDres=csdres)
         #ans = calculate_potential_1D(csd_profile, measure_locations, states, csd_space_lims=[0.,1.], CSDres=csdres)    
@@ -200,7 +204,7 @@ def test_calculating_potentials(csd_seed):
     #changing olny measure resolution
     #measure_locations = np.arange(0,1,1000)
     plt.figure('changing measure res')
-    for i in xrange(5):    
+    for i in range(5):    
         measure_res= 20+i*50
         (x, V) = electrode_config([0.,1.], measure_res, csd_profile, [0.,1.], csd_seed, CSDres=1000)
         plt.plot(x,V, ms = 0.5, label =str(measure_res))

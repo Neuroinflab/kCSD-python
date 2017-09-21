@@ -9,6 +9,8 @@ Chaitanya Chintaluri,
 Laboratory of Neuroinformatics,
 Nencki Institute of Exprimental Biology, Warsaw.
 '''
+from __future__ import print_function, division
+import numpy as np
 import os
 import time
 import sys
@@ -117,7 +119,6 @@ def make_plots(fig_title,
         X,Y,Z = grid(ele_x[:,:,idx], ele_y[:,:,idx], pots[:,:,idx])
         ax = plt.subplot(gs[idx, 1])
         im = plt.contourf(X, Y, Z, levels=levels_pot, cmap=cm.PRGn)
-        ax.hold(True)
         plt.scatter(ele_x[:,:,idx], ele_y[:,:,idx], 5)
         ax.get_xaxis().set_visible(False)
         ax.get_yaxis().set_visible(False)
@@ -169,9 +170,9 @@ def integrate_3D(x, y, z, xlim, ylim, zlim, csd, xlin, ylin, zlin, X, Y, Z):
     m[m < 0.0000001] = 0.0000001
     z = csd / m
     Iy = np.zeros(Ny)
-    for j in xrange(Ny):
+    for j in range(Ny):
         Iz = np.zeros(Nz)                        
-        for i in xrange(Nz):
+        for i in range(Nz):
             Iz[i] = simps(z[:,j,i], zlin)
         Iy[j] = simps(Iz, ylin)
     F = simps(Iy, xlin)
@@ -196,10 +197,10 @@ def calculate_potential_3D(true_csd, ele_xx, ele_yy, ele_zz,
                                 xlims, ylims, zlims, true_csd, 
                                 xlin, ylin, zlin, 
                                 csd_x, csd_y, csd_z)
-        print 'Electrode:', ii
+        print('Electrode:', ii)
     pots /= 4*np.pi*sigma
     toc = time.time() - tic
-    print toc, 'Total time taken - series, sims'
+    print(toc, 'Total time taken - series, sims')
     return pots
 
 def calculate_potential_3D_parallel(true_csd, ele_xx, ele_yy, ele_zz, 
@@ -223,7 +224,7 @@ def calculate_potential_3D_parallel(true_csd, ele_xx, ele_yy, ele_zz,
     pots = np.array(pots)
     pots /= 4*np.pi*sigma
     #toc = time.time() - tic
-    #print toc, 'Total time taken - parallel, sims '
+    #print(toc, 'Total time taken - parallel, sims ')
     return pots
 1
 def electrode_config(ele_lims, ele_res, true_csd, csd_x, csd_y, csd_z):
@@ -243,7 +244,7 @@ def electrode_config(ele_lims, ele_res, true_csd, csd_x, csd_y, csd_z):
                                       csd_x, csd_y, csd_z)        
     ele_pos = np.vstack((ele_x, ele_y, ele_z)).T     #Electrode configs
     num_ele = ele_pos.shape[0]
-    print 'Number of electrodes:', num_ele
+    print('Number of electrodes:', num_ele)
     return ele_pos, pots
 
 def do_kcsd(ele_pos, pots, **params):
@@ -264,8 +265,11 @@ def main_loop(csd_profile, csd_seed, total_ele, num_init_srcs=1000):
     Loop that decides the random number seed for the CSD profile, 
     electrode configurations and etc.
     """
-    csd_name = csd_profile.func_name
-    print 'Using sources %s - Seed: %d ' % (csd_name, csd_seed)
+    if sys.version_info < (3,0):
+        csd_name = csd_profile.func_name
+    else:
+        csd_name = csd_profile.__name__
+    print('Using sources %s - Seed: %d ' % (csd_name, csd_seed))
 
     #TrueCSD
     t_csd_x, t_csd_y, t_csd_z, true_csd = generate_csd_3D(csd_profile, csd_seed,

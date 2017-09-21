@@ -7,6 +7,7 @@ Chaitanya Chintaluri,
 Laboratory of Neuroinformatics,
 Nencki Institute of Exprimental Biology, Warsaw.
 """
+from __future__ import print_function, division
 import numpy as np
 from scipy import integrate
 
@@ -150,7 +151,7 @@ if __name__ == '__main__':
                 xmin=-2.0, xmax=2.0,
                 ymin=-2.0, ymax= 2.0)
     k.cross_validate()
-    #print k.values()
+    #print(k.values())
 
 
 
