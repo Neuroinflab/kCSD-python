@@ -102,5 +102,6 @@ if __name__ == '__main__':
         path = os.path.join(data_dir, "preprocessed_data/test_Python_2")
     else:
         path = os.path.join(data_dir, "preprocessed_data/test_Python_3")
+
     est_csd, est_pot, cell_obj = utils.load_sim(path)
     skCSD_reconstruction_plot(pots,est_csd,est_pot,cell_obj)
