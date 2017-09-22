@@ -68,3 +68,5 @@ examples/
 .idea/
 preprocessed_data/
 raw_data/
+*~
+/#*
