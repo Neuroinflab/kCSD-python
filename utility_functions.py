@@ -17,6 +17,7 @@ import pickle
 from scipy import interpolate
 
 def load_swc(path):
+    """Load swc file"""
     morphology = np.loadtxt(path)
     return morphology
 
@@ -37,6 +38,13 @@ def load_sim(path):
     return est_csd, est_pot, cell_obj
 
 def load_elpos(path):
+    """Load electrode postions.
+
+    File format: text file, one column, x of all the electrodes, y of
+    all the electrodes, z of all the electrodes
+
+    """
+    
     raw_ele_pos = np.loadtxt(path)
     n_el = raw_ele_pos.shape[0]//3
     ele_pos = np.zeros(shape=(n_el,3))
