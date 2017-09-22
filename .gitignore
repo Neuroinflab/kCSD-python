@@ -66,3 +66,5 @@ testing/
 #data
 examples/
 .idea/
+preprocessed_data/
+raw_data/
