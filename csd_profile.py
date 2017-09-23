@@ -17,6 +17,10 @@ from matplotlib import gridspec
 from mpl_toolkits.mplot3d import axes3d
 from numpy import exp
 
+
+
+
+
 def get_states_1D(seed, n=1):
     """
     Used in the random seed generation
@@ -258,6 +262,12 @@ def neat_4d_plot(x, y, z, t, z_steps=5, cmap=cm.bwr_r):
     gs.tight_layout(fig, rect=[0, 0.03, 1, 0.95])  
     #plt.tight_layout()
 
+
+csd_available_dict = {1 : [gauss_1d_mono, gauss_1d_dipole],
+                      2 : [gauss_2d_large, gauss_2d_small],
+                      3 : [gauss_3d_large, gauss_3d_small]}
+    
+
 if __name__=='__main__':
     seed = 3
 
@@ -288,3 +298,5 @@ if __name__=='__main__':
     # neat_4d_plot(chrg_x, chrg_y, chrg_z, f)
 
     plt.show() 
+
+

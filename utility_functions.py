@@ -17,7 +17,7 @@ from numpy import exp
 
 from scipy.interpolate import interp1d
 from scipy.integrate import simps
-
+from csd_profile import csd_available_dict
 
 def check_for_duplicated_electrodes(elec_pos):
     """Checks for duplicate electrodes
@@ -345,6 +345,62 @@ def gauss_3d_dipole(x, y, z):
     f = f1+f2
     return f
 
+
+def generate_csd(csd_profile, dim, csd_at=None, seed=0):
+    """
+    csd_at is like an np.mgrid type data
+    """
+    if csd_at is None:
+        if dim == 1:
+            csd_at = np.mgrid[0:1:100j]
+        elif dim == 2:
+            csd_at = np.mgrid[0:1:100j,
+                              0:1:100j]
+        else:
+            csd_at = np.mgrid[0:1:100j,
+                              0:1:100j,
+                              0:1:100j]
+    else:
+        if dim == 1:
+            if not csd_at.ndim == dim:
+                print('Invalid csd_at and dim')
+        if dim > 1:
+            if not csd_at.shape[0] == dim:
+                print('Invalid csd_at and dim')
+    if csd_profile not in csd_available_dict[dim]:
+        print('Incorrect csd_profile selection')
+    return csd_at, csd_profile(csd_at, seed=seed)
+
+
+def generate_electrodes(dim, ele_lim=None, ele_res=None):
+    if ele_lim is None:
+        ele_lim = [0.1, 0.9]
+
+    if ele_res is None:         # reduce electrode resolution
+        if dim == 1:
+            ele_res = 30
+        elif dim == 2:
+            ele_res = 10
+        else:
+            ele_res = 5
+
+    if dim == 1:
+        x = np.mgrid[ele_lim[0]:ele_lim[1]:np.complex(0, ele_res)]
+        ele_pos = x.flatten().reshape(ele_res, 1)
+    elif dim == 2:
+        x, y = np.mgrid[ele_lim[0]:ele_lim[1]:np.complex(0, ele_res),
+                        ele_lim[0]:ele_lim[1]:np.complex(0, ele_res)]
+        ele_pos = np.vstack((x.flatten(),
+                             y.flatten())).T
+    else:
+        x, y, z = np.mgrid[ele_lim[0]:ele_lim[1]:np.complex(0, ele_res),
+                           ele_lim[0]:ele_lim[1]:np.complex(0, ele_res),
+                           ele_lim[0]:ele_lim[1]:np.complex(0, ele_res)]
+        ele_pos = np.vstack((x.flatten(),
+                             y.flatten(),
+                             z.flatten())).T
+    return ele_pos.shape[0], ele_pos
+        
 
 def generate_csd_1D(csd_profile, csd_seed, start_x=0., end_x=1., res_x=50):
     """
