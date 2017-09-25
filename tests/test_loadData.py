@@ -41,27 +41,40 @@ class testData(unittest.TestCase):
         
     def test_load_morpho_correct(self):
         self.assertTrue(isinstance(self.data.morphology,np.ndarray))
-    def test_load_morpho_no_file(self):
-        self.data.load_morpho('gugu')
-        self.assertFalse(self.data.morphology)
-    def test_load_morpho_no_array(self):
-        self.data.load_morpho('test_loadData.txt')
-        self.assertFalse(self.data.morphology)
-    def test_reload_morpho(self):
-        self.data.load_morpho('Data/gang_7x7_200/morphology/Badea2011Fig2Du.CNG.swc')
-        self.assertTrue(isinstance(self.data.morphology,np.ndarray))
-        
     def test_load_ele_pos_correct(self):
         self.assertTrue(isinstance(self.data.ele_pos,np.ndarray))
+    def test_load_LFP_correct(self):
+        self.assertTrue(isinstance(self.data.LFP,np.ndarray))
+        
+    def test_load_morpho_no_file(self):
+        self.data.load(path='gugu',what="morphology")
+        self.assertFalse(self.data.morphology)
+    def test_load_morpho_no_array(self):
+        self.data.load(path='test_loadData.py',what="morphology")
+        self.assertFalse(self.data.morphology)
+    def test_reload_morpho(self):
+        self.data.load(path='Data/gang_7x7_200/morphology/Badea2011Fig2Du.CNG.swc',what='morphology')
+        self.assertTrue(isinstance(self.data.morphology,np.ndarray))
+         
     def test_load_ele_pos_no_file(self):
-        self.data.load_ele_pos('gugu')
+        self.data.load(path='gugu',what="electrode_positions")
         self.assertFalse(self.data.ele_pos)
     def test_load_ele_pos_no_array(self):
-        self.data.load_ele_pos('test_loadData.txt')
+        self.data.load(path='test_loadData.py',what="electrode_positions")
         self.assertFalse(self.data.ele_pos)
     def test_reload_ele_pos(self):
-        self.data.load_ele_pos('Data/gang_7x7_200/electrode_positions/elcoord_x_y_z')
-        self.assertTrue(isinstance(self.data.ele_pos,np.ndarray))        
+        self.data.load(path='Data/gang_7x7_200/electrode_positions/elcoord_x_y_z',what="electrode_positions")
+        self.assertTrue(isinstance(self.data.ele_pos,np.ndarray))
+        
+    def test_load_LFP_no_file(self):
+        self.data.load(path='gugu',what="LFP")
+        self.assertFalse(self.data.LFP)
+    def test_load_LFP_no_array(self):
+        self.data.load(path='test_loadData.py',what="LFP")
+        self.assertFalse(self.data.LFP)
+    def test_reload_LFP(self):
+        self.data.load(path='Data/gang_7x7_200/LFP/myLFP',what="LFP")
+        self.assertTrue(isinstance(self.data.LFP,np.ndarray)) 
         
 if __name__ == '__main__':
   unittest.main()
