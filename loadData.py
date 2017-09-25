@@ -35,11 +35,30 @@ class Data(object):
                 self.path_LFP = self.get_fname(drc,files)
                    
         
+    def load_morpho(self, morpho_path=None):
         
+        if not morpho_path:
+            morpho_path = self.path_morphology
+            
+        try:
+            f = open(morpho_path)
+        except IOError:
+            print('Could not open morphology file',morpho_path)
+            self.morphology = None
+            return
+
+        try:
+            self.morphology = utils.load_swc(f)
+        except ValueError:
+            print('Could not load morphology file',morpho_path)
+            self.morphology = None
+            return
+            
     def __init__(self,path):
 
         self.path = path
         self.get_paths()
+        self.load_morpho()
 
 
 if __name__ == '__main__':

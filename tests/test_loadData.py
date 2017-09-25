@@ -4,7 +4,8 @@ from __future__ import print_function, division
 import sys
 import os
 import unittest
-import utility_functions as utils
+
+import numpy as np
 
 try:
   basestring
@@ -12,7 +13,7 @@ except NameError:
   basestring = str
 
 sys.path.append('..')
-
+import utility_functions as utils
 from loadData import Data
 
 class testData(unittest.TestCase):
@@ -37,7 +38,18 @@ class testData(unittest.TestCase):
         
     def test_get_paths_ele_pos(self):
         self.assertTrue('Data/gang_7x7_200/LFP/electrode_positions/elcoord_x_y_z',self.data.path_ele_pos)
-
+    def test_load_morpho_correct(self):
+        self.assertTrue(isinstance(self.data.morphology,np.ndarray))
+    def test_load_morpho_no_file(self):
+        self.data.load_morpho('gugu')
+        self.assertFalse(self.data.morphology)
+    def test_load_morpho_no_array(self):
+        self.data.load_morpho('test_loadData.txt')
+        self.assertFalse(self.data.morphology)
+    def test_reload_morpho(self):
+        self.data.load_morpho()
+        self.assertTrue(isinstance(self.data.morphology,np.ndarray))
+        
         
 if __name__ == '__main__':
   unittest.main()
