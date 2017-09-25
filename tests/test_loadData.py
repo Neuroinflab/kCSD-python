@@ -38,6 +38,7 @@ class testData(unittest.TestCase):
         
     def test_get_paths_ele_pos(self):
         self.assertTrue('Data/gang_7x7_200/LFP/electrode_positions/elcoord_x_y_z',self.data.path_ele_pos)
+        
     def test_load_morpho_correct(self):
         self.assertTrue(isinstance(self.data.morphology,np.ndarray))
     def test_load_morpho_no_file(self):
@@ -47,9 +48,20 @@ class testData(unittest.TestCase):
         self.data.load_morpho('test_loadData.txt')
         self.assertFalse(self.data.morphology)
     def test_reload_morpho(self):
-        self.data.load_morpho()
+        self.data.load_morpho('Data/gang_7x7_200/morphology/Badea2011Fig2Du.CNG.swc')
         self.assertTrue(isinstance(self.data.morphology,np.ndarray))
         
+    def test_load_ele_pos_correct(self):
+        self.assertTrue(isinstance(self.data.ele_pos,np.ndarray))
+    def test_load_ele_pos_no_file(self):
+        self.data.load_ele_pos('gugu')
+        self.assertFalse(self.data.ele_pos)
+    def test_load_ele_pos_no_array(self):
+        self.data.load_ele_pos('test_loadData.txt')
+        self.assertFalse(self.data.ele_pos)
+    def test_reload_ele_pos(self):
+        self.data.load_ele_pos('Data/gang_7x7_200/electrode_positions/elcoord_x_y_z')
+        self.assertTrue(isinstance(self.data.ele_pos,np.ndarray))        
         
 if __name__ == '__main__':
   unittest.main()

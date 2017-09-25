@@ -53,12 +53,34 @@ class Data(object):
             print('Could not load morphology file',morpho_path)
             self.morphology = None
             return
+        print('Load morphology file',morpho_path)
+        
+    def load_ele_pos(self, ele_path=None):
+        
+        if not ele_path:
+            ele_path = self.path_ele_pos
+            
+        try:
+            f = open(ele_path)
+        except IOError:
+            print('Could not open electrode positions file',ele_path)
+            self.ele_pos = None
+            return
+
+        try:
+            self.ele_pos = utils.load_elpos(f)
+        except ValueError:
+            print('Could not load electrode positions file',ele_path)
+            self.ele_pos = None
+            return
+        print('Load electrode positions file', ele_path)
             
     def __init__(self,path):
 
         self.path = path
         self.get_paths()
         self.load_morpho()
+        self.load_ele_pos()
 
 
 if __name__ == '__main__':
