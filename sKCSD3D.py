@@ -16,6 +16,8 @@ import os
 from scipy.spatial import distance
 from scipy import special, interpolate, integrate
 import sys
+import glob
+import loadData as ld
 try:
     from skmonaco import mcmiser
     skmonaco_available = True
@@ -29,7 +31,7 @@ from sKCSDcell import sKCSDcell
 import utility_functions as utils
 import basis_functions as basis
 #testing
-import pylab as plt
+
     
 class sKCSD3D(KCSD3D):
     """KCSD3D - The 3D variant for the Kernel Current Source Density method.
@@ -313,11 +315,13 @@ class sKCSD3D(KCSD3D):
 
 
 if __name__ == '__main__':
-    data_dir = ""
-    ele_pos = utils.load_elpos(os.path.join(data_dir,"raw_data/simData_skCSD/gang_7x7_200/elcoord_x_y_z"))/100.
-    pots = np.loadtxt(os.path.join(data_dir,"raw_data/simData_skCSD/gang_7x7_200/myLFP"))[:,:200]
+    
+    data_dir = "Data/gang_7x7_200"
+    data = ld.Data(data_dir)
+    ele_pos = data.ele_pos/100.
+    pots = data.LFP
     params = {}
-    morphology = utils.load_swc(os.path.join(data_dir,'raw_data/morphology/Badea2011Fig2Du.CNG.swc'))
+    morphology = data.morphology 
     morphology[:,2:5] = morphology[:,2:5]/100.
     xmin, ymin, zmin, xmax,ymax,zmax = -4.3251,-4.8632,0.,4.4831,6.3881,0.875
     k = sKCSD3D(ele_pos, pots,morphology,
