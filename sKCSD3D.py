@@ -329,17 +329,18 @@ if __name__ == '__main__':
                xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, zmin=zmin, zmax=zmax,
                n_src_init=1000, src_type='gauss_lim')
     k.cross_validate()
+    
     if sys.version_info >= (3, 0):
-        path = os.path.join(data_dir,"preprocessed_data/test_Python_3")
+        path = os.path.join(data_dir,data_dir+"/preprocessed_data/Python_3")
     else:
-        path = os.path.join(data_dir,"preprocessed_data/test_Python_2")
+        path = os.path.join(data_dir,data_dir+"/preprocessed_data/Python_2")
 
     if not os.path.exists(path):
         print("Creating",path)
         os.makedirs(path)
         
     utils.save_sim(path,k)
-    est_csd = k.values('CSD')
+    est_csd = k.values("CSD")
     est_pot = k.values("POT")
 
     
