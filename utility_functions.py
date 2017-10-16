@@ -14,6 +14,7 @@ from __future__ import division
 
 import numpy as np
 from numpy import exp
+import config
 
 from scipy.interpolate import interp1d
 from scipy.integrate import simps
@@ -211,46 +212,6 @@ def get_src_params_3D(Lx, Ly, Lz, n_src):
     return (nx, ny, nz, Lx_n, Ly_n, Lz_n, ds)
 
 
-def generate_electrodes(dim, xlims=[0.1, 0.9], ylims=[0.1, 0.9],
-                        zlims=[0.1, 0.9], res=5):
-    """Generates electrodes, helpful for FWD funtion.
-        Parameters
-        ----------
-        dim : int
-            Dimensionality of the electrodes, 1,2 or 3
-        xlims : [start, end]
-            Spatial limits of the electrodes
-        ylims : [start, end]
-            Spatial limits of the electrodes
-        zlims : [start, end]
-            Spatial limits of the electrodes
-        res : int
-            How many electrodes in each dimension
-        Returns
-        -------
-        ele_x, ele_y, ele_z : flattened np.array of the electrode pos
-
-    """
-    if dim == 1:
-        ele_x = np.mgrid[xlims[0]: xlims[1]: np.complex(0, res)]
-        ele_x = ele_x.flatten()
-        return ele_x
-    elif dim == 2:
-        ele_x, ele_y = np.mgrid[xlims[0]: xlims[1]: np.complex(0, res),
-                                ylims[0]: ylims[1]: np.complex(0, res)]
-        ele_x = ele_x.flatten()
-        ele_y = ele_y.flatten()
-        return ele_x, ele_y
-    elif dim == 3:
-        ele_x, ele_y, ele_z = np.mgrid[xlims[0]: xlims[1]: np.complex(0, res),
-                                       ylims[0]: ylims[1]: np.complex(0, res),
-                                       zlims[0]: zlims[1]: np.complex(0, res)]
-        ele_x = ele_x.flatten()
-        ele_y = ele_y.flatten()
-        ele_z = ele_z.flatten()
-        return ele_x, ele_y, ele_z
-
-
 def gauss_1d_dipole(x):
     """1D Gaussian dipole source is placed between 0 and 1
        to be used to test the CSD
@@ -346,14 +307,14 @@ def gauss_3d_dipole(x, y, z):
     return f
 
 
-def generate_csd(csd_profile, dim, csd_at=None, seed=0):
+def generate_csd(csd_profile, csd_at=None, seed=0):
     """
     csd_at is like an np.mgrid type data
     """
     if csd_at is None:
-        if dim == 1:
+        if config.dim == 1:
             csd_at = np.mgrid[0:1:100j]
-        elif dim == 2:
+        elif config.dim == 2:
             csd_at = np.mgrid[0:1:100j,
                               0:1:100j]
         else:
@@ -361,33 +322,33 @@ def generate_csd(csd_profile, dim, csd_at=None, seed=0):
                               0:1:100j,
                               0:1:100j]
     else:
-        if dim == 1:
-            if not csd_at.ndim == dim:
+        if config.dim == 1:
+            if not csd_at.ndim == config.dim:
                 print('Invalid csd_at and dim')
-        if dim > 1:
-            if not csd_at.shape[0] == dim:
+        if config.dim > 1:
+            if not csd_at.shape[0] == config.dim:
                 print('Invalid csd_at and dim')
-    if csd_profile not in csd_available_dict[dim]:
+    if csd_profile not in csd_available_dict[config.dim]:
         print('Incorrect csd_profile selection')
     return csd_at, csd_profile(csd_at, seed=seed)
 
 
-def generate_electrodes(dim, ele_lim=None, ele_res=None):
+def generate_electrodes(ele_lim=None, ele_res=None):
     if ele_lim is None:
         ele_lim = [0.1, 0.9]
 
     if ele_res is None:         # reduce electrode resolution
-        if dim == 1:
+        if config.dim == 1:
             ele_res = 30
-        elif dim == 2:
+        elif config.dim == 2:
             ele_res = 10
         else:
             ele_res = 5
 
-    if dim == 1:
+    if config.dim == 1:
         x = np.mgrid[ele_lim[0]:ele_lim[1]:np.complex(0, ele_res)]
         ele_pos = x.flatten().reshape(ele_res, 1)
-    elif dim == 2:
+    elif config.dim == 2:
         x, y = np.mgrid[ele_lim[0]:ele_lim[1]:np.complex(0, ele_res),
                         ele_lim[0]:ele_lim[1]:np.complex(0, ele_res)]
         ele_pos = np.vstack((x.flatten(),
@@ -400,7 +361,7 @@ def generate_electrodes(dim, ele_lim=None, ele_res=None):
                              y.flatten(),
                              z.flatten())).T
     return ele_pos.shape[0], ele_pos
-        
+
 
 def generate_csd_1D(csd_profile, csd_seed, start_x=0., end_x=1., res_x=50):
     """
@@ -409,16 +370,6 @@ def generate_csd_1D(csd_profile, csd_seed, start_x=0., end_x=1., res_x=50):
     chrg_pos_x = np.linspace(start_x, end_x, res_x)
     f = csd_profile(chrg_pos_x, seed=csd_seed)
     return chrg_pos_x, f
-
-
-def generate_electrodes_1D(xlims=[0.1,0.9], res=5):
-    """
-    Places electrodes lineary
-    """
-    ele_x= np.linspace(xlims[0], xlims[1], res)
-    ele_x = ele_x.flatten()
-    ele_x = ele_x.reshape((res, 1))
-    return ele_x
 
 
 def generate_csd_space_1D(xlims=[0.0,1.0], gdX=0.01):

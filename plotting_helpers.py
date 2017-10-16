@@ -1,26 +1,31 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import config
 
-
-def show_csd_1D(points_x, csd, show_ele=None, show_kcsd=False):
-    fig = plt.figure(figsize=(5,5))
-    ax1 = plt.subplot(111)
-    if show_kcsd is False:
-        ax1.plot(points_x, csd, 'g', label='CSD', linestyle='--', linewidth=3)
-    else:
-        ax1.plot(points_x, csd, 'g', label='kCSD', linestyle='-', linewidth=3)
-    if show_ele is not None:
-        ax1.plot(show_ele, np.zeros_like(show_ele), 'ko', label='Electrodes', markersize=2.)
+def show_csd(csd_at, csd, show_ele=None, show_kcsd=False):
+    if config.dim == 1:
+        fig = plt.figure(figsize=(5, 5))
+        ax1 = plt.subplot(111)
+        if show_kcsd is False:
+            ax1.plot(csd_at, csd, 'g', label='CSD', linestyle='--', linewidth=3)
+        else:
+            ax1.plot(csd_at, csd, 'g', label='kCSD', linestyle='-', linewidth=3)
+        if show_ele is not None:
+            ax1.plot(show_ele, np.zeros_like(show_ele), 'ko', label='Electrodes', markersize=2.)
+        else:
+            pass
+        max_csd = max(np.abs(csd))
+        max_csd += max_csd*0.2
+        ax1.set_ylim([-max_csd, max_csd])
+        ax1.set_xlabel('Position mm')
+        ax1.set_ylabel('CSD mA/mm')
+        plt.legend()
+    elif config.dim == 2:
+        pass
     else:
         pass
-    max_csd = max(np.abs(csd))
-    max_csd += max_csd*0.2
-    ax1.set_ylim([-max_csd, max_csd])
-    ax1.set_xlabel('Position mm')
-    ax1.set_ylabel('CSD mA/mm')
-    plt.legend()
-    return
-
+    return fig
+        
 def show_pot_1D(ele_pos, pot):
     fig = plt.figure(figsize=(5,5))
     ax1 = plt.subplot(111)
