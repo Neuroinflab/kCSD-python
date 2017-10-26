@@ -1,43 +1,92 @@
+
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.mlab import griddata
+import matplotlib.cm as cm
 import config
 
+
 def show_csd(csd_at, csd, show_ele=None, show_kcsd=False):
+    fig = plt.figure(figsize=(5, 5))
+    ax = plt.subplot(111, aspect='equal')
     if config.dim == 1:
-        fig = plt.figure(figsize=(5, 5))
-        ax1 = plt.subplot(111)
         if show_kcsd is False:
-            ax1.plot(csd_at, csd, 'g', label='CSD', linestyle='--', linewidth=3)
+            ax.plot(csd_at, csd, 'g', label='CSD', linestyle='-', linewidth=3)
         else:
-            ax1.plot(csd_at, csd, 'g', label='kCSD', linestyle='-', linewidth=3)
+            ax.plot(csd_at, csd, 'g', label='kCSD', linestyle='--', linewidth=3)
         if show_ele is not None:
-            ax1.plot(show_ele, np.zeros_like(show_ele), 'ko', label='Electrodes', markersize=2.)
+            ax.plot(show_ele, np.zeros_like(show_ele), 'ko', label='Electrodes', markersize=2.)
         else:
             pass
         max_csd = max(np.abs(csd))
         max_csd += max_csd*0.2
-        ax1.set_ylim([-max_csd, max_csd])
-        ax1.set_xlabel('Position mm')
-        ax1.set_ylabel('CSD mA/mm')
+        ax.set_ylim([-max_csd, max_csd])
+        ax.set_xlabel('Position mm')
+        ax.set_ylabel('CSD mA/mm')
         plt.legend()
     elif config.dim == 2:
-        pass
+        t_max = np.max(np.abs(csd))
+        levels = np.linspace(-1*t_max, t_max, 12)
+        im = ax.contourf(csd_at[0], csd_at[1], csd, levels=levels, cmap=cm.bwr_r)
+        if show_kcsd is False:
+            ax.set_title('TrueCSD')
+        else:
+            ax.set_title('kCSD')
+        ax.set_xlabel('Position mm')
+        ax.set_ylabel('Position mm')
+        cbar = plt.colorbar(im, orientation='vertical')
+        # if show_ele is not None:
+        #     plt.scatter(show_ele[:, 0], show_ele[:, 1], 5, 'k')
+        # else:
+        #     pass
     else:
         pass
-    return fig
-        
-def show_pot_1D(ele_pos, pot):
-    fig = plt.figure(figsize=(5,5))
-    ax1 = plt.subplot(111)
-    ax1.plot(ele_pos, pot, 'orange', label='Potential', linestyle='--', linewidth=3)
-    ax1.plot(ele_pos, np.zeros_like(ele_pos), 'ko', label='Electrodes', markersize=2.)
-    max_pot = max(np.abs(pot))
-    max_pot += max_pot*0.2
-    ax1.set_ylim([-max_pot, max_pot])
-    ax1.set_xlabel('Position mm')
-    ax1.set_ylabel('Potential mV')
-    plt.legend()
     return
+
+
+def show_pot(ele_pos, pot, no_ele=False):
+    fig = plt.figure(figsize=(5,5))
+    ax = plt.subplot(111, aspect='equal')
+    if config.dim == 1:
+        ax.plot(ele_pos, pot, 'orange', label='Potential', linestyle='-', linewidth=3)
+        if not no_ele:
+            ax.plot(ele_pos, np.zeros_like(ele_pos), 'ko', label='Electrodes', markersize=2.)
+        max_pot = max(np.abs(pot))
+        max_pot += max_pot*0.2
+        ax.set_ylim([-max_pot, max_pot])
+        ax.set_xlabel('Position mm')
+        ax.set_ylabel('Potential mV')
+        plt.legend()
+    elif config.dim == 2:
+        ele_x = ele_pos[:, 0]
+        scale_x = max(ele_x) - min(ele_x)
+        ele_y = ele_pos[:, 1]
+        scale_y = max(ele_y) - min(ele_y)
+        v_max = np.max(np.abs(pot))
+        levels_pot = np.linspace(-1*v_max, v_max, 12)
+        X, Y, Z = grid(ele_x, ele_y, pot)
+        im = plt.contourf(X, Y, Z, levels=levels_pot, cmap=cm.PRGn)
+        ax.set_xlim([min(ele_x) - (0.1*scale_x),
+                     max(ele_x) + (0.1*scale_x)])
+        ax.set_ylim([min(ele_y) - (0.1*scale_y),
+                     max(ele_y) + (0.1*scale_y)])
+        ax.set_title('Potentials')
+        cbar2 = plt.colorbar(im, orientation='vertical')
+        if not no_ele:
+            im2 = plt.scatter(ele_x, ele_y, 5)
+
+    return
+
+
+def grid(x, y, z, resX=100, resY=100):
+    """
+    Convert 3 column data to matplotlib grid
+    """
+    z = z.flatten()
+    xi = np.linspace(min(x), max(x), resX)
+    yi = np.linspace(min(y), max(y), resY)
+    zi = griddata(x, y, z, xi, yi, interp='linear')
+    return xi, yi, zi
 
 
 def make_plots_1D(title, 

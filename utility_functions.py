@@ -20,6 +20,7 @@ from scipy.interpolate import interp1d
 from scipy.integrate import simps
 from csd_profile import csd_available_dict
 
+
 def check_for_duplicated_electrodes(elec_pos):
     """Checks for duplicate electrodes
     Parameters
@@ -231,6 +232,7 @@ def gauss_1d_dipole(x):
     f = src+snk
     return f
 
+
 def large_source_2D(x, y):
     """2D Gaussian large source profile - to use to test csd
        Parameters
@@ -252,6 +254,7 @@ def large_source_2D(x, y):
     f4 = -0.1963*exp( (-4*(x-1.3386)**2 - (y-0.5297)**2) /0.2507)* exp(-(-zz[3])**2 / zs[3]) /exp(-(zz[3])**2/zs[3]);
     f = f1+f2+f3+f4
     return f
+
 
 def small_source_2D(x, y):
     """2D Gaussian small source profile - to be used to test csd
@@ -281,6 +284,7 @@ def small_source_2D(x, y):
     f4 = gauss2d(x,y,[0.45,0.6,0.038,0.058,-0.5,0.])
     f = f1+f2+f3+f4
     return f
+
 
 def gauss_3d_dipole(x, y, z):
     """3D Gaussian dipole profile - to be used to test csd.
@@ -336,7 +340,6 @@ def generate_csd(csd_profile, csd_at=None, seed=0):
 def generate_electrodes(ele_lim=None, ele_res=None):
     if ele_lim is None:
         ele_lim = [0.1, 0.9]
-
     if ele_res is None:         # reduce electrode resolution
         if config.dim == 1:
             ele_res = 30
@@ -344,7 +347,6 @@ def generate_electrodes(ele_lim=None, ele_res=None):
             ele_res = 10
         else:
             ele_res = 5
-
     if config.dim == 1:
         x = np.mgrid[ele_lim[0]:ele_lim[1]:np.complex(0, ele_res)]
         ele_pos = x.flatten().reshape(ele_res, 1)
@@ -372,7 +374,7 @@ def generate_csd_1D(csd_profile, csd_seed, start_x=0., end_x=1., res_x=50):
     return chrg_pos_x, f
 
 
-def generate_csd_space_1D(xlims=[0.0,1.0], gdX=0.01):
+def generate_csd_space_1D(xlims=[0.0, 1.0], gdX=0.01):
     """
     Area of interest for the CSD reconstruction
     """
@@ -383,16 +385,50 @@ def generate_csd_space_1D(xlims=[0.0,1.0], gdX=0.01):
 
 def integrate_1D(x0, csd_x, csd, h):
     m = np.sqrt((csd_x-x0)**2 + h**2) - abs(csd_x-x0)
-    y = csd * m 
+    y = csd * m
     I = simps(y, csd_x)
     return I
 
 
-def calculate_potential_1D(csd_space_x, csd, measure_locations, h, sigma=1.):
-    pots = np.zeros(len(measure_locations))
-    for ii in range(len(measure_locations)):
-        pots[ii] = integrate_1D(measure_locations[ii], csd_space_x, csd, h)
-    pots *= 1/(2.*sigma) #eq.: 26 from Potworowski et al
-    pots = pots.reshape((len(measure_locations), 1))
+def calculate_potential(csd_at, csd, measure_locations, h, sigma=1.):
+    if config.dim == 1:
+        pots = np.zeros(len(measure_locations))
+        for ii in range(len(measure_locations)):
+            pots[ii] = integrate_1D(measure_locations[ii], csd_at, csd, h)
+        pots *= 1/(2.*sigma)  # eq.: 26 from Potworowski et al
+        pots = pots.reshape((len(measure_locations), 1))
+    elif config.dim == 2:
+        csd_x = csd_at[0, :, :]
+        csd_y = csd_at[1, :, :]
+        xlin = csd_x[:, 0]
+        ylin = csd_y[0, :]
+        xlims = [xlin[0], xlin[-1]]
+        ylims = [ylin[0], ylin[-1]]
+        num_ele = measure_locations.shape[0]
+        ele_xx = measure_locations[:, 0]
+        ele_yy = measure_locations[:, 1]
+        pots = np.zeros(num_ele)
+        for ii in range(num_ele):
+            pots[ii] = integrate_2D(ele_xx[ii], ele_yy[ii],
+                                    xlims, ylims, csd, h,
+                                    xlin, ylin, csd_x, csd_y)
+        pots /= 2*np.pi*sigma
+        pots = pots.reshape(num_ele, 1)
+    else:
+        pass
     return pots
 
+
+def integrate_2D(x, y, xlim, ylim, csd, h, xlin, ylin, X, Y):
+    """
+    X,Y - parts of meshgrid - Mihav's implementation
+    """
+    Ny = ylin.shape[0]
+    m = np.sqrt((x - X)**2 + (y - Y)**2)     # construct 2-D integrand
+    m[m < 0.0000001] = 0.0000001             # I increased acuracy
+    y = np.arcsinh(2*h / m) * csd            # corrected
+    I = np.zeros(Ny)                         # do a 1-D integral over every row
+    for i in xrange(Ny):
+        I[i] = simps(y[:, i], ylin)          # I changed the integral
+    F = simps(I, xlin)                       # then an integral over the result
+    return F

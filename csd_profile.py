@@ -18,9 +18,6 @@ from mpl_toolkits.mplot3d import axes3d
 from numpy import exp
 
 
-
-
-
 def get_states_1D(seed, n=1):
     """
     Used in the random seed generation
@@ -69,8 +66,9 @@ def get_states_2D(seed):
     states[0:12] = 2*states[0:12] -1.
     return states
 
-def gauss_2d_large(x, y, seed=0):
+def gauss_2d_large(csd_at, seed=0):
     '''random quadpolar'large source' profile in 2012 paper in 2D'''
+    x, y = csd_at
     states = get_states_2D(seed)
     z = 0
     zz = states[0:4]
@@ -85,9 +83,10 @@ def gauss_2d_large(x, y, seed=0):
     f = f1+f2+f3+f4
     return f
 
-def gauss_2d_small(x, y, seed=0):
+def gauss_2d_small(csd_at, seed=0):
     '''random quadpolar small source in 2D'''
-    def gauss2d(x,y,p):
+    x, y = csd_at
+    def gauss2d(x, y, p):
         """
          p:     list of parameters of the Gauss-function
                 [XCEN,YCEN,SIGMAX,SIGMAY,AMP,ANGLE]
@@ -124,8 +123,9 @@ def get_states_3D(seed):
     states = rstate.random_sample(24)
     return states
 
-def gauss_3d_small(x, y, z, seed=0):
+def gauss_3d_small(csd_at, seed=0):
     '''A random quadpole small souce in 3D'''
+    x, y, z = csd_at
     states = get_states_3D(seed)
     x0, y0, z0 = states[0:3]
     x1, y1, z1 = states[3:6]
@@ -147,8 +147,9 @@ def gauss_3d_small(x, y, z, seed=0):
     f = f1+f2+f3+f4
     return f
 
-def gauss_3d_large(x, y, z, seed=0):
+def gauss_3d_large(csd_at, seed=0):
     '''A random dipolar Large source in 3D'''
+    x, y, z = csd_at
     states = get_states_3D(seed)
     x0, y0, z0 = states[7:10]
     x1, y1, z1 = states[10:13]
@@ -161,9 +162,10 @@ def gauss_3d_large(x, y, z, seed=0):
     f = f1+f2
     return f
 
-def jan_2d_small_f(x, y):
+def jan_2d_small_f(csd_at):
     '''Source from Jan 2012 kCSD  paper'''
-    def gauss2d(x,y,p):
+    x, y = csd_at
+    def gauss2d(x, y, p):
         """
          p:     list of parameters of the Gauss-function
                 [XCEN,YCEN,SIGMAX,SIGMAY,AMP,ANGLE]
@@ -188,8 +190,9 @@ def jan_2d_small_f(x, y):
     f = f1+f2+f3+f4
     return f
 
-def jan_2d_large_f(x, y):
+def jan_2d_large_f(csd_at):
     '''Fixed 'large source' profile in 2012 paper'''
+    x, y = csd_at
     z = 0
     zz = [0.4, -0.3, -0.1, 0.6] 
     zs = [0.2, 0.3, 0.4, 0.2] 
@@ -200,8 +203,9 @@ def jan_2d_large_f(x, y):
     f = f1+f2+f3+f4
     return f
 
-def gauss_3d_dipole_f(x, y, z):
+def gauss_3d_dipole_f(csd_at):
     '''Fixed dipole in 3 dimensions of the volume'''
+    x, y, z = csd_at
     x0, y0, z0 = 0.3, 0.7, 0.3
     x1, y1, z1 = 0.6, 0.5, 0.7
     sig_2 = 0.023
@@ -211,24 +215,27 @@ def gauss_3d_dipole_f(x, y, z):
     f = f1+f2
     return f
 
-def gauss_3d_mono1_f(x, y, z):
+def gauss_3d_mono1_f(csd_at):
     '''Fixed monopole in 3D at the center of the volume space'''
+    x, y, z = csd_at
     x0, y0, z0 = 0.5, 0.5, 0.5
     sig_2 = 0.023
     A = (2*np.pi*sig_2)**-1
     f1 = A*np.exp( (-(x-x0)**2 -(y-y0)**2 -(z-z0)**2) / (2*sig_2) )
     return f1
 
-def gauss_3d_mono2_f(x, y, z):
+def gauss_3d_mono2_f(csd_at):
     '''Fixed monopole in 3D Offcentered wrt volume'''
+    x, y, z = csd_at
     x0, y0, z0 = 0.41, 0.41, 0.585
     sig_2 = 0.023
     A = (2*np.pi*sig_2)**-1
     f1 = A*np.exp( (-(x-x0)**2 -(y-y0)**2 -(z-z0)**2) / (2*sig_2) )
     return f1
 
-def gauss_3d_mono3_f(x, y, z):
+def gauss_3d_mono3_f(csd_at):
     '''Fixed monopole in 3D Offcentered wrt volume'''
+    x, y, z = csd_at
     x0, y0, z0 = 0.55555556, 0.55555556, 0.55555556
     stdev = 0.3
     h = 1./((2*np.pi)**0.5 * stdev)**3
@@ -236,8 +243,9 @@ def gauss_3d_mono3_f(x, y, z):
     f1 = h*np.exp(-c*((x - x0)**2 + (y - y0)**2 + (z - z0)**2))
     return f1
 
-def neat_4d_plot(x, y, z, t, z_steps=5, cmap=cm.bwr_r):
+def neat_4d_plot(csd_at, t, z_steps=5, cmap=cm.bwr_r):
     '''Used to show 3D csd profile'''
+    x, y, z = csd_at
     t_max = np.max(np.abs(t))
     levels = np.linspace(-1*t_max, t_max, 15)
     ind_interest = np.mgrid[0:z.shape[2]:np.complex(0,z_steps+2)]
