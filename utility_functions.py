@@ -365,29 +365,45 @@ def generate_electrodes(ele_lim=None, ele_res=None):
     return ele_pos.shape[0], ele_pos
 
 
-def generate_csd_1D(csd_profile, csd_seed, start_x=0., end_x=1., res_x=50):
-    """
-    Gives CSD profile at the requested spatial location, at 'res' resolution
-    """
-    chrg_pos_x = np.linspace(start_x, end_x, res_x)
-    f = csd_profile(chrg_pos_x, seed=csd_seed)
-    return chrg_pos_x, f
-
-
-def generate_csd_space_1D(xlims=[0.0, 1.0], gdX=0.01):
-    """
-    Area of interest for the CSD reconstruction
-    """
-    nx = (xlims[1] - xlims[0])/gdX
-    space_X = np.linspace(xlims[0], xlims[1], nx)
-    return space_X
-
-
 def integrate_1D(x0, csd_x, csd, h):
     m = np.sqrt((csd_x-x0)**2 + h**2) - abs(csd_x-x0)
     y = csd * m
     I = simps(y, csd_x)
     return I
+
+
+def integrate_2D(x, y, xlim, ylim, csd, h, xlin, ylin, X, Y):
+    """
+    X,Y - parts of meshgrid - Mihav's implementation
+    """
+    Ny = ylin.shape[0]
+    m = np.sqrt((x - X)**2 + (y - Y)**2)     # construct 2-D integrand
+    m[m < 0.0000001] = 0.0000001             # I increased acuracy
+    y = np.arcsinh(2*h / m) * csd            # corrected
+    I = np.zeros(Ny)                         # do a 1-D integral over every row
+    for i in xrange(Ny):
+        I[i] = simps(y[:, i], ylin)          # I changed the integral
+    F = simps(I, xlin)                       # then an integral over the result
+    return F
+
+
+def integrate_3D(x, y, z, xlim, ylim, zlim, csd, xlin, ylin, zlin, X, Y, Z):
+    """
+    X,Y - parts of meshgrid - Mihav's implementation
+    """
+    Nz = zlin.shape[0]
+    Ny = ylin.shape[0]
+    m = np.sqrt((x - X)**2 + (y - Y)**2 + (z - Z)**2)
+    m[m < 0.0000001] = 0.0000001
+    z = csd / m
+    Iy = np.zeros(Ny)
+    for j in xrange(Ny):
+        Iz = np.zeros(Nz)
+        for i in xrange(Nz):
+            Iz[i] = simps(z[:, j, i], zlin)
+        Iy[j] = simps(Iz, ylin)
+    F = simps(Iy, xlin)
+    return F
 
 
 def calculate_potential(csd_at, csd, measure_locations, h, sigma=1.):
@@ -415,20 +431,27 @@ def calculate_potential(csd_at, csd, measure_locations, h, sigma=1.):
         pots /= 2*np.pi*sigma
         pots = pots.reshape(num_ele, 1)
     else:
-        pass
+        csd_x = csd_at[0, :, :, :]
+        csd_y = csd_at[1, :, :, :]
+        csd_z = csd_at[2, :, :, :]
+        xlin = csd_x[:, 0, 0]
+        ylin = csd_y[0, :, 0]
+        zlin = csd_z[0, 0, :]
+        xlims = [xlin[0], xlin[-1]]
+        ylims = [ylin[0], ylin[-1]]
+        zlims = [zlin[0], zlin[-1]]
+        sigma = 1.0
+        ele_xx = measure_locations[:, 0]
+        ele_yy = measure_locations[:, 1]
+        ele_zz = measure_locations[:, 2]
+        num_ele = measure_locations.shape[0]
+        pots = np.zeros(num_ele)
+        for ii in range(num_ele):
+            pots[ii] = integrate_3D(ele_xx[ii], ele_yy[ii], ele_zz[ii],
+                                    xlims, ylims, zlims, csd,
+                                    xlin, ylin, zlin,
+                                    csd_x, csd_y, csd_z)
+        pots /= 4*np.pi*sigma
+        pots = pots.reshape(num_ele, 1)
     return pots
 
-
-def integrate_2D(x, y, xlim, ylim, csd, h, xlin, ylin, X, Y):
-    """
-    X,Y - parts of meshgrid - Mihav's implementation
-    """
-    Ny = ylin.shape[0]
-    m = np.sqrt((x - X)**2 + (y - Y)**2)     # construct 2-D integrand
-    m[m < 0.0000001] = 0.0000001             # I increased acuracy
-    y = np.arcsinh(2*h / m) * csd            # corrected
-    I = np.zeros(Ny)                         # do a 1-D integral over every row
-    for i in xrange(Ny):
-        I[i] = simps(y[:, i], ylin)          # I changed the integral
-    F = simps(I, xlin)                       # then an integral over the result
-    return F
