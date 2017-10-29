@@ -119,10 +119,11 @@ def show_pot(ele_pos, pot, no_ele=False):
         ele_z = ele_z.reshape(ele_res, ele_res, ele_res)
         pot = pot.reshape(ele_res, ele_res, ele_res)
         for idx in range(min(5, ele_res)):
-            X, Y, Z = grid(ele_x[:, :, idx], ele_y[:, :, idx], pot[:, :, idx])
+            X, Y, Z = grid(ele_x[:, :, idx].flatten(),
+                           ele_y[:, :, idx].flatten(),
+                           pot[:, :, idx])
             ax = plt.subplot(gs[idx, 0])
             im = plt.contourf(X, Y, Z, levels=levels_pot, cmap=cm.PRGn)
-            ax.hold(True)
             plt.scatter(ele_x[:, :, idx], ele_y[:, :, idx], 5)
             ax.get_xaxis().set_visible(False)
             ax.get_yaxis().set_visible(False)
@@ -143,7 +144,7 @@ def grid(x, y, z, resX=100, resY=100):
     Convert 3 column data to matplotlib grid
     """
     z = z.flatten()
-    xi = np.linspace(min(x), max(x), resX)
-    yi = np.linspace(min(y), max(y), resY)
-    zi = griddata(x, y, z, xi, yi, interp='linear')
-    return xi, yi, zi
+    xx = np.linspace(min(x), max(x), resX)
+    yy = np.linspace(min(y), max(y), resY)
+    zz = griddata(x, y, z, xx, yy, interp='linear')
+    return xx, yy, zz
