@@ -394,7 +394,8 @@ class KCSD1D(KCSD):
         None
         """
         nx = (self.xmax - self.xmin)/self.gdx
-        self.estm_x = np.mgrid[self.xmin:self.xmax:np.complex(0,nx)]
+        self.estm_x = np.mgrid[self.xmin:self.xmax:np.complex(0, nx)]
+        self.estm_pos = np.array((self.estm_x))
         self.n_estm = self.estm_x.size
         self.ngx = self.estm_x.shape[0]
 
@@ -560,6 +561,7 @@ class KCSD2D(KCSD):
         ny = (self.ymax - self.ymin)/self.gdy
         self.estm_x, self.estm_y = np.mgrid[self.xmin:self.xmax:np.complex(0,nx),
                                             self.ymin:self.ymax:np.complex(0,ny)]
+        self.estm_pos = np.array((self.estm_x, self.estm_y))
         self.n_estm = self.estm_x.size
         self.ngx, self.ngy = self.estm_x.shape
 
@@ -588,7 +590,7 @@ class KCSD2D(KCSD):
                                                                     self.n_src_init,
                                                                     self.ext_x,
                                                                     self.ext_y,
-                                                                    self.R_init )
+                                                                    self.R_init)
         self.n_src = self.src_x.size
         self.nsx, self.nsy = self.src_x.shape
 
@@ -601,7 +603,7 @@ class KCSD2D(KCSD):
         src_loc = np.array((self.src_x.ravel(), self.src_y.ravel()))
         est_loc = np.array((self.estm_x.ravel(), self.estm_y.ravel()))
         self.src_ele_dists = distance.cdist(src_loc.T, self.ele_pos, 'euclidean')
-        self.src_estm_dists = distance.cdist(src_loc.T, est_loc.T,  'euclidean')
+        self.src_estm_dists = distance.cdist(src_loc.T, est_loc.T, 'euclidean')
         self.dist_max = max(np.max(self.src_ele_dists), np.max(self.src_estm_dists)) + self.R
 
     def forward_model(self, x, R, h, sigma, src_type):
@@ -717,7 +719,7 @@ class MoIKCSD(KCSD2D):
         self.sigma_S = kwargs.pop('sigma_S', 5.0)
         self.sigma = kwargs.pop('sigma', 1.0)
         W_TS = (self.sigma - self.sigma_S) / (self.sigma + self.sigma_S)
-        self.iters = np.arange(self.MoI_iters) + 1  #Eq 6, Ness (2015)
+        self.iters = np.arange(self.MoI_iters) + 1  # Eq 6, Ness (2015)
         self.iter_factor = W_TS**self.iters
         super(MoIKCSD, self).__init__(ele_pos, pots, **kwargs)
 
@@ -773,7 +775,7 @@ class MoIKCSD(KCSD2D):
         correction = np.arcsinh((h-(2*h*self.iters))/L) + np.arcsinh((h+(2*h*self.iters))/L)
         pot = np.arcsinh(h/L) + np.sum(self.iter_factor*correction)
         dist = np.sqrt(xp**2 + yp**2)
-        pot *= basis_func(dist, R) #Eq 20, Ness et.al.
+        pot *= basis_func(dist, R) # Eq 20, Ness et.al.
         return pot
 
 class KCSD3D(KCSD):
@@ -851,6 +853,7 @@ class KCSD3D(KCSD):
         self.estm_x, self.estm_y, self.estm_z = np.mgrid[self.xmin:self.xmax:np.complex(0,nx),
                                                          self.ymin:self.ymax:np.complex(0,ny),
                                                          self.zmin:self.zmax:np.complex(0,nz)]
+        self.estm_pos = np.array((self.estm_x, self.estm_y, self.estm_z))
         self.n_estm = self.estm_x.size
         self.ngx, self.ngy, self.ngz = self.estm_x.shape
 

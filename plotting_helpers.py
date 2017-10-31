@@ -10,7 +10,7 @@ import config
 def show_csd(csd_at, csd, show_ele=None, show_kcsd=False):
     if config.dim == 1:
         fig = plt.figure(figsize=(5, 5))
-        ax = plt.subplot(111, aspect='equal')
+        ax = plt.subplot(111)
         if show_kcsd is False:
             ax.plot(csd_at, csd, 'g', label='CSD', linestyle='-', linewidth=3)
         else:
@@ -22,6 +22,8 @@ def show_csd(csd_at, csd, show_ele=None, show_kcsd=False):
         ax.set_ylim([-max_csd, max_csd])
         ax.set_xlabel('Position mm')
         ax.set_ylabel('CSD mA/mm')
+        ax.set_xlim([0., 1.])
+        #ax.set_ylim([0., 1.])
         plt.legend()
     elif config.dim == 2:
         fig = plt.figure(figsize=(5, 5))
@@ -40,6 +42,8 @@ def show_csd(csd_at, csd, show_ele=None, show_kcsd=False):
         cbar.set_ticklabels(np.around(levels[::2], decimals=2))
         if show_ele is not None:
             plt.scatter(show_ele[:, 0], show_ele[:, 1], 5, 'k')
+        ax.set_xlim([0., 1.])
+        ax.set_ylim([0., 1.])
     else:
         fig = plt.figure(figsize=(15, 5))
         z_steps = 5
@@ -62,6 +66,8 @@ def show_csd(csd_at, csd, show_ele=None, show_kcsd=False):
             title = str(csd_at[2][:, :, idx][0][0])[:4]
             ax.set_title(label=title, fontdict={'x': 0.8, 'y': 0.8})
             ax.set_aspect('equal')
+            ax.set_xlim([0., 1.])
+            ax.set_ylim([0., 1.])
         cax = plt.subplot(gs[:, -1])
         cbar = plt.colorbar(im, cax=cax, orientation='vertical')
         cbar.set_ticks(levels[::2])
