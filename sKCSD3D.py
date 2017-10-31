@@ -16,8 +16,7 @@ import os
 from scipy.spatial import distance
 from scipy import special, interpolate, integrate
 import sys
-import glob
-import loadData as ld
+
 try:
     from skmonaco import mcmiser
     skmonaco_available = True
@@ -315,33 +314,37 @@ class sKCSD3D(KCSD3D):
 
 
 if __name__ == '__main__':
-    
+    import loadData as ld
     data_dir = "Data/gang_7x7_200"
     data = ld.Data(data_dir)
-    ele_pos = data.ele_pos/100.
+    scaling_factor = 100
+    ele_pos = data.ele_pos/scaling_factor
     pots = data.LFP
     params = {}
     morphology = data.morphology 
-    morphology[:,2:5] = morphology[:,2:5]/100.
+    morphology[:,2:6] = morphology[:,2:6]/scaling_factor
     xmin, ymin, zmin, xmax,ymax,zmax = -4.3251,-4.8632,0.,4.4831,6.3881,0.875
+    gdx = (xmax-xmin)/50
+    gdy = (ymax-ymin)/50
+    gdz = (zmax-zmin)/100
     k = sKCSD3D(ele_pos, pots,morphology,
-               gdx=0.1, gdy=0.1, gdz=0.05,
+               gdx=gdx, gdy=gdy, gdz=gdz,
                xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, zmin=zmin, zmax=zmax,
                n_src_init=1000, src_type='gauss_lim')
     k.cross_validate()
     
     if sys.version_info >= (3, 0):
-        path = os.path.join(data_dir,data_dir+"/preprocessed_data/Python_3")
+        path = os.path.join(data_dir,"preprocessed_data/Python_3")
     else:
-        path = os.path.join(data_dir,data_dir+"/preprocessed_data/Python_2")
+        path = os.path.join(data_dir,"preprocessed_data/Python_2")
 
     if not os.path.exists(path):
         print("Creating",path)
         os.makedirs(path)
         
     utils.save_sim(path,k)
-    est_csd = k.values("CSD")
-    est_pot = k.values("POT")
+    #est_csd = k.values("CSD")
+    #est_pot = k.values("POT")
 
     
     
