@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function, division
 import numpy as np
-import pylab as plt
 from mpl_toolkits.mplot3d import Axes3D
 import collections
 import utility_functions as utils
 import os
+import loadData as ld
 #testing
 
 class sKCSDcell(object):
@@ -44,8 +44,17 @@ class sKCSDcell(object):
         self.ymax = np.max(self.morphology[:,4])
         self.zmin =  np.min(self.morphology[:,3])
         self.zmax = np.max(self.morphology[:,3])
-        
+        radius = np.max(self.morphology[:,5])
 
+        self.xmin, self.xmax = self.correct_min_max(self.xmin,self.xmax,radius)
+        self.ymin, self.ymax = self.correct_min_max(self.ymin,self.ymax, radius)
+        self.zmin, self.zmax = self.correct_min_max(self.zmin,self.zmax, radius)
+        
+    def correct_min_max(self, xmin,xmax,radius):
+        if xmin == xmax:
+            xmin = xmin-radius
+            xmax = xmax +radius
+        return xmin, xmax
     def distribute_srcs_3D_morph(self):
         for morph_pnt in range(1,self.morphology.shape[0]):
             if self.morphology[morph_pnt-1,0]==self.morphology[morph_pnt,6]:
@@ -105,6 +114,8 @@ class sKCSDcell(object):
         return X,Y,Z
     
     def plot3Dloop(self):
+        from mpl_toolkits.mplot3d import Axes3D
+        import matplotlib.pyplot as plt
         X,Y,Z = self.source_xyz[:,0],self.source_xyz[:,1],self.source_xyz[:,2]
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
@@ -156,20 +167,22 @@ class sKCSDcell(object):
         return np.array(points_in_line)
     
     def draw_cell2D(self,axis = 0, resolution=(176,225,17)):
-        print(self.morph_points_dist)
-        print(self.src_distributed)
-        print(self.branching)
-        print(len(self.morphology))
+        from mpl_toolkits.mplot3d import Axes3D
+        import matplotlib.pyplot as plt
+       
         xgrid = np.arange(self.xmin, self.xmax, (self.xmax-self.xmin)/resolution[0])
         ygrid = np.arange(self.ymin, self.ymax, (self.ymax-self.ymin)/resolution[2])
         zgrid = np.arange(self.zmin, self.zmax, (self.zmax-self.zmin)/resolution[1])
-        print(self.xmin, self.xmax, self.ymin, self.ymax, self.zmin, self.zmax)
+
         if axis == 0:
             image = np.ones(shape=(resolution[1], resolution[0], 4), dtype=np.uint8) * 255
+            extent = [self.zmin,self.zmax,self.ymin,self.ymax,]
         elif axis == 1:
             image = np.ones(shape=(resolution[0], resolution[1], 4), dtype=np.uint8) * 255
+            extent = [self.zmin,self.zmax,self.xmin,self.xmax,]
         elif axis == 2:
             image = np.ones(shape=(resolution[2], resolution[1], 4), dtype=np.uint8) * 255
+            extent = [self.ymin,self.ymax,self.xmin,self.xmax,]
         image[:, :, 3] = 0
         xs = []
         ys = []
@@ -190,10 +203,10 @@ class sKCSDcell(object):
             if x0 !=0:
                 idx_arr = self.getlinepoints(xi,yi,x0,y0)
                 for i in range(len(idx_arr)):
-                    print(i)
+
                     image[idx_arr[i,0]-1:idx_arr[i,0]+1,idx_arr[i,1]-1:idx_arr[i,1]+1,:] = np.array([0,0,0,20])
             x0, y0 = xi, yi
-        plt.imshow(image)
+        plt.imshow(image,extent=extent,aspect='auto')
         print(np.min(image))
         plt.show()
         return image
@@ -201,14 +214,14 @@ class sKCSDcell(object):
 
 
 if __name__ == '__main__':
-    data_dir = ""
-    morphology = utils.load_swc(os.path.join(data_dir, 'raw_data/morphology/Badea2011Fig2Du.CNG.swc'))
-    ele_pos = utils.load_elpos(os.path.join(data_dir, "raw_data/simData_skCSD/gang_7x7_200/elcoord_x_y_z"))
-    #morphology = np.loadtxt('data/morpho1.swc')
+    data_dir = "Data/ball_and_stick_8"
+    data = ld.Data(data_dir)
+    morphology = data.morphology
+    ele_pos = data.ele_pos
     n_src = 10000
     cell = sKCSDcell(morphology,ele_pos,n_src)
     cell.distribute_srcs_3D_morph()
-    #cell.plot3Dloop()
+    cell.plot3Dloop()
     cell.draw_cell2D(axis=1,resolution = (176,225,17))
 
 
