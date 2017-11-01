@@ -47,6 +47,39 @@ kcsd_select = widgets.ToggleButtons(options=config.kcsd_options[1].keys(),
 
 
 
+def create_text_wid(txt, val):
+    wid = widgets.FloatText(value=val,
+                            description=txt + ':',
+                            disabled=False)
+    return wid
+
+
+def wid_lists(var_list):
+    def_dict  =config.defaults[config.kCSD.__class__.__name__]
+    wid_list = []
+    for var in var_list:
+        try:
+            wid_list.append(create_text_wid(var, def_dict[var]))
+            big_wid = widgets.VBox(wid_list)
+        except KeyError:
+            pass
+    return big_wid
+
+
+src_ass = wid_lists(['R_init', 'n_src_init', 'lambd'])
+est_pos = wid_lists(['xmin', 'xmax',
+                     'ymin', 'ymax',
+                     'zmin', 'zmax',
+                     'ext_x', 'ext_y', 'ext_z',
+                     'gdx', 'gdy', 'gdz'])
+med_ass = wid_lists(['simga', 'h', 'sigma_S', 'MoI_iters'])
+
+
+accordion = widgets.Accordion(children=[src_ass, est_pos, med_ass])
+accordion.set_title(0, 'Source assumptions')
+accordion.set_title(1, 'Estimate positions')
+accordion.set_title(1, 'Medium assumptions')
+
 
 
 dim_select.observe(change_dim, 'value')
