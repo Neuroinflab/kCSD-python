@@ -29,7 +29,7 @@ class sKCSDcell(object):
         self.src_distributed = 0
         self.morph_points_dist = 0
         self.total_dist = self.calculate_total_distance()
-        self.loop_pos = np.arange(0,self.total_dist,self.total_dist/n_src)
+        self.loop_pos = np.linspace(0,self.total_dist,n_src)
         rep = collections.Counter(self.morphology[:,6])
         self.branching = [key for key in rep.keys() if rep[key]>1]
         self.source_xyz = np.zeros(shape=(n_src,3))
@@ -40,10 +40,10 @@ class sKCSDcell(object):
         
         self.xmin =  np.min(self.morphology[:,2])
         self.xmax = np.max(self.morphology[:,2])
-        self.ymin =  np.min(self.morphology[:,4])
-        self.ymax = np.max(self.morphology[:,4])
-        self.zmin =  np.min(self.morphology[:,3])
-        self.zmax = np.max(self.morphology[:,3])
+        self.ymin =  np.min(self.morphology[:,3])
+        self.ymax = np.max(self.morphology[:,3])
+        self.zmin =  np.min(self.morphology[:,4])
+        self.zmax = np.max(self.morphology[:,4])
         radius = np.max(self.morphology[:,5])
 
         self.xmin, self.xmax = self.correct_min_max(self.xmin,self.xmax,radius)
@@ -116,6 +116,7 @@ class sKCSDcell(object):
     def plot3Dloop(self):
         from mpl_toolkits.mplot3d import Axes3D
         import matplotlib.pyplot as plt
+        
         X,Y,Z = self.source_xyz[:,0],self.source_xyz[:,1],self.source_xyz[:,2]
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
@@ -166,35 +167,36 @@ class sKCSDcell(object):
         points_in_line.append([x,y])
         return np.array(points_in_line)
     
-    def draw_cell2D(self,axis = 0, resolution=(176,225,17)):
+    def draw_cell2D(self,axis=2, resolution=(176,225,100)):
         from mpl_toolkits.mplot3d import Axes3D
         import matplotlib.pyplot as plt
        
-        xgrid = np.arange(self.xmin, self.xmax, (self.xmax-self.xmin)/resolution[0])
-        ygrid = np.arange(self.ymin, self.ymax, (self.ymax-self.ymin)/resolution[2])
-        zgrid = np.arange(self.zmin, self.zmax, (self.zmax-self.zmin)/resolution[1])
-
+        xgrid = np.linspace(self.xmin, self.xmax, resolution[0])
+        ygrid = np.linspace(self.ymin, self.ymax, resolution[1])
+        zgrid = np.linspace(self.zmin, self.zmax, resolution[2])
+    
         if axis == 0:
-            image = np.ones(shape=(resolution[1], resolution[0], 4), dtype=np.uint8) * 255
-            extent = [self.zmin,self.zmax,self.ymin,self.ymax,]
+            image = np.ones(shape=(resolution[1], resolution[2], 4), dtype=np.uint8) * 255
+            extent = [self.ymin,self.ymax,self.zmin,self.zmax,]
         elif axis == 1:
-            image = np.ones(shape=(resolution[0], resolution[1], 4), dtype=np.uint8) * 255
-            extent = [self.zmin,self.zmax,self.xmin,self.xmax,]
+            image = np.ones(shape=(resolution[0], resolution[2], 4), dtype=np.uint8) * 255
+            extent = [self.xmin,self.xmax,self.zmin,self.zmax,]
         elif axis == 2:
-            image = np.ones(shape=(resolution[2], resolution[1], 4), dtype=np.uint8) * 255
-            extent = [self.ymin,self.ymax,self.xmin,self.xmax,]
+            image = np.ones(shape=(resolution[0], resolution[1], 4), dtype=np.uint8) * 255
+            extent = [self.xmin,self.xmax,self.ymin,self.ymax,]
         image[:, :, 3] = 0
         xs = []
         ys = []
         x0,y0 = 0,0
+        print(extent)
         for p in range(self.loop_xyz.shape[0]):
-            x = (np.abs(zgrid-self.loop_xyz[p,1])).argmin()
-            y = (np.abs(ygrid-self.loop_xyz[p,2])).argmin()
-            z = (np.abs(xgrid-self.loop_xyz[p,0])).argmin()
+            x = (np.abs(xgrid-self.loop_xyz[p,0])).argmin()
+            y = (np.abs(ygrid-self.loop_xyz[p,1])).argmin()
+            z = (np.abs(zgrid-self.loop_xyz[p,2])).argmin()
             if axis == 0:
                 xi, yi = y,z
             elif axis == 1:
-                xi, yi = z, x
+                xi, yi =  x,z
             elif axis == 2:
                 xi, yi = x,y
             xs.append(xi)
@@ -206,10 +208,11 @@ class sKCSDcell(object):
 
                     image[idx_arr[i,0]-1:idx_arr[i,0]+1,idx_arr[i,1]-1:idx_arr[i,1]+1,:] = np.array([0,0,0,20])
             x0, y0 = xi, yi
-        plt.imshow(image,extent=extent,aspect='auto')
-        print(np.min(image))
+
+       
+        plt.imshow(image,extent=extent,aspect='auto',origin="lower")
         plt.show()
-        return image
+        return image,extent
 
 
 
@@ -218,10 +221,11 @@ if __name__ == '__main__':
     data = ld.Data(data_dir)
     morphology = data.morphology
     ele_pos = data.ele_pos
-    n_src = 10000
+    n_src = 100
     cell = sKCSDcell(morphology,ele_pos,n_src)
     cell.distribute_srcs_3D_morph()
-    cell.plot3Dloop()
+    #cell.plot3Dloop()
+    cell.draw_cell2D(axis=0,resolution = (176,225,17))
     cell.draw_cell2D(axis=1,resolution = (176,225,17))
-
-
+    
+    cell.draw_cell2D(axis=2,resolution = (176,225,17))
