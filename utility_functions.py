@@ -15,6 +15,7 @@ import numpy as np
 import os
 import pickle
 from scipy import interpolate
+import json
 
 def load_swc(path):
     """Load swc file"""
@@ -26,15 +27,30 @@ def save_sim(path,k):
     est_pot = k.values("POT")
     np.save(os.path.join(path,"csd.npy"), est_csd)
     np.save(os.path.join(path,"pot.npy"), est_pot)
-    with open(os.path.join(path, "cell.pickle"), 'wb') as handle:
-        pickle.dump(k.cell, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    cell_data = {'morphology':k.cell.morphology.tolist(),'ele_pos':k.cell.ele_pos.tolist(),'n_src':k.cell.n_src}
+
+    with open(os.path.join(path, "cell_data"), 'w') as handle:
+        json.dump(cell_data, handle)
 
 
 def load_sim(path):
     est_csd = np.load(os.path.join(path,"csd.npy"))
     est_pot = np.load(os.path.join(path,"pot.npy"))
-    with open(os.path.join(path,"cell.pickle"), 'rb') as handle:
-        cell_obj = pickle.load(handle)
+
+    try:
+        with open(os.path.join(path,"cell_data"), 'r') as handle:
+            cell_data = json.load(handle)
+        
+    except Exception as error: 
+        print('Could not load',os.path.join(path,"cell_data"))
+        return est_csd, est_pot, None
+    
+    import sKCSDcell
+    
+    morphology = np.array(cell_data['morphology'])
+    ele_pos = np.array(cell_data['ele_pos'])
+    cell_obj = sKCSDcell.sKCSDcell(morphology,ele_pos,cell_data['n_src'])
+
     return est_csd, est_pot, cell_obj
 
 def load_elpos(path):
@@ -51,7 +67,6 @@ def load_elpos(path):
     ele_pos[:,0] = raw_ele_pos[:n_el]
     ele_pos[:,1] = raw_ele_pos[n_el:2*n_el]
     ele_pos[:,2] = raw_ele_pos[2*n_el:]
-    print(ele_pos.shape)
     return ele_pos
 
 def check_for_duplicated_electrodes(elec_pos):
