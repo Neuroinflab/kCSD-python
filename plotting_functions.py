@@ -15,7 +15,7 @@ import glob
 import sys
 import loadData as ld
 sliders = []
-def skCSD_reconstruction_plot(pots,est_csd,est_pot,cell_obj,t_min=0):
+def skCSD_reconstruction_plot(pots,est_csd,est_pot,cell_obj,t_min=0,electrode=5):
     """Displays interactive skCSD reconstruction plot
             Parameters
             ----------
@@ -34,13 +34,13 @@ def skCSD_reconstruction_plot(pots,est_csd,est_pot,cell_obj,t_min=0):
     
     image,extent = cell_obj.draw_cell2D(axis=2, resolution=est_csd.shape[:3])
     n_x,n_y,n_z,n_t = est_pot.shape
-    y_max = np.max(pots[1,t_min:t_min+n_t])
-    y_min = np.min(pots[1,t_min:t_min+n_t])
+    y_max = np.max(pots[electrode,t_min:t_min+n_t])
+    y_min = np.min(pots[electrode,t_min:t_min+n_t])
     fig = plt.figure(figsize=(10, 8))
     plt.subplots_adjust(left=0.25, bottom=0.25)
     gridspec.GridSpec(5, 4)
     plt.subplot2grid((5, 4), (0, 0), colspan=4, rowspan=1)
-    t_plot, = plt.plot(pots[10,t_min:t_min+n_t], color='black')
+    t_plot, = plt.plot(pots[electrode,t_min:t_min+n_t], color='black')
     l, v = plt.plot(t_min, y_min, t_min+n_t, y_min, linewidth=2, color='red')
     est_csd_sub = plt.subplot2grid((5, 4), (1, 0), colspan=2, rowspan=2)
     est_csd_sub.set_title("skCSD")
