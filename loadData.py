@@ -61,7 +61,13 @@ class Data(object):
             path = self.Path[what]
             #print(what,'unknown file type. Currently recognized file types are morphology, electrode_positions, LFP')
             #return
-                
+
+
+        if isinstance(path,list):
+            for p in path:
+                if '~' not in p:
+                    path = p
+                    break
         try:
             f = open(path)
         except IOError:
