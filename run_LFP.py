@@ -214,7 +214,7 @@ class CellModel():
         if orientation == 3:
             i, j,k = 0, 1, 2
         
-        self.ele_coordinates = np.ones((rownb*colnb,3))
+        self.ele_coordinates = np.ones((rownb*colnb,3))*cellelectrodedist
     
         if eldistribute == 1: ###grid
             self.ele_coordinates[:,i] = np.array(colnb*list(np.linspace(xmin,xmax,rownb)))
