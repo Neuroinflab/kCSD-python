@@ -171,7 +171,6 @@ class CellModel():
                 morphology[seg,6] = -1
             elif seg < nseg - 1:
                 check_parent = np.isclose(coords[seg],ends[parent_seg])
-                print(number,np.isclose(coords[seg],ends[parent_seg]),coords[seg],ends[parent_seg],ends[seg])
                 if check_parent[0] and check_parent[1] and check_parent[2]:
                     morphology[seg,6] =  morphology[parent_seg,0]
                 else: #branchpoints
@@ -179,11 +178,9 @@ class CellModel():
                     for i, end in enumerate(ends):
                         check_parent = np.isclose(coords[seg],end)
                         if check_parent[0] and check_parent[1] and check_parent[2]:
-                            print(coords[seg],end)
                             morphology[seg,6] = morphology[i,0]
-                            print(morphology[seg,0],morphology[i,0])
                             changed = 1
-                    print(seg,changed)
+
                             
         morph_path = os.path.join(self.new_path,'morphology')
         if not os.path.exists(morph_path):
@@ -192,7 +189,7 @@ class CellModel():
         fname = os.path.join(morph_path,self.cell_name)+'.swc'
         print('Saving morphology to',fname)
         np.savetxt(fname, morphology, header='')
-        np.savetxt(fname+'2', morph2, header='')
+        
         
     def add_electrodes(self):
       self.electrode_parameters['x'] =  self.ele_coordinates[:,0],        # x,y,z-coordinates of contact points
@@ -302,7 +299,7 @@ class CellModel():
         fname = os.path.join(LFP_path,'MyLFP')
         np.savetxt( fname, self.simulation_parameters['electrode'].LFP)
 
-
+        
     def save_electrode_pos(self,directory=''):
         electr = np.hstack((self.ele_coordinates[:,0],self.ele_coordinates[:,1],self.ele_coordinates[:,2]))
         elcoord_x_y_x_path = os.path.join(self.new_path,directory)
@@ -351,7 +348,8 @@ class CellModel():
         self.save_morphology_to_file()
         self.save_LFP('LFP')
         self.save_electrode_pos('electrode_positions')
-    
+    def return_paths_skCSD_python(self):
+        return self.new_path
 if __name__ == '__main__':
     c = CellModel(morphology=1,cell_name='ball_stick_8',colnb=1,rownb=8,xmin=-500,xmax=500,ymin=-500,ymax=500)
     c.simulate()
