@@ -16,14 +16,14 @@ LFPy_sim = {'Random':1, 'Y_symmetric':2, 'Mainen':3, 'Oscill':4, 'Const':5 }
 """
 class CellModel():
     MORPHOLOGY_FILES = {
-        1:"simulation/morphology/ballstick.swc",
-        2:"simulation/morphology/villa.swc",
-        3:"simulation/morphology/morpho1.swc",
-        4:"simulation/morphology/neuron_agasbogas.swc",
-        5:"simulation/morphology/Mainen_swcLike.swc",
-        6:"simulation/morphology/retina_ganglion.swc",
-        7:"simulation/morphology/Badea2011Fig2Du.CNG.swc",
-        8:"simulation/morphology/DomiCell.swc",
+        1:"morphology/ballstick.swc",
+        2:"morphology/villa.swc",
+        3:"morphology/morpho1.swc",
+        4:"morphology/neuron_agasbogas.swc",
+        5:"morphology/Mainen_swcLike.swc",
+        6:"morphology/retina_ganglion.swc",
+        7:"morphology/Badea2011Fig2Du.CNG.swc",
+        8:"morphology/DomiCell.swc",
         
     }
     CELL_PARAMETERS = {         
@@ -82,7 +82,7 @@ class CellModel():
         cell_electrode_dist = kwargs.get('electrode_distance',50)
         triside = kwargs.get('triside',19)
         ssNB = kwargs.get('seed',123456)
-        custom_code = kwargs.get('custom_code','simulation/morphology/active.hoc')
+        custom_code = kwargs.get('custom_code','morphology/active.hoc')
         morphology = kwargs.get('morphology',1)
         self.sigma = kwargs.get('sigma',.5)
         self.n_pre_syn = kwargs.get('n_presyn',1000)
@@ -116,12 +116,12 @@ class CellModel():
         self.cell_parameters['morphology'] = morphology
 
         if not morphology.endswith('.hoc'):
-            self.cell_parameters['custom_code'].append('simulation/morphology/active.hoc')
+            self.cell_parameters['custom_code'].append('morphology/active.hoc')
         for code in custom_code:
             self.cell_parameters['custom_code'].append(custom_code)
 
         self.cell = LFPy.Cell(**self.cell_parameters)
-        self.cell.set_pos(xpos = LFPy.cell.neuron.h.x3d(0) , ypos = LFPy.cell.neuron.h.y3d(0) , zpos = LFPy.cell.neuron.h.z3d(0))
+        #self.cell.set_pos(xpos = LFPy.cell.neuron.h.x3d(0) , ypos = LFPy.cell.neuron.h.y3d(0) , zpos = LFPy.cell.neuron.h.z3d(0))
         return self.cell
 
     def save_morphology_to_file(self):
@@ -134,13 +134,17 @@ class CellModel():
                 segments_dict[seg] = section
  
         morphology = np.zeros((nseg,7))
+        morph2 = np.zeros((nseg,7))
         coords = np.array((self.cell.xstart, self.cell.ystart, self.cell.zstart)).T
         ends =  np.array((self.cell.xend, self.cell.yend, self.cell.zend)).T
         sections = self.cell.allsecnames
         segdiam = self.cell.diam
  
         for seg in segments:
-            morphology[seg,0] = seg+1
+            
+            number = seg + 1
+            morphology[seg,0] = number
+
             if 'soma' in segments_dict[seg]:
                 morphology[seg,1] = 1
             elif 'dend' in segments_dict[seg]:
@@ -156,21 +160,31 @@ class CellModel():
 
             morphology[seg,2:5] = coords[seg]
             morphology[seg,5] = segdiam[seg]/2
-  
+            morph2[seg,0] = number
+            morph2[seg,1:4] = coords[seg]
+            morph2[seg,4:] = ends[seg]
+        for seg in segments:
+            number = seg + 1         
+            parent_seg = seg - 1
+
             if seg == 0:
-                morphology[0,6] = -1
-            if seg < nseg - 1:
-                check_parent = np.isclose(coords[seg+1],ends[seg])
+                morphology[seg,6] = -1
+            elif seg < nseg - 1:
+                check_parent = np.isclose(coords[seg],ends[parent_seg])
+                print(number,np.isclose(coords[seg],ends[parent_seg]),coords[seg],ends[parent_seg],ends[seg])
                 if check_parent[0] and check_parent[1] and check_parent[2]:
-                    morphology[seg+1,6] = seg+1
+                    morphology[seg,6] =  morphology[parent_seg,0]
                 else: #branchpoints
+                    changed = 0
                     for i, end in enumerate(ends):
-                        check_parent = np.isclose(coords[seg+1],end)
+                        check_parent = np.isclose(coords[seg],end)
                         if check_parent[0] and check_parent[1] and check_parent[2]:
-                            print(coords[seg+1],end)
-                            morphology[seg+1,6] = i+1
-                            print(seg+1,i+1)
-                
+                            print(coords[seg],end)
+                            morphology[seg,6] = morphology[i,0]
+                            print(morphology[seg,0],morphology[i,0])
+                            changed = 1
+                    print(seg,changed)
+                            
         morph_path = os.path.join(self.new_path,'morphology')
         if not os.path.exists(morph_path):
             print("Creating",morph_path)
@@ -178,6 +192,7 @@ class CellModel():
         fname = os.path.join(morph_path,self.cell_name)+'.swc'
         print('Saving morphology to',fname)
         np.savetxt(fname, morphology, header='')
+        np.savetxt(fname+'2', morph2, header='')
         
     def add_electrodes(self):
       self.electrode_parameters['x'] =  self.ele_coordinates[:,0],        # x,y,z-coordinates of contact points
@@ -338,7 +353,7 @@ class CellModel():
         self.save_electrode_pos('electrode_positions')
     
 if __name__ == '__main__':
-    c = CellModel(morphology=7,cell_name='gang',colnb=7,rownb=7)
+    c = CellModel(morphology=1,cell_name='ball_stick_8',colnb=1,rownb=8,xmin=-500,xmax=500,ymin=-500,ymax=500)
     c.simulate()
     c.save_skCSD_python()
     c.save_for_R_kernel()
