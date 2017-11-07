@@ -65,7 +65,7 @@ class Data(object):
 
         if isinstance(path,list):
             for p in path:
-                if '~' not in p:
+                if p.endswith('swc'):
                     path = p
                     break
         try:
