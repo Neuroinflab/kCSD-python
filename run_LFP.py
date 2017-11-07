@@ -31,7 +31,6 @@ class CellModel():
 
 	'Ra': 123,
         'tstartms' : 0.,                 # start time of simulation, recorders start at t=0
-        'tstopms' : 850.,                   # stop simulation at 200 ms. 
 	'passive' : True,
     	'v_init' : -65,             # initial crossmembrane potential
     	'e_pas' : -65,              # reversal potential passive mechs
@@ -79,10 +78,12 @@ class CellModel():
         xmax = kwargs.get('xmax',200)
         ymin = kwargs.get('ymin',-100)
         ymax = kwargs.get('xmax',-500)
+        tstop = kwargs.get('tstop',850)
+        self.cell_parameters['tstopms'] = tstop
         cell_electrode_dist = kwargs.get('electrode_distance',50)
         triside = kwargs.get('triside',19)
         ssNB = kwargs.get('seed',123456)
-        custom_code = kwargs.get('custom_code','morphology/active.hoc')
+        custom_code = kwargs.get('custom_code',[])
         morphology = kwargs.get('morphology',1)
         self.sigma = kwargs.get('sigma',.5)
         self.n_pre_syn = kwargs.get('n_presyn',1000)
@@ -97,6 +98,7 @@ class CellModel():
         self.setup_LFPy_2D_grid(eldistribute,orientation,colnb,rownb,xmin,xmax,ymin,ymax,cell_electrode_dist,triside,ssNB)
 
         self.add_electrodes()
+ 
         
     def stationary_poisson(self,nsyn,lambd,tstart,tstop):
         ''' Generates nsyn stationary possion processes with rate lambda between tstart and tstop'''
@@ -116,7 +118,11 @@ class CellModel():
         self.cell_parameters['morphology'] = morphology
 
         if not morphology.endswith('.hoc'):
-            self.cell_parameters['custom_code'].append('morphology/active.hoc')
+            if  not self.cell_parameters['custom_code']:
+                
+                self.cell_parameters['custom_code'].append('morphology/active.hoc')
+                print(self.cell_parameters['custom_code'])
+                
         for code in custom_code:
             self.cell_parameters['custom_code'].append(custom_code)
 
@@ -343,7 +349,15 @@ class CellModel():
         #lets write to file the simulation locations
         
         np.savetxt( 'synapse_locations',self.pre_syn_pick)
-
+        self.save_memb_curr()
+    def save_memb_curr(self,directory=''):
+        if directory:
+            new_path = directory
+        else:
+            new_path = self.new_path
+            
+        np.savetxt( os.path.join(new_path,'membcurr'),self.cell.imem)
+        print(self.cell_parameters)
     def save_skCSD_python(self):
         self.save_morphology_to_file()
         self.save_LFP('LFP')
