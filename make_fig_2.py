@@ -17,7 +17,7 @@ if __name__ == '__main__':
     tstop = 75
     scaling_factor = 1000**2
     scaling_factor_LFP = 1000
-    R_inits = [2**i/np.sqrt(2)*3 for i in [2,3,4,5,6,7]]
+    R_inits = [2**i/np.sqrt(2)*3 for i in [3,4,5,6,7]]
     electrode_number = [8,16,32,64,128]
     nx,ny,nz = 2*5,2*5,52*3
     
@@ -51,12 +51,12 @@ if __name__ == '__main__':
                 morphology = data.morphology
                 morphology[:,2:6] = morphology[:,2:6]/scaling_factor
                 R = R_init/scaling_factor
-                xmin = morphology[:,2].min()-morphology[:,5].max()
-                xmax = morphology[:,2].max()+morphology[:,5].max()
-                ymin = morphology[:,3].min()-morphology[:,5].max()
-                ymax = morphology[:,3].max()+morphology[:,5].max()
-                zmin = morphology[:,4].min()-morphology[:,5].max()
-                zmax = morphology[:,4].max()+morphology[:,5].max()
+                xmin = morphology[:,2].min()-morphology[:,5].max()*2
+                xmax = morphology[:,2].max()+morphology[:,5].max()*2
+                ymin = morphology[:,3].min()-morphology[:,5].max()*2
+                ymax = morphology[:,3].max()+morphology[:,5].max()*2
+                zmin = morphology[:,4].min()-morphology[:,5].max()*2
+                zmax = morphology[:,4].max()+morphology[:,5].max()*2
                 #print(ele_pos,'\n',R,'\n',morphology[:,2:5])
                 gdx = (xmax-xmin)/nx
                 gdy = (ymax-ymin)/ny
