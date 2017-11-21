@@ -35,7 +35,6 @@ class sKCSDcell(object):
         self.source_xyz = np.zeros(shape=(n_src,3))
         self.loop_xyz = np.zeros(shape=(n_src+self.morphology.shape[0]*2,3))
         self.repeated = []
-        self.counter= {}
         self.source_xyz_borders = []
         
         self.xmin =  np.min(self.morphology[:,2])
@@ -55,37 +54,44 @@ class sKCSDcell(object):
             xmin = xmin-radius
             xmax = xmax +radius
         return xmin, xmax
+    
+       
     def distribute_srcs_3D_morph(self):
+
         for morph_pnt in range(1,self.morphology.shape[0]):
             if self.morphology[morph_pnt-1,0]==self.morphology[morph_pnt,6]:
                 self.distribute_src_cylinder(morph_pnt, morph_pnt-1)
             elif self.morphology[morph_pnt,6] in self.branching:
+                #go back up
                 last_branch = int(self.morphology[morph_pnt,6])-1
-                for morph_pnt2 in range(morph_pnt-1,last_branch,-1):
-                    if morph_pnt2 not in self.repeated and self.morphology[
-                            morph_pnt2-1,0]==self.morphology[morph_pnt2,6]:
-                        self.repeated.append(morph_pnt2)
-                        self.distribute_src_cylinder(morph_pnt2-1,morph_pnt2)
+                last_point = morph_pnt - 1
+
+                while True:
+                    parent = int(self.morphology[last_point,6]) - 1
+                    self.distribute_src_cylinder(parent,last_point)
+                    if parent == last_branch:
+                        break
+                    last_point = parent
                 self.distribute_src_cylinder(morph_pnt,int(self.morphology[morph_pnt,6])-1 )
-                if self.morphology[morph_pnt,6]==1: 
-                    self.counter[self.morphology[morph_pnt,6]] = morph_pnt
-        last_soma = self.counter[1]
-        for morph_pnt2 in range(morph_pnt-1,last_soma,-1):
-            if morph_pnt2 not in self.repeated and self.morphology[
-                    morph_pnt2-1,0]==self.morphology[morph_pnt2,6]:
-                self.repeated.append(morph_pnt2)
-                self.distribute_src_cylinder(morph_pnt2-1,morph_pnt2)
-                
+
+        last_point = morph_pnt
+        while True:
+            parent = int(self.morphology[last_point,6]) - 1
+            self.distribute_src_cylinder(parent,last_point)
+            if int(self.morphology[parent,6]) == -1:
+                break
+            last_point = parent
     
     def distribute_src_cylinder(self,mp1, mp2):
         xyz1 = self.morphology[mp1,2:5]
         xyz2 = self.morphology[mp2,2:5]
+        
         self.max_dist += np.linalg.norm(xyz1-xyz2)
         in_range = [idx for idx in range(self.src_distributed,self.n_src) 
-            if self.loop_pos[idx]<=self.max_dist]
+                    if self.loop_pos[idx]<=self.max_dist or np.isclose(self.loop_pos[idx],self.max_dist)]
+        
         self.src_distributed += len(in_range)
-        if mp1 in self.branching:
-                self.counter[mp1] = mp1
+ 
         if len(in_range)>0:
             for src_idx in in_range:
                 self.source_xyz[src_idx,:] = xyz1-(xyz2-xyz1)*(self.loop_pos[src_idx]
@@ -188,7 +194,7 @@ class sKCSDcell(object):
         xs = []
         ys = []
         x0,y0 = 0,0
-        print(extent)
+
         for p in range(self.loop_xyz.shape[0]):
             x = (np.abs(xgrid-self.loop_xyz[p,0])).argmin()
             y = (np.abs(ygrid-self.loop_xyz[p,1])).argmin()
@@ -217,15 +223,18 @@ class sKCSDcell(object):
 
 
 if __name__ == '__main__':
-    data_dir = "Data/ball_and_stick_8"
+    #data_dir = "Data/gang_7x7_200"
+    #data_dir = "Data/gang_min"
+    data_dir = "simulation/ball_stick_8"
     data = ld.Data(data_dir)
     morphology = data.morphology
     ele_pos = data.ele_pos
     n_src = 100
     cell = sKCSDcell(morphology,ele_pos,n_src)
     cell.distribute_srcs_3D_morph()
+    print(cell.src_distributed)
     #cell.plot3Dloop()
-    cell.draw_cell2D(axis=0,resolution = (176,225,17))
-    cell.draw_cell2D(axis=1,resolution = (176,225,17))
+    #cell.draw_cell2D(axis=0,resolution = (176,225,17))
+    #cell.draw_cell2D(axis=1,resolution = (176,225,17))
     
-    cell.draw_cell2D(axis=2,resolution = (176,225,17))
+    #cell.draw_cell2D(axis=2,resolution = (176,225,17))
