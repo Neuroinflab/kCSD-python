@@ -70,6 +70,7 @@ class CellModel():
         self.cell_name = kwargs.get('cell_name','cell_1')
         self.path = kwargs.get('path','simulation')
         self.stimulus = kwargs.get('stimulus','random')
+        
         eldistribute = kwargs.get('electrode_distribution',1)
         orientation = kwargs.get('electrode_orientation',2)
         colnb = kwargs.get('colnb',4)
@@ -85,12 +86,14 @@ class CellModel():
         ssNB = kwargs.get('seed',123456)
         custom_code = kwargs.get('custom_code',[])
         morphology = kwargs.get('morphology',1)
-        self.sigma = kwargs.get('sigma',.5)
+        self.sigma = kwargs.get('sigma',.3)
         self.n_pre_syn = kwargs.get('n_presyn',1000)
         self.n_synapses = kwargs.get('n_syn', 1000)
         self.new_path = os.path.join(self.path, self.cell_name)
         np.random.seed(ssNB)        
-
+        
+        self.synapse_parameters['weight'] = kwargs.get('weight',0.04)
+        
         if morphology in range(1,9):
             morphology = self.MORPHOLOGY_FILES[morphology]
         
@@ -121,8 +124,6 @@ class CellModel():
             if  not self.cell_parameters['custom_code']:
                 
                 self.cell_parameters['custom_code'].append('morphology/active.hoc')
-                print(self.cell_parameters['custom_code'])
-                
         for code in custom_code:
             self.cell_parameters['custom_code'].append(custom_code)
 
@@ -175,7 +176,7 @@ class CellModel():
 
             if seg == 0:
                 morphology[seg,6] = -1
-            elif seg < nseg - 1:
+            elif seg < nseg:
                 check_parent = np.isclose(coords[seg],ends[parent_seg])
                 if check_parent[0] and check_parent[1] and check_parent[2]:
                     morphology[seg,6] =  morphology[parent_seg,0]
@@ -194,7 +195,7 @@ class CellModel():
             os.makedirs(morph_path)
         fname = os.path.join(morph_path,self.cell_name)+'.swc'
         print('Saving morphology to',fname)
-        np.savetxt(fname, morphology, header='')
+        np.savetxt(fname, morphology, header='',fmt=['%d','%d','%6.2f','%6.2f','%6.2f','%6.2f','%d'])
         
         
     def add_electrodes(self):
@@ -341,8 +342,6 @@ class CellModel():
         
         np.savetxt( os.path.join(new_path, 'segdiam_x_y_z'),segdiam)
         
-        #length of segments
-        np.savetxt( os.path.join(new_path, 'seglength'),self.cell.length)
         #time in the simulation
         np.savetxt( os.path.join(new_path, 'time'),self.cell.tvec)
         
@@ -350,18 +349,27 @@ class CellModel():
         
         np.savetxt( 'synapse_locations',self.pre_syn_pick)
         self.save_memb_curr()
+        self.save_seg_length()
+        
     def save_memb_curr(self,directory=''):
         if directory:
             new_path = directory
         else:
             new_path = self.new_path
-            
         np.savetxt( os.path.join(new_path,'membcurr'),self.cell.imem)
-        print(self.cell_parameters)
+
+    def save_seg_length(self,directory=''):
+        if directory:
+            new_path = directory
+        else:
+            new_path = self.new_path
+        np.savetxt( os.path.join(new_path,'seglength'),self.cell.length)
+        
     def save_skCSD_python(self):
         self.save_morphology_to_file()
         self.save_LFP('LFP')
         self.save_electrode_pos('electrode_positions')
+        
     def return_paths_skCSD_python(self):
         return self.new_path
 if __name__ == '__main__':
