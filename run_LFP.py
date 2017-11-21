@@ -200,9 +200,10 @@ class CellModel():
         
     def add_electrodes(self):
       self.electrode_parameters['x'] =  self.ele_coordinates[:,0],        # x,y,z-coordinates of contact points
-      self.electrode_parameters['y'] =  self.ele_coordinates[:,0],        # x,y,z-coordinates of contact points
-      self.electrode_parameters['z'] =  self.ele_coordinates[:,0],        # x,y,z-coordinates of contact points
+      self.electrode_parameters['y'] =  self.ele_coordinates[:,1],        # x,y,z-coordinates of contact points
+      self.electrode_parameters['z'] =  self.ele_coordinates[:,2],        # x,y,z-coordinates of contact points
       self.electrode_parameters['sigma'] = self.sigma
+
       self.simulation_parameters['electrode'] = LFPy.RecExtElectrode(**self.electrode_parameters)
     
     def setup_LFPy_2D_grid(self, eldistribute,orientation,colnb,rownb,xmin,xmax,ymin,ymax,cellelectrodedist,triside,ssNB):
