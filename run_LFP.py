@@ -4,16 +4,16 @@ import sys
 import os
 import random
 import LFPy
-
 import argparse
 """Electrode grid is 2D. If z is the zero dimention x=x, y=y. If x is the zero dimension x=0, y=x, z=y. If y is the zero dimention, z=x & x=y"""
 
-"""cell_types = {'Ballstick:1, 'Y_shaped':2, 'Morpho1':3, 'Agasbogas':4, 'Mainen':5, 'User_defined:6', 'Gang_Simple':7, 'Domi':8}
+"""cell_types = {'Ballstick:1, 'Y_shaped':2, 'Morpho1':3, 'Agasbogas':4, 'Mainen':5, 'User_defined:6', 'Gang_simple':7, 'Domi':8}
 electrode_orientation = {'x':1, 'y':2, 'z':3}
 electrode_distribute = {'Grid':1, 'Random':2, 'Hexagonal':3, 'Domi':4}
 LFPy_sim = {'Random':1, 'Y_symmetric':2, 'Mainen':3, 'Oscill':4, 'Const':5 }
 
 """
+
 class CellModel():
     MORPHOLOGY_FILES = {
         1:"morphology/ballstick.swc",
@@ -134,69 +134,53 @@ class CellModel():
     def save_morphology_to_file(self):
         segments = self.cell.get_idx()
         nseg = len(segments)
-        segments_dict = {}
-        for section in self.cell.allsecnames:
-            segment = self.cell.get_idx(section=section)
-            for seg in segment:
-                segments_dict[seg] = section
- 
-        morphology = np.zeros((nseg,7))
-        morph2 = np.zeros((nseg,7))
+
+        self.morphology = np.zeros((nseg,7))
+        
         coords = np.array((self.cell.xstart, self.cell.ystart, self.cell.zstart)).T
         ends =  np.array((self.cell.xend, self.cell.yend, self.cell.zend)).T
-        sections = self.cell.allsecnames
         segdiam = self.cell.diam
- 
-        for seg in segments:
-            
-            number = seg + 1
-            morphology[seg,0] = number
+        parents = {}
 
-            if 'soma' in segments_dict[seg]:
-                morphology[seg,1] = 1
-            elif 'dend' in segments_dict[seg]:
-                morphology[seg,1] = 3
-            elif 'apic' in segments_dict[seg]:
-                morphology[seg,1] = 3
-            elif 'axon' in segments_dict[seg]:
-                morphology[seg,1] = 2
-            elif 'basal' in segments_dict[seg]:
-                morphology[seg,1] = 4
-            else:
-                morphology[seg,1] = 5
+        for section in self.cell.allseclist:
+            parents[section.name()] = section.parentseg()
+              
+        for secn in self.cell.allsecnames:
+            idxs = self.cell.get_idx(secn)
+            for i,idx in enumerate(idxs):
+                
+                self.morphology[idx,0] = idx+1
+                self.morphology[idx,2:5] = ends[idx]
+                self.morphology[idx,5] = segdiam[idx]
 
-            morphology[seg,2:5] = coords[seg]
-            morphology[seg,5] = segdiam[seg]/2
-            morph2[seg,0] = number
-            morph2[seg,1:4] = coords[seg]
-            morph2[seg,4:] = ends[seg]
-        for seg in segments:
-            number = seg + 1         
-            parent_seg = seg - 1
+                if 'soma' in secn:
+                    self.morphology[idx,1] = 1
+                elif 'dend' in secn:
+                    self.morphology[idx,1] = 3
+                elif 'apic' in secn:
+                    self.morphology[idx,1] = 3
+                elif 'axon' in secn:
+                    self.morphology[idx,1] = 2
+                elif 'basal' in secn:
+                    self.morphology[idx,1] = 4
+                else:
+                    self.morphology[idx,1] = 5
 
-            if seg == 0:
-                morphology[seg,6] = -1
-            elif seg < nseg:
-                check_parent = np.isclose(coords[seg],ends[parent_seg])
-                if check_parent[0] and check_parent[1] and check_parent[2]:
-                    morphology[seg,6] =  morphology[parent_seg,0]
-                else: #branchpoints
-                    changed = 0
-                    for i, end in enumerate(ends):
-                        check_parent = np.isclose(coords[seg],end)
-                        if check_parent[0] and check_parent[1] and check_parent[2]:
-                            morphology[seg,6] = morphology[i,0]
-                            changed = 1
-
-                            
+                if i == 0:
+                    if not parents[secn]:
+                        self.morphology[idx,6] = -1
+                    else:
+                        self.morphology[idx,6] = self.cell.get_idx(parents[secn].sec.name())[-1]+1
+                else:
+                    self.morphology[idx,6] = idx
+                                       
         morph_path = os.path.join(self.new_path,'morphology')
         if not os.path.exists(morph_path):
             print("Creating",morph_path)
             os.makedirs(morph_path)
         fname = os.path.join(morph_path,self.cell_name)+'.swc'
         print('Saving morphology to',fname)
-        np.savetxt(fname, morphology, header='',fmt=['%d','%d','%6.2f','%6.2f','%6.2f','%6.2f','%d'])
-        
+        np.savetxt(fname, self.morphology, header='',fmt=['%d','%d','%6.2f','%6.2f','%6.2f','%6.2f','%d'])
         
     def add_electrodes(self):
       self.electrode_parameters['x'] =  self.ele_coordinates[:,0],        # x,y,z-coordinates of contact points
@@ -374,7 +358,7 @@ class CellModel():
     def return_paths_skCSD_python(self):
         return self.new_path
 if __name__ == '__main__':
-    c = CellModel(morphology=1,cell_name='ball_stick_8',colnb=1,rownb=8,xmin=-500,xmax=500,ymin=-500,ymax=500)
+    c = CellModel(morphology=7,cell_name='Gang_simple',colnb=1,rownb=8,xmin=-500,xmax=500,ymin=-500,ymax=500)
     c.simulate()
     c.save_skCSD_python()
     c.save_for_R_kernel()
