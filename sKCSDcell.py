@@ -44,7 +44,7 @@ class sKCSDcell(object):
         self.zmin =  np.min(self.morphology[:,4])
         self.zmax = np.max(self.morphology[:,4])
         radius = np.max(self.morphology[:,5])
-
+        self.loops = []
         self.xmin, self.xmax = self.correct_min_max(self.xmin,self.xmax,radius)
         self.ymin, self.ymax = self.correct_min_max(self.ymin,self.ymax, radius)
         self.zmin, self.zmax = self.correct_min_max(self.zmin,self.zmax, radius)
@@ -85,7 +85,7 @@ class sKCSDcell(object):
     def distribute_src_cylinder(self,mp1, mp2):
         xyz1 = self.morphology[mp1,2:5]
         xyz2 = self.morphology[mp2,2:5]
-        
+        self.loops.append([mp2,mp1])
         self.max_dist += np.linalg.norm(xyz1-xyz2)
         in_range = [idx for idx in range(self.src_distributed,self.n_src) 
                     if self.loop_pos[idx]<=self.max_dist or np.isclose(self.loop_pos[idx],self.max_dist)]
@@ -220,14 +220,14 @@ class sKCSDcell(object):
 
 
 if __name__ == '__main__':
-    data_dir = "Data/gang_7x7_200"
+    data_dir = "Data/gang_min"
     data = ld.Data(data_dir)
     morphology = data.morphology
     ele_pos = data.ele_pos
     n_src = 100
     cell = sKCSDcell(morphology,ele_pos,n_src)
     cell.distribute_srcs_3D_morph()
-    print(cell.src_distributed)
+    print(cell.loops)
     #cell.plot3Dloop()
     #cell.draw_cell2D(axis=0,resolution = (176,225,17))
     #cell.draw_cell2D(axis=1,resolution = (176,225,17))
