@@ -315,15 +315,15 @@ class sKCSD3D(KCSD3D):
 
 if __name__ == '__main__':
     import loadData as ld
-    data_dir = "Data/ball_and_stick_8"
+    data_dir = "Data/gang_7x7_200"
     data = ld.Data(data_dir)
-    scaling_factor = 100
-    ele_pos = data.ele_pos/100
+    scaling_factor = 1000000
+    ele_pos = data.ele_pos/scaling_factor
     pots = data.LFP[:,:200]
     params = {}
     morphology = data.morphology 
-    morphology[:,2:6] = morphology[:,2:6]/100
-    xmin, ymin, zmin, xmax,ymax,zmax = -4.3251, -4.8632, 0., 4.4831, 6.3881, 0.875
+    morphology[:,2:6] = morphology[:,2:6]/scaling_factor
+    #xmin, ymin, zmin, xmax,ymax,zmax = -4.3251, -4.8632, 0., 4.4831, 6.3881, 0.875
     xmin = morphology[:,2].min()-morphology[:,5].max()
     xmax = morphology[:,2].max()+morphology[:,5].max()
     ymin = morphology[:,3].min()-morphology[:,5].max()
@@ -337,7 +337,7 @@ if __name__ == '__main__':
     k = sKCSD3D(ele_pos, pots,morphology,
                gdx=gdx, gdy=gdy, gdz=gdz,
                xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, zmin=zmin, zmax=zmax,
-               n_src_init=10, src_type='gauss_lim')
+               n_src_init=10000, src_type='gauss_lim')
     #k.cross_validate()
     
     if sys.version_info >= (3, 0):

@@ -113,11 +113,8 @@ class sKCSDcell(object):
         return total_dist
     
     def get_xyz(self):
-        print(self.src_distributed, self.n_src)
-        if self.src_distributed == self.n_src:
-            print("correct")
-        X,Y,Z = self.source_xyz[:,0],self.source_xyz[:,1],self.source_xyz[:,2]
-        return X,Y,Z
+
+        return self.source_xyz[:,0],self.source_xyz[:,1],self.source_xyz[:,2]
     
     def plot3Dloop(self):
         from mpl_toolkits.mplot3d import Axes3D
@@ -223,9 +220,7 @@ class sKCSDcell(object):
 
 
 if __name__ == '__main__':
-    #data_dir = "Data/gang_7x7_200"
-    #data_dir = "Data/gang_min"
-    data_dir = "simulation/ball_stick_8"
+    data_dir = "Data/gang_7x7_200"
     data = ld.Data(data_dir)
     morphology = data.morphology
     ele_pos = data.ele_pos
