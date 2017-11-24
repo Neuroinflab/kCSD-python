@@ -31,13 +31,13 @@ class testData(unittest.TestCase):
         self.assertTrue(isinstance(self.data.get_fname('Data/gang_7x7_200/LFP',['myLFP','yourLFP']),list))
 
     def test_get_paths_LFP(self):
-        self.assertTrue('Data/gang_7x7_200/LFP/myLFP',self.data.path_LFP)
+        self.assertEqual('Data/gang_7x7_200/LFP/myLFP',self.data.path_LFP)
         
     def test_get_paths_morpho(self):
-        self.assertTrue('Data/gang_7x7_200/morphology/Badea2011Fig2Du.CNG.swc',self.data.path_morphology)
+        self.assertEqual('Data/gang_7x7_200/morphology/Badea2011Fig2Du.CNG.swc',self.data.path_morphology)
         
     def test_get_paths_ele_pos(self):
-        self.assertTrue('Data/gang_7x7_200/LFP/electrode_positions/elcoord_x_y_z',self.data.path_ele_pos)
+        self.assertEqual('Data/gang_7x7_200/electrode_positions/elcoord_x_y_z',self.data.path_ele_pos)
         
     def test_load_morpho_correct(self):
         self.assertTrue(isinstance(self.data.morphology,np.ndarray))
