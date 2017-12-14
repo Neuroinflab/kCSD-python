@@ -1,15 +1,18 @@
 """
-This script is used to generate Current Source Density Estimates, 
+This script is used to generate Current Source Density Estimates,
 using the kCSD method Jan et.al (2012) for 2D case.
 
-These scripts are based on Grzegorz Parka's, 
-Google Summer of Code 2014, INFC/pykCSD  
+These scripts are based on Grzegorz Parka's,
+Google Summer of Code 2014, INFC/pykCSD
 
 This was written by :
-Chaitanya Chintaluri, 
+Chaitanya Chintaluri,
 Laboratory of Neuroinformatics,
 Nencki Institute of Exprimental Biology, Warsaw.
 """
+from __future__ import print_function
+from __future__ import division
+from past.utils import old_div
 import numpy as np
 from scipy import integrate, interpolate
 from scipy.spatial import distance
@@ -19,14 +22,16 @@ from KCSD import KCSD
 import utility_functions as utils
 import basis_functions as basis
 
+
 class KCSD2D(KCSD):
     """KCSD2D - The 2D variant for the Kernel Current Source Density method.
 
-    This estimates the Current Source Density, for a given configuration of 
+    This estimates the Current Source Density, for a given configuration of
     electrod positions and recorded potentials, in the case of 2D recording
     electrodes. The method implented here is based on the original paper
     by Jan Potworowski et.al. 2012.
     """
+
     def __init__(self, ele_pos, pots, **kwargs):
         """Initialize KCSD2D Class.
 
@@ -59,7 +64,7 @@ class KCSD2D(KCSD):
                 Defaults to min(ele_pos(y)), and max(ele_pos(y))
             ext_x, ext_y : float
                 length of space extension: x_min-ext_x ... x_max+ext_x
-                length of space extension: y_min-ext_y ... y_max+ext_y 
+                length of space extension: y_min-ext_y ... y_max+ext_y
                 Defaults to 0.
             gdx, gdy : float
                 space increments in the estimation space
@@ -75,17 +80,18 @@ class KCSD2D(KCSD):
 
         Raises
         ------
-        LinAlgError 
+        LinAlgError
             Could not invert the matrix, try changing the ele_pos slightly
         KeyError
-            Basis function (src_type) not implemented. See basis_functions.py for available
+            Basis function (src_type) not implemented. See basis_functions.py
+            for available source types
         """
         super(KCSD2D, self).__init__(ele_pos, pots, **kwargs)
         return
-        
+
     def estimate_at(self):
         """Defines locations where the estimation is wanted
-        Defines:         
+        Defines:
         self.n_estm = self.estm_x.size
         self.ngx, self.ngy = self.estm_x.shape
         self.estm_x, self.estm_y : Locations at which CSD is requested.
@@ -98,12 +104,13 @@ class KCSD2D(KCSD):
         -------
         None
         """
-        #Number of points where estimation is to be made.
+        # Number of points where estimation is to be made.
+
         nx = (self.xmax - self.xmin)/self.gdx
         ny = (self.ymax - self.ymin)/self.gdy
-        #Making a mesh of points where estimation is to be made.
-        self.estm_x, self.estm_y = np.mgrid[self.xmin:self.xmax:np.complex(0,nx), 
-                                            self.ymin:self.ymax:np.complex(0,ny)]
+        # Making a mesh of points where estimation is to be made.
+        self.estm_x, self.estm_y = np.mgrid[self.xmin:self.xmax:np.complex(
+            0, nx), self.ymin:self.ymax:np.complex(0, ny)]
         self.n_estm = self.estm_x.size
         self.ngx, self.ngy = self.estm_x.shape
         return
@@ -111,7 +118,7 @@ class KCSD2D(KCSD):
     def place_basis(self):
         """Places basis sources of the defined type.
         Checks if a given source_type is defined, if so then defines it
-        self.basis, This function gives locations of the basis sources, 
+        self.basis, This function gives locations of the basis sources,
         Defines
         source_type : basis_fuctions.basis_2D.keys()
         self.R based on R_init
@@ -130,26 +137,32 @@ class KCSD2D(KCSD):
         source_type = self.src_type
         try:
             self.basis = basis.basis_2D[source_type]
-        except:
-            print 'Invalid source_type for basis! available are:', basis.basis_2D.keys()
+        except BaseException:
+            print('Invalid source_type for basis! available are:',
+                  list(basis.basis_2D.keys()))
             raise KeyError
-        #Mesh where the source basis are placed is at self.src_x 
-        (self.src_x, self.src_y, self.R) = utils.distribute_srcs_2D(self.estm_x,
-                                                                    self.estm_y,
-                                                                    self.n_src_init,
-                                                                    self.ext_x, 
-                                                                    self.ext_y,
-                                                                    self.R_init ) 
+        # Mesh where the source basis are placed is at self.src_x
+        (self.src_x, self.src_y, self.R) = utils.distribute_srcs_2D(
+            self.estm_x,
+            self.estm_y,
+            self.n_src_init,
+            self.ext_x,
+            self.ext_y,
+            self.R_init)
         self.n_src = self.src_x.size
         self.nsx, self.nsy = self.src_x.shape
-        return        
+        return
 
     def create_src_dist_tables(self):
         src_loc = np.array((self.src_x.ravel(), self.src_y.ravel()))
         est_loc = np.array((self.estm_x.ravel(), self.estm_y.ravel()))
-        self.src_ele_dists = distance.cdist(src_loc.T, self.ele_pos, 'euclidean')
-        self.src_estm_dists = distance.cdist(src_loc.T, est_loc.T,  'euclidean')
-        self.dist_max = max(np.max(self.src_ele_dists), np.max(self.src_estm_dists)) + self.R
+        self.src_ele_dists = distance.cdist(src_loc.T, self.ele_pos,
+                                            'euclidean')
+        self.src_estm_dists = distance.cdist(src_loc.T, est_loc.T, 'euclidean')
+        self.dist_max = max(np.max(self.src_ele_dists),
+                            np.max(self.src_estm_dists)) + self.R
+        self.dist_min = min(np.min(self.src_ele_dists),
+                            np.min(self.src_estm_dists))  # untested
         return
 
     def forward_model(self, x, R, h, sigma, src_type):
@@ -170,17 +183,17 @@ class KCSD2D(KCSD):
         pot : float
             value of potential at specified distance from the source
         """
-        pot, err = integrate.dblquad(self.int_pot_2D, 
+        pot, err = integrate.dblquad(self.int_pot_2D,
                                      -R, R,
-                                     lambda x: -R, 
-                                     lambda x: R, 
+                                     lambda x: -R,
+                                     lambda x: R,
                                      args=(x, R, h, src_type))
-        pot *= 1./(2.0*np.pi*sigma)  #Potential basis functions bi_x_y
+        pot *= 1./(2.0*np.pi*sigma)  # Potential basis functions bi_x_y
         return pot
 
     def int_pot_2D(self, xp, yp, x, R, h, basis_func):
         """FWD model function.
-        Returns contribution of a point xp,yp, belonging to a basis source
+        Returns contribution of a point xp, yp, belonging to a basis source
         support centered at (0,0) to the potential measured at (x,0),
         integrated over xp,yp gives the potential generated by a
         basis source element centered at (0,0) at point (x,0)
@@ -202,17 +215,18 @@ class KCSD2D(KCSD):
         -------
         pot : float
         """
-        y = ((x-xp)**2 + yp**2)**(0.5)
+        y = ((x - xp)**2 + yp**2)**(0.5)
         if y < 0.00001:
             y = 0.00001
         dist = np.sqrt(xp**2 + yp**2)
-        pot = np.arcsinh(h/y)*basis_func(dist, R) 
+        pot = np.arcsinh(h/y)*basis_func(dist, R)
         return pot
 
+
 if __name__ == '__main__':
-    #Sample data, do not take this seriously
-    ele_pos = np.array([[-0.2, -0.2],[0, 0], [0, 1], [1, 0], [1,1], [0.5, 0.5],
-                        [1.2, 1.2]])
+    # Sample data, do not take this seriously
+    ele_pos = np.array([[-0.2, -0.2], [0, 0], [0, 1],
+                        [1, 0], [1, 1], [0.5, 0.5], [1.2, 1.2]])
     pots = np.array([[-1], [-1], [-1], [0], [0], [1], [-1.5]])
     k = KCSD2D(ele_pos, pots,
                gdx=0.05, gdy=0.05,
@@ -220,5 +234,3 @@ if __name__ == '__main__':
                ymin=-2.0, ymax=2.0,
                src_type='gauss')
     k.cross_validate()
-    #print k.values('CSD')
-    #print k.values('POT')
