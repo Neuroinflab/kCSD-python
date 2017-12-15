@@ -277,10 +277,6 @@ class TestKCSD2D(TestKCSD):
         ax2 = plt.subplot(143, aspect='equal')
         mask = np.load('/home/mkowalska/Marta/xCSD/branches/kCSD-marta/refactored_tests/mask.npy')
         levels2 = np.linspace(0, 1, 10)
-#        c_red = cl.colorConverter.to_rgba('red')
-#        c_blue = cl.colorConverter.to_rgba('blue')
-#        c_white_trans = cl.colorConverter.to_rgba('white', alpha=0.0)
-#        cmap_rb = cl.LinearSegmentedColormap.from_list('rb_cmap', [c_blue, c_white_trans, c_red], 512)
         t_max = np.max(np.abs(est_csd[:, :, 0]))
         levels_kcsd = np.linspace(-1 * t_max, t_max, 16)
         im2 = ax2.contourf(kcsd.estm_x, kcsd.estm_y, est_csd[:, :, 0],

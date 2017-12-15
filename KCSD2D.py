@@ -12,11 +12,9 @@ Nencki Institute of Exprimental Biology, Warsaw.
 """
 from __future__ import print_function
 from __future__ import division
-from past.utils import old_div
 import numpy as np
-from scipy import integrate, interpolate
+from scipy import integrate
 from scipy.spatial import distance
-from numpy.linalg import LinAlgError
 
 from KCSD import KCSD
 import utility_functions as utils

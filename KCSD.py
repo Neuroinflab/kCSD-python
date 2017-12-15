@@ -292,7 +292,7 @@ class KCSD(CSD):
         Lambda : post cross validation
         """
         if lambdas is None:  # when None
-#            print('No lambda given, using defaults')
+            print('No lambda given, using defaults')
             # Default multiple lambda
             lambdas = np.logspace(-2, -25, 25, base=10.)
             lambdas = np.hstack((lambdas, np.array((0.0))))

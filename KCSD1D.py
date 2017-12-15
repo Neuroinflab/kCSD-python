@@ -128,7 +128,7 @@ class KCSD1D(KCSD):
         source_type = self.src_type
         try:
             self.basis = basis.basis_1D[source_type]
-        except:
+        except BaseException:
             print(('Invalid source_type for basis! available are:',
                    list(basis.basis_1D.keys())))
             raise KeyError

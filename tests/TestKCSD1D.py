@@ -22,14 +22,14 @@ import os
 import sys
 import numpy as np
 from scipy.integrate import simps
-#import time
+# import time
 import matplotlib.pyplot as plt
 
 from TestKCSD import TestKCSD
 from KCSD1D import KCSD1D
 import csd_profile as CSD
 sys.path.append('../tests')
-from KCSD_crossValid_ext import KCSD1D_electrode_test as test
+#from KCSD_crossValid_ext import KCSD1D_electrode_test as test
 from save_paths import where_to_save_results, where_to_save_source_code, \
     TIMESTR
 from pylatex import Document, Section, Subsection, Tabular, Math, TikZ, Axis, \
@@ -190,7 +190,8 @@ class TestKCSD1D(TestKCSD):
                                               csd_seed,
                                               space='electrodes')
         pots = pots.reshape(len(pots), 1)
-        kcsd = test(ele_pos, pots, **kwargs)
+#        kcsd = test(ele_pos, pots, **kwargs)
+        kcsd = KCSD1D(ele_pos, pots, **kwargs)
         est_csd, est_pot = self.do_kcsd(ele_pos, pots, kcsd)
         test_csd = csd_profile(kcsd.estm_x, csd_seed)
         rms = self.calculate_rms(test_csd, est_csd[:, 0])
@@ -199,6 +200,7 @@ class TestKCSD1D(TestKCSD):
         self.make_plot(kcsd, chrg_pos_x, true_csd, ele_pos, pots, est_csd,
                        est_pot, title)
         self.svd(kcsd)
+        self.picard_plot(kcsd, pots)
         point_error = self.calculate_point_error(test_csd, est_csd[:, 0])
         return rms, point_error
 
@@ -207,7 +209,7 @@ class TestKCSD1D(TestKCSD):
         """
         """
         # CSDs
-        fig = plt.figure(figsize=(10, 6))
+        fig = plt.figure(figsize=(12, 10))
         ax1 = plt.subplot(211)
         ax1.plot(chrg_pos_x, true_csd, 'g', label='TrueCSD')
         ax1.plot(k.estm_x, est_csd[:, 0], 'r--', label='kCSD')
@@ -215,6 +217,7 @@ class TestKCSD1D(TestKCSD):
         ax1.set_xlim(chrg_pos_x[0], chrg_pos_x[-1])
         ax1.set_xlabel('Depth [mm]')
         ax1.set_ylabel('CSD [mA/mm]')
+        ax1.set_title('A) Currents')
         ax1.legend()
         # Potentials
         ax2 = plt.subplot(212)
@@ -223,12 +226,17 @@ class TestKCSD1D(TestKCSD):
         ax2.set_xlim(chrg_pos_x[0], chrg_pos_x[-1])
         ax2.set_xlabel('Depth [mm]')
         ax2.set_ylabel('Potential [mV]')
+        ax2.set_title('B) Potentials')
         ax2.legend()
         fig.suptitle(title)
         with doc.create(Figure(position='htbp')) as plot:
             width = r'1\textwidth'
             plot.add_plot(width=NoEscape(width))
-            plot.add_caption('I am a caption.')
+            plot.add_caption('Test reconstruction results for the data modeled'
+                             'on the line. A) The model CSD (True CSD - green '
+                             'line) and reconstruction with kCSD method (red).'
+                             ' B) The potentials: true (blue dots) and '
+                             'reconstructed (yellow/orange)')
         fig.savefig(os.path.join(self.path + '/', title + '.png'))
 #        plt.close()
         return
@@ -260,7 +268,7 @@ if __name__ == '__main__':
     save_source_code(where_to_save_source_code, TIMESTR)
     csd_profile = CSD.sin
     R_init = 0.23
-    csd_seed = 5
+    csd_seed = 6
     total_ele = 16  # [4, 8, 16, 32, 64, 128]
     nr_basis = 32
     ele_lims = [0.1, 0.9]  # range of electrodes space

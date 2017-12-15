@@ -331,7 +331,6 @@ class ErrorMap2D(TestKCSD2D):
         mean_err = np.mean(point_error, axis=0)
         fig = plt.figure(figsize=(10, 6))
         ax = plt.subplot(111, aspect='equal')
-        err_max = np.max(np.abs(mean_err))
         levels = np.linspace(0, 1., 15)
         im = ax.contourf(x, y, mean_err, levels=levels, cmap='Greys')
         plt.colorbar(im)

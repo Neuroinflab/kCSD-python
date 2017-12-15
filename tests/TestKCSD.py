@@ -203,6 +203,7 @@ class TestKCSD(object):
         u_svd, sigma, v_svd = np.linalg.svd(kernel, full_matrices=False)
         self.plot_svd_sigma(sigma)
         self.plot_svd_u(u_svd)
+        self.plot_svd_v(v_svd)
         np.save(os.path.join(self.path, 'kernel.npy'), kernel)
         np.save(os.path.join(self.path, 'u_svd.npy'), u_svd)
         np.save(os.path.join(self.path, 'sigma.npy'), sigma)
@@ -227,6 +228,51 @@ class TestKCSD(object):
         plt.title('Picard plot')
         plt.xlabel('i')
         fig.savefig(os.path.join(self.path, 'Picard_plot' + '.png'))
+        self.plot_s(s)
+        self.plot_u(u)
+        self.plot_v(v)
+        a = int(self.total_ele - int(np.sqrt(self.total_ele))**2)
+        if a == 0:
+            size = int(np.sqrt(self.total_ele))
+        else:
+            size = int(np.sqrt(self.total_ele)) + 1
+        fig2, axs = plt.subplots(int(np.sqrt(self.total_ele)),
+                                 size, figsize=(15, 13))
+        axs = axs.ravel()
+        beta = np.zeros(v.shape)
+        fig2.suptitle('vectors products of k_pot matrix')
+        for i in range(self.total_ele):
+            beta[i] = ((np.dot(u[:, i].T, b)/s[i]) * v[i, :])
+            axs[i].plot(beta[i, :], marker='.')
+            axs[i].set_title(r'$vec_{'+str(i+1)+'}$')
+        fig2.savefig(os.path.join(self.path, 'vectores_k_pot' +
+                                  '.png'))
+
+#        for i in range(len(b)):
+#            beta[i] = ((np.dot(u[:, i].T, b)/s[i]) * v[i, :])
+#        plt.plot(beta.T, marker='.')
+        return
+
+    def plot_s(self, s):
+        """
+        Creates plot of singular values
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+        """
+        fig = plt.figure()
+        plt.plot(s, '.')
+        plt.title('Singular values of k_pot matrix')
+        plt.xlabel('Components number')
+        plt.ylabel('Singular values')
+        plt.yscale('log')
+        fig.savefig(os.path.join(self.path, 'SingularValues_k_pot' + '.png'))
+#        plt.close()
         return
 
     def evd(self, k):
@@ -270,11 +316,85 @@ class TestKCSD(object):
         """
         fig = plt.figure()
         plt.plot(sigma, 'b.')
-        plt. title('Singular values of kernels product')
+        plt.title('Singular values of kernels product')
         plt.xlabel('Components number')
         plt.ylabel('Singular values')
-        fig.savefig(os.path.join(self.path, 'SingularValues' + '.png'))
+        plt.yscale('log')
+        fig.savefig(os.path.join(self.path, 'SingularValues_kernels_product' +
+                                 '.png'))
         plt.close()
+        return
+
+    def plot_u(self, u):
+        """
+        Creates plot of singular values
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+        """
+        fig1 = plt.figure()
+        plt.plot(u.T, 'b.')
+        plt.title('Left singular vectors of k_pot matrix')
+        plt.ylabel('Singular vectors')
+        fig1.savefig(os.path.join(self.path, 'left_SingularVectorsT_k_pot' +
+                                  '.png'))
+        plt.close()
+        a = int(self.total_ele - int(np.sqrt(self.total_ele))**2)
+        if a == 0:
+            size = int(np.sqrt(self.total_ele))
+        else:
+            size = int(np.sqrt(self.total_ele)) + 1
+        fig2, axs = plt.subplots(int(np.sqrt(self.total_ele)),
+                                 size, figsize=(15, 13))
+        axs = axs.ravel()
+        fig2.suptitle('Left singular vectors of k_pot matrix')
+        for i in range(self.total_ele):
+            axs[i].plot(u[:, i], marker='.')
+            axs[i].set_title(r'$u_{'+str(i+1)+'}$')
+        fig2.savefig(os.path.join(self.path, 'left_SingularVectors_k_pot' +
+                                  '.png'))
+#        plt.close()
+        return
+
+    def plot_v(self, v):
+        """
+        Creates plot of singular values
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+        """
+        fig1 = plt.figure()
+        plt.plot(v.T, 'b.')
+        plt.title('Right singular vectors of k_pot matrix')
+        plt.ylabel('Singular vectors')
+        fig1.savefig(os.path.join(self.path, 'right_SingularVectorsT_k_pot' +
+                                  '.png'))
+        plt.close()
+        a = int(self.total_ele - int(np.sqrt(self.total_ele))**2)
+        if a == 0:
+            size = int(np.sqrt(self.total_ele))
+        else:
+            size = int(np.sqrt(self.total_ele)) + 1
+        fig2, axs = plt.subplots(int(np.sqrt(self.total_ele)),
+                                 size, figsize=(15, 13))
+        axs = axs.ravel()
+        fig2.suptitle('right singular vectors of k_pot matrix')
+        for i in range(self.total_ele):
+            axs[i].plot(v[i, :], marker='.')
+            axs[i].set_title(r'$v_{'+str(i+1)+'}$')
+        fig2.savefig(os.path.join(self.path, 'right_SingularVectors_k_pot' +
+                                  '.png'))
+#        plt.close()
         return
 
     def plot_svd_u(self, u_svd):
@@ -301,13 +421,49 @@ class TestKCSD(object):
         else:
             size = int(np.sqrt(self.total_ele)) + 1
         fig2, axs = plt.subplots(int(np.sqrt(self.total_ele)),
-                                 size, figsize=(12, 9))
+                                 size, figsize=(15, 14))
         axs = axs.ravel()
+        fig2.suptitle('Left singular vectors of kernels product')
         for i in range(self.total_ele):
             axs[i].plot(u_svd[:, i], '.')
-            axs[i].set_title(str(i+1))
+            axs[i].set_title(r'$u_{'+str(i+1)+'}$')
         fig2.savefig(os.path.join(self.path, 'SingularVectors' + '.png'))
         plt.close()
+        return
+
+    def plot_svd_v(self, v_svd):
+        """
+        Creates plot of singular values
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+        """
+        fig1 = plt.figure()
+        plt.plot(v_svd.T, 'b.')
+        plt.title('Right singular vectors of kernels product')
+        plt.ylabel('Singular vectors')
+        fig1.savefig(os.path.join(self.path, 'right_SingularVectorsT' +
+                                  '.png'))
+        plt.close()
+        a = int(self.total_ele - int(np.sqrt(self.total_ele))**2)
+        if a == 0:
+            size = int(np.sqrt(self.total_ele))
+        else:
+            size = int(np.sqrt(self.total_ele)) + 1
+        fig2, axs = plt.subplots(int(np.sqrt(self.total_ele)),
+                                 size, figsize=(15, 14))
+        axs = axs.ravel()
+        fig2.suptitle('Right singular vectors of kernels product')
+        for i in range(self.total_ele):
+            axs[i].plot(v_svd[i, :], marker='.')
+            axs[i].set_title(r'$v_{'+str(i+1)+'}$')
+        fig2.savefig(os.path.join(self.path, 'Right_SingularVectors' + '.png'))
+#        plt.close()
         return
 
     def plot_evd(self, eigenvalues):

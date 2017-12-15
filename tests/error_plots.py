@@ -9,58 +9,56 @@ Created on Thu Nov 23 10:28:36 2017
 import os
 import sys
 import numpy as np
-import time
 import matplotlib.pyplot as plt
-from mpl_toolkits.axes_grid1 import make_axes_locatable
 import numpy.ma as ma
 
 
 def mean_error_threshold(point_error, ele_x, ele_y, path, save_as, n,
                          threshold=1.):
-        """
-        Creates plot of mean error calculated separately for every point of
-        estimation space
+    """
+    Creates plot of mean error calculated separately for every point of
+    estimation space
 
-        Parameters
-        ----------
-        rms: numpy array
-        R: float
-        csd_profile: function
-            function to produce csd profile
-        csd_seed: int
-            seed for random generator
+    Parameters
+    ----------
+    rms: numpy array
+    R: float
+    csd_profile: function
+        function to produce csd profile
+    csd_seed: int
+        seed for random generator
 
-        Returns
-        -------
-        None
-        """
-        point_mask = ma.masked_array(point_error, point_error > threshold)
-        mean_mask = ma.mean(point_mask, axis=0)
-        mean_nr = ma.count(point_mask, axis=0)
-        x, y = np.mgrid[0:1:
-                        np.complex(0, 100),
-                        0:1:
-                        np.complex(0, 100)]
-        fig = plt.figure(figsize=(12, 7))
-        ax1 = plt.subplot(121, aspect='equal')
-        levels = np.linspace(0, 1., 15)
-        im = ax1.contourf(x, y, mean_mask, levels=levels, cmap='Greys')
-        plt.colorbar(im, fraction=0.046, pad=0.04)
-        plt.scatter(ele_x, ele_y)
-        ax1.set_xlabel('Depth x [mm]')
-        ax1.set_ylabel('Depth y [mm]')
-        ax1.legend()
-        ax2 = plt.subplot(122, aspect='equal')
-        levels = np.linspace(0, 100., 15)
-        im2 = ax2.contourf(x, y, mean_nr/n, levels=levels, cmap='Greys')
-        plt.colorbar(im2, fraction=0.046, pad=0.04)
-        plt.scatter(ele_x, ele_y)
-        ax2.set_xlabel('Depth x [mm]')
+    Returns
+    -------
+    None
+    """
+    point_mask = ma.masked_array(point_error, point_error > threshold)
+    mean_mask = ma.mean(point_mask, axis=0)
+    mean_nr = ma.count(point_mask, axis=0)
+    x, y = np.mgrid[0:1:
+                    np.complex(0, 100),
+                    0:1:
+                    np.complex(0, 100)]
+    fig = plt.figure(figsize=(12, 7))
+    ax1 = plt.subplot(121, aspect='equal')
+    levels = np.linspace(0, 1., 15)
+    im = ax1.contourf(x, y, mean_mask, levels=levels, cmap='Greys')
+    plt.colorbar(im, fraction=0.046, pad=0.04)
+    plt.scatter(ele_x, ele_y)
+    ax1.set_xlabel('Depth x [mm]')
+    ax1.set_ylabel('Depth y [mm]')
+    ax1.legend()
+    ax2 = plt.subplot(122, aspect='equal')
+    levels = np.linspace(0, 100., 15)
+    im2 = ax2.contourf(x, y, mean_nr/n, levels=levels, cmap='Greys')
+    plt.colorbar(im2, fraction=0.046, pad=0.04)
+    plt.scatter(ele_x, ele_y)
+    ax2.set_xlabel('Depth x [mm]')
 
-        ax2.legend()
-        fig.savefig(os.path.join(path, save_as + '.png'))
+    ax2.legend()
+    fig.savefig(os.path.join(path, save_as + '.png'))
 #        plt.close()
-        return
+    return
 
 
 def broken_electrode(seed, n, res):
@@ -131,7 +129,6 @@ def error_difference(error1, error2, path, save_as, n=0, threshold=1):
 def sigmoid_mean(error):
     sig_error = 2*(1./(1 + np.exp((-error))) - 1/2.)
     error_mean = np.mean(sig_error, axis=0)
-#    print(error_mean.shape)
     return error_mean
 
 
