@@ -34,7 +34,6 @@ class sKCSDcell(object):
         self.branching = [key for key in rep.keys() if rep[key]>1]
         self.source_xyz = np.zeros(shape=(n_src,3))
         self.loop_xyz = np.zeros(shape=(n_src+self.morphology.shape[0]*2,3))
-        self.repeated = []
         self.source_xyz_borders = []
         
         self.xmin =  np.min(self.morphology[:,2])
@@ -44,7 +43,7 @@ class sKCSDcell(object):
         self.zmin =  np.min(self.morphology[:,4])
         self.zmax = np.max(self.morphology[:,4])
         radius = np.max(self.morphology[:,5])
-        self.loops = []
+        self.loops = None
         self.xmin, self.xmax = self.correct_min_max(self.xmin,self.xmax,radius)
         self.ymin, self.ymax = self.correct_min_max(self.ymin,self.ymax, radius)
         self.zmin, self.zmax = self.correct_min_max(self.zmin,self.zmax, radius)
@@ -57,7 +56,7 @@ class sKCSDcell(object):
     
        
     def distribute_srcs_3D_morph(self):
-
+        self.loops = []
         for morph_pnt in range(1,self.morphology.shape[0]):
             if self.morphology[morph_pnt-1,0]==self.morphology[morph_pnt,6]:
                 self.distribute_src_cylinder(morph_pnt, morph_pnt-1)
@@ -81,6 +80,8 @@ class sKCSDcell(object):
             if int(self.morphology[parent,6]) == -1:
                 break
             last_point = parent
+            
+        self.loops = np.array(self.loops)
     
     def distribute_src_cylinder(self,mp1, mp2):
         xyz1 = self.morphology[mp1,2:5]
