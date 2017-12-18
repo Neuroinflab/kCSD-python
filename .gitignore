@@ -70,3 +70,6 @@ preprocessed_data/
 raw_data/
 *~
 /#*
+*png
+Data/gang_min/
+simulation
