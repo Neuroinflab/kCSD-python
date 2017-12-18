@@ -19,9 +19,9 @@ if __name__ == '__main__':
     scaling_factor_LFP = 1000
     R_inits = [2**i/np.sqrt(2)*3 for i in [3,4,5,6,7]]
     electrode_number = [8,16,32,64,128]
-    nx,ny,nz = 2*5,2*5,52*3
+    nx,ny,nz = 10,10,52*4
     
-    for lambd in [1e-5,1e-4,1e-3,1e-2,1e-1]:
+    for lambd in [1e-5,1e-4,1e-3,1e-2,1e-1,1,0]:
         for R_init in R_inits:
             simulation_paths = []
             data_paths = []
@@ -103,11 +103,10 @@ if __name__ == '__main__':
                             vmin = -vmax
                         else:
                             vmax = -vmin
-                    cax = ax[0].imshow(ground_truth,extent=[0, tstop,1, 52,],origin='lower',aspect='auto',cmap='bwr',vmax=vmax,vmin=vmin)
-                    cbar = fig.colorbar(cax, ticks=[vmin,vmax])
-                    #cbar.ax.set_yticklabels(['sink','source'])
-                    #cax2 = ax2[0].imshow(pots,extent=[0, tstop,1, 52,],origin='lower',aspect='auto',cmap='bwr')#,vmax=vmax,vmin=vmin)
-                    #cbar2 = fig.colorbar(cax, ticks=[vmin,vmax])
+                    cax = ax[0].imshow(ground_truth,extent=[0, tstop,1, 52,],origin='lower',aspect='auto',cmap='seismic_r',vmax=vmax,vmin=vmin)
+                    cbar = fig.colorbar(cax,ticks=[vmin,vmax])
+                    cbar.ax.set_yticklabels(['source','sink'])
+          
 
                 else:
                     path = simulation_paths[i-1]
@@ -143,17 +142,16 @@ if __name__ == '__main__':
                             vmax = -vmin
                         
                         
-                    cax = ax[i].imshow(csd,extent=[0, tstop,1, 52,],origin='lower',aspect='auto',cmap='bwr',vmax=vmax,vmin=vmin)
+                    cax = ax[i].imshow(csd,extent=[0, tstop,1, 52,],origin='lower',aspect='auto',cmap='seismic_r',vmax=vmax,vmin=vmin)
                     cbar = fig.colorbar(cax,ticks=[vmin,vmax])
                     
-                    #ax2[i-1].set_title(electrode_number[i-1])
                     
-                    cax2 = ax2[i-1].imshow(new_pot,extent=[0, tstop,1, 52,],origin='lower',aspect='auto',cmap='bwr')#,vmax=vmax,vmin=vmin)
-                    #cbar = fig.colorbar(cax2,)
+                    cax2 = ax2[i-1].imshow(new_pot,extent=[0, tstop,1, 52,],origin='lower',aspect='auto',cmap='seismic_r')#,vmax=vmax,vmin=vmin)
+
                     ax[i].set_title(electrode_number[i-1])
-                    #cbar.ax.set_yticklabels(['sink','source'])
+                    cbar.ax.set_yticklabels(['source','sink'])
     
-            plt.savefig(dir_name+'.png', bbox_inches='tight', transparent=True, pad_inches=0.1)
+            fig.savefig(dir_name+'.png', bbox_inches='tight', transparent=True, pad_inches=0.1)
 
     
-            plt.show()
+            #plt.show()
