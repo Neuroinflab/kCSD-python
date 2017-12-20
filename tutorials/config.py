@@ -1,4 +1,6 @@
 import csd_profile as CSD
+import sys
+sys.path.append('../corelib/')
 from KCSD import KCSD1D, KCSD2D, KCSD3D, MoIKCSD
 
 # These are the default setting  -can be changed to what ever after UI
