@@ -11,6 +11,7 @@ def change_dim(value):
         config.dim = 3
     update_csd_types()
     update_kcsd_types()
+    update_accordion()
 
 
 def change_csd(value):
@@ -28,7 +29,7 @@ def update_csd_types():
 def update_kcsd_types():
     kcsd_select.options = config.kcsd_options[config.dim].keys()
 
-
+    
 dim_select = widgets.ToggleButtons(options=['1D', '2D', '3D'],
                                    description='Dimensions of the setup:',
                                    disabled=False,
@@ -55,7 +56,7 @@ def create_text_wid(txt, val):
 
 
 def wid_lists(var_list):
-    def_dict  =config.defaults[config.kCSD.__class__.__name__]
+    def_dict = config.defaults[config.kCSD.__name__]
     wid_list = []
     for var in var_list:
         try:
@@ -65,22 +66,27 @@ def wid_lists(var_list):
             pass
     return big_wid
 
+def refresh_accordion_wids():
+    src_ass = wid_lists(['R_init', 'n_src_init', 'lambd'])
+    est_pos = wid_lists(['xmin', 'xmax',
+                         'ymin', 'ymax',
+                         'zmin', 'zmax',
+                         'ext_x', 'ext_y', 'ext_z',
+                         'gdx', 'gdy', 'gdz'])
+    med_ass = wid_lists(['simga', 'h', 'sigma_S', 'MoI_iters'])
+    return [src_ass, est_pos, med_ass]
 
-src_ass = wid_lists(['R_init', 'n_src_init', 'lambd'])
-est_pos = wid_lists(['xmin', 'xmax',
-                     'ymin', 'ymax',
-                     'zmin', 'zmax',
-                     'ext_x', 'ext_y', 'ext_z',
-                     'gdx', 'gdy', 'gdz'])
-med_ass = wid_lists(['simga', 'h', 'sigma_S', 'MoI_iters'])
 
-
-accordion = widgets.Accordion(children=[src_ass, est_pos, med_ass])
+accordion = widgets.Accordion(children=refresh_accordion_wids())
 accordion.set_title(0, 'Source assumptions')
 accordion.set_title(1, 'Estimate positions')
-accordion.set_title(1, 'Medium assumptions')
+accordion.set_title(2, 'Medium assumptions')
 
-
+def update_accordion():
+    accordion.children = refresh_accordion_wids()
+    accordion.set_title(0, 'Source assumptions')
+    accordion.set_title(1, 'Estimate positions')
+    accordion.set_title(2, 'Medium assumptions')
 
 dim_select.observe(change_dim, 'value')
 csd_select.observe(change_csd, 'value')
