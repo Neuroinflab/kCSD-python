@@ -16,7 +16,6 @@ import numpy as np
 from numpy import exp
 
 
-
 def check_for_duplicated_electrodes(elec_pos):
     """Checks for duplicate electrodes
     Parameters
@@ -83,7 +82,6 @@ def distribute_srcs_2D(X, Y, n_src, ext_x, ext_y, R_init):
     Lx_n = Lx + (2 * ext_x)
     Ly_n = Ly + (2 * ext_y)
     [nx, ny, Lx_nn, Ly_nn, ds] = get_src_params_2D(Lx_n, Ly_n, n_src)
-<<<<<<< HEAD
     ext_x_n = (Lx_nn - Lx) / 2
     ext_y_n = (Ly_nn - Ly) / 2
     X_src, Y_src = np.mgrid[(np.min(X) - ext_x_n):(np.max(X) + ext_x_n):
@@ -92,15 +90,6 @@ def distribute_srcs_2D(X, Y, n_src, ext_x, ext_y, R_init):
                             np.complex(0, ny)]
     # d = round(R_init / ds)
     R = R_init  # R = d * ds
-=======
-    ext_x_n = (Lx_nn - Lx)/2
-    ext_y_n = (Ly_nn - Ly)/2
-    X_src, Y_src = np.mgrid[(np.min(X) - ext_x_n):(np.max(X) + ext_x_n):np.complex(0,nx),
-                            (np.min(Y) - ext_y_n):(np.max(Y) + ext_y_n):np.complex(0,ny)]
-    d = round(R_init/ds)
-    #R = d * ds
-    R = R_init
->>>>>>> master
     return X_src, Y_src, R
 
 
@@ -172,7 +161,6 @@ def distribute_srcs_3D(X, Y, Z, n_src, ext_x, ext_y, ext_z, R_init):
                                                               Ly_n,
                                                               Lz_n,
                                                               n_src)
-<<<<<<< HEAD
     ext_x_n = (Lx_nn - Lx) / 2
     ext_y_n = (Ly_nn - Ly) / 2
     ext_z_n = (Lz_nn - Lz) / 2
@@ -183,15 +171,6 @@ def distribute_srcs_3D(X, Y, Z, n_src, ext_x, ext_y, ext_z, R_init):
                                    (np.min(Z) - ext_z_n):(np.max(Z) + ext_z_n):
                                    np.complex(0, nz)]
     # d = np.round(R_init / ds)
-=======
-    ext_x_n = (Lx_nn - Lx)/2
-    ext_y_n = (Ly_nn - Ly)/2
-    ext_z_n = (Lz_nn - Lz)/2
-    X_src, Y_src, Z_src = np.mgrid[(np.min(X) - ext_x_n):(np.max(X) + ext_x_n):np.complex(0,nx),
-                                   (np.min(Y) - ext_y_n):(np.max(Y) + ext_y_n):np.complex(0,ny),
-                                   (np.min(Z) - ext_z_n):(np.max(Z) + ext_z_n):np.complex(0,nz)]
-    d = np.round(R_init/ds)
->>>>>>> master
     R = R_init
     return (X_src, Y_src, Z_src, R)
 
@@ -325,6 +304,4 @@ def gauss_3d_dipole(x, y, z):
     f2 = -1*A*exp( (-(x-x1)**2 -(y-y1)**2 -(z-z1)**2) / (2*sig_2) )
     f = f1+f2
     return f
-
-
 

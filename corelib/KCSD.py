@@ -17,8 +17,10 @@ import numpy as np
 from scipy import special, integrate, interpolate
 from scipy.spatial import distance
 from numpy.linalg import LinAlgError
-from . import utility_functions as utils
-from . import basis_functions as basis
+# from . import utility_functions as utils
+# from . import basis_functions as basis
+import utility_functions as utils
+import basis_functions as basis
 
 skmonaco_available = False
 
