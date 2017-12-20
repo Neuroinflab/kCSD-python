@@ -1,11 +1,11 @@
 '''
-This script is used to generate dummy CSD sources, 
+This script is used to generate dummy CSD sources,
 to test the various kCSD methods
 
 This script is in alpha phase.
 
 This was written by :
-Michal Czerwinski, Chaitanya Chintaluri, 
+Michal Czerwinski, Chaitanya Chintaluri,
 Laboratory of Neuroinformatics,
 Nencki Institute of Exprimental Biology, Warsaw.
 '''
@@ -14,7 +14,6 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 
 from matplotlib import gridspec
-from mpl_toolkits.mplot3d import axes3d
 from numpy import exp
 
 
@@ -26,26 +25,29 @@ def get_states_1D(seed, n=1):
     """
     ndim = 1
     if seed == 0:
-        states = np.array([1.,0.5,0.5], ndmin=2)
+        states = np.array([1., 0.5, 0.5], ndmin=2)
     rstate = np.random.RandomState(seed)
-    states = rstate.random_sample(n*(ndim+2)).reshape((n,(ndim+2)))
-    states[:,0] = (2*states[:,0]) -1.
+    states = rstate.random_sample(n * (ndim + 2)).reshape((n, (ndim + 2)))
+    states[:, 0] = (2 * states[:, 0]) - 1.
     return states, rstate
+
 
 def add_1d_gaussians(x, states):
     '''Function used for adding multiple 1D gaussians'''
     f = np.zeros(x.shape)
     for i in xrange(states.shape[0]):
-        gauss = states[i,0]*np.exp(-((x-states[i,1])**2)/(2.*states[i,2]))*(2*np.pi*states[i,2])**-0.5
+        gauss = states[i, 0]*np.exp(-((x-states[i, 1])**2)/(2.*states[i, 2]))*(2*np.pi*states[i, 2])**-0.5
         f += gauss
     #f *= np.hanning(gauss.size) #while this is cool in principle, its unpredictable 
     return f
+
 
 def gauss_1d_mono(x, seed=0):
     '''Random monopole in 1D'''
     states, rstate = get_states_1D(seed, n=1)
     f = add_1d_gaussians(x, states)
     return f
+
 
 def gauss_1d_dipole(x, seed=0):
     '''Random dipole source in 1D'''
@@ -57,6 +59,7 @@ def gauss_1d_dipole(x, seed=0):
     f = add_1d_gaussians(x, states)
     return f
 
+
 def get_states_2D(seed):
     """
     Used in the random seed generation for 2d sources
@@ -65,6 +68,7 @@ def get_states_2D(seed):
     states = rstate.random_sample(24)
     states[0:12] = 2*states[0:12] -1.
     return states
+
 
 def gauss_2d_large(csd_at, seed=0):
     '''random quadpolar'large source' profile in 2012 paper in 2D'''
@@ -83,9 +87,11 @@ def gauss_2d_large(csd_at, seed=0):
     f = f1+f2+f3+f4
     return f
 
+
 def gauss_2d_small(csd_at, seed=0):
     '''random quadpolar small source in 2D'''
     x, y = csd_at
+
     def gauss2d(x, y, p):
         """
          p:     list of parameters of the Gauss-function
@@ -115,13 +121,15 @@ def gauss_2d_small(csd_at, seed=0):
     f = f1+f2+f3+f4
     return f
 
+
 def get_states_3D(seed):
     """
     Used in the random seed generation for 3D sources
     """
-    rstate = np.random.RandomState(seed) #seed here!
+    rstate = np.random.RandomState(seed)  # seed here!
     states = rstate.random_sample(24)
     return states
+
 
 def gauss_3d_small(csd_at, seed=0):
     '''A random quadpole small souce in 3D'''
@@ -147,6 +155,7 @@ def gauss_3d_small(csd_at, seed=0):
     f = f1+f2+f3+f4
     return f
 
+
 def gauss_3d_large(csd_at, seed=0):
     '''A random dipolar Large source in 3D'''
     x, y, z = csd_at
@@ -161,6 +170,7 @@ def gauss_3d_large(csd_at, seed=0):
     f2 = -1*A*np.exp( (-(x-x1)**2 -(y-y1)**2 -(z-z1)**2) / (2*sig_2) )
     f = f1+f2
     return f
+
 
 def jan_2d_small_f(csd_at):
     '''Source from Jan 2012 kCSD  paper'''
@@ -190,6 +200,7 @@ def jan_2d_small_f(csd_at):
     f = f1+f2+f3+f4
     return f
 
+
 def jan_2d_large_f(csd_at):
     '''Fixed 'large source' profile in 2012 paper'''
     x, y = csd_at
@@ -203,6 +214,7 @@ def jan_2d_large_f(csd_at):
     f = f1+f2+f3+f4
     return f
 
+
 def gauss_3d_dipole_f(csd_at):
     '''Fixed dipole in 3 dimensions of the volume'''
     x, y, z = csd_at
@@ -215,6 +227,7 @@ def gauss_3d_dipole_f(csd_at):
     f = f1+f2
     return f
 
+
 def gauss_3d_mono1_f(csd_at):
     '''Fixed monopole in 3D at the center of the volume space'''
     x, y, z = csd_at
@@ -223,6 +236,7 @@ def gauss_3d_mono1_f(csd_at):
     A = (2*np.pi*sig_2)**-1
     f1 = A*np.exp( (-(x-x0)**2 -(y-y0)**2 -(z-z0)**2) / (2*sig_2) )
     return f1
+
 
 def gauss_3d_mono2_f(csd_at):
     '''Fixed monopole in 3D Offcentered wrt volume'''
@@ -233,6 +247,7 @@ def gauss_3d_mono2_f(csd_at):
     f1 = A*np.exp( (-(x-x0)**2 -(y-y0)**2 -(z-z0)**2) / (2*sig_2) )
     return f1
 
+
 def gauss_3d_mono3_f(csd_at):
     '''Fixed monopole in 3D Offcentered wrt volume'''
     x, y, z = csd_at
@@ -242,6 +257,7 @@ def gauss_3d_mono3_f(csd_at):
     c = 0.5*stdev**(-2)
     f1 = h*np.exp(-c*((x - x0)**2 + (y - y0)**2 + (z - z0)**2))
     return f1
+
 
 def neat_4d_plot(csd_at, t, z_steps=5, cmap=cm.bwr_r):
     '''Used to show 3D csd profile'''
@@ -274,7 +290,8 @@ def neat_4d_plot(csd_at, t, z_steps=5, cmap=cm.bwr_r):
 csd_available_dict = {1 : [gauss_1d_mono, gauss_1d_dipole],
                       2 : [gauss_2d_large, gauss_2d_small],
                       3 : [gauss_3d_large, gauss_3d_small]}
-    
+
+
 
 if __name__=='__main__':
     seed = 3
@@ -305,6 +322,4 @@ if __name__=='__main__':
     # f = csd_profile(chrg_x, chrg_y, chrg_z, seed=seed)
     # neat_4d_plot(chrg_x, chrg_y, chrg_z, f)
 
-    plt.show() 
-
-
+    plt.show()
