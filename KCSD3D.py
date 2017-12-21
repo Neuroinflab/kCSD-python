@@ -122,6 +122,7 @@ class KCSD3D(KCSD):
             self.ymin:self.ymax:np.complex(0, ny),
             self.zmin:self.zmax:np.complex(0, nz)]
         self.n_estm = self.estm_x.size
+        print('n_estm', self.n_estm)
         self.ngx, self.ngy, self.ngz = self.estm_x.shape
         return
 
@@ -169,6 +170,7 @@ class KCSD3D(KCSD):
 
         self.n_src = self.src_x.size
         self.nsx, self.nsy, self.nsz = self.src_x.shape
+        print('n_src', self.n_src)
         return
 
     def create_src_dist_tables(self):

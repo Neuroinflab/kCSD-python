@@ -21,7 +21,6 @@ from scipy.integrate import simps
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from matplotlib.mlab import griddata
-from matplotlib import colors as cl
 
 from TestKCSD import TestKCSD
 from KCSD2D import KCSD2D
@@ -209,7 +208,7 @@ class TestKCSD2D(TestKCSD):
         kcsd = KCSD2D(ele_pos, pots, xmin=0., xmax=1., ymin=0.,
                       ymax=1., **kwargs)
         est_csd, est_pot = self.do_kcsd(ele_pos, pots, kcsd,
-                                        Rs=np.arange(0.3, 0.6, 0.05)) #np.arange(0.1, 0.7, 0.02))
+                                        Rs=np.arange(0.3, 0.6, 0.05))
         self.picard_plot(kcsd, pots)
         test_csd = csd_profile(kcsd.estm_x, kcsd.estm_y, csd_seed)
         rms = self.calculate_rms(test_csd, est_csd[:, :, 0])

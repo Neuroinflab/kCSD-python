@@ -18,6 +18,10 @@ import time
 import numpy as np
 import os
 from scipy.integrate import simps
+import matplotlib.pyplot as plt
+from matplotlib import gridspec
+from matplotlib.mlab import griddata
+import matplotlib.cm as cm
 
 from TestKCSD import TestKCSD
 from KCSD3D import KCSD3D
@@ -167,16 +171,113 @@ class TestKCSD3D(TestKCSD):
                                                           self.csd_xres,
                                                           self.csd_yres)
         ele_pos, pots = self.electrode_config(csd_profile, csd_seed)
+        print(max(ele_pos[:, 0]), min(ele_pos[:, 0]))
         pots = pots.reshape(len(pots), 1)
-        kcsd = KCSD3D(ele_pos, pots, **kwargs)
+        kcsd = KCSD3D(ele_pos, pots, gdx=0.03, gdy=0.03, gdz=0.03,
+                      **kwargs)
+        tic = time.time()
         est_csd, est_pot = self.do_kcsd(ele_pos, pots, kcsd,
                                         np.arange(0.19, 0.3, 0.04))
+        toc = time.time() - tic
         test_csd = csd_profile(kcsd.estm_x, kcsd.estm_y, kcsd.estm_z, csd_seed)
         rms = self.calculate_rms(test_csd, est_csd[:, :, :, 0])
-        print('rms', rms)
-        point_error = self.calculate_point_error(test_csd, est_csd[:, :, :, 0])
-        print('point error', point_error)
+#        point_error = self.calculate_point_error(test_csd,
+#                                                 est_csd[:, :, :, 0])
+        title = "Lambda: %0.2E; R: %0.2f; RMS: %0.2E; CV_Error: %0.2E; "\
+                "Time: %0.2f" % (kcsd.lambd, kcsd.R, rms, kcsd.cv_error, toc)
+        self.make_plot(csd_x, csd_y, csd_z, test_csd, kcsd, est_csd, ele_pos,
+                       pots, rms, title)
         return
+
+    def make_plot(self, csd_x, csd_y, csd_z, true_csd, kcsd, est_csd, ele_pos,
+                  pots, rms, fig_title):
+        fig = plt.figure(figsize=(10, 16))
+        z_steps = 5
+        height_ratios = [1 for i in range(z_steps)]
+        height_ratios.append(0.1)
+        gs = gridspec.GridSpec(z_steps+1, 3, height_ratios=height_ratios)
+        t_max = np.max(np.abs(true_csd))
+        levels = np.linspace(-1*t_max, t_max, 16)
+        ind_interest = np.mgrid[0:kcsd.estm_z.shape[2]:np.complex(0,
+                                                                  z_steps+2)]
+        ind_interest = np.array(ind_interest, dtype=np.int)[1:-1]
+        for ii, idx in enumerate(ind_interest):
+            ax = plt.subplot(gs[ii, 0])
+            im = plt.contourf(kcsd.estm_x[:, :, idx], kcsd.estm_y[:, :, idx],
+                              true_csd[:, :, idx], levels=levels,
+                              cmap=cm.bwr_r)
+            ax.get_xaxis().set_visible(False)
+            ax.get_yaxis().set_visible(False)
+            title = str(kcsd.estm_z[:, :, idx][0][0])[:4]
+            ax.set_title(label=title, fontdict={'x': 0.8, 'y': 0.8})
+            ax.set_aspect('equal')
+        cax = plt.subplot(gs[z_steps, 0])
+        cbar = plt.colorbar(im, cax=cax, orientation='horizontal',
+                            format='%.2f')
+        cbar.set_ticks(levels[::3])
+        cbar.set_ticklabels(np.around(levels[::3], decimals=2))
+#        Potentials
+        v_max = np.max(np.abs(pots))
+        levels_pot = np.linspace(-1*v_max, v_max, 16)
+        ele_res = int(np.ceil(len(pots)**(3**-1)))
+        ele_x = ele_pos[:, 0].reshape(ele_res, ele_res, ele_res)
+        ele_y = ele_pos[:, 1].reshape(ele_res, ele_res, ele_res)
+        ele_z = ele_pos[:, 2].reshape(ele_res, ele_res, ele_res)
+        pots = pots.reshape(ele_res, ele_res, ele_res)
+        for idx in range(min(5, ele_res)):
+            X, Y, Z = self.grid(ele_x[:, :, idx], ele_y[:, :, idx],
+                                pots[:, :, idx])
+            ax = plt.subplot(gs[idx, 1])
+            im = plt.contourf(X, Y, Z, levels=levels_pot, cmap=cm.PRGn)
+            ax.hold(True)
+            plt.scatter(ele_x[:, :, idx], ele_y[:, :, idx], 5)
+            ax.get_xaxis().set_visible(False)
+            ax.get_yaxis().set_visible(False)
+            title = str(ele_z[:, :, idx][0][0])[:4]
+            ax.set_title(label=title, fontdict={'x': 0.8, 'y': 0.8})
+            ax.set_aspect('equal')
+            ax.set_xlim([0., 1.])
+            ax.set_ylim([0., 1.])
+        cax = plt.subplot(gs[z_steps, 1])
+        cbar2 = plt.colorbar(im, cax=cax, orientation='horizontal',
+                             format='%.2f')
+        cbar2.set_ticks(levels_pot[::3])
+        cbar2.set_ticklabels(np.around(levels_pot[::3], decimals=2))
+        # #KCSD
+        t_max = np.max(np.abs(est_csd[:, :, :, 0]))
+        levels_kcsd = np.linspace(-1*t_max, t_max, 16)
+        ind_interest = np.mgrid[0:kcsd.estm_z.shape[2]:np.complex(0,
+                                                                  z_steps+2)]
+        ind_interest = np.array(ind_interest, dtype=np.int)[1:-1]
+        for ii, idx in enumerate(ind_interest):
+            ax = plt.subplot(gs[ii, 2])
+            im = plt.contourf(kcsd.estm_x[:, :, idx], kcsd.estm_y[:, :, idx],
+                              est_csd[:, :, idx, 0], levels=levels_kcsd,
+                              cmap=cm.bwr_r)
+            ax.get_xaxis().set_visible(False)
+            ax.get_yaxis().set_visible(False)
+            title = str(kcsd.estm_z[:, :, idx][0][0])[:4]
+            ax.set_title(label=title, fontdict={'x': 0.8, 'y': 0.8})
+            ax.set_aspect('equal')
+        cax = plt.subplot(gs[z_steps, 2])
+        cbar3 = plt.colorbar(im, cax=cax, orientation='horizontal',
+                             format='%.2f')
+        cbar3.set_ticks(levels_kcsd[::3])
+        cbar3.set_ticklabels(np.around(levels_kcsd[::3], decimals=2))
+        fig.suptitle(fig_title)
+        return
+
+    def grid(self, x, y, z, resX=100, resY=100):
+        """
+        Convert 3 column data to matplotlib grid
+        """
+        x = x.flatten()
+        y = y.flatten()
+        z = z.flatten()
+        xi = np.linspace(min(x), max(x), resX)
+        yi = np.linspace(min(y), max(y), resY)
+        zi = griddata(x, y, z, xi, yi, interp='linear')
+        return xi, yi, zi
 
 
 def save_source_code(save_path, TIMESTR):
@@ -203,13 +304,12 @@ def makemydir(directory):
 if __name__ == '__main__':
     makemydir(where_to_save_source_code)
     save_source_code(where_to_save_source_code, TIMESTR)
-    total_ele = 27
+    total_ele = 512
 #    Normal run
     csd_seed = 20  # 0-49 are small sources, 50-99 are large sources
     csd_profile = CSD.gauss_3d_small
     tic = time.time()
-#    tracker = SummaryTracker()
-    TestKCSD3D(csd_profile, csd_seed, total_ele=total_ele, h=50., sigma=1.)
+    TestKCSD3D(csd_profile, csd_seed, total_ele=total_ele, h=50, sigma=1,
+               xmax=1, xmin=0, ymax=1, ymin=0, zmax=1, zmin=0)
     toc = time.time() - tic
     print('time', toc)
-#    tracker.print_diff()
