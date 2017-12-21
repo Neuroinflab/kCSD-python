@@ -21,9 +21,10 @@ from scipy.integrate import simps
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from matplotlib.mlab import griddata
-
+import sys
 from TestKCSD import TestKCSD
-from KCSD2D import KCSD2D
+sys.path.append('../../corelib')
+from KCSD import KCSD2D
 import csd_profile as CSD
 from save_paths import where_to_save_results, where_to_save_source_code, \
     TIMESTR

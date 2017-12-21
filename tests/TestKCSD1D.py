@@ -26,9 +26,10 @@ from scipy.integrate import simps
 import matplotlib.pyplot as plt
 
 from TestKCSD import TestKCSD
-from KCSD1D import KCSD1D
+sys.path.append('../../corelib')
+from KCSD import KCSD1D
 import csd_profile as CSD
-sys.path.append('../tests')
+
 #from KCSD_crossValid_ext import KCSD1D_electrode_test as test
 from save_paths import where_to_save_results, where_to_save_source_code, \
     TIMESTR

@@ -26,7 +26,7 @@ import numpy.ma as ma
 from TestKCSD2D import TestKCSD2D
 import csd_profile as CSD
 sys.path.append('../tests')
-from KCSD2D import KCSD2D
+from KCSD import KCSD2D
 from save_paths import where_to_save_results, where_to_save_source_code, \
     TIMESTR
 

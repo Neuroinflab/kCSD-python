@@ -23,7 +23,7 @@ import numpy as np
 from scipy.linalg import inv
 import matplotlib.pyplot as plt
 
-sys.path.append('..')
+sys.path.append('../../corelib')
 standard_library.install_aliases()
 
 
