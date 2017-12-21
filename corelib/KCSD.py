@@ -2,8 +2,8 @@
 kCSD method Jan et.al (2012).
 
 This was written by :
-[1]Chaitanya Chintaluri, 
-[2]Michal Czerwinski, 
+[1]Chaitanya Chintaluri,
+[2]Michal Czerwinski,
 Laboratory of Neuroinformatics,
 Nencki Institute of Exprimental Biology, Warsaw.
 KCSD1D[1][2], KCSD2D[1], KCSD3D[1], MoIKCSD[1]
@@ -15,11 +15,13 @@ import numpy as np
 from scipy import special, integrate, interpolate
 from scipy.spatial import distance
 from numpy.linalg import LinAlgError
+import utility_functions as utils
+import basis_functions as basis
 
+# from . import utility_functions as utils
+# from . import basis_functions as basis
 skmonaco_available = False
 
-from . import utility_functions as utils
-from . import basis_functions as basis
 
 class CSD(object):
     """CSD - The base class for CSD methods."""
