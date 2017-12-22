@@ -75,7 +75,7 @@ def integrate_2D(x, y, xlim, ylim, csd, h, xlin, ylin, X, Y):
     m[m < 0.0000001] = 0.0000001             # I increased acuracy
     y = np.arcsinh(2*h / m) * csd            # corrected
     I = np.zeros(Ny)                         # do a 1-D integral over every row
-    for i in xrange(Ny):
+    for i in range(Ny):
         I[i] = simps(y[:, i], ylin)          # I changed the integral
     F = simps(I, xlin)                       # then an integral over the result
     return F
@@ -91,9 +91,9 @@ def integrate_3D(x, y, z, xlim, ylim, zlim, csd, xlin, ylin, zlin, X, Y, Z):
     m[m < 0.0000001] = 0.0000001
     z = csd / m
     Iy = np.zeros(Ny)
-    for j in xrange(Ny):
+    for j in range(Ny):
         Iz = np.zeros(Nz)
-        for i in xrange(Nz):
+        for i in range(Nz):
             Iz[i] = simps(z[:, j, i], zlin)
         Iy[j] = simps(Iz, ylin)
     F = simps(Iy, xlin)
