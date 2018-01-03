@@ -23,11 +23,11 @@ def change_kcsd(value):
 
 
 def update_csd_types():
-    csd_select.options = config.csd_options[config.dim].keys()
+    csd_select.options = list(config.csd_options[config.dim].keys())
 
 
 def update_kcsd_types():
-    kcsd_select.options = config.kcsd_options[config.dim].keys()
+    kcsd_select.options = list(config.kcsd_options[config.dim].keys())
 
     
 dim_select = widgets.ToggleButtons(options=['1D', '2D', '3D'],
@@ -38,11 +38,11 @@ dim_select = widgets.ToggleButtons(options=['1D', '2D', '3D'],
                                              'MEA like flat electrodes',
                                              'Utah array or SEEG'])
 
-csd_select = widgets.ToggleButtons(options=config.csd_options[1].keys(),
+csd_select = widgets.ToggleButtons(options=list(config.csd_options[1].keys()),
                                    description='True source type',
                                    button_style='')
 
-kcsd_select = widgets.ToggleButtons(options=config.kcsd_options[1].keys(),
+kcsd_select = widgets.ToggleButtons(options=list(config.kcsd_options[1].keys()),
                                     description='KCSD method',
                                     button_style='')
 
