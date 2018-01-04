@@ -191,8 +191,10 @@ class TestKCSD1D(TestKCSD):
                                               csd_seed,
                                               space='electrodes')
         pots = pots.reshape(len(pots), 1)
-#        kcsd = test(ele_pos, pots, **kwargs)
-        kcsd = KCSD1D(ele_pos, pots, **kwargs)
+        kcsd = KCSD1D(ele_pos, pots, src_type='gauss', sigma=0.3, h=0.25,
+                      n_src_init=100, ext_x=0.1)
+#        kcsd = KCSD1D(ele_pos, pots, **kwargs)
+#        kcsd = KCSD1D(ele_pos, pots)
         est_csd, est_pot = self.do_kcsd(ele_pos, pots, kcsd)
         test_csd = csd_profile(kcsd.estm_x, csd_seed)
         rms = self.calculate_rms(test_csd, est_csd[:, 0])
@@ -269,9 +271,9 @@ if __name__ == '__main__':
     save_source_code(where_to_save_source_code, TIMESTR)
     csd_profile = CSD.sin
     R_init = 0.23
-    csd_seed = 6
+    csd_seed = 2
     total_ele = 16  # [4, 8, 16, 32, 64, 128]
-    nr_basis = 32
+    nr_basis = 100
     ele_lims = [0.1, 0.9]  # range of electrodes space
     kcsd_lims = [0.1, 0.9]  # CSD estimation space range
     true_csd_xlims = [0., 1.]

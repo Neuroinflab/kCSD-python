@@ -24,7 +24,7 @@ from matplotlib.mlab import griddata
 import matplotlib.cm as cm
 
 from TestKCSD import TestKCSD
-from KCSD3D import KCSD3D
+from KCSD import KCSD3D
 import csd_profile as CSD
 from save_paths import where_to_save_results, where_to_save_source_code, \
     TIMESTR
@@ -173,8 +173,9 @@ class TestKCSD3D(TestKCSD):
         ele_pos, pots = self.electrode_config(csd_profile, csd_seed)
         print(max(ele_pos[:, 0]), min(ele_pos[:, 0]))
         pots = pots.reshape(len(pots), 1)
-        kcsd = KCSD3D(ele_pos, pots, gdx=0.03, gdy=0.03, gdz=0.03,
-                      **kwargs)
+        kcsd = KCSD3D(ele_pos, pots, gdx=0.02, gdy=0.02, gdz=0.02,
+                      h=50, sigma=1, xmax=1, xmin=0, ymax=1, ymin=0, zmax=1,
+                      zmin=0)
         tic = time.time()
         est_csd, est_pot = self.do_kcsd(ele_pos, pots, kcsd,
                                         np.arange(0.19, 0.3, 0.04))
@@ -304,7 +305,7 @@ def makemydir(directory):
 if __name__ == '__main__':
     makemydir(where_to_save_source_code)
     save_source_code(where_to_save_source_code, TIMESTR)
-    total_ele = 512
+    total_ele = 125
 #    Normal run
     csd_seed = 20  # 0-49 are small sources, 50-99 are large sources
     csd_profile = CSD.gauss_3d_small

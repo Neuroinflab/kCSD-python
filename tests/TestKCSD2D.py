@@ -21,6 +21,7 @@ from scipy.integrate import simps
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from matplotlib.mlab import griddata
+from matplotlib import ticker
 import sys
 from TestKCSD import TestKCSD
 sys.path.append('../../corelib')
@@ -207,9 +208,9 @@ class TestKCSD2D(TestKCSD):
 #        print(pots)
         pots = pots.reshape(len(pots), 1)
         kcsd = KCSD2D(ele_pos, pots, xmin=0., xmax=1., ymin=0.,
-                      ymax=1., **kwargs)
+                      ymax=1., h=50., sigma=1., n_src_init=400)
         est_csd, est_pot = self.do_kcsd(ele_pos, pots, kcsd,
-                                        Rs=np.arange(0.3, 0.6, 0.05))
+                                        Rs=np.arange(0.3, 0.41, 0.05))
         self.picard_plot(kcsd, pots)
         test_csd = csd_profile(kcsd.estm_x, kcsd.estm_y, csd_seed)
         rms = self.calculate_rms(test_csd, est_csd[:, :, 0])
@@ -273,12 +274,14 @@ class TestKCSD2D(TestKCSD):
         ax1.set_xlabel('x [mm]')
         ax1.set_ylabel('y [mm]')
         ax1.set_title('A) True CSD')
-        plt.colorbar(im1, orientation='horizontal', format='%.2f')
+        ticks = np.linspace(-1 * t_max, t_max, 7, endpoint=True)
+        plt.colorbar(im1, orientation='horizontal', format='%.2f',
+                     ticks=ticks)
         ax2 = plt.subplot(143, aspect='equal')
         mask = np.load('/home/mkowalska/Marta/xCSD/branches/kCSD-marta/refactored_tests/mask.npy')
         levels2 = np.linspace(0, 1, 10)
         t_max = np.max(np.abs(est_csd[:, :, 0]))
-        levels_kcsd = np.linspace(-1 * t_max, t_max, 16)
+        levels_kcsd = np.linspace(-1 * t_max, t_max, 16, endpoint=True)
         im2 = ax2.contourf(kcsd.estm_x, kcsd.estm_y, est_csd[:, :, 0],
                            levels=levels_kcsd, alpha=1, cmap=cm.bwr)
         im2b = ax2.contourf(kcsd.estm_x, kcsd.estm_y, mask, levels=levels2,
@@ -288,11 +291,13 @@ class TestKCSD2D(TestKCSD):
         ax2.set_xlim([0., 1.])
         ax2.set_ylim([0., 1.])
         ax2.set_title('C) kCSD with error mask')
-        plt.colorbar(im2, orientation='horizontal', format='%.2f')
+        ticks = np.linspace(-1 * t_max, t_max, 7, endpoint=True)
+        plt.colorbar(im2, orientation='horizontal', format='%.2f',
+                     ticks=ticks)
 #        plt.colorbar(im2b, orientation='vertical',
 #                     format='%.2f')
         v_max = np.max(np.abs(pots))
-        levels_pot = np.linspace(-1 * v_max, v_max, 64)
+        levels_pot = np.linspace(-1 * v_max, v_max, 32)
         X, Y, Z = self.grid(ele_pos[:, 0], ele_pos[:, 1], pots)
         ax3 = plt.subplot(142, aspect='equal')
         im3 = plt.contourf(X, Y, Z, levels=levels_pot, cmap=cm.PRGn)
@@ -300,18 +305,22 @@ class TestKCSD2D(TestKCSD):
         ax3.set_xlim([0., 1.])
         ax3.set_ylim([0., 1.])
         ax3.set_title('B) Pots, Ele_pos')
-        plt.colorbar(im3, orientation='horizontal', format='%.2f')
+        ticks = np.linspace(-1 * v_max, v_max, 7, endpoint=True)
+        plt.colorbar(im3, orientation='horizontal', format='%.2f',
+                     ticks=ticks)
 
         ax4 = plt.subplot(144, aspect='equal')
-        difference = true_csd-est_csd[:, :, 0]
+        difference = abs(true_csd-est_csd[:, :, 0])
         im4 = ax4.contourf(kcsd.estm_x, kcsd.estm_y, difference,
-                           levels=levels, cmap='PuOr')
+                           cmap='Purples',
+                           levels=np.linspace(0, np.max(difference), 15))
         im4b = ax4.contourf(kcsd.estm_x, kcsd.estm_y, mask, levels=levels2,
                             alpha=0.3, cmap='Greys')
         ax4.set_xlabel('x [mm]')
 #        ax4.set_ylabel('y [mm]')
         ax4.set_title('D) True CSD - kCSD')
-        plt.colorbar(im4, orientation='horizontal', format='%.2f')
+        v = np.linspace(0, np.max(difference), 7, endpoint=True)
+        plt.colorbar(im4, orientation='horizontal', format='%.2f', ticks=v)
         save_as = 'csd_profile_' + csd_profile.__name__ + '_seed' +\
             str(csd_seed) + '_total_ele' + str(self.total_ele)
         fig.savefig(os.path.join(self.path, save_as + '.png'))
@@ -379,7 +388,7 @@ if __name__ == '__main__':
     makemydir(where_to_save_source_code)
     save_source_code(where_to_save_source_code, TIMESTR)
     csd_profile = CSD.gauss_2d_small
-    csd_seed = 12
+    csd_seed = 7
     total_ele = 36
     a = TestKCSD2D(csd_profile, csd_seed, total_ele=total_ele, h=50., sigma=1.,
                    config='regular', err_map='no', nr_basis=400)
