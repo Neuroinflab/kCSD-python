@@ -216,7 +216,7 @@ class TestKCSD1D(TestKCSD):
         ax1 = plt.subplot(211)
         ax1.plot(chrg_pos_x, true_csd, 'g', label='TrueCSD')
         ax1.plot(k.estm_x, est_csd[:, 0], 'r--', label='kCSD')
-        ax1.plot(ele_pos, np.zeros(len(pots)), 'bo')
+        ax1.plot(ele_pos, np.zeros(len(pots)), 'ko')
         ax1.set_xlim(chrg_pos_x[0], chrg_pos_x[-1])
         ax1.set_xlabel('Depth [mm]')
         ax1.set_ylabel('CSD [mA/mm]')

@@ -231,7 +231,7 @@ class TestKCSD3D(TestKCSD):
             ax = plt.subplot(gs[idx, 1])
             im = plt.contourf(X, Y, Z, levels=levels_pot, cmap=cm.PRGn)
             ax.hold(True)
-            plt.scatter(ele_x[:, :, idx], ele_y[:, :, idx], 5)
+            plt.scatter(ele_x[:, :, idx], ele_y[:, :, idx], 5, c='k')
             ax.get_xaxis().set_visible(False)
             ax.get_yaxis().set_visible(False)
             title = str(ele_z[:, :, idx][0][0])[:4]
@@ -306,7 +306,6 @@ if __name__ == '__main__':
     makemydir(where_to_save_source_code)
     save_source_code(where_to_save_source_code, TIMESTR)
     total_ele = 125
-#    Normal run
     csd_seed = 20  # 0-49 are small sources, 50-99 are large sources
     csd_profile = CSD.gauss_3d_small
     tic = time.time()

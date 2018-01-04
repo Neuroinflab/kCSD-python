@@ -301,7 +301,7 @@ class TestKCSD2D(TestKCSD):
         X, Y, Z = self.grid(ele_pos[:, 0], ele_pos[:, 1], pots)
         ax3 = plt.subplot(142, aspect='equal')
         im3 = plt.contourf(X, Y, Z, levels=levels_pot, cmap=cm.PRGn)
-        plt.scatter(ele_pos[:, 0], ele_pos[:, 1], 10)
+        plt.scatter(ele_pos[:, 0], ele_pos[:, 1], 10, c='k')
         ax3.set_xlim([0., 1.])
         ax3.set_ylim([0., 1.])
         ax3.set_title('B) Pots, Ele_pos')
