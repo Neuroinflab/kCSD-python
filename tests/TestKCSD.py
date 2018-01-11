@@ -35,7 +35,6 @@ class TestKCSD(object):
         """Initialize TestKCSD class
         Parameters
         ----------
-        k : object of the class 'KCSD1D'
         dim: int
             case dimention (1, 2 or 3 D)
         **kwargs
@@ -106,7 +105,7 @@ class TestKCSD(object):
 
     def general_parameters(self, **kwargs):
         """
-        Method that loads parameters or takes default values
+        Defining the default values of the method passed as kwargs
 
         Parameters
         ----------
@@ -134,7 +133,7 @@ class TestKCSD(object):
 
     def dimension_parameters(self, **kwargs):
         """
-        Method that loads parameters or takes default values
+        Defining the default values of the method passed as kwargs
 
         Parameters
         ----------
@@ -192,11 +191,13 @@ class TestKCSD(object):
 
         Parameters
         ----------
-        None
+        k - instance of class (TestKCSD1D, TestKCSD2D or TestKCSD3D)
 
         Returns
         -------
-        None
+        u_svd: left singular vectors
+        sigma: singular values
+        v_svd: right singular vectors
         """
         kernel = np.dot(k.k_interp_cross,
                         inv(k.k_pot + k.lambd * np.identity(k.k_pot.shape[0])))
@@ -212,6 +213,17 @@ class TestKCSD(object):
         return u_svd, sigma, v_svd
 
     def picard_plot(self, k, b):
+        """
+        Creates Picard plot according to Hansen book
+        Parameters
+        ----------
+        k: instance of class (TestKCSD1D, TestKCSD2D or TestKCSD3D)
+        b: right-hand side of the linear equation
+
+        Returns
+        -------
+        None
+        """
         u, s, v = np.linalg.svd(k.k_pot)
         picard = np.zeros(len(s))
         picard_norm = np.zeros(len(s))
@@ -228,6 +240,7 @@ class TestKCSD(object):
         plt.title('Picard plot')
         plt.xlabel('i')
         fig.savefig(os.path.join(self.path, 'Picard_plot' + '.png'))
+        plt.close()
         self.plot_s(s)
         self.plot_u(u)
         self.plot_v(v)
@@ -247,10 +260,7 @@ class TestKCSD(object):
             axs[i].set_title(r'$vec_{'+str(i+1)+'}$')
         fig2.savefig(os.path.join(self.path, 'vectores_k_pot' +
                                   '.png'))
-
-#        for i in range(len(b)):
-#            beta[i] = ((np.dot(u[:, i].T, b)/s[i]) * v[i, :])
-#        plt.plot(beta.T, marker='.')
+        plt.close()
         return
 
     def plot_s(self, s):
@@ -259,7 +269,7 @@ class TestKCSD(object):
 
         Parameters
         ----------
-        None
+        s: singular values
 
         Returns
         -------
@@ -272,7 +282,7 @@ class TestKCSD(object):
         plt.ylabel('Singular values')
         plt.yscale('log')
         fig.savefig(os.path.join(self.path, 'SingularValues_k_pot' + '.png'))
-#        plt.close()
+        plt.close()
         return
 
     def evd(self, k):
@@ -287,7 +297,7 @@ class TestKCSD(object):
 
         Parameters
         ----------
-        None
+        k: instance of class (TestKCSD1D, TestKCSD2D or TestKCSD3D)
 
         Returns
         -------
@@ -308,7 +318,7 @@ class TestKCSD(object):
 
         Parameters
         ----------
-        None
+        sigma: singular values
 
         Returns
         -------
@@ -327,11 +337,11 @@ class TestKCSD(object):
 
     def plot_u(self, u):
         """
-        Creates plot of singular values
+        Creates plot of left singular values
 
         Parameters
         ----------
-        None
+        u: left singular vectors
 
         Returns
         -------
@@ -358,16 +368,16 @@ class TestKCSD(object):
             axs[i].set_title(r'$u_{'+str(i+1)+'}$')
         fig2.savefig(os.path.join(self.path, 'left_SingularVectors_k_pot' +
                                   '.png'))
-#        plt.close()
+        plt.close()
         return
 
     def plot_v(self, v):
         """
-        Creates plot of singular values
+        Creates plot of right singular values
 
         Parameters
         ----------
-        None
+        v: right singular vectors
 
         Returns
         -------
@@ -394,16 +404,16 @@ class TestKCSD(object):
             axs[i].set_title(r'$v_{'+str(i+1)+'}$')
         fig2.savefig(os.path.join(self.path, 'right_SingularVectors_k_pot' +
                                   '.png'))
-#        plt.close()
+        plt.close()
         return
 
     def plot_svd_u(self, u_svd):
         """
-        Creates plot of singular values
+        Creates plot of left singular values
 
         Parameters
         ----------
-        None
+        u_svd: left singular vectors
 
         Returns
         -------
@@ -433,11 +443,11 @@ class TestKCSD(object):
 
     def plot_svd_v(self, v_svd):
         """
-        Creates plot of singular values
+        Creates plot of right singular values
 
         Parameters
         ----------
-        None
+        v_svd: right singular vectors
 
         Returns
         -------
@@ -463,16 +473,16 @@ class TestKCSD(object):
             axs[i].plot(v_svd[i, :], marker='.')
             axs[i].set_title(r'$v_{'+str(i+1)+'}$')
         fig2.savefig(os.path.join(self.path, 'Right_SingularVectors' + '.png'))
-#        plt.close()
+        plt.close()
         return
 
     def plot_evd(self, eigenvalues):
         """
-        Creates plot of singular values
+        Creates plot of eigenvalues
 
         Parameters
         ----------
-        None
+        eigenvalues: eigenvalues
 
         Returns
         -------
@@ -487,18 +497,44 @@ class TestKCSD(object):
         plt.close()
         return
 
-    def broken_electrode(self, seed, n):
-        ele_x, ele_y = np.mgrid[self.ele_xlims[0]:self.ele_xlims[1]:
-                                np.complex(0, self.ele_yres),
-                                self.ele_ylims[0]:self.ele_ylims[1]:
-                                np.complex(0, self.ele_yres)]
-        ele_x, ele_y = ele_x.flatten(), ele_y.flatten()
-        ele_grid = np.vstack((ele_x, ele_y)).T
+    def broken_electrode(self, ele_seed, n):
+        """
+        Creates plot of eigenvalues
+
+        Parameters
+        ----------
+        seed: internal state of the random number generator
+        n: number of broken/missing electrodes
+
+        Returns
+        -------
+        ele_pos[:, 0]: x locations of electrodes
+        ele_pos[:, 1]: y locations of electrodes
+        """
+        if self.dim == 1:
+            ele_grid = self.generate_electrodes()
+        elif self.dim == 2:
+            ele_x, ele_y = np.mgrid[self.ele_xlims[0]:self.ele_xlims[1]:
+                                    np.complex(0, self.ele_yres),
+                                    self.ele_ylims[0]:self.ele_ylims[1]:
+                                    np.complex(0, self.ele_yres)]
+            ele_x, ele_y = ele_x.flatten(), ele_y.flatten()
+            ele_grid = np.vstack((ele_x, ele_y)).T
+        else:
+            ele_x, ele_y, ele_z = np.mgrid[self.ele_xlims[0]:self.ele_xlims[1]:
+                                           np.complex(0, self.ele_xres),
+                                           self.ele_ylims[0]:self.ele_ylims[1]:
+                                           np.complex(0, self.ele_yres),
+                                           self.ele_xlims[0]:self.ele_xlims[1]:
+                                           np.complex(0, self.ele_zres)]
+            ele_x, ele_y, ele_z = ele_x.flatten(), ele_y.flatten(), \
+                ele_z.flatten()
+            ele_grid = np.vstack((ele_x, ele_y, ele_z)).T
         random_indices = np.arange(0, ele_grid.shape[0])
-        np.random.seed(seed)
+        np.random.seed(ele_seed)
         np.random.shuffle(random_indices)
         ele_pos = ele_grid[random_indices[:self.total_ele - n]]
-        return ele_pos[:, 0], ele_pos[:, 1]
+        return ele_pos
 
     def generate_electrodes(self):
         """
@@ -523,8 +559,6 @@ class TestKCSD(object):
             if self.config == 'mavi':
                 self.total_ele = 16
                 ele_x, ele_y = self.mavi_electrodes()
-#            elif self.config == 'broken':
-#                ele_x, ele_y = self.
             else:
                 ele_x, ele_y = np.mgrid[self.ele_xlims[0]:self.ele_xlims[1]:
                                         np.complex(0, self.ele_yres),
@@ -574,6 +608,7 @@ class TestKCSD(object):
             values of potentials at ele_pos
         k: instance of the class
             instance of TestKCSD1D, TestKCSD2D or TestKCSD3D class
+        Rs: demanded thickness of the basis element
 
         Returns
         -------
@@ -582,10 +617,6 @@ class TestKCSD(object):
         est_pot: numpy array, shape (est_xres)
             estimated potentials
         """
-#        num_ele = len(ele_pos)
-#        pots = pots.reshape(num_ele, 1)
-#        k.cross_validate(Rs=Rs, lambdas=np.array([3.0435374446012946e-13]))
-        np.save(os.path.join(self.path, 'pots.npy'), pots)
         k.cross_validate(Rs=Rs)
         est_csd = k.values('CSD')
         est_pot = k.values('POT')
@@ -644,46 +675,19 @@ class TestKCSD(object):
 
         Parameters
         ----------
+        seed: internal state of the random number generator
         pots: numpy array, shape (total_ele)
+        level: noise level
 
         Returns
         -------
         pots_noise: numpy array, shape (total_ele)
+            potentials with noise
         """
         rstate = np.random.RandomState(seed)
         noise = level*rstate.normal(np.mean(pots), np.std(pots), len(pots))
         pots_noise = pots + noise
         return pots_noise
-
-    def standard_csd_1d(self, ele_pos, pots):
-        """
-        Function using standard csd method to estimate current sources
-        (calculations according to Eq. 3 (Łęski et al 2007))
-
-        Parameters
-        ----------
-        ele_pos: numpy array, shape (total_ele)
-            electrodes locations/positions
-        pots: numpy array, shape (total_ele)
-            values of potentials at ele_pos
-
-        Returns
-        -------
-        tcsd: numpy array, shape (total_ele)
-            values of current source density estimated with standard CSD method
-        """
-        distance_x = abs(ele_pos[0] - ele_pos[1])
-        tcsd = np.zeros(len(ele_pos))
-        for i in range(1, len(ele_pos) - 1):
-            tcsd[i] = -self.sigma * (pots[i - 1] - 2 * pots[i] +
-                                     pots[i + 1]) / distance_x**2
-        tcsd[0] = -self.sigma * (pots[0] - 2 * pots[0] +
-                                 pots[1]) / distance_x**2
-        tcsd[len(ele_pos) - 1] = -self.sigma \
-            * (pots[len(ele_pos) - 2] - 2 *
-               pots[len(ele_pos) - 1] +
-               pots[len(ele_pos) - 1]) / distance_x**2
-        return tcsd
 
 
 if __name__ == '__main__':

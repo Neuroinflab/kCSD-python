@@ -55,6 +55,8 @@ class TestKCSD3D(TestKCSD):
             function to produce csd profile
         csd_seed: int
             seed for random generator
+        **kwargs
+            configuration parameters
 
         Returns
         -------
@@ -66,14 +68,31 @@ class TestKCSD3D(TestKCSD):
         self.make_reconstruction(csd_profile, csd_seed, **kwargs)
         return
 
-    def electrode_config(self, csd_profile, csd_seed):
+    def electrode_config(self, csd_profile, csd_seed, noise=None):
         """
-        What is the configuration of electrode positions,
-        between what and what positions
+        Produces electrodes positions and potentials measured at these points
+
+        Parameters
+        ----------
+        csd_profile: function
+            function to produce csd profile
+        csd_seed: int
+            internal state of the random number generator
+        noise: string
+            determins if data contains noise
+
+        Returns
+        -------
+        ele_pos: numpy array, shape (total_ele, 2)
+            electrodes locations in 2D plane
+        pots: numpy array, shape (total_ele, 1)
         """
         ele_x, ele_y, ele_z = self.generate_electrodes()
         csd_x, csd_y, csd_z, true_csd = self.generate_csd(csd_profile,
                                                           csd_seed)
+        if self.config == 'broken':
+            ele_pos = self.broken_electrode(10, 5)
+            ele_x, ele_y, ele_z = ele_pos[:, 0], ele_pos[:, 1], ele_pos[0, 2]
         if parallel_available:
             pots = self.calculate_potential_3D_parallel(true_csd,
                                                         ele_x, ele_y, ele_z,
@@ -81,33 +100,76 @@ class TestKCSD3D(TestKCSD):
         else:
             pots = self.calculate_potential_3D(true_csd, ele_x, ele_y, ele_z,
                                                csd_x, csd_y, csd_z)
+        if noise == 'True':
+            pots = self.add_noise(csd_seed, pots, level=0.5)
         ele_pos = np.vstack((ele_x, ele_y, ele_z)).T     # Electrode configs
         num_ele = ele_pos.shape[0]
         print('Number of electrodes:', num_ele)
         return ele_pos, pots.reshape((len(ele_pos), 1))
 
-    def generate_csd(self, csd_profile, csd_seed,
-                     res_x=50, res_y=50, res_z=50):
+    def generate_csd(self, csd_profile, csd_seed):
         """
-        Gives CSD profile at the requested spatial location, at 'res'
-        resolution
+        Gives CSD profile at the requested spatial location,
+        at 'res' resolution
+
+        Parameters
+        ----------
+        csd_profile: function
+            function to produce csd profile
+        csd_seed: int
+            seed for random generator
+
+        Returns
+        -------
+        csd_x: numpy array, shape (res_x, res_y, res_z)
+            x coordinates of ground truth data
+        csd_y: numpy array, shape (res_x, res_y, res_z)
+            y coordinates of ground truth data
+        csd_z: numpy array, shape (res_x, res_y, res_z)
+            z coordinates of ground truth data
+        f: numpy array, shape (res_x, res_y, res_z)
+            y coordinates of ground truth data
+            calculated csd at locations indicated by csd_x and csd_y
+
         """
         csd_x, csd_y, csd_z = np.mgrid[self.true_csd_xlims[0]:
                                        self.true_csd_xlims[1]:
-                                       np.complex(0, res_x),
+                                       np.complex(0, self.csd_xres),
                                        self.true_csd_ylims[0]:
                                        self.true_csd_ylims[1]:
-                                       np.complex(0, res_y),
+                                       np.complex(0, self.csd_yres),
                                        self.true_csd_zlims[0]:
                                        self.true_csd_zlims[1]:
-                                       np.complex(0, res_z)]
+                                       np.complex(0, self.csd_zres)]
         f = csd_profile(csd_x, csd_y, csd_z, seed=csd_seed)
         return csd_x, csd_y, csd_z, f
 
     def integrate_3D(self, x, y, z, csd, xlin, ylin, zlin,
                      X, Y, Z):
         """
-        X,Y - parts of meshgrid - Mihav's implementation
+        Integrates currents to calculate potentials on electrode in 3D space
+
+        Parameters
+        ----------
+        x: float
+            x coordinate of electrode
+        y: float
+            y coordinate of electrode
+        true_csd: numpy array, shape (res_x, res_y)
+            ground truth data (true_csd)
+        xlin: numpy array, shape (res_x, 1)
+            x range for coordinates of true_csd
+        ylin: numpy array, shape (res_y, 1)
+            y range for coordinates of true_csd
+        csd_x: numpy array, shape (res_x, res_y)
+            full x coordinates of true_csd
+        csd_y: numpy array, shape (res_x, res_y)
+            full y coordinates of true_csd
+
+        Returns
+        -------
+        F: float
+            potential on a single electrode
         """
         Nz = zlin.shape[0]
         Ny = ylin.shape[0]
@@ -126,33 +188,74 @@ class TestKCSD3D(TestKCSD):
     def calculate_potential_3D(self, true_csd, ele_xx, ele_yy, ele_zz,
                                csd_x, csd_y, csd_z):
         """
-        For Mihav's implementation to compute the LFP generated
+        Computes the LFP generated by true_csd (ground truth)
+
+        Parameters
+        ----------
+        true_csd: numpy array, shape (res_x, res_y, res_z)
+            ground truth data (true_csd)
+        csd_x: numpy array, shape (res_x, res_y, res_z)
+            x coordinates of ground truth data
+        csd_y: numpy array, shape (res_x, res_y, res_z)
+            y coordinates of ground truth data
+        csd_z: numpy array, shape (res_x, res_y, res_z)
+            z coordinates of ground truth data
+        ele_xx: numpy array, shape (len(ele_pos.shape[0]))
+            xx coordinates of electrodes
+        ele_yy: numpy array, shape (len(ele_pos.shape[0]))
+            yy coordinates of electrodes
+        ele_zz: numpy array, shape (len(ele_pos.shape[0]))
+            zz coordinates of electrodes
+
+        Returns
+        -------
+        pots: numpy array, shape (total_ele)
+            calculated potentials
         """
         xlin = csd_x[:, 0, 0]
         ylin = csd_y[0, :, 0]
         zlin = csd_z[0, 0, :]
         pots = np.zeros(len(ele_xx))
-        tic = time.time()
+        print(ele_xx)
         for ii in range(len(ele_xx)):
             pots[ii] = self.integrate_3D(ele_xx[ii], ele_yy[ii], ele_zz[ii],
                                          true_csd,
                                          xlin, ylin, zlin,
                                          csd_x, csd_y, csd_z)
-#            print('Electrode:', ii)
         pots /= 4*np.pi*self.sigma
-        toc = time.time() - tic
-        print(toc, 'Total time taken - series, sims')
         return pots
 
     def calculate_potential_3D_parallel(self, true_csd, ele_xx, ele_yy, ele_zz,
                                         csd_x, csd_y, csd_z):
         """
-        For Mihav's implementation to compute the LFP generated
+        Computes the LFP generated by true_csd (ground truth) using parallel
+        computing
+
+        Parameters
+        ----------
+        true_csd: numpy array, shape (res_x, res_y, res_z)
+            ground truth data (true_csd)
+        csd_x: numpy array, shape (res_x, res_y, res_z)
+            x coordinates of ground truth data
+        csd_y: numpy array, shape (res_x, res_y, res_z)
+            y coordinates of ground truth data
+        csd_z: numpy array, shape (res_x, res_y, res_z)
+            z coordinates of ground truth data
+        ele_xx: numpy array, shape (len(ele_pos.shape[0]))
+            xx coordinates of electrodes
+        ele_yy: numpy array, shape (len(ele_pos.shape[0]))
+            yy coordinates of electrodes
+        ele_zz: numpy array, shape (len(ele_pos.shape[0]))
+            zz coordinates of electrodes
+
+        Returns
+        -------
+        pots: numpy array, shape (total_ele)
+            calculated potentials
         """
         xlin = csd_x[:, 0, 0]
         ylin = csd_y[0, :, 0]
         zlin = csd_z[0, 0, :]
-#        tic = time.time()
         pots = Parallel(n_jobs=num_cores)(delayed(self.integrate_3D)
                                           (ele_xx[ii], ele_yy[ii], ele_zz[ii],
                                            true_csd,
@@ -161,24 +264,36 @@ class TestKCSD3D(TestKCSD):
                                           for ii in range(len(ele_xx)))
         pots = np.array(pots)
         pots /= 4*np.pi*self.sigma
-#        toc = time.time() - tic
-#        print toc, 'Total time taken - parallel, sims '
         return pots
 
     def make_reconstruction(self, csd_profile, csd_seed, **kwargs):
+        """
+        Main method, makes the whole kCSD reconstruction
+
+        Parameters
+        ----------
+        csd_profile: function
+            function to produce csd profile
+        csd_seed: int
+            seed for random generator
+        **kwargs
+            configuration parameters
+
+        Returns
+        -------
+        None
+        """
         csd_x, csd_y, csd_z, true_csd = self.generate_csd(csd_profile,
-                                                          csd_seed,
-                                                          self.csd_xres,
-                                                          self.csd_yres)
+                                                          csd_seed)
         ele_pos, pots = self.electrode_config(csd_profile, csd_seed)
         print(max(ele_pos[:, 0]), min(ele_pos[:, 0]))
         pots = pots.reshape(len(pots), 1)
-        kcsd = KCSD3D(ele_pos, pots, gdx=0.02, gdy=0.02, gdz=0.02,
+        kcsd = KCSD3D(ele_pos, pots, gdx=0.03, gdy=0.03, gdz=0.03,
                       h=50, sigma=1, xmax=1, xmin=0, ymax=1, ymin=0, zmax=1,
-                      zmin=0)
+                      zmin=0, n_src_init=12200)
         tic = time.time()
         est_csd, est_pot = self.do_kcsd(ele_pos, pots, kcsd,
-                                        np.arange(0.19, 0.3, 0.04))
+                                        np.arange(0.08, 0.5, 0.025))
         toc = time.time() - tic
         test_csd = csd_profile(kcsd.estm_x, kcsd.estm_y, kcsd.estm_z, csd_seed)
         rms = self.calculate_rms(test_csd, est_csd[:, :, :, 0])
@@ -192,6 +307,36 @@ class TestKCSD3D(TestKCSD):
 
     def make_plot(self, csd_x, csd_y, csd_z, true_csd, kcsd, est_csd, ele_pos,
                   pots, rms, fig_title):
+        """
+        Creates plot of ground truth data, calculated potentials and
+        reconstruction
+
+        Parameters
+        ----------
+        csd_x: numpy array
+            x coordinates of ground truth (true_csd)
+        csd_y: numpy array
+            y coordinates of ground truth (true_csd)
+        csd_z: numpy array
+            z coordinates of ground truth (true_csd)
+        true_csd: numpy array
+            ground truth data
+        kcsd: object of the class
+        est_csd: numpy array
+            reconstructed csd
+        ele_pos: numpy array
+            positions of electrodes
+        pots: numpy array
+            potentials measured on electrodes
+        rms: float
+            error of reconstruction
+        title: string
+            title of the plot
+
+        Returns
+        -------
+        None
+        """
         fig = plt.figure(figsize=(10, 16))
         z_steps = 5
         height_ratios = [1 for i in range(z_steps)]
@@ -305,11 +450,11 @@ def makemydir(directory):
 if __name__ == '__main__':
     makemydir(where_to_save_source_code)
     save_source_code(where_to_save_source_code, TIMESTR)
-    total_ele = 125
+    total_ele = 216
     csd_seed = 20  # 0-49 are small sources, 50-99 are large sources
     csd_profile = CSD.gauss_3d_small
     tic = time.time()
     TestKCSD3D(csd_profile, csd_seed, total_ele=total_ele, h=50, sigma=1,
-               xmax=1, xmin=0, ymax=1, ymin=0, zmax=1, zmin=0)
+               xmax=1, xmin=0, ymax=1, ymin=0, zmax=1, zmin=0, config='regular')
     toc = time.time() - tic
     print('time', toc)
