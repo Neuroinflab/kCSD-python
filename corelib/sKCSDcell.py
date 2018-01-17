@@ -221,7 +221,9 @@ class sKCSDcell(object):
 
 
 if __name__ == '__main__':
-    data_dir = "Data/gang_min"
+    path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    
+    data_dir = os.path.join(path,"tutorials/Data/gang_7x7_200")
     data = ld.Data(data_dir)
     morphology = data.morphology
     ele_pos = data.ele_pos

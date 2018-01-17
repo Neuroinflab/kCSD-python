@@ -11,11 +11,12 @@ try:
   basestring
 except NameError:
   basestring = str
+  
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-sys.path.append('..')
-import utility_functions as utils
-from loadData import Data
-from sKCSDcell import sKCSDcell
+from corelib import utility_functions as utils
+from corelib.loadData import Data
+from corelib.sKCSDcell import sKCSDcell
 
 class testsKCDcell(unittest.TestCase):
     def setUp(self,n_src=1000):

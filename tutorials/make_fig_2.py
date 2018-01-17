@@ -1,12 +1,15 @@
 from __future__ import division, print_function
 import run_LFP
-import sKCSD3D
-import utility_functions as utils
-import sys
-import os
-import loadData as ld
 import numpy as np
 import matplotlib.pyplot as plt
+import sys
+import os
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from corelib import sKCSD3D
+import corelib.utility_functions as utils
+import corelib.loadData as ld
 
 R_init = 10
 lambd = 0.0001

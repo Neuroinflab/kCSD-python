@@ -5,6 +5,7 @@ import sys
 import os
 import unittest
 
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import numpy as np
 
 try:
@@ -12,9 +13,8 @@ try:
 except NameError:
   basestring = str
 
-sys.path.append('..')
-import utility_functions as utils
-from loadData import Data
+
+from corelib.loadData import Data
 
 class testData(unittest.TestCase):
     

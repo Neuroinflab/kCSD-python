@@ -25,7 +25,7 @@ try:
 except ImportError:
     skmonaco_available = False
     
-from KCSD3D import KCSD3D
+from KCSD import KCSD3D
 from sKCSDcell import sKCSDcell
 import utility_functions as utils
 import basis_functions as basis
@@ -315,7 +315,9 @@ class sKCSD3D(KCSD3D):
 
 if __name__ == '__main__':
     import loadData as ld
-    data_dir = "Data/gang_7x7_200"
+    path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    
+    data_dir = os.path.join(path,"tutorials/Data/gang_7x7_200")
     data = ld.Data(data_dir)
     scaling_factor = 1000000
     ele_pos = data.ele_pos/scaling_factor
