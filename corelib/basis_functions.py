@@ -10,7 +10,7 @@ Michal Czerwinski, Chaitanya Chintaluri
 Laboratory of Neuroinformatics,
 Nencki Institute of Experimental Biology, Warsaw.
 """
-from __future__ import print_function, division
+from __future__ import division
 import numpy as np
 
 def gauss(d, stdev, dim):
