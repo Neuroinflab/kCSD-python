@@ -1,8 +1,4 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
-Created on Wed Sep 13 12:15:18 2017
-
 @author: mkowalska
 """
 
@@ -33,8 +29,6 @@ import csd_profile as CSD
 # from KCSD_crossValid_ext import KCSD1D_electrode_test as test
 from save_paths import where_to_save_results, where_to_save_source_code, \
     TIMESTR
-from pylatex import Document, Figure, Command
-from pylatex.utils import NoEscape
 
 standard_library.install_aliases()
 __abs_file__ = os.path.abspath(__file__)
@@ -67,36 +61,6 @@ class TestKCSD1D(TestKCSD):
         self.make_reconstruction(csd_profile, csd_seed)
         return
 
-    def electrode_config(self, csd_profile, csd_seed, noise=None):
-        """
-        creates electrodes positions, and potentials on them
-        electrode lims, electrode resolution, profile, states
-
-        Parameters
-        ----------
-        csd_profile: function
-            function to produce csd profile
-        csd_seed: int
-            seed for random generator
-        noise: string
-            determins if data contains noise
-
-        Returns
-        -------
-        pots: numpy array, shape (total_ele, 1)
-            potentials at ele_pos positions
-        ele_pos: numpy array, shape (total_ele, 1)
-            positions of electrodes
-        """
-        electrode_locations = self.generate_electrodes()
-        pots = self.calculate_potential(csd_profile, csd_seed,
-                                        electrode_locations, self.csd_xres)
-        ele_pos = electrode_locations.reshape((len(electrode_locations), 1))
-        if noise == 'noise':
-            pots = self.add_noise(csd_seed, pots, level=0.5)
-        pots = pots.reshape((len(electrode_locations), 1))
-        return ele_pos, pots
-
     def generate_csd(self, csd_profile, csd_seed):
         """
         Gives CSD profile at the requested spatial location,
@@ -116,13 +80,12 @@ class TestKCSD1D(TestKCSD):
         true_csd: numpy array, shape (csd_xres)
             csd at csd_x positions
         """
-        csd_x = np.linspace(self.true_csd_xlims[0], self.true_csd_xlims[1],
-                            self.csd_xres)
-        true_csd = csd_profile(csd_x, csd_seed)
-        return csd_x, true_csd
+        csd_at = np.linspace(self.true_csd_xlims[0], self.true_csd_xlims[1],
+                             self.csd_xres)
+        true_csd = csd_profile(csd_at, csd_seed)
+        return csd_at, true_csd
 
-    def calculate_potential(self, csd_profile, csd_seed,
-                            electrode_locations, csd_xres):
+    def calculate_potential(self, true_csd, csd_at, ele_pos):
         """
         Calculates potentials
 
@@ -142,18 +105,14 @@ class TestKCSD1D(TestKCSD):
         pots: numpy array, shape (total_ele)
             normalized values of potentials as in eq.:26 from Potworowski(2012)
         """
-        csd_x = np.linspace(self.true_csd_xlims[0], self.true_csd_xlims[1],
-                            csd_xres)
-        csd = csd_profile(csd_x, csd_seed)
-        pots = np.zeros(len(electrode_locations))
-        for index in range(len(electrode_locations)):
-            pots[index] = self.integrate(csd_x, csd,
-                                         electrode_locations[index])
+        pots = np.zeros(len(ele_pos))
+        for index in range(len(ele_pos)):
+            pots[index] = self.integrate(csd_at, true_csd, ele_pos[index])
         # eq.: 26 from Potworowski (2012)
         pots *= old_div(1, (2. * self.sigma))
         return pots
 
-    def integrate(self, csd_x, csd, x0):
+    def integrate(self, csd_at, csd, x0):
         """
         Calculates integrals (potential values) according to Simpson rule in
         1D space
@@ -172,9 +131,9 @@ class TestKCSD1D(TestKCSD):
         Integral: float
             calculated potential at x0 position
         """
-        m = np.sqrt((csd_x - x0)**2 + self.h**2) - abs(csd_x - x0)
+        m = np.sqrt((csd_at - x0)**2 + self.h**2) - abs(csd_at - x0)
         y = csd * m
-        Integral = simps(y, csd_x)
+        Integral = simps(y, csd_at)
         return Integral
 
     def make_reconstruction(self, csd_profile, csd_seed):
@@ -196,7 +155,7 @@ class TestKCSD1D(TestKCSD):
             error of reconstruction calculated at every point of reconstruction
             space
         """
-        csd_x, true_csd = self.generate_csd(csd_profile, csd_seed)
+        csd_at, true_csd = self.generate_csd(csd_profile, csd_seed)
         ele_pos, pots = self.electrode_config(csd_profile, csd_seed)
         pots = pots.reshape(len(pots), 1)
         kcsd = KCSD1D(ele_pos, pots, src_type='gauss', sigma=0.3, h=0.25,
@@ -206,14 +165,14 @@ class TestKCSD1D(TestKCSD):
         rms = self.calculate_rms(test_csd, est_csd[:, 0])
         title = "Lambda: %0.2E; R: %0.2f; RMS_Error: %0.2E;" % (kcsd.lambd,
                                                                 kcsd.R, rms)
-        self.make_plot(kcsd, csd_x, true_csd, ele_pos, pots, est_csd,
+        self.make_plot(kcsd, csd_at, true_csd, ele_pos, pots, est_csd,
                        est_pot, title)
         self.svd(kcsd)
         self.picard_plot(kcsd, pots)
         point_error = self.calculate_point_error(test_csd, est_csd[:, 0])
         return rms, point_error
 
-    def make_plot(self, k, csd_x, true_csd, ele_pos, pots, est_csd,
+    def make_plot(self, k, csd_at, true_csd, ele_pos, pots, est_csd,
                   est_pot, title):
         """
         Creates plots of ground truth, measured potentials and recontruction
@@ -244,10 +203,10 @@ class TestKCSD1D(TestKCSD):
         # CSDs
         fig = plt.figure(figsize=(12, 10))
         ax1 = plt.subplot(211)
-        ax1.plot(csd_x, true_csd, 'g', label='TrueCSD')
+        ax1.plot(csd_at, true_csd, 'g', label='TrueCSD')
         ax1.plot(k.estm_x, est_csd[:, 0], 'r--', label='kCSD')
         ax1.plot(ele_pos, np.zeros(len(pots)), 'ko')
-        ax1.set_xlim(csd_x[0], csd_x[-1])
+        ax1.set_xlim(csd_at[0], csd_at[-1])
         ax1.set_xlabel('Depth [mm]')
         ax1.set_ylabel('CSD [mA/mm]')
         ax1.set_title('A) Currents')
@@ -256,20 +215,12 @@ class TestKCSD1D(TestKCSD):
         ax2 = plt.subplot(212)
         ax2.plot(ele_pos, pots, 'b.', label='TruePots')
         ax2.plot(k.estm_x, est_pot, 'y--', label='EstPots')
-        ax2.set_xlim(csd_x[0], csd_x[-1])
+        ax2.set_xlim(csd_at[0], csd_at[-1])
         ax2.set_xlabel('Depth [mm]')
         ax2.set_ylabel('Potential [mV]')
         ax2.set_title('B) Potentials')
         ax2.legend()
         fig.suptitle(title)
-        with doc.create(Figure(position='htbp')) as plot:
-            width = r'1\textwidth'
-            plot.add_plot(width=NoEscape(width))
-            plot.add_caption('Test reconstruction results for the data modeled'
-                             'on the line. A) The model CSD (True CSD - green '
-                             'line) and reconstruction with kCSD method (red).'
-                             ' B) The potentials: true (blue dots) and '
-                             'reconstructed (yellow/orange)')
         fig.savefig(os.path.join(self.path + '/', title + '.png'))
         plt.close()
         return
@@ -312,19 +263,10 @@ if __name__ == '__main__':
     ELE_PLACEMENT = 'regular'  # 'fractal_2'  # 'random'
     ele_seed = 50
 
-    geometry_options = {"tmargin": "1cm", "lmargin": "3cm"}
-    doc = Document(geometry_options=geometry_options)
-    doc.preamble.append(Command('title', 'Ivestigation of properties of kCSD '
-                                'method - report from simulated study'))
-    doc.preamble.append(Command('author', 'Marta Kowalska'))
-    doc.preamble.append(Command('date', NoEscape(r'\today')))
-    doc.append(NoEscape(r'\maketitle'))
-
     k = TestKCSD1D(csd_profile, csd_seed, ele_seed=ele_seed,
                    total_ele=total_ele, nr_basis=nr_basis, h=0.25,
                    R_init=R_init, ele_xlims=ele_lims, kcsd_xlims=kcsd_lims,
                    basis_xlims=basis_lims, est_points=csd_res,
                    true_csd_xlims=true_csd_xlims, sigma=0.3, src_type='gauss',
                    n_src_init=nr_basis, ext_x=0.1, TIMESTR=TIMESTR,
-                   path=where_to_save_results, doc=doc, config='broken')
-    k.doc.generate_pdf('report', clean_tex=False)
+                   path=where_to_save_results, config='regular')

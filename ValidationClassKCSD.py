@@ -23,7 +23,7 @@ import matplotlib.cm as cm
 from matplotlib.mlab import griddata
 from matplotlib import colors, gridspec
 from scipy.integrate import simps
-sys.path.append('../../corelib')
+sys.path.append('../corelib')
 from KCSD import KCSD1D, KCSD2D, KCSD3D
 import csd_profile as CSD
 
@@ -44,7 +44,7 @@ except ImportError:
 
 class ValidationClassKCSD(object):
     """
-    Base class for tests of kCSD method
+    Base class for validation of the kCSD method
     """
     def __init__(self, dim, **kwargs):
         """Initialize TestKCSD class
@@ -189,327 +189,6 @@ class ValidationClassKCSD(object):
             self.ele_zres = kwargs.get('ele_zres',
                                        int(np.cbrt(self.total_ele)))
             self.csd_zres = kwargs.get('csd_zres', 100)
-        return
-
-    def svd(self, k):
-        """
-        Method that calculates singular value decomposition of total kernel
-        matrix
-
-        Defines:
-            self.u_svd: numpy array, shape (nr_basis, total_ele)
-                left singular vectors
-            self.sigma: numpy array, shape (total_ele)
-                singular values
-            self.v_svd: numpy array, shape (total_ele, total_ele)
-                right singular vectors
-
-        Parameters
-        ----------
-        k - instance of class (TestKCSD1D, TestKCSD2D or TestKCSD3D)
-
-        Returns
-        -------
-        u_svd: left singular vectors
-        sigma: singular values
-        v_svd: right singular vectors
-        """
-        kernel = np.dot(k.k_interp_cross,
-                        inv(k.k_pot + k.lambd * np.identity(k.k_pot.shape[0])))
-        u_svd, sigma, v_svd = np.linalg.svd(kernel, full_matrices=False)
-        self.plot_svd_sigma(sigma)
-        self.plot_svd_u(u_svd)
-        self.plot_svd_v(v_svd)
-        np.save(os.path.join(self.path, 'kernel.npy'), kernel)
-        np.save(os.path.join(self.path, 'u_svd.npy'), u_svd)
-        np.save(os.path.join(self.path, 'sigma.npy'), sigma)
-        np.save(os.path.join(self.path, 'v_svd.npy'), v_svd)
-        np.save(os.path.join(self.path, 'k_pot.npy'), k.k_pot)
-        return u_svd, sigma, v_svd
-
-    def picard_plot(self, k, b):
-        """
-        Creates Picard plot according to Hansen book
-        Parameters
-        ----------
-        k: instance of class (TestKCSD1D, TestKCSD2D or TestKCSD3D)
-        b: right-hand side of the linear equation
-
-        Returns
-        -------
-        None
-        """
-        u, s, v = np.linalg.svd(k.k_pot)
-        picard = np.zeros(len(s))
-        picard_norm = np.zeros(len(s))
-        for i in range(len(s)):
-            picard[i] = abs(np.dot(u[:, i].T, b))
-            picard_norm[i] = abs(np.dot(u[:, i].T, b))/s[i]
-        fig = plt.figure(figsize=(10, 6))
-        plt.plot(s, marker='.', label=r'$\sigma_{i}$')
-        plt.plot(picard, marker='.', label='$|u(:, i)^{T}*b|$')
-        plt.plot(picard_norm, marker='.',
-                 label=r'$\frac{|u(:, i)^{T}*b|}{\sigma_{i}}$')
-        plt.yscale('log')
-        plt.legend()
-        plt.title('Picard plot')
-        plt.xlabel('i')
-        fig.savefig(os.path.join(self.path, 'Picard_plot' + '.png'))
-        plt.close()
-        self.plot_s(s)
-        self.plot_u(u)
-        self.plot_v(v)
-        a = int(self.total_ele - int(np.sqrt(self.total_ele))**2)
-        if a == 0:
-            size = int(np.sqrt(self.total_ele))
-        else:
-            size = int(np.sqrt(self.total_ele)) + 1
-        fig2, axs = plt.subplots(int(np.sqrt(self.total_ele)),
-                                 size, figsize=(15, 13))
-        axs = axs.ravel()
-        beta = np.zeros(v.shape)
-        fig2.suptitle('vectors products of k_pot matrix')
-        for i in range(self.total_ele):
-            beta[i] = ((np.dot(u[:, i].T, b)/s[i]) * v[i, :])
-            axs[i].plot(beta[i, :], marker='.')
-            axs[i].set_title(r'$vec_{'+str(i+1)+'}$')
-        fig2.savefig(os.path.join(self.path, 'vectores_k_pot' +
-                                  '.png'))
-        plt.close()
-        return
-
-    def plot_s(self, s):
-        """
-        Creates plot of singular values
-
-        Parameters
-        ----------
-        s: singular values
-
-        Returns
-        -------
-        None
-        """
-        fig = plt.figure()
-        plt.plot(s, '.')
-        plt.title('Singular values of k_pot matrix')
-        plt.xlabel('Components number')
-        plt.ylabel('Singular values')
-        plt.yscale('log')
-        fig.savefig(os.path.join(self.path, 'SingularValues_k_pot' + '.png'))
-        plt.close()
-        return
-
-    def evd(self, k):
-        """
-        Method that calculates eigenvalue decomposition of kernel
-
-        Defines:
-            self.eigenvectors: numpy array, shape(total_ele, total_ele)
-                eigen vectors
-            self.eigrnvalues: numpy array, shape(total_ele)
-                eigenvalues
-
-        Parameters
-        ----------
-        k: instance of class (TestKCSD1D, TestKCSD2D or TestKCSD3D)
-
-        Returns
-        -------
-        None
-        """
-        eigenvalues, eigenvectors = np.linalg.eigh(k.k_pot +
-                                                   k.lambd * np.identity
-                                                   (k.k_pot.shape[0]))
-        idx = eigenvalues.argsort()[::-1]  # SVD&EVD in the opposite order
-        eigenvalues = eigenvalues[idx]
-        eigenvectors = eigenvectors[:, idx]
-        self.plot_evd(eigenvalues)
-        return
-
-    def plot_svd_sigma(self, sigma):
-        """
-        Creates plot of singular values
-
-        Parameters
-        ----------
-        sigma: singular values
-
-        Returns
-        -------
-        None
-        """
-        fig = plt.figure()
-        plt.plot(sigma, 'b.')
-        plt.title('Singular values of kernels product')
-        plt.xlabel('Components number')
-        plt.ylabel('Singular values')
-        plt.yscale('log')
-        fig.savefig(os.path.join(self.path, 'SingularValues_kernels_product' +
-                                 '.png'))
-        plt.close()
-        return
-
-    def plot_u(self, u):
-        """
-        Creates plot of left singular values
-
-        Parameters
-        ----------
-        u: left singular vectors
-
-        Returns
-        -------
-        None
-        """
-        fig1 = plt.figure()
-        plt.plot(u.T, 'b.')
-        plt.title('Left singular vectors of k_pot matrix')
-        plt.ylabel('Singular vectors')
-        fig1.savefig(os.path.join(self.path, 'left_SingularVectorsT_k_pot' +
-                                  '.png'))
-        plt.close()
-        a = int(self.total_ele - int(np.sqrt(self.total_ele))**2)
-        if a == 0:
-            size = int(np.sqrt(self.total_ele))
-        else:
-            size = int(np.sqrt(self.total_ele)) + 1
-        fig2, axs = plt.subplots(int(np.sqrt(self.total_ele)),
-                                 size, figsize=(15, 13))
-        axs = axs.ravel()
-        fig2.suptitle('Left singular vectors of k_pot matrix')
-        for i in range(self.total_ele):
-            axs[i].plot(u[:, i], marker='.')
-            axs[i].set_title(r'$u_{'+str(i+1)+'}$')
-        fig2.savefig(os.path.join(self.path, 'left_SingularVectors_k_pot' +
-                                  '.png'))
-        plt.close()
-        return
-
-    def plot_v(self, v):
-        """
-        Creates plot of right singular values
-
-        Parameters
-        ----------
-        v: right singular vectors
-
-        Returns
-        -------
-        None
-        """
-        fig1 = plt.figure()
-        plt.plot(v.T, 'b.')
-        plt.title('Right singular vectors of k_pot matrix')
-        plt.ylabel('Singular vectors')
-        fig1.savefig(os.path.join(self.path, 'right_SingularVectorsT_k_pot' +
-                                  '.png'))
-        plt.close()
-        a = int(self.total_ele - int(np.sqrt(self.total_ele))**2)
-        if a == 0:
-            size = int(np.sqrt(self.total_ele))
-        else:
-            size = int(np.sqrt(self.total_ele)) + 1
-        fig2, axs = plt.subplots(int(np.sqrt(self.total_ele)),
-                                 size, figsize=(15, 13))
-        axs = axs.ravel()
-        fig2.suptitle('right singular vectors of k_pot matrix')
-        for i in range(self.total_ele):
-            axs[i].plot(v[i, :], marker='.')
-            axs[i].set_title(r'$v_{'+str(i+1)+'}$')
-        fig2.savefig(os.path.join(self.path, 'right_SingularVectors_k_pot' +
-                                  '.png'))
-        plt.close()
-        return
-
-    def plot_svd_u(self, u_svd):
-        """
-        Creates plot of left singular values
-
-        Parameters
-        ----------
-        u_svd: left singular vectors
-
-        Returns
-        -------
-        None
-        """
-        fig1 = plt.figure()
-        plt.plot(u_svd.T, 'b.')
-        plt.title('Singular vectors of kernels product')
-        plt.ylabel('Singular vectors')
-        fig1.savefig(os.path.join(self.path, 'SingularVectorsT' + '.png'))
-        plt.close()
-        a = int(self.total_ele - int(np.sqrt(self.total_ele))**2)
-        if a == 0:
-            size = int(np.sqrt(self.total_ele))
-        else:
-            size = int(np.sqrt(self.total_ele)) + 1
-        fig2, axs = plt.subplots(int(np.sqrt(self.total_ele)),
-                                 size, figsize=(15, 14))
-        axs = axs.ravel()
-        fig2.suptitle('Left singular vectors of kernels product')
-        for i in range(self.total_ele):
-            axs[i].plot(u_svd[:, i], '.')
-            axs[i].set_title(r'$u_{'+str(i+1)+'}$')
-        fig2.savefig(os.path.join(self.path, 'SingularVectors' + '.png'))
-        plt.close()
-        return
-
-    def plot_svd_v(self, v_svd):
-        """
-        Creates plot of right singular values
-
-        Parameters
-        ----------
-        v_svd: right singular vectors
-
-        Returns
-        -------
-        None
-        """
-        fig1 = plt.figure()
-        plt.plot(v_svd.T, 'b.')
-        plt.title('Right singular vectors of kernels product')
-        plt.ylabel('Singular vectors')
-        fig1.savefig(os.path.join(self.path, 'right_SingularVectorsT' +
-                                  '.png'))
-        plt.close()
-        a = int(self.total_ele - int(np.sqrt(self.total_ele))**2)
-        if a == 0:
-            size = int(np.sqrt(self.total_ele))
-        else:
-            size = int(np.sqrt(self.total_ele)) + 1
-        fig2, axs = plt.subplots(int(np.sqrt(self.total_ele)),
-                                 size, figsize=(15, 14))
-        axs = axs.ravel()
-        fig2.suptitle('Right singular vectors of kernels product')
-        for i in range(self.total_ele):
-            axs[i].plot(v_svd[i, :], marker='.')
-            axs[i].set_title(r'$v_{'+str(i+1)+'}$')
-        fig2.savefig(os.path.join(self.path, 'Right_SingularVectors' + '.png'))
-        plt.close()
-        return
-
-    def plot_evd(self, eigenvalues):
-        """
-        Creates plot of eigenvalues
-
-        Parameters
-        ----------
-        eigenvalues: eigenvalues
-
-        Returns
-        -------
-        None
-        """
-        fig = plt.figure()
-        plt.plot(eigenvalues, 'b.')
-        plt. title('Eigenvalues of kernels product')
-        plt.xlabel('Components number')
-        plt.ylabel('Eigenvalues')
-        fig.savefig(os.path.join(self.path, 'Eigenvalues' + '.png'))
-        plt.close()
         return
 
     def broken_electrode(self, ele_seed, n):
@@ -765,6 +444,341 @@ class ValidationClassKCSD(object):
         return pots_noise
 
 
+class SpectralStructure(ValidationClassKCSD):
+    """
+    Class that enables examination of spectral structure of CSD reconstruction
+    with kCSD method
+    """
+    def __init__(self, k, path):
+        self.k = k
+        self.path = path
+        self.svd()
+        return
+
+    def svd(self):
+        """
+        Method that calculates singular value decomposition of total kernel
+        matrix
+
+        Defines:
+            self.u_svd: numpy array, shape (nr_basis, total_ele)
+                left singular vectors
+            self.sigma: numpy array, shape (total_ele)
+                singular values
+            self.v_svd: numpy array, shape (total_ele, total_ele)
+                right singular vectors
+
+        Parameters
+        ----------
+        k - instance of class (TestKCSD1D, TestKCSD2D or TestKCSD3D)
+
+        Returns
+        -------
+        u_svd: left singular vectors
+        sigma: singular values
+        v_svd: right singular vectors
+        """
+        kernel = np.dot(self.k.k_interp_cross,
+                        inv(self.k.k_pot +
+                            self.k.lambd * np.identity(self.k.k_pot.shape[0])))
+        u_svd, sigma, v_svd = np.linalg.svd(kernel, full_matrices=False)
+        print(u_svd.shape)
+        self.plot_svd_sigma(sigma)
+        self.plot_svd_u(u_svd)
+        self.plot_svd_v(v_svd)
+        np.save(os.path.join(self.path, 'kernel.npy'), kernel)
+        np.save(os.path.join(self.path, 'u_svd.npy'), u_svd)
+        np.save(os.path.join(self.path, 'sigma.npy'), sigma)
+        np.save(os.path.join(self.path, 'v_svd.npy'), v_svd)
+        np.save(os.path.join(self.path, 'k_pot.npy'), self.k.k_pot)
+        return u_svd, sigma, v_svd
+
+    def picard_plot(self, b):
+        """
+        Creates Picard plot according to Hansen book
+        Parameters
+        ----------
+        k: instance of class (TestKCSD1D, TestKCSD2D or TestKCSD3D)
+        b: right-hand side of the linear equation
+
+        Returns
+        -------
+        None
+        """
+        u, s, v = np.linalg.svd(self.k.k_pot)
+        picard = np.zeros(len(s))
+        picard_norm = np.zeros(len(s))
+        for i in range(len(s)):
+            picard[i] = abs(np.dot(u[:, i].T, b))
+            picard_norm[i] = abs(np.dot(u[:, i].T, b))/s[i]
+        fig = plt.figure(figsize=(10, 6))
+        plt.plot(s, marker='.', label=r'$\sigma_{i}$')
+        plt.plot(picard, marker='.', label='$|u(:, i)^{T}*b|$')
+        plt.plot(picard_norm, marker='.',
+                 label=r'$\frac{|u(:, i)^{T}*b|}{\sigma_{i}}$')
+        plt.yscale('log')
+        plt.legend()
+        plt.title('Picard plot')
+        plt.xlabel('i')
+        fig.savefig(os.path.join(self.path, 'Picard_plot' + '.png'))
+        plt.close()
+        self.plot_s(s)
+        self.plot_u(u)
+        self.plot_v(v)
+        a = int(len(s) - int(np.sqrt(len(s)))**2)
+        if a == 0:
+            size = int(np.sqrt(len(s)))
+        else:
+            size = int(np.sqrt(len(s))) + 1
+        fig2, axs = plt.subplots(int(np.sqrt(len(s))),
+                                 size, figsize=(15, 13))
+        axs = axs.ravel()
+        beta = np.zeros(v.shape)
+        fig2.suptitle('vectors products of k_pot matrix')
+        for i in range(len(s)):
+            beta[i] = ((np.dot(u[:, i].T, b)/s[i]) * v[i, :])
+            axs[i].plot(beta[i, :], marker='.')
+            axs[i].set_title(r'$vec_{'+str(i+1)+'}$')
+        fig2.savefig(os.path.join(self.path, 'vectores_k_pot' +
+                                  '.png'))
+        plt.close()
+        return
+
+    def plot_s(self, s):
+        """
+        Creates plot of singular values
+
+        Parameters
+        ----------
+        s: singular values
+
+        Returns
+        -------
+        None
+        """
+        fig = plt.figure()
+        plt.plot(s, '.')
+        plt.title('Singular values of k_pot matrix')
+        plt.xlabel('Components number')
+        plt.ylabel('Singular values')
+        plt.yscale('log')
+        fig.savefig(os.path.join(self.path, 'SingularValues_k_pot' + '.png'))
+        plt.close()
+        return
+
+    def evd(self):
+        """
+        Method that calculates eigenvalue decomposition of kernel
+
+        Defines:
+            self.eigenvectors: numpy array, shape(total_ele, total_ele)
+                eigen vectors
+            self.eigrnvalues: numpy array, shape(total_ele)
+                eigenvalues
+
+        Parameters
+        ----------
+        k: instance of class (TestKCSD1D, TestKCSD2D or TestKCSD3D)
+
+        Returns
+        -------
+        None
+        """
+        eigenvalues, eigenvectors = np.linalg.eigh(self.k.k_pot +
+                                                   self.k.lambd * np.identity
+                                                   (self.k.k_pot.shape[0]))
+        idx = eigenvalues.argsort()[::-1]  # SVD&EVD in the opposite order
+        eigenvalues = eigenvalues[idx]
+        eigenvectors = eigenvectors[:, idx]
+        self.plot_evd(eigenvalues)
+        return
+
+    def plot_svd_sigma(self, sigma):
+        """
+        Creates plot of singular values
+
+        Parameters
+        ----------
+        sigma: singular values
+
+        Returns
+        -------
+        None
+        """
+        fig = plt.figure()
+        plt.plot(sigma, 'b.')
+        plt.title('Singular values of kernels product')
+        plt.xlabel('Components number')
+        plt.ylabel('Singular values')
+        plt.yscale('log')
+        fig.savefig(os.path.join(self.path, 'SingularValues_kernels_product' +
+                                 '.png'))
+        plt.close()
+        return
+
+    def plot_u(self, u):
+        """
+        Creates plot of left singular values
+
+        Parameters
+        ----------
+        u: left singular vectors
+
+        Returns
+        -------
+        None
+        """
+        fig1 = plt.figure()
+        plt.plot(u.T, 'b.')
+        plt.title('Left singular vectors of k_pot matrix')
+        plt.ylabel('Singular vectors')
+        fig1.savefig(os.path.join(self.path, 'left_SingularVectorsT_k_pot' +
+                                  '.png'))
+        plt.close()
+        a = int(u.shape[1] - int(np.sqrt(u.shape[1]))**2)
+        if a == 0:
+            size = int(np.sqrt(u.shape[1]))
+        else:
+            size = int(np.sqrt(u.shape[1])) + 1
+        fig2, axs = plt.subplots(int(np.sqrt(u.shape[1])),
+                                 size, figsize=(15, 13))
+        axs = axs.ravel()
+        fig2.suptitle('Left singular vectors of k_pot matrix')
+        for i in range(u.shape[1]):
+            axs[i].plot(u[:, i], marker='.')
+            axs[i].set_title(r'$u_{'+str(i+1)+'}$')
+        fig2.savefig(os.path.join(self.path, 'left_SingularVectors_k_pot' +
+                                  '.png'))
+        plt.close()
+        return
+
+    def plot_v(self, v):
+        """
+        Creates plot of right singular values
+
+        Parameters
+        ----------
+        v: right singular vectors
+
+        Returns
+        -------
+        None
+        """
+        fig1 = plt.figure()
+        plt.plot(v.T, 'b.')
+        plt.title('Right singular vectors of k_pot matrix')
+        plt.ylabel('Singular vectors')
+        fig1.savefig(os.path.join(self.path, 'right_SingularVectorsT_k_pot' +
+                                  '.png'))
+        plt.close()
+        a = int(v.shape[1] - int(np.sqrt(v.shape[1]))**2)
+        if a == 0:
+            size = int(np.sqrt(v.shape[1]))
+        else:
+            size = int(np.sqrt(v.shape[1])) + 1
+        fig2, axs = plt.subplots(int(np.sqrt(v.shape[1])),
+                                 size, figsize=(15, 13))
+        axs = axs.ravel()
+        fig2.suptitle('right singular vectors of k_pot matrix')
+        for i in range(v.shape[1]):
+            axs[i].plot(v[i, :], marker='.')
+            axs[i].set_title(r'$v_{'+str(i+1)+'}$')
+        fig2.savefig(os.path.join(self.path, 'right_SingularVectors_k_pot' +
+                                  '.png'))
+        plt.close()
+        return
+
+    def plot_svd_u(self, u_svd):
+        """
+        Creates plot of left singular values
+
+        Parameters
+        ----------
+        u_svd: left singular vectors
+
+        Returns
+        -------
+        None
+        """
+        fig1 = plt.figure()
+        plt.plot(u_svd.T, 'b.')
+        plt.title('Singular vectors of kernels product')
+        plt.ylabel('Singular vectors')
+        fig1.savefig(os.path.join(self.path, 'SingularVectorsT' + '.png'))
+        plt.close()
+        a = int(u_svd.shape[1] - int(np.sqrt(u_svd.shape[1]))**2)
+        if a == 0:
+            size = int(np.sqrt(u_svd.shape[1]))
+        else:
+            size = int(np.sqrt(u_svd.shape[1])) + 1
+        fig2, axs = plt.subplots(int(np.sqrt(u_svd.shape[1])),
+                                 size, figsize=(15, 14))
+        axs = axs.ravel()
+        fig2.suptitle('Left singular vectors of kernels product')
+        for i in range(u_svd.shape[1]):
+            axs[i].plot(u_svd[:, i], '.')
+            axs[i].set_title(r'$u_{'+str(i+1)+'}$')
+        fig2.savefig(os.path.join(self.path, 'SingularVectors' + '.png'))
+        plt.close()
+        return
+
+    def plot_svd_v(self, v_svd):
+        """
+        Creates plot of right singular values
+
+        Parameters
+        ----------
+        v_svd: right singular vectors
+
+        Returns
+        -------
+        None
+        """
+        fig1 = plt.figure()
+        plt.plot(v_svd.T, 'b.')
+        plt.title('Right singular vectors of kernels product')
+        plt.ylabel('Singular vectors')
+        fig1.savefig(os.path.join(self.path, 'right_SingularVectorsT' +
+                                  '.png'))
+        plt.close()
+        a = int(v_svd.shape[1] - int(np.sqrt(v_svd.shape[1]))**2)
+        if a == 0:
+            size = int(np.sqrt(v_svd.shape[1]))
+        else:
+            size = int(np.sqrt(v_svd.shape[1])) + 1
+        fig2, axs = plt.subplots(int(np.sqrt(v_svd.shape[1])),
+                                 size, figsize=(15, 14))
+        axs = axs.ravel()
+        fig2.suptitle('Right singular vectors of kernels product')
+        for i in range(v_svd.shape[1]):
+            axs[i].plot(v_svd[i, :], marker='.')
+            axs[i].set_title(r'$v_{'+str(i+1)+'}$')
+        fig2.savefig(os.path.join(self.path, 'Right_SingularVectors' + '.png'))
+        plt.close()
+        return
+
+    def plot_evd(self, eigenvalues):
+        """
+        Creates plot of eigenvalues
+
+        Parameters
+        ----------
+        eigenvalues: eigenvalues
+
+        Returns
+        -------
+        None
+        """
+        fig = plt.figure()
+        plt.plot(eigenvalues, 'b.')
+        plt. title('Eigenvalues of kernels product')
+        plt.xlabel('Components number')
+        plt.ylabel('Eigenvalues')
+        fig.savefig(os.path.join(self.path, 'Eigenvalues' + '.png'))
+        plt.close()
+        return
+
+
 class ValidationClassKCSD1D(ValidationClassKCSD):
     """
     TestKCSD1D - The 1D variant of tests for kCSD method.
@@ -898,8 +912,8 @@ class ValidationClassKCSD1D(ValidationClassKCSD):
                                                                 kcsd.R, rms)
         self.make_plot(kcsd, csd_at, true_csd, ele_pos, pots, est_csd,
                        est_pot, title)
-        self.svd(kcsd)
-        self.picard_plot(kcsd, pots)
+        ss = SpectralStructure(kcsd, self.path)
+        ss.picard_plot(pots)
         point_error = self.calculate_point_error(test_csd, est_csd[:, 0])
         return rms, point_error
 
@@ -1111,14 +1125,14 @@ class ValidationClassKCSD2D(ValidationClassKCSD):
                       ymax=1., h=50., sigma=1., n_src_init=400)
         est_csd, est_pot = self.do_kcsd(ele_pos, pots, kcsd,
                                         Rs=np.arange(0.1, 0.31, 0.05))
-        self.picard_plot(kcsd, pots)
         test_csd = csd_profile([kcsd.estm_x, kcsd.estm_y], csd_seed)
         rms = self.calculate_rms(test_csd, est_csd[:, :, 0])
         title = 'csd_profile_' + csd_profile.__name__ + '_seed' +\
             str(csd_seed) + '_total_ele' + str(self.total_ele)
         self.make_plot(csd_at, test_csd, kcsd, est_csd, ele_pos, pots,
                        rms, title)
-        self.svd(kcsd)
+        ss = SpectralStructure(kcsd, self.path)
+        ss.picard_plot(pots)
         point_error = self.calculate_point_error(test_csd, est_csd[:, :, 0])
         self.plot_point_error(point_error, kcsd)
         return
@@ -1480,12 +1494,12 @@ class ValidationClassKCSD3D(ValidationClassKCSD):
         tic = time.time()
         est_csd, est_pot = self.do_kcsd(ele_pos, pots, kcsd,
                                         np.arange(0.08, 0.4, 0.05))
-        self.picard_plot(kcsd, pots)
+        ss = SpectralStructure(kcsd, self.path)
+        ss.picard_plot(pots)
         toc = time.time() - tic
         test_csd = csd_profile([kcsd.estm_x, kcsd.estm_y, kcsd.estm_z],
                                csd_seed)
         rms = self.calculate_rms(test_csd, est_csd[:, :, :, 0])
-        self.svd(kcsd)
         point_error = self.calculate_point_error(test_csd,
                                                  est_csd[:, :, :, 0])
         np.save(self.path + '/point_error.npy', point_error)
@@ -1565,7 +1579,6 @@ class ValidationClassKCSD3D(ValidationClassKCSD):
                                 pots[:, :, idx])
             ax = plt.subplot(gs[idx, 1])
             im = plt.contourf(X, Y, Z, levels=levels_pot, cmap=cm.PRGn)
-            ax.hold(True)
             plt.scatter(ele_x[:, :, idx], ele_y[:, :, idx], 5, c='k')
             ax.get_xaxis().set_visible(False)
             ax.get_yaxis().set_visible(False)
@@ -1640,7 +1653,6 @@ def makemydir(directory):
 
 
 if __name__ == '__main__':
-    print('Invalid usage, use this as an inheritable class only')
     print('Checking 1D')
     makemydir(where_to_save_source_code)
     save_source_code(where_to_save_source_code, TIMESTR)

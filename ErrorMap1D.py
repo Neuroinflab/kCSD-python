@@ -1,8 +1,4 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
-Created on Fri Oct  6 16:27:58 2017
-
 @author: mkowalska
 """
 
@@ -12,9 +8,6 @@ from __future__ import unicode_literals
 from __future__ import absolute_import
 from builtins import super
 
-# from builtins import str
-from builtins import range
-# from builtins import object
 from future import standard_library
 
 import os
@@ -24,10 +17,10 @@ import time
 import matplotlib.pyplot as plt
 import numpy.ma as ma
 
-from TestKCSD1D import TestKCSD1D
+from TestKCSD import ValidationClassKCSD1D, SpectralStructure
 import csd_profile as CSD
 sys.path.append('../tests')
-from KCSD_crossValid_ext import KCSD1D_electrode_test as test
+from KCSD import KCSD1D
 from save_paths import where_to_save_results, where_to_save_source_code, \
     TIMESTR
 
@@ -43,7 +36,7 @@ except ImportError:
     parallel_available = False
 
 
-class ErrorMap1D(TestKCSD1D):
+class ErrorMap1D(ValidationClassKCSD1D):
 
     def __init__(self, csd_profile, csd_seed, **kwargs):
         super(ErrorMap1D, self).__init__(csd_profile, csd_seed, **kwargs)
@@ -101,12 +94,11 @@ class ErrorMap1D(TestKCSD1D):
         rms: float
             error of reconstruction
         """
-        chrg_pos_x, true_csd = self.generate_csd(csd_profile, csd_seed,
-                                                 self.csd_xres)
-        ele_pos, pots = self.electrode_config(csd_profile, csd_seed,
-                                              space='electrodes')
+        chrg_pos_x, true_csd = self.generate_csd(csd_profile, csd_seed)
+        ele_pos, pots = self.electrode_config(csd_profile, csd_seed)
         pots = pots.reshape(len(pots), 1)
-        kcsd = test(ele_pos, pots, **kwargs)
+        kcsd = KCSD1D(ele_pos, pots, src_type='gauss', sigma=0.3, h=0.25,
+                      n_src_init=100, ext_x=0.1)
         est_csd, est_pot = self.do_kcsd(ele_pos, pots, kcsd)
         test_csd = csd_profile(kcsd.estm_x, csd_seed)
         rms = self.calculate_rms(test_csd, est_csd[:, 0])
@@ -115,6 +107,7 @@ class ErrorMap1D(TestKCSD1D):
                                                                 kcsd.R, rms)
         self.make_plot(kcsd, chrg_pos_x, true_csd, ele_pos, pots, est_csd,
                        est_pot, title)
+        ss = SpectralStructure(kcsd, self.path)
         return rms, point_error
 
     def plot_rms(self, rms, R, csd_profile, csd_seed):
@@ -134,8 +127,7 @@ class ErrorMap1D(TestKCSD1D):
         -------
         None
         """
-        ele_pos, pots = self.electrode_config(csd_profile, csd_seed,
-                                              space='electrodes')
+        ele_pos, pots = self.electrode_config(csd_profile, csd_seed)
         fig = plt.figure(figsize=(10, 6))
         plt.title('Error plot for ground truth R=' + str(R))
         plt.plot(np.linspace(self.kcsd_xlims[0], self.kcsd_xlims[-1],
@@ -168,8 +160,7 @@ class ErrorMap1D(TestKCSD1D):
         -------
         None
         """
-        ele_pos, pots = self.electrode_config(csd_profile, csd_seed,
-                                              space='electrodes')
+        ele_pos, pots = self.electrode_config(csd_profile, csd_seed)
         mean_err = np.mean(point_error, axis=0)
         fig = plt.figure(figsize=(10, 6))
         plt.title('Mean point error for ground truth R=' + str(R))
@@ -209,8 +200,7 @@ class ErrorMap1D(TestKCSD1D):
         point_mask = ma.masked_array(point_error, point_error >= threshold)
         mean_mask = ma.mean(point_mask, axis=0)
         mean_nr = ma.count(point_mask, axis=0)
-        ele_pos, pots = self.electrode_config(csd_profile, csd_seed,
-                                              space='electrodes')
+        ele_pos, pots = self.electrode_config(csd_profile, csd_seed)
 #        mean_err = np.mean(point_error, axis=0)
         fig = plt.figure(figsize=(12, 7))
         fig.suptitle('Mean point error for ground truth R=' + str(R) +

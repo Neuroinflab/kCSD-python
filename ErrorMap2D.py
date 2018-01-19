@@ -1,8 +1,4 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
-Created on Tue Oct 10 17:23:14 2017
-
 @author: mkowalska
 """
 from __future__ import print_function
@@ -23,7 +19,7 @@ import time
 import matplotlib.pyplot as plt
 import numpy.ma as ma
 
-from TestKCSD2D import TestKCSD2D
+from TestKCSD import ValidationClassKCSD2D, SpectralStructure
 import csd_profile as CSD
 sys.path.append('../tests')
 from KCSD import KCSD2D
@@ -42,7 +38,7 @@ except ImportError:
     parallel_available = False
 
 
-class ErrorMap2D(TestKCSD2D):
+class ErrorMap2D(ValidationClassKCSD2D):
     """
     Class that produces error map for 2D CSD reconstruction
     """
@@ -71,11 +67,11 @@ class ErrorMap2D(TestKCSD2D):
         rms: float
             error of reconstruction
         """
-        csd_x, csd_y = np.mgrid[self.true_csd_xlims[0]:self.true_csd_xlims[1]:
-                                np.complex(0, self.csd_xres),
-                                self.true_csd_ylims[0]:self.true_csd_ylims[1]:
-                                np.complex(0, self.csd_yres)]
-        true_csd = csd_profile(csd_x, csd_y, R, test_point[0], test_point[1],
+        csd_at = np.mgrid[self.true_csd_xlims[0]:self.true_csd_xlims[1]:
+                          np.complex(0, self.csd_xres),
+                          self.true_csd_ylims[0]:self.true_csd_ylims[1]:
+                          np.complex(0, self.csd_yres)]
+        true_csd = csd_profile(csd_at, R, test_point[0], test_point[1],
                                'mono')
 
         ele_pos, pots = self.electrode_config_err(csd_profile, R,
@@ -83,16 +79,16 @@ class ErrorMap2D(TestKCSD2D):
                                                   test_point[1], csd_seed,
                                                   noise='None', source='mono')
         pots = pots.reshape(len(pots), 1)
-        kcsd = KCSD2D(ele_pos, pots, **kwargs)
+        kcsd = KCSD2D(ele_pos, pots, xmin=0., xmax=1., ymin=0.,
+                      ymax=1., h=50., sigma=1., n_src_init=400)
         est_csd, est_pot = self.do_kcsd(ele_pos, pots, kcsd,
                                         Rs=np.arange(0.1, 0.7, 0.02))
         test_csd = csd_profile(kcsd.estm_x, kcsd.estm_y, R, test_point[0],
                                test_point[1], 'mono', csd_seed)
         rms = self.calculate_rms(test_csd, est_csd[:, :, 0])
         point_error = self.calculate_point_error(test_csd, est_csd[:, :, 0])
-        self.make_plot(csd_x, csd_y, true_csd, kcsd, est_csd, ele_pos, pots,
-                       rms, csd_profile, [R, test_point], kcsd.R,
-                       kcsd.lambd)
+        self.make_plot(csd_at, true_csd, kcsd, est_csd, ele_pos, pots,
+                       rms, csd_profile, [R, test_point])
         u_svd, sigma, v_svd = self.svd(kcsd)
         np.save(self.path + '/u_svd_test' + str(test_point) + '_gtR' + str(R) +
                 '.npy', u_svd)
@@ -119,16 +115,16 @@ class ErrorMap2D(TestKCSD2D):
         rms: float
             error of reconstruction
         """
-        csd_x, csd_y = np.mgrid[self.true_csd_xlims[0]:self.true_csd_xlims[1]:
-                                np.complex(0, self.csd_xres),
-                                self.true_csd_ylims[0]:self.true_csd_ylims[1]:
-                                np.complex(0, self.csd_yres)]
-        true_csd = csd_profile(csd_x, csd_y, csd_seed)
+        csd_at = np.mgrid[self.true_csd_xlims[0]:self.true_csd_xlims[1]:
+                          np.complex(0, self.csd_xres),
+                          self.true_csd_ylims[0]:self.true_csd_ylims[1]:
+                          np.complex(0, self.csd_yres)]
+        true_csd = csd_profile(csd_at, csd_seed)
         if self.config == 'broken':
             ele_x, ele_y = self.broken_electrode(10, self.n)
         else:
             ele_x, ele_y = self.generate_electrodes()
-        pots = self.calculate_potential(true_csd, csd_x, csd_y,
+        pots = self.calculate_potential(true_csd, csd_at,
                                         ele_x, ele_y)
         if noise == 'noise':
             pots = self.add_noise(csd_seed, pots, level=0.5)
@@ -136,20 +132,18 @@ class ErrorMap2D(TestKCSD2D):
 
         pots = pots.reshape(len(pots), 1)
         kcsd = KCSD2D(ele_pos, pots, xmin=0., xmax=1., ymin=0.,
-                      ymax=1.0, **kwargs)
+                      ymax=1., h=50., sigma=1., n_src_init=400)
         est_csd, est_pot = self.do_kcsd(ele_pos, pots, kcsd,
                                         Rs=np.arange(0.3, 0.6, 0.05))
 #        print('est_csd', est_csd)
-        test_csd = csd_profile(kcsd.estm_x, kcsd.estm_y, csd_seed)
+        test_csd = csd_profile([kcsd.estm_x, kcsd.estm_y], csd_seed)
         rms = self.calculate_rms(test_csd, est_csd[:, :, 0])
         point_error = self.calculate_point_error(test_csd, est_csd[:, :, 0])
-        self.make_plot(csd_x, csd_y, true_csd, kcsd, est_csd, ele_pos, pots,
-                       rms, csd_profile, csd_seed, kcsd.R,
-                       kcsd.lambd)
-        u_svd, sigma, v_svd = self.svd(kcsd)
-        np.save(self.path + '/u_svd_test' + str(csd_seed) + '.npy', u_svd)
-        np.save(self.path + '/sigma_test' + str(csd_seed) + '.npy', sigma)
-        np.save(self.path + '/v_svd_test' + str(csd_seed) + '.npy', v_svd)
+        title = 'csd_profile_' + csd_profile.__name__ + '_seed' +\
+            str(csd_seed) + '_total_ele' + str(self.total_ele)
+        self.make_plot(csd_at, true_csd, kcsd, est_csd, ele_pos, pots,
+                       rms, title)
+        ss = SpectralStructure(kcsd, self.path)
         return [rms, kcsd.R, kcsd.lambd], point_error
 
     def calculate_error_map(self, csd_profile, csd_seed, **kwargs):
@@ -202,7 +196,7 @@ class ErrorMap2D(TestKCSD2D):
                                              (self.make_reconstruction_random)
                                              (csd_profile, i, noise='None',
                                               **kwargs)
-                                             for i in range(1))
+                                             for i in range(5))
             data = np.array([item[0] for item in err])
             np.save(self.path + '/data.npy', data)
             rms = np.array([item[0] for item in data])
@@ -241,13 +235,12 @@ class ErrorMap2D(TestKCSD2D):
             ele_x, ele_y = self.broken_electrode(10, self.n)
         else:
             ele_x, ele_y = self.generate_electrodes()
-        csd_x, csd_y, true_csd = self.generate_csd_err(csd_profile, R, test_x,
-                                                       test_y, csd_seed,
-                                                       self.csd_xres,
-                                                       self.csd_yres,
-                                                       source='mono')
-        pots = self.calculate_potential(true_csd, csd_x, csd_y,
-                                        ele_x, ele_y)
+        csd_at, true_csd = self.generate_csd_err(csd_profile, R, test_x,
+                                                 test_y, csd_seed,
+                                                 self.csd_xres,
+                                                 self.csd_yres,
+                                                 source='mono')
+        pots = self.calculate_potential(true_csd, csd_at, ele_x, ele_y)
         if noise == 'noise':
             pots = self.add_noise(csd_seed, pots, level=0.5)
         ele_pos = np.vstack((ele_x, ele_y)).T
@@ -256,12 +249,12 @@ class ErrorMap2D(TestKCSD2D):
 
     def generate_csd_err(self, csd_profile, R, test_x, test_y, csd_seed,
                          res_x=50, res_y=50, source='mono'):
-        csd_x, csd_y = np.mgrid[self.true_csd_xlims[0]:self.true_csd_xlims[1]:
-                                np.complex(0, res_x),
-                                self.true_csd_ylims[0]:self.true_csd_ylims[1]:
-                                np.complex(0, res_y)]
-        f = csd_profile(csd_x, csd_y, R, test_x, test_y, source)
-        return csd_x, csd_y, f
+        csd_at = np.mgrid[self.true_csd_xlims[0]:self.true_csd_xlims[1]:
+                          np.complex(0, res_x),
+                          self.true_csd_ylims[0]:self.true_csd_ylims[1]:
+                          np.complex(0, res_y)]
+        f = csd_profile(csd_at, R, test_x, test_y, source)
+        return csd_at, f
 
     def plot_error_map(self, rms, R, test_x, test_y):
         """

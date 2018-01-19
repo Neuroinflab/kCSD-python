@@ -1,8 +1,4 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
-Created on Wed Dec 20 13:09:20 2017
-
 @author: mkowalska
 """
 
@@ -22,7 +18,7 @@ import time
 import matplotlib.pyplot as plt
 import numpy.ma as ma
 
-from TestKCSD3D import TestKCSD3D
+from TestKCSD import ValidationClassKCSD3D, SpectralStructure
 import csd_profile as CSD
 sys.path.append('../tests')
 from KCSD import KCSD3D
@@ -41,7 +37,7 @@ except ImportError:
     parallel_available = False
 
 
-class ErrorMap3D(TestKCSD3D):
+class ErrorMap3D(ValidationClassKCSD3D):
     """
     Class that produces error map for 3D CSD reconstruction
     """
@@ -56,27 +52,29 @@ class ErrorMap3D(TestKCSD3D):
         '''
         Executes main method
         '''
-        csd_x, csd_y, csd_z, true_csd = self.generate_csd(csd_profile,
-                                                          csd_seed,
-                                                          self.csd_xres,
-                                                          self.csd_yres,
-                                                          self.csd_zres)
+        csd_at, true_csd = self.generate_csd(csd_profile, csd_seed)
         ele_pos, pots = self.electrode_config(csd_profile, csd_seed)
         pots = pots.reshape(len(pots), 1)
-        kcsd = KCSD3D(ele_pos, pots, gdx=0.03, gdy=0.03, gdz=0.03,
+        kcsd = KCSD3D(ele_pos, pots, gdx=0.035, gdy=0.035, gdz=0.035,
                       h=50, sigma=1, xmax=1, xmin=0, ymax=1, ymin=0, zmax=1,
-                      zmin=0, n_src_init=8000)
-#        tic = time.time()
+                      zmin=0, n_src_init=4000)
+        tic = time.time()
         est_csd, est_pot = self.do_kcsd(ele_pos, pots, kcsd,
-                                        np.arange(0.08, 0.5, 0.025))
-#        toc = time.time() - tic
-        test_csd = csd_profile(kcsd.estm_x, kcsd.estm_y, kcsd.estm_z, csd_seed)
+                                        np.arange(0.15, 0.45, 0.025))
+        toc = time.time() - tic
+        test_csd = csd_profile([kcsd.estm_x, kcsd.estm_y, kcsd.estm_z],
+                               csd_seed)
         if csd_seed == 0:
             np.save(self.path + '/estm_x.npy', kcsd.estm_x)
             np.save(self.path + '/estm_y.npy', kcsd.estm_y)
             np.save(self.path + '/estm_z.npy', kcsd.estm_z)
         rms = self.calculate_rms(test_csd, est_csd[:, :, :, 0])
         point_error = self.calculate_point_error(test_csd, est_csd[:, :, :, 0])
+        title = "Lambda: %0.2E; R: %0.2f; RMS: %0.2E; CV_Error: %0.2E; "\
+                "Time: %0.2f" % (kcsd.lambd, kcsd.R, rms, kcsd.cv_error, toc)
+        self.make_plot(csd_at, test_csd, kcsd, est_csd, ele_pos, pots, rms,
+                       title)
+        ss = SpectralStructure(kcsd, self.path)
 #        u_svd, sigma, v_svd = self.svd(kcsd)
 #        np.save(self.path + '/u_svd_test' + str(csd_seed) + '.npy', u_svd)
 #        np.save(self.path + '/sigma_test' + str(csd_seed) + '.npy', sigma)
@@ -84,7 +82,7 @@ class ErrorMap3D(TestKCSD3D):
         return [rms, kcsd.R, kcsd.lambd], point_error
 
     def calculate_error_map(self, csd_profile, **kwargs):
-        n = 150
+        n = 5
         tic = time.time()
         if parallel_available:
             err = Parallel(n_jobs=num_cores)(delayed
@@ -153,6 +151,6 @@ if __name__ == '__main__':
     save_source_code(where_to_save_source_code, TIMESTR)
     csd_profile = CSD.gauss_3d_small
     csd_seed = 10
-    total_ele = 216
+    total_ele = 125
     a = ErrorMap3D(csd_profile, csd_seed, total_ele=total_ele, h=50.,
-                   sigma=1., nr_basis=10650, config='regular', n=15)
+                   sigma=1., nr_basis=4000, config='regular', n=15)
