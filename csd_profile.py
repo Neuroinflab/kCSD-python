@@ -18,7 +18,6 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 
 from matplotlib import gridspec
-# from mpl_toolkits.mplot3d import axes3d
 from numpy import exp
 
 
@@ -511,6 +510,11 @@ def spectrum(signal, Fs):
     Y1 = np.fft.fftshift(Y1)
     g = old_div(X1, len(X1))
     return g, Y1
+
+
+csd_available_dict = {1 : [gauss_1d_mono, gauss_1d_dipole],
+                      2 : [gauss_2d_large, gauss_2d_small],
+                      3 : [gauss_3d_large, gauss_3d_small]}
 
 
 if __name__ == '__main__':

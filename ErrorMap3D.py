@@ -16,9 +16,8 @@ import sys
 import numpy as np
 import time
 import matplotlib.pyplot as plt
-import numpy.ma as ma
 
-from TestKCSD import ValidationClassKCSD3D, SpectralStructure
+from ValidationClassKCSD import ValidationClassKCSD3D, SpectralStructure
 import csd_profile as CSD
 sys.path.append('../tests')
 from KCSD import KCSD3D
@@ -56,8 +55,8 @@ class ErrorMap3D(ValidationClassKCSD3D):
         ele_pos, pots = self.electrode_config(csd_profile, csd_seed)
         pots = pots.reshape(len(pots), 1)
         kcsd = KCSD3D(ele_pos, pots, gdx=0.035, gdy=0.035, gdz=0.035,
-                      h=50, sigma=1, xmax=1, xmin=0, ymax=1, ymin=0, zmax=1,
-                      zmin=0, n_src_init=4000)
+                      h=self.h, sigma=self.sigma, xmax=1, xmin=0, ymax=1,
+                      ymin=0, zmax=1, zmin=0, n_src_init=self.n_src_init)
         tic = time.time()
         est_csd, est_pot = self.do_kcsd(ele_pos, pots, kcsd,
                                         np.arange(0.15, 0.45, 0.025))
@@ -74,11 +73,7 @@ class ErrorMap3D(ValidationClassKCSD3D):
                 "Time: %0.2f" % (kcsd.lambd, kcsd.R, rms, kcsd.cv_error, toc)
         self.make_plot(csd_at, test_csd, kcsd, est_csd, ele_pos, pots, rms,
                        title)
-        ss = SpectralStructure(kcsd, self.path)
-#        u_svd, sigma, v_svd = self.svd(kcsd)
-#        np.save(self.path + '/u_svd_test' + str(csd_seed) + '.npy', u_svd)
-#        np.save(self.path + '/sigma_test' + str(csd_seed) + '.npy', sigma)
-#        np.save(self.path + '/v_svd_test' + str(csd_seed) + '.npy', v_svd)
+        SpectralStructure(kcsd)
         return [rms, kcsd.R, kcsd.lambd], point_error
 
     def calculate_error_map(self, csd_profile, **kwargs):
@@ -151,6 +146,6 @@ if __name__ == '__main__':
     save_source_code(where_to_save_source_code, TIMESTR)
     csd_profile = CSD.gauss_3d_small
     csd_seed = 10
-    total_ele = 125
+    total_ele = 27
     a = ErrorMap3D(csd_profile, csd_seed, total_ele=total_ele, h=50.,
-                   sigma=1., nr_basis=4000, config='regular', n=15)
+                   sigma=1., n_src_init=1000, config='regular', n=15)

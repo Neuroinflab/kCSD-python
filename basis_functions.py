@@ -11,6 +11,7 @@ Laboratory of Neuroinformatics,
 Nencki Institute of Experimental Biology, Warsaw.
 """
 from __future__ import division
+
 import numpy as np
 
 
@@ -91,36 +92,6 @@ def gauss_lim_1D(d, three_stdev):
     Z = gauss_1D(d, three_stdev)
     Z *= (d < three_stdev)
     return Z
-
-
-def morlet_1D(d, R):
-    """
-    Parameters
-    ----------
-    d: floats or np.arrays
-        Distance array to the point of evaluation
-
-    Returns
-    -------
-    M
-    """
-    OMEGA = 5
-    M = np.exp(-(d)**2/(2 * R**2)) *\
-        np.cos((2 * np.pi)/1 * OMEGA * (d))
-    return M
-
-
-def mexican_hat(d, R):
-    A = 2 / (np.sqrt(R) * (np.pi**0.25))
-    wsq = R**2
-    vec = d
-    tsq = vec**2
-    mod = (1 - tsq / wsq)
-    gauss = np.exp(-tsq / (2 * wsq))
-    f = A * mod * gauss
-#    f_norm = 2*((f - np.min(f)) / (np.max(f) - np.min(f))) - 1
-    np.save('basis.npy', f)
-    return f
 
 
 def step_2D(d, R):
@@ -243,9 +214,7 @@ def step_3D(d, R):
 basis_1D = {
     "step": step_1D,
     "gauss": gauss_1D,
-    "gauss_lim": gauss_lim_1D,
-    "morlet": morlet_1D,
-    "mexican_hat": mexican_hat
+    "gauss_lim": gauss_lim_1D
 }
 
 

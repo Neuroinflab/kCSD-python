@@ -19,7 +19,7 @@ import time
 import matplotlib.pyplot as plt
 import numpy.ma as ma
 
-from TestKCSD import ValidationClassKCSD2D, SpectralStructure
+from ValidationClassKCSD import ValidationClassKCSD2D, SpectralStructure
 import csd_profile as CSD
 sys.path.append('../tests')
 from KCSD import KCSD2D
@@ -79,8 +79,8 @@ class ErrorMap2D(ValidationClassKCSD2D):
                                                   test_point[1], csd_seed,
                                                   noise='None', source='mono')
         pots = pots.reshape(len(pots), 1)
-        kcsd = KCSD2D(ele_pos, pots, xmin=0., xmax=1., ymin=0.,
-                      ymax=1., h=50., sigma=1., n_src_init=400)
+        kcsd = KCSD2D(ele_pos, pots, xmin=0., xmax=1., ymin=0., ymax=1.,
+                      h=self.h, sigma=self.sigma, n_src_init=self.n_src_init)
         est_csd, est_pot = self.do_kcsd(ele_pos, pots, kcsd,
                                         Rs=np.arange(0.1, 0.7, 0.02))
         test_csd = csd_profile(kcsd.estm_x, kcsd.estm_y, R, test_point[0],
@@ -132,7 +132,8 @@ class ErrorMap2D(ValidationClassKCSD2D):
 
         pots = pots.reshape(len(pots), 1)
         kcsd = KCSD2D(ele_pos, pots, xmin=0., xmax=1., ymin=0.,
-                      ymax=1., h=50., sigma=1., n_src_init=400)
+                      ymax=1., h=self.h, sigma=self.sigma,
+                      n_src_init=self.n_src_init)
         est_csd, est_pot = self.do_kcsd(ele_pos, pots, kcsd,
                                         Rs=np.arange(0.3, 0.6, 0.05))
 #        print('est_csd', est_csd)
@@ -143,7 +144,7 @@ class ErrorMap2D(ValidationClassKCSD2D):
             str(csd_seed) + '_total_ele' + str(self.total_ele)
         self.make_plot(csd_at, true_csd, kcsd, est_csd, ele_pos, pots,
                        rms, title)
-        ss = SpectralStructure(kcsd, self.path)
+        SpectralStructure(kcsd)
         return [rms, kcsd.R, kcsd.lambd], point_error
 
     def calculate_error_map(self, csd_profile, csd_seed, **kwargs):
@@ -430,4 +431,4 @@ if __name__ == '__main__':
     csd_seed = 10
     total_ele = 36
     a = ErrorMap2D(csd_profile, csd_seed, total_ele=total_ele, h=50.,
-                   sigma=1., nr_basis=400, config='regular', n=15)
+                   sigma=1., n_src_init=400, config='regular', n=15)

@@ -17,7 +17,7 @@ import time
 import matplotlib.pyplot as plt
 import numpy.ma as ma
 
-from TestKCSD import ValidationClassKCSD1D, SpectralStructure
+from ValidationClassKCSD import ValidationClassKCSD1D, SpectralStructure
 import csd_profile as CSD
 sys.path.append('../tests')
 from KCSD import KCSD1D
@@ -57,7 +57,7 @@ class ErrorMap1D(ValidationClassKCSD1D):
         None
         """
         test_res = np.linspace(self.basis_xlims[0], self.basis_xlims[1],
-                               self.nr_basis)
+                               self.n_src_init)
         tic = time.time()
         R = self.R_init
         if parallel_available:
@@ -97,8 +97,8 @@ class ErrorMap1D(ValidationClassKCSD1D):
         chrg_pos_x, true_csd = self.generate_csd(csd_profile, csd_seed)
         ele_pos, pots = self.electrode_config(csd_profile, csd_seed)
         pots = pots.reshape(len(pots), 1)
-        kcsd = KCSD1D(ele_pos, pots, src_type='gauss', sigma=0.3, h=0.25,
-                      n_src_init=100, ext_x=0.1)
+        kcsd = KCSD1D(ele_pos, pots, src_type='gauss', sigma=self.sigma,
+                      h=self.h, n_src_init=self.n_src_init, ext_x=self.ext_x)
         est_csd, est_pot = self.do_kcsd(ele_pos, pots, kcsd)
         test_csd = csd_profile(kcsd.estm_x, csd_seed)
         rms = self.calculate_rms(test_csd, est_csd[:, 0])
@@ -107,7 +107,7 @@ class ErrorMap1D(ValidationClassKCSD1D):
                                                                 kcsd.R, rms)
         self.make_plot(kcsd, chrg_pos_x, true_csd, ele_pos, pots, est_csd,
                        est_pot, title)
-        ss = SpectralStructure(kcsd, self.path)
+        SpectralStructure(kcsd)
         return rms, point_error
 
     def plot_rms(self, rms, R, csd_profile, csd_seed):
@@ -173,7 +173,7 @@ class ErrorMap1D(ValidationClassKCSD1D):
         plt.ylabel('RMS Error')
         plt.legend()
         save_as = 'Mean_point_error_R_' + str(R) + '_nr_tested_sources_' +\
-            str(self.nr_basis)
+            str(self.n_src_init)
         fig.savefig(os.path.join(self.path, save_as + '.png'))
         plt.close()
         return
@@ -228,7 +228,7 @@ class ErrorMap1D(ValidationClassKCSD1D):
         ax2.set_ylabel('Nr of counts')
         ax2.legend()
         save_as = 'Thresholded_Mean_point_error_R_' + str(R) + \
-            '_nr_tested_sources_' + str(self.nr_basis)
+            '_nr_tested_sources_' + str(self.n_src_init)
         fig.savefig(os.path.join(self.path, save_as + '.png'))
         plt.close()
         return
@@ -262,19 +262,18 @@ if __name__ == '__main__':
     R_init = 0.3
     csd_seed = [R_init, 0.5]
     total_ele = 10  # [4, 8, 16, 32, 64, 128]
-    nr_basis = 32
+    n_src_init = 32
     ele_lims = [0.1, 0.9]  # range of electrodes space
     kcsd_lims = [0.1, 0.9]  # CSD estimation space range
     true_csd_xlims = [0., 1.]
     basis_lims = true_csd_xlims  # basis sources coverage
     csd_res = 100  # number of estimation points
-    ELE_PLACEMENT = 'regular'  # 'fractal_2'  # 'random'
     ele_seed = 50
 
     k = ErrorMap1D(csd_profile, csd_seed, ele_seed=ele_seed,
-                   total_ele=total_ele, nr_basis=nr_basis, h=0.25,
+                   total_ele=total_ele, h=0.25,
                    R_init=R_init, ele_xlims=ele_lims, kcsd_xlims=kcsd_lims,
                    basis_xlims=basis_lims, est_points=csd_res,
                    true_csd_xlims=true_csd_xlims, sigma=0.3, src_type='gauss',
-                   n_src_init=nr_basis, ext_x=0.1, TIMESTR=TIMESTR,
+                   n_src_init=n_src_init, ext_x=0.1, TIMESTR=TIMESTR,
                    path=where_to_save_results)
