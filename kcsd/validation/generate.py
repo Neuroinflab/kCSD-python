@@ -1,18 +1,16 @@
 
 import numpy as np
-import config
-from csd_profile import csd_available_dict
-
+from .csd_profile import csd_available_dict
 from scipy.integrate import simps
 
-def generate_csd(csd_profile, csd_at=None, seed=0):
+def generate_csd(csd_profile, csd_at=None, dim=1, seed=0):
     """
     csd_at is like an np.mgrid type data
     """
     if csd_at is None:
-        if config.dim == 1:
+        if dim == 1:
             csd_at = np.mgrid[0:1:100j]
-        elif config.dim == 2:
+        elif dim == 2:
             csd_at = np.mgrid[0:1:100j,
                               0:1:100j]
         else:
@@ -20,31 +18,31 @@ def generate_csd(csd_profile, csd_at=None, seed=0):
                               0:1:100j,
                               0:1:100j]
     else:
-        if config.dim == 1:
-            if not csd_at.ndim == config.dim:
+        if dim == 1:
+            if not csd_at.ndim == dim:
                 print('Invalid csd_at and dim')
-        if config.dim > 1:
-            if not csd_at.shape[0] == config.dim:
+        if dim > 1:
+            if not csd_at.shape[0] == dim:
                 print('Invalid csd_at and dim')
-    if csd_profile not in csd_available_dict[config.dim]:
+    if csd_profile not in csd_available_dict[dim]:
         print('Incorrect csd_profile selection')
     return csd_at, csd_profile(csd_at, seed=seed)
 
 
-def generate_electrodes(ele_lim=None, ele_res=None):
+def generate_electrodes(ele_lim=None, ele_res=None, dim=1):
     if ele_lim is None:
         ele_lim = [0.1, 0.9]
     if ele_res is None:         # reduce electrode resolution
-        if config.dim == 1:
+        if dim == 1:
             ele_res = 30
-        elif config.dim == 2:
+        elif dim == 2:
             ele_res = 10
         else:
             ele_res = 5
-    if config.dim == 1:
+    if dim == 1:
         x = np.mgrid[ele_lim[0]:ele_lim[1]:np.complex(0, ele_res)]
         ele_pos = x.flatten().reshape(ele_res, 1)
-    elif config.dim == 2:
+    elif dim == 2:
         x, y = np.mgrid[ele_lim[0]:ele_lim[1]:np.complex(0, ele_res),
                         ele_lim[0]:ele_lim[1]:np.complex(0, ele_res)]
         ele_pos = np.vstack((x.flatten(),
@@ -101,13 +99,14 @@ def integrate_3D(x, y, z, xlim, ylim, zlim, csd, xlin, ylin, zlin, X, Y, Z):
 
 
 def calculate_potential(csd_at, csd, measure_locations, h, sigma=1.):
-    if config.dim == 1:
+    dim = csd_at.shape[0]
+    if dim == 1:
         pots = np.zeros(len(measure_locations))
         for ii in range(len(measure_locations)):
             pots[ii] = integrate_1D(measure_locations[ii], csd_at, csd, h)
         pots *= 1/(2.*sigma)  # eq.: 26 from Potworowski et al
         pots = pots.reshape((len(measure_locations), 1))
-    elif config.dim == 2:
+    elif dim == 2:
         csd_x = csd_at[0, :, :]
         csd_y = csd_at[1, :, :]
         xlin = csd_x[:, 0]
