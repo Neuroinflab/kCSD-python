@@ -1,12 +1,11 @@
-import csd_profile as CSD
-import sys
-sys.path.append('../corelib/')
-from KCSD import KCSD1D, KCSD2D, KCSD3D, MoIKCSD
+
+from kcsd import csd_profile as csd
+from kcsd import KCSD1D, KCSD2D, KCSD3D, MoIKCSD
 
 # These are the default setting  -can be changed to what ever after UI
 # interaction.
 dim = 1
-csd_profile = CSD.gauss_1d_mono
+csd_profile = csd.gauss_1d_mono
 kCSD = KCSD1D
 
 
@@ -14,11 +13,11 @@ kcsd_options = {1: {'KCSD1D': KCSD1D},
                 2: {'KCSD2D': KCSD2D, 'MoIKCSD': MoIKCSD},
                 3: {'KCSD3D': KCSD3D}}
 
-csd_options = {1: {'monopole gauss': CSD.gauss_1d_mono,
-                   'dipole gauss': CSD.gauss_1d_dipole},
-               2: {'quadpole small': CSD.gauss_2d_small,
-                   'dipole large': CSD.gauss_2d_large},
-               3: {'gaussian small': CSD.gauss_3d_small}}
+csd_options = {1: {'monopole gauss': csd.gauss_1d_mono,
+                   'dipole gauss': csd.gauss_1d_dipole},
+               2: {'quadpole small': csd.gauss_2d_small,
+                   'dipole large': csd.gauss_2d_large},
+               3: {'gaussian small': csd.gauss_3d_small}}
 
 defaults = {'KCSD1D': {'R_init': 0.27,
                        'n_src_init': 300,

@@ -38,7 +38,7 @@ def generate_electrodes(ele_lim=None, ele_res=None, dim=1):
         elif dim == 2:
             ele_res = 10
         else:
-            ele_res = 5
+            ele_res = 3
     if dim == 1:
         x = np.mgrid[ele_lim[0]:ele_lim[1]:np.complex(0, ele_res)]
         ele_pos = x.flatten().reshape(ele_res, 1)
@@ -99,7 +99,11 @@ def integrate_3D(x, y, z, xlim, ylim, zlim, csd, xlin, ylin, zlin, X, Y, Z):
 
 
 def calculate_potential(csd_at, csd, measure_locations, h, sigma=1.):
-    dim = csd_at.shape[0]
+    if len(csd_at.shape) == 1:
+        dim = 1
+    else:
+        dim = csd_at.shape[0]
+
     if dim == 1:
         pots = np.zeros(len(measure_locations))
         for ii in range(len(measure_locations)):
