@@ -37,6 +37,5 @@ setup(name='kcsd',
                         'skmonaco' : ['scikit-monaco>=0.2'],
                         'docs': ['numpydoc>=0.5',
                                  'sphinx>=1.2.2']},
-      test_suite='tests',
-      tests_require=['nose'],
+      test_suite='kcsd.tests',
       zip_safe=False)
