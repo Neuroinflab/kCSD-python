@@ -10,10 +10,9 @@ Laboratory of Neuroinformatics,
 Nencki Institute of Exprimental Biology, Warsaw.
 '''
 import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.cm as cm
-
-from matplotlib import gridspec
+# import matplotlib.pyplot as plt
+# import matplotlib.cm as cm
+# from matplotlib import gridspec
 from numpy import exp
 
 
@@ -259,32 +258,32 @@ def gauss_3d_mono3_f(csd_at):
     return f1
 
 
-def neat_4d_plot(csd_at, t, z_steps=5, cmap=cm.bwr_r):
-    '''Used to show 3D csd profile'''
-    x, y, z = csd_at
-    t_max = np.max(np.abs(t))
-    levels = np.linspace(-1*t_max, t_max, 15)
-    ind_interest = np.mgrid[0:z.shape[2]:np.complex(0,z_steps+2)]
-    ind_interest = np.array(ind_interest, dtype=np.int)[1:-1]
-    fig = plt.figure(figsize=(4,12))
-    height_ratios = [1 for i in range(z_steps)]
-    height_ratios.append(0.1)
-    gs = gridspec.GridSpec(z_steps+1, 1, height_ratios=height_ratios)
-    for ii, idx in enumerate(ind_interest):
-        ax = plt.subplot(gs[ii,0])
-        im = plt.contourf(chrg_x[:,:,idx], chrg_y[:,:,idx], t[:,:,idx], 
-                          levels=levels, cmap=cmap)
-        ax.get_xaxis().set_visible(False)
-        ax.get_yaxis().set_visible(False)
-        title = str(z[:,:,idx][0][0])[:4]
-        ax.set_title(label=title, fontdict={'x':0.8, 'y':0.7})
-        ax.set_aspect('equal')
-    cax = plt.subplot(gs[z_steps,0])
-    cbar = plt.colorbar(im, cax=cax, orientation='horizontal')
-    cbar.set_ticks(levels[::2])
-    cbar.set_ticklabels(np.around(levels[::2], decimals=2))
-    gs.tight_layout(fig, rect=[0, 0.03, 1, 0.95])  
-    #plt.tight_layout()
+# def neat_4d_plot(csd_at, t, z_steps=5, cmap=cm.bwr_r):
+#     '''Used to show 3D csd profile'''
+#     x, y, z = csd_at
+#     t_max = np.max(np.abs(t))
+#     levels = np.linspace(-1*t_max, t_max, 15)
+#     ind_interest = np.mgrid[0:z.shape[2]:np.complex(0,z_steps+2)]
+#     ind_interest = np.array(ind_interest, dtype=np.int)[1:-1]
+#     fig = plt.figure(figsize=(4,12))
+#     height_ratios = [1 for i in range(z_steps)]
+#     height_ratios.append(0.1)
+#     gs = gridspec.GridSpec(z_steps+1, 1, height_ratios=height_ratios)
+#     for ii, idx in enumerate(ind_interest):
+#         ax = plt.subplot(gs[ii,0])
+#         im = plt.contourf(chrg_x[:,:,idx], chrg_y[:,:,idx], t[:,:,idx], 
+#                           levels=levels, cmap=cmap)
+#         ax.get_xaxis().set_visible(False)
+#         ax.get_yaxis().set_visible(False)
+#         title = str(z[:,:,idx][0][0])[:4]
+#         ax.set_title(label=title, fontdict={'x':0.8, 'y':0.7})
+#         ax.set_aspect('equal')
+#     cax = plt.subplot(gs[z_steps,0])
+#     cbar = plt.colorbar(im, cax=cax, orientation='horizontal')
+#     cbar.set_ticks(levels[::2])
+#     cbar.set_ticklabels(np.around(levels[::2], decimals=2))
+#     gs.tight_layout(fig, rect=[0, 0.03, 1, 0.95])  
+#     #plt.tight_layout()
 
 
 csd_available_dict = {1 : [gauss_1d_mono, gauss_1d_dipole],
@@ -300,7 +299,7 @@ if __name__=='__main__':
     csd_profile = gauss_1d_mono
     chrg_x = np.arange(0., 1., 1./50.)
     f = csd_profile(chrg_x, seed)
-    plt.plot(chrg_x, f)
+    # plt.plot(chrg_x, f)
 
     # #2D CASE
     # csd_profile = gauss_2d_large
@@ -322,4 +321,4 @@ if __name__=='__main__':
     # f = csd_profile(chrg_x, chrg_y, chrg_z, seed=seed)
     # neat_4d_plot(chrg_x, chrg_y, chrg_z, f)
 
-    plt.show()
+    # plt.show()
