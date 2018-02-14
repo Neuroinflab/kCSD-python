@@ -1,4 +1,6 @@
+dist: precise
 language: python
+sudo: false
 python:
   - "2.6"
   - "2.7"
@@ -9,5 +11,5 @@ install:
   - pip install .
 # command to run tests
 script:
-  - pytest # or py.test for Python versions 3.5 and below
+  - python setup.py test
   
