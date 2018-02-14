@@ -111,7 +111,8 @@ class ValidationClassKCSD(object):
         self.R_init = kwargs.get('R_init', 0.23)
         self.n_src_init = kwargs.get('n_src_init', 300)
         self.total_ele = kwargs.get('total_ele', 10)
-        self.config = kwargs.get('config', 'regular')
+        self.config = kwargs.get('ele_config', 'regular')
+        print(self.config)
         self.mask = kwargs.get('mask', False)
         return
 
@@ -235,7 +236,7 @@ class ValidationClassKCSD(object):
                                            np.complex(0, self.ele_zres)]
             return ele_x.flatten(), ele_y.flatten(), ele_z.flatten()
 
-    def electrode_config(self, csd_profile, noise=None):
+    def electrode_config(self, csd_profile, noise=None, nr_broken_ele=0):
         """
         Produces electrodes positions and potentials measured at these points
 
@@ -253,17 +254,20 @@ class ValidationClassKCSD(object):
         pots: numpy array, shape (total_ele, 1)
         """
         if self.dim == 1:
+            print('hi')
             csd_at, true_csd = self.generate_csd(csd_profile)
             if self.config == 'broken':
-                ele_pos = self.broken_electrodes(10, 5)
+                print('here')
+                ele_pos = self.broken_electrodes(10, nr_broken_ele)
             else:
+                print('there')
                 ele_pos = self.generate_electrodes()
             pots = self.calculate_potential(true_csd, csd_at, ele_pos)
             ele_pos = ele_pos.reshape((len(ele_pos), 1))
         if self.dim == 2:
             csd_at, true_csd = self.generate_csd(csd_profile)
             if self.config == 'broken':
-                ele_pos = self.broken_electrodes(10, 5)
+                ele_pos = self.broken_electrodes(10, nr_broken_ele)
                 ele_x, ele_y = ele_pos[:, 0], ele_pos[:, 1]
             else:
                 ele_x, ele_y = self.generate_electrodes()
@@ -274,7 +278,7 @@ class ValidationClassKCSD(object):
         if self.dim == 3:
             csd_at, true_csd = self.generate_csd(csd_profile)
             if self.config == 'broken':
-                ele_pos = self.broken_electrodes(10, 5)
+                ele_pos = self.broken_electrodes(10, nr_broken_ele)
                 ele_x, ele_y, ele_z = ele_pos[:, 0], ele_pos[:, 1], \
                     ele_pos[:, 2]
             else:
@@ -289,6 +293,8 @@ class ValidationClassKCSD(object):
             ele_pos = np.vstack((ele_x, ele_y, ele_z)).T
         num_ele = ele_pos.shape[0]
         print('Number of electrodes:', num_ele)
+        if noise == 'noise':
+            pots = self.add_noise(pots)
         return ele_pos, pots.reshape((len(ele_pos), 1))
 
     def do_kcsd(self, ele_pos, pots, k, Rs=np.arange(0.19, 0.3, 0.04),
@@ -365,7 +371,28 @@ class ValidationClassKCSD(object):
             point_error = point_error.reshape(test_csd.shape)
         return point_error
 
-    def add_noise(self, seed, pots, level=0.001):
+    def sigmoid_mean(self, error):
+        '''
+        Calculates sigmoidal mean across errors of reconstruction for many
+        different sources - used for error maps
+
+        Parameters
+        ----------
+        error: numpy array
+            point error of reconstruction
+
+        Returns
+        -------
+        error_mean: numpy array
+            sigmoidal mean error of reconstruction
+            error_mean ->1    - very poor reconstruction
+            error_mean ->0    - perfect reconstruction
+        '''
+        sig_error = 2*(1./(1 + np.exp((-error))) - 1/2.)
+        error_mean = np.mean(sig_error, axis=0)
+        return error_mean
+
+    def add_noise(self, pots, level=0.001):
         """
         Adds noise to potentials
 
@@ -380,20 +407,19 @@ class ValidationClassKCSD(object):
         pots_noise: numpy array, shape (total_ele)
             potentials with noise
         """
-        rstate = np.random.RandomState(seed)
+        rstate = np.random.RandomState(self.csd_seed)
         noise = level*rstate.normal(np.mean(pots), np.std(pots), len(pots))
-        pots_noise = pots + noise
+        pots_noise = pots + noise.reshape(len(noise), 1)
         return pots_noise
 
 
-class SpectralStructure(ValidationClassKCSD):
+class SpectralStructure(object):
     """
     Class that enables examination of spectral structure of CSD reconstruction
     with kCSD method
     """
     def __init__(self, k):
         self.k = k
-        self.svd()
         return
 
     def svd(self):
@@ -411,7 +437,6 @@ class SpectralStructure(ValidationClassKCSD):
 
         Parameters
         ----------
-        k - instance of class (TestKCSD1D, TestKCSD2D or TestKCSD3D)
 
         Returns
         -------
@@ -440,7 +465,8 @@ class SpectralStructure(ValidationClassKCSD):
         -------
         None
         """
-        u, s, v = np.linalg.svd(self.k.k_pot)
+        u, s, v = np.linalg.svd(self.k.k_pot + self.k.lambd *
+                                np.identity(self.k.k_pot.shape[0]))
         picard = np.zeros(len(s))
         picard_norm = np.zeros(len(s))
         for i in range(len(s)):
@@ -456,9 +482,6 @@ class SpectralStructure(ValidationClassKCSD):
         plt.title('Picard plot')
         plt.xlabel('i')
         plt.show()
-        self.plot_s(s)
-        self.plot_u(u)
-        self.plot_v(v)
         a = int(len(s) - int(np.sqrt(len(s)))**2)
         if a == 0:
             size = int(np.sqrt(len(s)))
@@ -557,11 +580,6 @@ class SpectralStructure(ValidationClassKCSD):
         -------
         None
         """
-        plt.figure()
-        plt.plot(u.T, 'b.')
-        plt.title('Left singular vectors of k_pot matrix')
-        plt.ylabel('Singular vectors')
-        plt.show()
         a = int(u.shape[1] - int(np.sqrt(u.shape[1]))**2)
         if a == 0:
             size = int(np.sqrt(u.shape[1]))
@@ -589,11 +607,6 @@ class SpectralStructure(ValidationClassKCSD):
         -------
         None
         """
-        plt.figure()
-        plt.plot(v.T, 'b.')
-        plt.title('Right singular vectors of k_pot matrix')
-        plt.ylabel('Singular vectors')
-        plt.show()
         a = int(v.shape[1] - int(np.sqrt(v.shape[1]))**2)
         if a == 0:
             size = int(np.sqrt(v.shape[1]))
@@ -621,11 +634,6 @@ class SpectralStructure(ValidationClassKCSD):
         -------
         None
         """
-        plt.figure()
-        plt.plot(u_svd.T, 'b.')
-        plt.title('Singular vectors of kernels product')
-        plt.ylabel('Singular vectors')
-        plt.show()
         a = int(u_svd.shape[1] - int(np.sqrt(u_svd.shape[1]))**2)
         if a == 0:
             size = int(np.sqrt(u_svd.shape[1]))
@@ -653,11 +661,6 @@ class SpectralStructure(ValidationClassKCSD):
         -------
         None
         """
-        plt.figure()
-        plt.plot(v_svd.T, 'b.')
-        plt.title('Right singular vectors of kernels product')
-        plt.ylabel('Singular vectors')
-        plt.show()
         a = int(v_svd.shape[1] - int(np.sqrt(v_svd.shape[1]))**2)
         if a == 0:
             size = int(np.sqrt(v_svd.shape[1]))
@@ -716,8 +719,6 @@ class ValidationClassKCSD1D(ValidationClassKCSD):
         None
         """
         super(ValidationClassKCSD1D, self).__init__(dim=1, **kwargs)
-        self.general_parameters(**kwargs)
-        self.dimension_parameters(**kwargs)
         self.csd_seed = csd_seed
         return
 
@@ -790,7 +791,7 @@ class ValidationClassKCSD1D(ValidationClassKCSD):
         Integral = simps(y, csd_at)
         return Integral
 
-    def make_reconstruction(self, csd_profile):
+    def make_reconstruction(self, csd_profile, noise=None, nr_broken_ele=0):
         """
         Main method, makes the whole kCSD reconstruction
 
@@ -808,8 +809,8 @@ class ValidationClassKCSD1D(ValidationClassKCSD):
             space
         """
         csd_at, true_csd = self.generate_csd(csd_profile)
-        ele_pos, pots = self.electrode_config(csd_profile)
-        pots = pots.reshape(len(pots), 1)
+        ele_pos, pots = self.electrode_config(csd_profile, noise,
+                                              nr_broken_ele)
         kcsd = KCSD1D(ele_pos, pots, src_type='gauss', sigma=self.sigma,
                       h=self.h, n_src_init=self.n_src_init, ext_x=self.ext_x)
         est_csd, est_pot = self.do_kcsd(ele_pos, pots, kcsd)
@@ -822,7 +823,7 @@ class ValidationClassKCSD1D(ValidationClassKCSD):
         ss = SpectralStructure(kcsd)
         ss.picard_plot(pots)
         point_error = self.calculate_point_error(test_csd, est_csd[:, 0])
-        return rms, point_error
+        return kcsd
 
     def make_plot(self, k, csd_at, true_csd, ele_pos, pots, est_csd,
                   est_pot, title):
@@ -899,8 +900,8 @@ class ValidationClassKCSD2D(ValidationClassKCSD):
         None
         """
         super(ValidationClassKCSD2D, self).__init__(dim=2, **kwargs)
-        self.general_parameters(**kwargs)
-        self.dimension_parameters(**kwargs)
+#        self.general_parameters(**kwargs)
+#        self.dimension_parameters(**kwargs)
         self.csd_seed = csd_seed
         return
 
@@ -1001,7 +1002,7 @@ class ValidationClassKCSD2D(ValidationClassKCSD):
         F = simps(integral_1D, xlin)         # then an integral over the result
         return F
 
-    def make_reconstruction(self, csd_profile):
+    def make_reconstruction(self, csd_profile, noise=None, nr_broken_ele=0):
         """
         Main method, makes the whole kCSD reconstruction
 
@@ -1015,8 +1016,8 @@ class ValidationClassKCSD2D(ValidationClassKCSD):
         None
         """
         csd_at, true_csd = self.generate_csd(csd_profile)
-        ele_pos, pots = self.electrode_config(csd_profile, noise='None')
-        pots = pots.reshape(len(pots), 1)
+        ele_pos, pots = self.electrode_config(csd_profile, noise,
+                                              nr_broken_ele)
         kcsd = KCSD2D(ele_pos, pots, xmin=0., xmax=1., ymin=0.,
                       ymax=1., h=self.h, sigma=self.sigma,
                       n_src_init=self.n_src_init)
@@ -1031,8 +1032,7 @@ class ValidationClassKCSD2D(ValidationClassKCSD):
         ss = SpectralStructure(kcsd)
         ss.picard_plot(pots)
         point_error = self.calculate_point_error(test_csd, est_csd[:, :, 0])
-        self.plot_point_error(point_error, kcsd)
-        return
+        return kcsd, point_error
 
     def plot_point_error(self, point_error, k):
         """
@@ -1201,8 +1201,8 @@ class ValidationClassKCSD3D(ValidationClassKCSD):
         None
         """
         super(ValidationClassKCSD3D, self).__init__(dim=3, **kwargs)
-        self.general_parameters(**kwargs)
-        self.dimension_parameters(**kwargs)
+#        self.general_parameters(**kwargs)
+#        self.dimension_parameters(**kwargs)
         self.csd_seed = csd_seed
         return
 
@@ -1356,7 +1356,7 @@ class ValidationClassKCSD3D(ValidationClassKCSD):
         pots /= 4*np.pi*self.sigma
         return pots
 
-    def make_reconstruction(self, csd_profile):
+    def make_reconstruction(self, csd_profile, noise=None, nr_broken_ele=0):
         """
         Main method, makes the whole kCSD reconstruction
 
@@ -1370,8 +1370,8 @@ class ValidationClassKCSD3D(ValidationClassKCSD):
         None
         """
         csd_at, true_csd = self.generate_csd(csd_profile)
-        ele_pos, pots = self.electrode_config(csd_profile)
-        pots = pots.reshape(len(pots), 1)
+        ele_pos, pots = self.electrode_config(csd_profile, noise,
+                                              nr_broken_ele)
         kcsd = KCSD3D(ele_pos, pots, gdx=0.035, gdy=0.035, gdz=0.035,
                       h=self.h, sigma=self.sigma, xmax=1, xmin=0, ymax=1,
                       ymin=0, zmax=1, zmin=0, n_src_init=self.n_src_init)
@@ -1390,7 +1390,7 @@ class ValidationClassKCSD3D(ValidationClassKCSD):
                 "Time: %0.2f" % (kcsd.lambd, kcsd.R, rms, kcsd.cv_error, toc)
         self.make_plot(csd_at, test_csd, kcsd, est_csd, ele_pos,
                        pots, rms, title)
-        return
+        return kcsd
 
     def make_plot(self, csd_at, true_csd, kcsd, est_csd, ele_pos,
                   pots, rms, fig_title):
@@ -1514,22 +1514,22 @@ class ValidationClassKCSD3D(ValidationClassKCSD):
 
 
 if __name__ == '__main__':
-    print('Checking 1D')
-    csd_profile = CSD.gauss_1d_mono
-    R_init = 0.23
-    csd_seed = 5
-    total_ele = 16
-    n_src_init = 100
-    ele_lims = [0.1, 0.9]  # range of electrodes space
-    true_csd_xlims = [0., 1.]
-
-    k = ValidationClassKCSD1D(csd_profile, csd_seed,
-                              total_ele=total_ele, n_src_init=n_src_init,
-                              h=0.25, R_init=R_init, ele_xlims=ele_lims,
-                              true_csd_xlims=true_csd_xlims, sigma=0.3,
-                              src_type='gauss', ext_x=0.1,
-                              config='regular')
-    k.make_reconstruction(csd_profile)
+#    print('Checking 1D')
+#    csd_profile = CSD.gauss_1d_mono
+#    R_init = 0.23
+#    csd_seed = 5
+#    total_ele = 16
+#    n_src_init = 100
+#    ele_lims = [0.1, 0.9]  # range of electrodes space
+#    true_csd_xlims = [0., 1.]
+#
+#    k = ValidationClassKCSD1D(csd_profile, csd_seed,
+#                              total_ele=total_ele, n_src_init=n_src_init,
+#                              h=0.25, R_init=R_init, ele_xlims=ele_lims,
+#                              true_csd_xlims=true_csd_xlims, sigma=0.3,
+#                              src_type='gauss', ext_x=0.1,
+#                              config='regular')
+#    k.make_reconstruction(csd_profile)
 
     print('Checking 2D')
     csd_profile = CSD.gauss_2d_small
@@ -1542,14 +1542,14 @@ if __name__ == '__main__':
                               n_src_init=400)
     k.make_reconstruction(csd_profile)
 
-    print('Checking 3D')
-    total_ele = 125
-    csd_seed = 20  # 0-49 are small sources, 50-99 are large sources
-    csd_profile = CSD.gauss_3d_small
-    tic = time.time()
-    k = ValidationClassKCSD3D(csd_profile, csd_seed, total_ele=total_ele, h=50,
-                              sigma=1, xmax=1, xmin=0, ymax=1, ymin=0, zmax=1,
-                              zmin=0, config='regular')
-    k.make_reconstruction(csd_profile)
-    toc = time.time() - tic
-    print('time', toc)
+#    print('Checking 3D')
+#    total_ele = 125
+#    csd_seed = 20  # 0-49 are small sources, 50-99 are large sources
+#    csd_profile = CSD.gauss_3d_small
+#    tic = time.time()
+#    k = ValidationClassKCSD3D(csd_profile, csd_seed, total_ele=total_ele, h=50,
+#                              sigma=1, xmax=1, xmin=0, ymax=1, ymin=0, zmax=1,
+#                              zmin=0, config='regular')
+#    k.make_reconstruction(csd_profile)
+#    toc = time.time() - tic
+#    print('time', toc)

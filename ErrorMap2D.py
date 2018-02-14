@@ -7,12 +7,8 @@ from __future__ import unicode_literals
 from __future__ import absolute_import
 from builtins import super
 
-# from builtins import str
 from builtins import range
-# from builtins import object
-from future import standard_library
 
-import os
 import sys
 import numpy as np
 import time
@@ -23,11 +19,6 @@ from ValidationClassKCSD import ValidationClassKCSD2D, SpectralStructure
 import csd_profile as CSD
 sys.path.append('../tests')
 from KCSD import KCSD2D
-from save_paths import where_to_save_results, where_to_save_source_code, \
-    TIMESTR
-
-standard_library.install_aliases()
-__abs_file__ = os.path.abspath(__file__)
 
 try:
     from joblib import Parallel, delayed
@@ -43,15 +34,12 @@ class ErrorMap2D(ValidationClassKCSD2D):
     Class that produces error map for 2D CSD reconstruction
     """
     def __init__(self, csd_profile, csd_seed, **kwargs):
-        self.test_res = 256
         self.n = kwargs.get('n', 1)
         super(ErrorMap2D, self).__init__(csd_profile, csd_seed, **kwargs)
-#        csd_profile = CSD.gauss_2d_error_map
-        self.calculate_error_map_r(csd_profile, **kwargs)
+        self.calculate_error_map_r(csd_profile)
         return
 
-    def make_reconstruction(self, csd_profile, csd_seed, R, test_point,
-                            **kwargs):
+    def make_reconstruction(self, csd_profile, csd_seed, R, test_point):
         """
         Parameters
         ----------
@@ -89,17 +77,9 @@ class ErrorMap2D(ValidationClassKCSD2D):
         point_error = self.calculate_point_error(test_csd, est_csd[:, :, 0])
         self.make_plot(csd_at, true_csd, kcsd, est_csd, ele_pos, pots,
                        rms, csd_profile, [R, test_point])
-        u_svd, sigma, v_svd = self.svd(kcsd)
-        np.save(self.path + '/u_svd_test' + str(test_point) + '_gtR' + str(R) +
-                '.npy', u_svd)
-        np.save(self.path + '/sigma_test' + str(test_point) + '_gtR' + str(R) +
-                '.npy', sigma)
-        np.save(self.path + '/v_svd_test' + str(test_point) + '_gtR' + str(R) +
-                '.npy', v_svd)
-        return [rms, kcsd.R, kcsd.lambd], point_error
+        return [rms, kcsd], point_error
 
-    def make_reconstruction_random(self, csd_profile, csd_seed, noise='None',
-                                   **kwargs):
+    def make_reconstruction_random(self, csd_profile, csd_seed, noise='None'):
         """
         Parameters
         ----------
@@ -115,29 +95,16 @@ class ErrorMap2D(ValidationClassKCSD2D):
         rms: float
             error of reconstruction
         """
-        csd_at = np.mgrid[self.true_csd_xlims[0]:self.true_csd_xlims[1]:
-                          np.complex(0, self.csd_xres),
-                          self.true_csd_ylims[0]:self.true_csd_ylims[1]:
-                          np.complex(0, self.csd_yres)]
-        true_csd = csd_profile(csd_at, csd_seed)
-        if self.config == 'broken':
-            ele_x, ele_y = self.broken_electrode(10, self.n)
-        else:
-            ele_x, ele_y = self.generate_electrodes()
-        pots = self.calculate_potential(true_csd, csd_at,
-                                        ele_x, ele_y)
-        if noise == 'noise':
-            pots = self.add_noise(csd_seed, pots, level=0.5)
-        ele_pos = np.vstack((ele_x, ele_y)).T
+        self.csd_seed = csd_seed
+        csd_at, true_csd = self.generate_csd(csd_profile)
+        ele_pos, pots = self.electrode_config(csd_profile)
 
-        pots = pots.reshape(len(pots), 1)
         kcsd = KCSD2D(ele_pos, pots, xmin=0., xmax=1., ymin=0.,
                       ymax=1., h=self.h, sigma=self.sigma,
                       n_src_init=self.n_src_init)
         est_csd, est_pot = self.do_kcsd(ele_pos, pots, kcsd,
                                         Rs=np.arange(0.3, 0.6, 0.05))
-#        print('est_csd', est_csd)
-        test_csd = csd_profile([kcsd.estm_x, kcsd.estm_y], csd_seed)
+        test_csd = csd_profile([kcsd.estm_x, kcsd.estm_y], self.csd_seed)
         rms = self.calculate_rms(test_csd, est_csd[:, :, 0])
         point_error = self.calculate_point_error(test_csd, est_csd[:, :, 0])
         title = 'csd_profile_' + csd_profile.__name__ + '_seed' +\
@@ -145,17 +112,16 @@ class ErrorMap2D(ValidationClassKCSD2D):
         self.make_plot(csd_at, true_csd, kcsd, est_csd, ele_pos, pots,
                        rms, title)
         SpectralStructure(kcsd)
-        return [rms, kcsd.R, kcsd.lambd], point_error
+        return [rms, kcsd], point_error
 
-    def calculate_error_map(self, csd_profile, csd_seed, **kwargs):
+    def calculate_error_map(self, csd_profile, csd_seed, test_res=256):
         test_x, test_y = np.mgrid[self.true_csd_xlims[0]:
                                   self.true_csd_xlims[1]:
-                                  np.complex(0, int(np.sqrt(self.test_res))),
+                                  np.complex(0, int(np.sqrt(test_res))),
                                   self.true_csd_xlims[0]:
                                   self.true_csd_xlims[1]:
-                                  np.complex(0, int(np.sqrt(self.test_res)))]
+                                  np.complex(0, int(np.sqrt(test_res)))]
         test_points = np.vstack((test_x.flatten(), test_y.flatten())).T
-#        R = self.R_init
         tic = time.time()
         for R in [self.R_init, self.R_init/2., self.R_init/4.,
                   3/4.*self.R_init, 3/2.*self.R_init]:
@@ -163,61 +129,50 @@ class ErrorMap2D(ValidationClassKCSD2D):
                 err = Parallel(n_jobs=num_cores)(delayed
                                                  (self.make_reconstruction)
                                                  (csd_profile, csd_seed, R,
-                                                  test_points[i], **kwargs)
+                                                  test_points[i])
                                                  for i in range(len
                                                                 (test_points)))
                 data = np.array([item[0] for item in err])
-                np.save(self.path + '/data.npy', data)
                 rms = np.array([item[0] for item in data])
-                np.save(self.path + '/rms.npy', rms)
-                cv_r = np.array([item[1] for item in data])
-                np.save(self.path + '/cv_r.npy', cv_r)
-                cv_l = np.array([item[2] for item in data])
-                np.save(self.path + '/cv_l.npy', cv_l)
                 point_error = np.array([item[1] for item in err])
-                np.save(self.path + '/point_error.npy', point_error)
             else:
                 rms = np.zeros(len(test_points))
+                point_error = []
                 for i in range(len(test_points)):
-                    rms[i] = self.make_reconstruction(csd_profile, csd_seed, R,
-                                                      test_points[i], **kwargs)
-            np.save(self.path + '/rms.npy', rms)
+                    data, error = self.make_reconstruction(csd_profile,
+                                                           csd_seed, R,
+                                                           test_points[i])
+                    rms[i] = data[0]
+                    point_error.append(error)
+            point_error = np.array(point_error)
             toc = time.time() - tic
             print('time: ', toc)
-            self.plot_error_map(rms, R, test_x, test_y)
-            self.plot_mean_error(point_error, R, csd_profile)
-            self.mean_error_threshold(point_error, R, test_x, test_y,
-                                      threshold=1)
-        return
+        return rms, point_error
 
-    def calculate_error_map_r(self, csd_profile, **kwargs):
+    def calculate_error_map_r(self, csd_profile):
+        n = 5
         tic = time.time()
         if parallel_available:
             err = Parallel(n_jobs=num_cores)(delayed
                                              (self.make_reconstruction_random)
-                                             (csd_profile, i, noise='None',
-                                              **kwargs)
-                                             for i in range(5))
+                                             (csd_profile, i)
+                                             for i in range(n))
             data = np.array([item[0] for item in err])
-            np.save(self.path + '/data.npy', data)
             rms = np.array([item[0] for item in data])
-            np.save(self.path + '/rms.npy', rms)
-            cv_r = np.array([item[1] for item in data])
-            np.save(self.path + '/cv_r.npy', cv_r)
-            cv_l = np.array([item[2] for item in data])
-            np.save(self.path + '/cv_l.npy', cv_l)
             point_error = np.array([item[1] for item in err])
-            np.save(self.path + '/point_error.npy', point_error)
         else:
-            rms = np.zeros(100)
-            for i in range(100):
-                rms[i] = self.make_reconstruction(csd_profile, i, **kwargs)
-        np.save(self.path + '/rms.npy', rms)
+            rms = np.zeros(n)
+            point_error = []
+            for i in range(n):
+                data, error = self.make_reconstruction_random(csd_profile, i)
+                rms[i] = data[0]
+                point_error.append(error)
+        point_error = np.array(point_error)
         toc = time.time() - tic
         print('time: ', toc)
         self.plot_mean_error(point_error, 1, csd_profile)
         self.mean_error_threshold(point_error, 1, threshold=1)
-        return
+        return rms, point_error
 
     def electrode_config_err(self, csd_profile, R, test_x, test_y, csd_seed,
                              noise='None', source='mono'):
@@ -276,7 +231,7 @@ class ErrorMap2D(ValidationClassKCSD2D):
         else:
             ele_x, ele_y = self.generate_electrodes()
         rms = rms.reshape([test_x.shape[0], test_x.shape[1]])
-        fig = plt.figure()
+        plt.figure()
         ax = plt.subplot(111, aspect='equal')
         rms_max = np.max(np.abs(rms))
         levels = np.linspace(0, rms_max, 15)
@@ -288,12 +243,7 @@ class ErrorMap2D(ValidationClassKCSD2D):
         ax.set_xlim([0., 1.])
         ax.set_ylim([0., 1.])
         ax.set_title('Error plot for ground truth R=' + str(R))
-        save_as = 'RMS_map_csd_profile_' + csd_profile.__name__ + \
-            '_seed' + str(csd_seed) + '_total_ele' + str(self.total_ele) +\
-            '_R_' + str(R) + '_nr_tested_sources_' + str(self.test_res)
-        fig.savefig(os.path.join(self.path, save_as + '.png'))
-        plt.clf()
-        plt.close()
+        plt.show()
         return
 
     def plot_mean_error(self, point_error, R, csd_profile):
@@ -323,7 +273,7 @@ class ErrorMap2D(ValidationClassKCSD2D):
                         0:1:
                         np.complex(0, self.est_yres)]
         mean_err = np.mean(point_error, axis=0)
-        fig = plt.figure(figsize=(10, 6))
+        plt.figure(figsize=(10, 6))
         ax = plt.subplot(111, aspect='equal')
         levels = np.linspace(0, 1., 15)
         im = ax.contourf(x, y, mean_err, levels=levels, cmap='Greys')
@@ -334,12 +284,7 @@ class ErrorMap2D(ValidationClassKCSD2D):
         ax.set_xlim([0., 1.])
         ax.set_ylim([0., 1.])
 #        ax.set_title('Mean point error for ground truth R=' + str(R))
-        save_as = 'Mean_point_error_csd_profile_' + csd_profile.__name__ + \
-            '_total_ele' + str(self.total_ele)  # +\
-#            '_R_' + str(R) + '_nr_tested_sources_' + str(self.test_res)
-        fig.savefig(os.path.join(self.path, save_as + '.png'))
-        plt.clf()
-        plt.close()
+        plt.show()
         return
 
     def mean_error_threshold(self, point_error, R, threshold=1.):
@@ -375,7 +320,7 @@ class ErrorMap2D(ValidationClassKCSD2D):
                         np.complex(0, self.est_xres),
                         0:1:
                         np.complex(0, self.est_yres)]
-        fig = plt.figure(figsize=(12, 7))
+        plt.figure(figsize=(12, 7))
         ax1 = plt.subplot(121, aspect='equal')
         levels = np.linspace(0, 1., 15)
         im = ax1.contourf(x, y, mean_mask, levels=levels, cmap='Greys')
@@ -396,37 +341,11 @@ class ErrorMap2D(ValidationClassKCSD2D):
 #        ax2.set_ylabel('Depth y [mm]')
 #        ax2.set_title('Thresholded point error density')
         ax2.legend()
-        save_as = 'Thresholded_Mean_point_error_R_' + str(R) + \
-            '_nr_tested_sources_' + str(self.test_res)
-        fig.savefig(os.path.join(self.path, save_as + '.png'))
-        plt.close()
+        plt.show()
         return
 
 
-def save_source_code(save_path, TIMESTR):
-    """
-    Wilson G., et al. (2014) Best Practices for Scientific Computing,
-    PLoS Biol 12(1): e1001745
-    """
-    with open(save_path + 'source_code_' + str(TIMESTR), 'w') as sf:
-        sf.write(open(__abs_file__).read())
-    return
-
-
-def makemydir(directory):
-    """
-    Creates directory if it doesn't exist
-    """
-    try:
-        os.makedirs(directory)
-    except OSError:
-        pass
-    os.chdir(directory)
-
-
 if __name__ == '__main__':
-    makemydir(where_to_save_source_code)
-    save_source_code(where_to_save_source_code, TIMESTR)
     csd_profile = CSD.gauss_2d_small
     csd_seed = 10
     total_ele = 36
