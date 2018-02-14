@@ -14,8 +14,11 @@ ipynb_tests branch
 
 .. image:: https://travis-ci.org/Neuroinflab/kCSD-python.svg?branch=ipynb_tests
    :target: https://travis-ci.org/Neuroinflab/kCSD-python
-   :alt: Unit test status	 
-	    
+   :alt: Unit test status
+
+.. image:: https://coveralls.io/repos/github/Neuroinflab/kCSD-python/badge.svg?branch=ipynb_tests
+   :target: https://coveralls.io/github/Neuroinflab/kCSD-python?branch=ipynb_tests
+   :alt: Test case coverage
 
 
 Earlier Stable versions

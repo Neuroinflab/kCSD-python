@@ -75,14 +75,13 @@ elif [[ "$DISTRIB" == "ubuntu_extra" ]]; then
     # Create a new virtualenv using system site packages for numpy and scipy
     # virtualenv --system-site-packages testenv
     # source testenv/bin/activate
-    
     pip install nose
     pip install coverage
     pip install numpy==$NUMPY_VERSION
     pip install scipy==$SCIPY_VERSION
     pip install six==$SIX_VERSION
-    pip install scikit-monaco=$SKMONACO_VERSION
-    pip install matplotlib=$MATPLOTLIB_VERSION
+    pip install scikit-monaco==$SKMONACO_VERSION
+    pip install matplotlib==$MATPLOTLIB_VERSION
  
 fi
 

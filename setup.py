@@ -30,9 +30,8 @@ setup(name='kcsd',
       #     os.path.join('sKCSD', 'test.mat')
       # ]},
       include_package_data=True,
-      install_requires=[
-          'numpy>=>=1.8.2',
-          'scipy>=0.14.0',],
+      install_requires=['numpy>=1.8.2',
+                        'scipy>=0.14.0',],
       extras_require = {'mpl' : ['matplotlib>=0.99'],
                         'skmonaco' : ['scikit-monaco>=0.2'],
                         'docs': ['numpydoc>=0.5',
