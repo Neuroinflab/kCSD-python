@@ -16,7 +16,7 @@ env:
     # This environment tests minimal dependency versions
     - DISTRIB="conda_min" PYTHON_VERSION="2.7"
       SIX_VERSION="1.10.0" NUMPY_VERSION="1.8.2" SCIPY_VERSION="0.14.0" COVERAGE="true"
-    - DISTRIB="conda_min" PYTHON_VERSION="3.5"
+    - DISTRIB="conda_min" PYTHON_VERSION="3.4"
       SIX_VERSION="1.10.0" NUMPY_VERSION="1.8.2" SCIPY_VERSION="0.14.0" COVERAGE="true"
     # basic Ubuntu build environment
     - DISTRIB="ubuntu" PYTHON_VERSION="2.7"
@@ -24,7 +24,7 @@ env:
       COVERAGE="true"
     - DISTRUB="ubuntu_extra" PYTHON_VERSION="2.7"
       NUMPY_VERSION="1.8.2" SCIPY_VERSION="0.14.0" SIX_VERSION="1.10.0"
-      MATPLOTLIB_VERSION="0.99" SKMONACO_VERSION="0.2.1"
+      MATPLOTLIB_VERSION="1.0" SKMONACO_VERSION="0.2"
 
 # command to install dependencies
 install: source continuous_integration/install.sh

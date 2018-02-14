@@ -76,13 +76,13 @@ elif [[ "$DISTRIB" == "ubuntu_extra" ]]; then
     # virtualenv --system-site-packages testenv
     # source testenv/bin/activate
     
-    pip3 install nose
-    pip3 install coverage
-    pip3 install numpy==$NUMPY_VERSION
-    pip3 install scipy==$SCIPY_VERSION
-    pip3 install six==$SIX_VERSION
-    pip3 install scikit-monaco=$SKMONACO_VERSION
-    pip3 install matplotlib=$MATPLOTLIB_VERSION
+    pip install nose
+    pip install coverage
+    pip install numpy==$NUMPY_VERSION
+    pip install scipy==$SCIPY_VERSION
+    pip install six==$SIX_VERSION
+    pip install scikit-monaco=$SKMONACO_VERSION
+    pip install matplotlib=$MATPLOTLIB_VERSION
  
 fi
 
