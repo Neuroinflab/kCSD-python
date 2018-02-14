@@ -11,8 +11,10 @@ Code status
 ----------
 
 ipynb_tests branch
-.. image :: https://api.travis-ci.org/Neuroinflab/kCSD-python.svg?branch=ipynb_tests
-:target: https://travis-ci.org/Neuroinflab/kCSD-python
+
+.. image:: https://travis-ci.org/Neuroinflab/kCSD-python.svg?branch=ipynb_tests
+   :target: https://travis-ci.org/Neuroinflab/kCSD-python
+   :alt: Unit test status	 
 	    
 
 
