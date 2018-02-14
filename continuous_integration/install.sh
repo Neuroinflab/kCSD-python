@@ -69,6 +69,21 @@ elif [[ "$DISTRIB" == "ubuntu" ]]; then
     pip install scipy==$SCIPY_VERSION
     pip install six==$SIX_VERSION
  
+
+elif [[ "$DISTRIB" == "ubuntu_extra" ]]; then
+    # deactivate
+    # Create a new virtualenv using system site packages for numpy and scipy
+    # virtualenv --system-site-packages testenv
+    # source testenv/bin/activate
+    
+    pip3 install nose
+    pip3 install coverage
+    pip3 install numpy==$NUMPY_VERSION
+    pip3 install scipy==$SCIPY_VERSION
+    pip3 install six==$SIX_VERSION
+    pip3 install scikit-monaco=$SKMONACO_VERSION
+    pip3 install matplotlib=$MATPLOTLIB_VERSION
+ 
 fi
 
 if [[ "$COVERAGE" == "true" ]]; then

@@ -7,6 +7,12 @@ Neural Computation 24 (2012), 541–575
 For citation policy see the end of this file.
 
 
+Code status
+----------
+ipynb_tests branch : https://api.travis-ci.org/Neuroinflab/kCSD-python.svg?branch=ipynb_tests
+
+
+
 Earlier Stable versions
 ----------------
 Please see git tags for earlier versions
