@@ -9,8 +9,11 @@ For citation policy see the end of this file.
 
 Code status
 ----------
-ipynb_tests branch : https://api.travis-ci.org/Neuroinflab/kCSD-python.svg?branch=ipynb_tests
 
+ipynb_tests branch
+.. image :: https://api.travis-ci.org/Neuroinflab/kCSD-python.svg?branch=ipynb_tests
+:target: https://travis-ci.org/Neuroinflab/kCSD-python
+	    
 
 
 Earlier Stable versions
