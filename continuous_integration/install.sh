@@ -73,8 +73,11 @@ elif [[ "$DISTRIB" == "conda_extra" ]]; then
     # Configure the conda environment and put it in the path using the
     # provided versions
     conda create -n testenv --yes python=$PYTHON_VERSION pip nose coverage six=$SIX_VERSION \
-        scikit-monaco matplotlib numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION 
+        numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION
     source activate testenv
+
+    pip install scikit-monaco
+    pip install matplotlib
 
     if [[ "$COVERAGE" == "true" ]]; then
         pip install coveralls
