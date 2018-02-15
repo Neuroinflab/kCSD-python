@@ -170,8 +170,27 @@ def gauss_3d_large(csd_at, seed=0):
     f = f1+f2
     return f
 
+def gauss_1d_dipole_f(x):
+    """1D Gaussian dipole source is placed between 0 and 1
+       to be used to test the CSD
 
-def jan_2d_small_f(csd_at):
+       Parameters
+       ----------
+       x : np.array
+           Spatial pts. at which the true csd is evaluated
+
+       Returns
+       -------
+       f : np.array
+           The value of the csd at the requested points
+    """
+    src = 0.5*exp(-((x-0.7)**2)/(2.*0.3))*(2*np.pi*0.3)**-0.5
+    snk = -0.5*exp(-((x-0.3)**2)/(2.*0.3))*(2*np.pi*0.3)**-0.5
+    f = src+snk
+    return f
+
+
+def gauss_2d_small_f(csd_at):
     '''Source from Jan 2012 kCSD  paper'''
     x, y = csd_at
     def gauss2d(x, y, p):
@@ -200,7 +219,7 @@ def jan_2d_small_f(csd_at):
     return f
 
 
-def jan_2d_large_f(csd_at):
+def gauss_2d_large_f(csd_at):
     '''Fixed 'large source' profile in 2012 paper'''
     x, y = csd_at
     z = 0
@@ -212,7 +231,6 @@ def jan_2d_large_f(csd_at):
     f4 = -0.1963*exp( (-4*(x-1.3386)**2 - (y-0.5297)**2) /0.2507)* exp(-(z-zz[3])**2 / zs[3]) /exp(-(zz[3])**2/zs[3]);
     f = f1+f2+f3+f4
     return f
-
 
 def gauss_3d_dipole_f(csd_at):
     '''Fixed dipole in 3 dimensions of the volume'''
