@@ -431,7 +431,8 @@ class KCSD1D(KCSD):
         self.estm_x = np.mgrid[self.xmin:self.xmax:np.complex(0, nx)]
         self.n_estm = self.estm_x.size
         self.ngx = self.estm_x.shape[0]
-
+        self.estm_pos = self.estm_x.reshape(self.n_estm, 1)
+        
     def place_basis(self):
         """Places basis sources of the defined type.
         Checks if a given source_type is defined, if so then defines it
@@ -602,8 +603,9 @@ class KCSD2D(KCSD):
         """
         nx = (self.xmax - self.xmin)/self.gdx
         ny = (self.ymax - self.ymin)/self.gdy
-        self.estm_x, self.estm_y = np.mgrid[self.xmin:self.xmax:np.complex(0, nx), 
-                                            self.ymin:self.ymax:np.complex(0, ny)]
+        self.estm_pos = np.mgrid[self.xmin:self.xmax:np.complex(0, nx), 
+                                 self.ymin:self.ymax:np.complex(0, ny)]
+        self.estm_x, self.estm_y = self.estm_pos
         self.n_estm = self.estm_x.size
         self.ngx, self.ngy = self.estm_x.shape
 
@@ -910,9 +912,10 @@ class KCSD3D(KCSD):
         nx = (self.xmax - self.xmin)/self.gdx
         ny = (self.ymax - self.ymin)/self.gdy
         nz = (self.zmax - self.zmin)/self.gdz
-        self.estm_x, self.estm_y, self.estm_z = np.mgrid[self.xmin:self.xmax:np.complex(0, nx), 
-                                                         self.ymin:self.ymax:np.complex(0, ny),
-                                                         self.zmin:self.zmax:np.complex(0, nz)]
+        self.estm_pos = np.mgrid[self.xmin:self.xmax:np.complex(0, nx), 
+                                 self.ymin:self.ymax:np.complex(0, ny),
+                                 self.zmin:self.zmax:np.complex(0, nz)]
+        self.estm_x, self.estm_y, self.estm_z = self.estm_pos
         self.n_estm = self.estm_x.size
         self.ngx, self.ngy, self.ngz = self.estm_x.shape
 
