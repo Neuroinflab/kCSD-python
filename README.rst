@@ -21,7 +21,10 @@ ipynb_tests branch
 .. image:: https://coveralls.io/repos/github/Neuroinflab/kCSD-python/badge.png?branch=ipynb_tests
    :target: https://coveralls.io/github/Neuroinflab/kCSD-python?branch=ipynb_tests
 
+.. image:: https://mybinder.org/badge.svg
+   :target: https://mybinder.org/v2/gh/Neuroinflab/kCSD-python/ipynb_tests?filepath=tutorials%2Ftutorial_kcsd.ipynb
 
+	    
 Earlier Stable versions
 -----------------------
 Please see git tags for earlier versions

@@ -1,0 +1,5 @@
+name: kcsd
+channels:
+  - defaults
+prefix: /home/chaitanya/anaconda3/envs/kcsd
+
