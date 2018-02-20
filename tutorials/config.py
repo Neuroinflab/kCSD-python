@@ -56,4 +56,5 @@ defaults = {'KCSD1D': {'R_init': 0.27,
                        'zmin': 0.0, 'zmax': 1.0,
                        'ext_x': 0.0, 'ext_y': 0.0, 'ext_z': 0.0,
                        'sigma': 1.0,
+                       'h': 1.0,
                        'lambd': 0.0}}

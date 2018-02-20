@@ -60,7 +60,7 @@ def show_csd(csd_at, csd, show_ele=None, show_kcsd=False):
             im = plt.contourf(csd_at[0][:, :, idx], csd_at[1][:, :, idx],
                               csd[:, :, idx], levels=levels, cmap=cm.bwr_r)
             if show_ele is not None:
-                plt.scatter(show_ele[:, 0], show_ele[:, 1], 5)  # needs fix
+                plt.scatter(show_ele[:, 0], show_ele[:, 1], 5, 'k')  # needs fix
             ax.get_xaxis().set_visible(False)
             ax.get_yaxis().set_visible(False)
             title = str(csd_at[2][:, :, idx][0][0])[:4]
@@ -106,7 +106,7 @@ def show_pot(ele_pos, pot, no_ele=False):
         ax.set_title('Potentials')
         cbar2 = plt.colorbar(im, orientation='vertical')
         if not no_ele:
-            im2 = plt.scatter(ele_x, ele_y, 5)
+            im2 = plt.scatter(ele_x, ele_y, 5, c='k')
     else:
         fig = plt.figure(figsize=(15, 5))
         z_steps = 5
