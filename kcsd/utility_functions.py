@@ -13,10 +13,6 @@ Nencki Institute of Experimental Biology, Warsaw.
 from __future__ import division
 
 import numpy as np
-<<<<<<< HEAD:utility_functions.py
-from numpy import exp
-=======
->>>>>>> ipynb_tests:kcsd/utility_functions.py
 
 
 def check_for_duplicated_electrodes(elec_pos):
@@ -210,107 +206,4 @@ def get_src_params_3D(Lx, Ly, Lz, n_src):
     Lz_n = (nz - 1) * ds
     return (nx, ny, nz, Lx_n, Ly_n, Lz_n, ds)
 
-<<<<<<< HEAD:utility_functions.py
 
-def gauss_1d_dipole(x):
-    """1D Gaussian dipole source is placed between 0 and 1
-       to be used to test the CSD
-
-       Parameters
-       ----------
-       x : np.array
-           Spatial pts. at which the true csd is evaluated
-
-       Returns
-       -------
-       f : np.array
-           The value of the csd at the requested points
-    """
-    src = 0.5*exp(-((x-0.7)**2)/(2.*0.3))*(2*np.pi*0.3)**-0.5
-    snk = -0.5*exp(-((x-0.3)**2)/(2.*0.3))*(2*np.pi*0.3)**-0.5
-    f = src+snk
-    return f
-=======
->>>>>>> ipynb_tests:kcsd/utility_functions.py
-
-
-def large_source_2D(x, y):
-    """2D Gaussian large source profile - to use to test csd
-       Parameters
-       ----------
-       x : np.array
-           Spatial x pts. at which the true csd is evaluated
-       y : np.array
-           Spatial y pts. at which the true csd is evaluated
-       Returns
-       -------
-       f : np.array
-           The value of the csd at the requested points
-    """
-    zz = [0.4, -0.3, -0.1, 0.6]
-    zs = [0.2, 0.3, 0.4, 0.2]
-    f1 = 0.5965*exp((-1*(x-0.1350)**2 - (y-0.8628)**2)/0.4464) * \
-        exp(-(-zz[0])**2 / zs[0])/exp(-(zz[0])**2/zs[0])
-    f2 = -0.9269*exp((-2*(x-0.1848)**2 - (y-0.0897)**2)/0.2046) * \
-        exp(-(-zz[1])**2 / zs[1])/exp(-(zz[1])**2/zs[1])
-    f3 = 0.5910*exp((-3*(x-1.3189)**2 - (y-0.3522)**2)/0.2129) * \
-        exp(-(-zz[2])**2 / zs[2])/exp(-(zz[2])**2/zs[2])
-    f4 = -0.1963*exp((-4*(x-1.3386)**2 - (y-0.5297)**2)/0.2507) * \
-        exp(-(-zz[3])**2 / zs[3])/exp(-(zz[3])**2/zs[3])
-    f = f1+f2+f3+f4
-    return f
-
-
-def small_source_2D(x, y):
-    """2D Gaussian small source profile - to be used to test csd
-       Parameters
-       ----------
-       x : np.array
-           Spatial x pts. at which the true csd is evaluated
-       y : np.array
-           Spatial y pts. at which the true csd is evaluated
-       Returns
-       -------
-       f : np.array
-           The value of the csd at the requested points
-    """
-    def gauss2d(x, y, p):
-        rcen_x = p[0] * np.cos(p[5]) - p[1] * np.sin(p[5])
-        rcen_y = p[0] * np.sin(p[5]) + p[1] * np.cos(p[5])
-        xp = x * np.cos(p[5]) - y * np.sin(p[5])
-        yp = x * np.sin(p[5]) + y * np.cos(p[5])
-
-        g = p[4]*exp(-(((rcen_x-xp)/p[2])**2 +
-                       ((rcen_y-yp)/p[3])**2)/2.)
-        return g
-    f1 = gauss2d(x, y, [0.3, 0.7, 0.038, 0.058, 0.5, 0.])
-    f2 = gauss2d(x, y, [0.3, 0.6, 0.038, 0.058, -0.5, 0.])
-    f3 = gauss2d(x, y, [0.45, 0.7, 0.038, 0.058, 0.5, 0.])
-    f4 = gauss2d(x, y, [0.45, 0.6, 0.038, 0.058, -0.5, 0.])
-    f = f1+f2+f3+f4
-    return f
-
-
-def gauss_3d_dipole(x, y, z):
-    """3D Gaussian dipole profile - to be used to test csd.
-       Parameters
-       ----------
-       x : np.array
-           Spatial x pts. at which the true csd is evaluated
-       y : np.array
-           Spatial y pts. at which the true csd is evaluated
-       z : np.array
-           Spatial z pts. at which the true csd is evaluated
-       Returns
-       -------
-       f : np.array
-           The value of the csd at the requested points
-    """
-    x0, y0, z0 = 0.3, 0.7, 0.3
-    x1, y1, z1 = 0.6, 0.5, 0.7
-    sig_2 = 0.023
-    A = (2*np.pi*sig_2)**-1
-    f1 = A*exp((-(x-x0)**2 - (y-y0)**2 - (z-z0)**2) / (2*sig_2))
-    f2 = -1*A*exp((-(x-x1)**2 - (y-y1)**2 - (z-z1)**2) / (2*sig_2))
-    f = f1+f2
-    return f
