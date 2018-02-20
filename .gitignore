@@ -2,6 +2,8 @@
 __pycache__/
 *.py[cod]
 *$py.class
+*~
+\#*\#
 
 # C extensions
 *.so
@@ -51,6 +53,9 @@ coverage.xml
 
 # Django stuff:
 *.log
+
+# coveralls
+/coverage/
 
 # Sphinx documentation
 docs/_build/

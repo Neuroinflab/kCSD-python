@@ -1,10 +1,19 @@
+#!/usr/bin/env python
 """
 This script is used to generate basis sources for the
+<<<<<<< HEAD:basis_functions.py
 kCSD method Jan et.al (2012) for 3D case.
 
 These scripts are based on Grzegorz Parka's,
 Google Summer of Code 2014, INFC/pykCSD
 
+=======
+kCSD method Jan et.al (2012) for 1D,2D and 3D cases.
+Two 'types' are described here, gaussian and step source,
+These can be easily extended.
+These scripts are based on Grzegorz Parka's,
+Google Summer of Code 2014, INFC/pykCSD
+>>>>>>> ipynb_tests:kcsd/basis_functions.py
 This was written by :
 Michal Czerwinski, Chaitanya Chintaluri
 Laboratory of Neuroinformatics,
@@ -17,7 +26,6 @@ import numpy as np
 
 def gauss(d, stdev, dim):
     """Gaussian function
-
     Parameters
     ----------
     d : floats or np.arrays
@@ -26,7 +34,6 @@ def gauss(d, stdev, dim):
         cutoff range
     dim : int
         dimension of the gaussian function
-
     Returns
     -------
     Z : floats or np.arrays
@@ -38,33 +45,35 @@ def gauss(d, stdev, dim):
 
 def step_1D(d, R):
     """Returns normalized 1D step function.
-
     Parameters
     ----------
     d : floats or np.arrays
         Distance array to the point of evaluation
     R : float
         cutoff range
-
     Returns
     -------
     s : Value of the function (d  <= R) / R
     """
+<<<<<<< HEAD:basis_functions.py
     s = (d <= R)
     s = s / R  # normalize with width
     return s
 
+=======
+    s = (d  <= R)
+    s = s / R #normalize with width
+    return s
+>>>>>>> ipynb_tests:kcsd/basis_functions.py
 
 def gauss_1D(d, three_stdev):
     """Returns normalized gaussian 2D scale function
-
     Parameters
     ----------
     d : floats or np.arrays
         Distance array to the point of evaluation
     three_stdev : float
         3 * standard deviation of the distribution
-
     Returns
     -------
     Z : (three_std/3)*(1/2*pi)*(exp(-0.5)*stddev**(-2) *(d**2))
@@ -76,14 +85,12 @@ def gauss_1D(d, three_stdev):
 
 def gauss_lim_1D(d, three_stdev):
     """Returns gausian 2D function cut off after 3 standard deviations.
-
     Parameters
     ----------
     d : floats or np.arrays
         Distance array to the point of evaluation
     three_stdev : float
         3 * standard deviation of the distribution
-
     Returns
     -------
     Z : (three_std/3)*(1/2*pi)*(exp(-0.5)*stddev**(-2) *((x-mu)**2)),
@@ -96,7 +103,6 @@ def gauss_lim_1D(d, three_stdev):
 
 def step_2D(d, R):
     """Returns normalized 2D step function.
-
     Parameters
     ----------
     d : float or np.arrays
@@ -110,18 +116,19 @@ def step_2D(d, R):
     """
     s = (d <= R) / (np.pi*(R**2))
     return s
+<<<<<<< HEAD:basis_functions.py
 
+=======
+>>>>>>> ipynb_tests:kcsd/basis_functions.py
 
 def gauss_2D(d, three_stdev):
     """Returns normalized gaussian 2D scale function
-
     Parameters
     ----------
     d : floats or np.arrays
          distance at which we need the function evaluated
     three_stdev : float
         3 * standard deviation of the distribution
-
     Returns
     -------
     Z : function
@@ -134,14 +141,12 @@ def gauss_2D(d, three_stdev):
 
 def gauss_lim_2D(d, three_stdev):
     """Returns gausian 2D function cut off after 3 standard deviations.
-
     Parameters
     ----------
     d : floats or np.arrays
          distance at which we need the function evaluated
     three_stdev : float
         3 * standard deviation of the distribution
-
     Returns
     -------
     Z : function
@@ -154,14 +159,12 @@ def gauss_lim_2D(d, three_stdev):
 
 def gauss_3D(d, three_stdev):
     """Returns normalized gaussian 3D scale function
-
     Parameters
     ----------
     d : floats or np.arrays
         distance at which we need the function evaluated
     three_stdev : float
         3 * standard deviation of the distribution
-
     Returns
     -------
     Z : funtion
@@ -174,14 +177,12 @@ def gauss_3D(d, three_stdev):
 
 def gauss_lim_3D(d, three_stdev):
     """Returns normalized gaussian 3D scale function cut off after 3stdev
-
     Parameters
     ----------
     d : floats or np.arrays
         distance at which we need the function evaluated
     three_stdev : float
         3 * standard deviation of the distribution
-
     Returns
     -------
     Z : funtion
@@ -194,20 +195,22 @@ def gauss_lim_3D(d, three_stdev):
 
 def step_3D(d, R):
     """Returns normalized 3D step function.
-
     Parameters
     ----------
     d : floats or np.arrays
         distance at which we need the function evaluated
     R : float
         cutoff range
-
     Returns
     -------
     s : step function in 3D
     """
 
+<<<<<<< HEAD:basis_functions.py
     s = 3 / (4 * np.pi * R**3) * (d <= R)
+=======
+    s = 3/(4*np.pi*R**3)*(d <= R)
+>>>>>>> ipynb_tests:kcsd/basis_functions.py
     return s
 
 

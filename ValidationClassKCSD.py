@@ -40,6 +40,7 @@ class ValidationClassKCSD(object):
     """
     def __init__(self, dim, **kwargs):
         """Initialize TestKCSD class
+
         Parameters
         ----------
         dim: int
@@ -112,7 +113,6 @@ class ValidationClassKCSD(object):
         self.n_src_init = kwargs.get('n_src_init', 300)
         self.total_ele = kwargs.get('total_ele', 10)
         self.config = kwargs.get('ele_config', 'regular')
-        print(self.config)
         self.mask = kwargs.get('mask', False)
         return
 
@@ -161,17 +161,20 @@ class ValidationClassKCSD(object):
 
     def broken_electrodes(self, ele_seed, n):
         """
-        Creates plot of eigenvalues
+        Produces electrodes positions for setup with n pseudo randomly
+        (ele_seed) removed electrodes
 
         Parameters
         ----------
-        seed: internal state of the random number generator
-        n: number of broken/missing electrodes
+        ele_seed: int
+            internal state of the random number generator
+        n: int
+            number of broken/missing electrodes
 
         Returns
         -------
-        ele_pos[:, 0]: x locations of electrodes
-        ele_pos[:, 1]: y locations of electrodes
+        ele_pos: numpy array
+            electrodes positions
         """
         if self.dim == 1:
             ele_grid = self.generate_electrodes()
@@ -200,16 +203,15 @@ class ValidationClassKCSD(object):
 
     def generate_electrodes(self):
         """
-        Places electrodes linearly
+        Places electrodes linearly.
 
         Parameters
         ----------
-        dim: int
-            dimention of analyzed case (1, 2 or 3D)
+        None
 
         Returns
         -------
-        linearly placed electrodes positions
+        Linearly placed electrodes positions.
         (for 1D case: ele_x, 2D case: ele_x, ele_y, and
         3D case: ele_x, ele_y, ele_z)
         """
@@ -218,14 +220,10 @@ class ValidationClassKCSD(object):
                                 self.total_ele)
             return ele_x
         elif self.dim == 2:
-            if self.config == 'mavi':
-                self.total_ele = 16
-                ele_x, ele_y = self.mavi_electrodes()
-            else:
-                ele_x, ele_y = np.mgrid[self.ele_xlims[0]:self.ele_xlims[1]:
-                                        np.complex(0, self.ele_yres),
-                                        self.ele_ylims[0]:self.ele_ylims[1]:
-                                        np.complex(0, self.ele_yres)]
+            ele_x, ele_y = np.mgrid[self.ele_xlims[0]:self.ele_xlims[1]:
+                                    np.complex(0, self.ele_yres),
+                                    self.ele_ylims[0]:self.ele_ylims[1]:
+                                    np.complex(0, self.ele_yres)]
             return ele_x.flatten(), ele_y.flatten()
         elif self.dim == 3:
             ele_x, ele_y, ele_z = np.mgrid[self.ele_xlims[0]:self.ele_xlims[1]:
@@ -238,29 +236,33 @@ class ValidationClassKCSD(object):
 
     def electrode_config(self, csd_profile, noise=None, nr_broken_ele=0):
         """
-        Produces electrodes positions and potentials measured at these points
+        Produces electrodes positions and calculates potentials measured at
+        these points
 
         Parameters
         ----------
         csd_profile: function
-            function to produce csd profile
-        noise: string
-            determins if data contains noise
+            Function to produce ground truth csd profile.
+        noise: str, optional
+            Determins if data contains noise. For noise='noise' white Gaussian
+            noise is added to potentials.
+            Default: None
+        nr_broken_ele: int, optional
+            Determines how many electrodes are broken.
+            Default: 0.
 
         Returns
         -------
-        ele_pos: numpy array, shape (total_ele, 2)
-            electrodes locations in 2D plane
-        pots: numpy array, shape (total_ele, 1)
+        ele_pos: numpy array
+            Electrodes locations in 1D, 2D or 3D.
+        pots: numpy array
+            Potentials measured (calculated) on electrodes.
         """
         if self.dim == 1:
-            print('hi')
             csd_at, true_csd = self.generate_csd(csd_profile)
             if self.config == 'broken':
-                print('here')
                 ele_pos = self.broken_electrodes(10, nr_broken_ele)
             else:
-                print('there')
                 ele_pos = self.generate_electrodes()
             pots = self.calculate_potential(true_csd, csd_at, ele_pos)
             ele_pos = ele_pos.reshape((len(ele_pos), 1))
@@ -297,27 +299,32 @@ class ValidationClassKCSD(object):
             pots = self.add_noise(pots)
         return ele_pos, pots.reshape((len(ele_pos), 1))
 
-    def do_kcsd(self, ele_pos, pots, k, Rs=np.arange(0.19, 0.3, 0.04),
-                lambdas=None):
+    def do_kcsd(self, ele_pos, pots, k, Rs=None, lambdas=None):
         """
-        Function that calls the KCSD2D module
+        Estimates csd with kCSD method.
 
         Parameters
         ----------
-        ele_pos: numpy array, shape (total_ele)
-            electrodes locations/positions
-        pots: numpy array, shape (total_ele)
-            values of potentials at ele_pos
+        ele_pos: numpy array
+            Electrodes positions.
+        pots: numpy array
+            Values of potentials at ele_pos.
         k: instance of the class
-            instance of TestKCSD1D, TestKCSD2D or TestKCSD3D class
-        Rs: demanded thickness of the basis element
+            Instance of KCSD1D, KCSD2D or KCSD3D class.
+        Rs: numpy 1D array, optional
+            Array of different values of basis parameter R used for
+            cross validation.
+            Default: None.
+        lambdas: numpy 1D array, optional
+            Regularization parameter.
+            Default: None.
 
         Returns
         -------
         est_csd: numpy array
-            estimated csd (with kCSD method)
+            Estimated csd (with kCSD method).
         est_pot: numpy array
-            estimated potentials
+            Estimated potentials.
         """
         k.cross_validate(Rs=Rs, lambdas=lambdas)
         est_csd = k.values('CSD')
@@ -326,19 +333,19 @@ class ValidationClassKCSD(object):
 
     def calculate_rms(self, test_csd, est_csd):
         """
-        Calculates error of reconstruction
+        Calculates normalized error of reconstruction.
 
         Parameters
         ----------
         test_csd: numpy array
-            values of true csd at points of kcsd estimation
+            Values of true CSD at points of kCSD estimation.
         est_csd: numpy array
-            csd estimated with kcsd method
+            CSD estimated with kCSD method.
 
         Returns
         -------
         rms: float
-            error of reconstruction
+            Normalized error of reconstruction.
         """
         rms = np.linalg.norm((test_csd - est_csd))
         epsilon = 0.0000000001
@@ -347,19 +354,21 @@ class ValidationClassKCSD(object):
 
     def calculate_point_error(self, test_csd, est_csd):
         """
-        Calculates error of reconstruction at every point of estimation space
+        Calculates normalized error of reconstruction at every point of
+        estimation space separetly.
 
         Parameters
         ----------
         test_csd: numpy array
-            values of true csd at points of kcsd estimation
+            Values of true csd at points of kCSD estimation.
         est_csd: numpy array
-            csd estimated with kcsd method
+            CSD estimated with kCSD method.
 
         Returns
         -------
-        point_error: numpy array, shape: test_csd.shape
-            point error of reconstruction
+        point_error: numpy array
+            Normalized error of reconstruction calculated separetly at every
+            point of estimation space.
         """
         epsilon = 0.0000000001
         point_error = np.linalg.norm(test_csd.reshape(test_csd.size, 1) -
@@ -379,14 +388,14 @@ class ValidationClassKCSD(object):
         Parameters
         ----------
         error: numpy array
-            point error of reconstruction
+            Normalized point error of reconstruction.
 
         Returns
         -------
         error_mean: numpy array
-            sigmoidal mean error of reconstruction
-            error_mean ->1    - very poor reconstruction
-            error_mean ->0    - perfect reconstruction
+            Sigmoidal mean error of reconstruction.
+            error_mean -> 1    - very poor reconstruction
+            error_mean -> 0    - perfect reconstruction
         '''
         sig_error = 2*(1./(1 + np.exp((-error))) - 1/2.)
         error_mean = np.mean(sig_error, axis=0)
@@ -394,18 +403,19 @@ class ValidationClassKCSD(object):
 
     def add_noise(self, pots, level=0.001):
         """
-        Adds noise to potentials
+        Adds Gaussian noise to potentials.
 
         Parameters
         ----------
-        seed: internal state of the random number generator
-        pots: numpy array, shape (total_ele)
-        level: noise level
+        pots: numpy array
+            Potentials at measurement points.
+        level: float, optional
+            Noise level. Default: 0.001.
 
         Returns
         -------
-        pots_noise: numpy array, shape (total_ele)
-            potentials with noise
+        pots_noise: numpy array
+            Potentials with added random Gaussian noise.
         """
         rstate = np.random.RandomState(self.csd_seed)
         noise = level*rstate.normal(np.mean(pots), np.std(pots), len(pots))
@@ -416,33 +426,46 @@ class ValidationClassKCSD(object):
 class SpectralStructure(object):
     """
     Class that enables examination of spectral structure of CSD reconstruction
-    with kCSD method
+    with kCSD method.
     """
     def __init__(self, k):
+        """
+        Initialize SpectralStructure class
+
+        Parameters
+        ----------
+        k: instance of the class
+            Instance of ValidationClassKCSD1D, ValidationClassKCSD2D or
+            ValidationClassKCSD3D class.
+        Defines:
+            self.k: instance of the class
+            Instance of ValidationClassKCSD1D, ValidationClassKCSD2D or
+            ValidationClassKCSD3D class.
+
+        Returns
+        -------
+        None
+        """
         self.k = k
         return
 
     def svd(self):
         """
         Method that calculates singular value decomposition of total kernel
-        matrix
-
-        Defines:
-            self.u_svd: numpy array, shape (nr_basis, total_ele)
-                left singular vectors
-            self.sigma: numpy array, shape (total_ele)
-                singular values
-            self.v_svd: numpy array, shape (total_ele, total_ele)
-                right singular vectors
+        matrix. K~*K^-1  from eq. 18 (Potworowski 2012)
 
         Parameters
         ----------
+        None
 
         Returns
         -------
-        u_svd: left singular vectors
-        sigma: singular values
-        v_svd: right singular vectors
+        u_svd: numpy array
+            Left singular vectors of kernels product.
+        sigma: numpy array
+            Singular values of kernels product.
+        v_svd: numpy array
+            Right singular vectors of kernels product.
         """
         kernel = np.dot(self.k.k_interp_cross,
                         inv(self.k.k_pot +
@@ -455,11 +478,12 @@ class SpectralStructure(object):
 
     def picard_plot(self, b):
         """
-        Creates Picard plot according to Hansen book
+        Creates Picard plot according to Hansen's book.
+
         Parameters
         ----------
-        k: instance of class (TestKCSD1D, TestKCSD2D or TestKCSD3D)
-        b: right-hand side of the linear equation
+        b: numpy array
+            Right-hand side of the linear equation.
 
         Returns
         -------
@@ -499,13 +523,14 @@ class SpectralStructure(object):
         plt.show()
         return
 
-    def plot_s(self, s):
+    def plot_evd_sigma(self, s):
         """
-        Creates plot of singular values
+        Creates plot of eigenvalues of k_pot matrix.
 
         Parameters
         ----------
-        s: singular values
+        s: numpy array
+            Eigenvalues of k_pot matrix
 
         Returns
         -------
@@ -513,22 +538,17 @@ class SpectralStructure(object):
         """
         plt.figure()
         plt.plot(s, '.')
-        plt.title('Singular values of k_pot matrix')
+        plt.title('Eigenvalues of k_pot matrix')
         plt.xlabel('Components number')
-        plt.ylabel('Singular values')
+        plt.ylabel('Eigenvalues')
         plt.yscale('log')
         plt.show()
         return
 
     def evd(self):
         """
-        Method that calculates eigenvalue decomposition of kernel
-
-        Defines:
-            self.eigenvectors: numpy array, shape(total_ele, total_ele)
-                eigen vectors
-            self.eigrnvalues: numpy array, shape(total_ele)
-                eigenvalues
+        Method that calculates eigenvalue decomposition of kernel (k_pot
+        matrix)
 
         Parameters
         ----------
@@ -536,24 +556,28 @@ class SpectralStructure(object):
 
         Returns
         -------
-        None
+        eigenvectors: numpy array
+            Eigen vectors of k_pot matrix.
+        eigrnvalues: numpy array
+            Eigenvalues of k_pot matrix.
         """
         eigenvalues, eigenvectors = np.linalg.eigh(self.k.k_pot +
                                                    self.k.lambd * np.identity
                                                    (self.k.k_pot.shape[0]))
-        idx = eigenvalues.argsort()[::-1]  # SVD&EVD in the opposite order
+        idx = eigenvalues.argsort()[::-1]
         eigenvalues = eigenvalues[idx]
         eigenvectors = eigenvectors[:, idx]
         self.plot_evd(eigenvalues)
-        return
+        return eigenvectors, eigenvalues
 
     def plot_svd_sigma(self, sigma):
         """
-        Creates plot of singular values
+        Creates plot of singular values of kernels product (K~*K^-1)
 
         Parameters
         ----------
-        sigma: singular values
+        sigma: numpy array
+            Singular values of kernels product
 
         Returns
         -------
@@ -570,11 +594,12 @@ class SpectralStructure(object):
 
     def plot_u(self, u):
         """
-        Creates plot of left singular values
+        Creates plot of left singular vectors.
 
         Parameters
         ----------
-        u: left singular vectors
+        u: numpy array
+            Left singular vectors.
 
         Returns
         -------

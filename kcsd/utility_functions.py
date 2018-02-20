@@ -13,7 +13,10 @@ Nencki Institute of Experimental Biology, Warsaw.
 from __future__ import division
 
 import numpy as np
+<<<<<<< HEAD:utility_functions.py
 from numpy import exp
+=======
+>>>>>>> ipynb_tests:kcsd/utility_functions.py
 
 
 def check_for_duplicated_electrodes(elec_pos):
@@ -207,6 +210,7 @@ def get_src_params_3D(Lx, Ly, Lz, n_src):
     Lz_n = (nz - 1) * ds
     return (nx, ny, nz, Lx_n, Ly_n, Lz_n, ds)
 
+<<<<<<< HEAD:utility_functions.py
 
 def gauss_1d_dipole(x):
     """1D Gaussian dipole source is placed between 0 and 1
@@ -226,6 +230,8 @@ def gauss_1d_dipole(x):
     snk = -0.5*exp(-((x-0.3)**2)/(2.*0.3))*(2*np.pi*0.3)**-0.5
     f = src+snk
     return f
+=======
+>>>>>>> ipynb_tests:kcsd/utility_functions.py
 
 
 def large_source_2D(x, y):
