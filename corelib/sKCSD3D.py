@@ -99,6 +99,12 @@ class sKCSD3D(KCSD3D):
             Basis function (src_type) not implemented. See basis_functions.py for available
         """
         self.morphology = morphology
+        if 'dist_table_density' not in kwargs:
+            if 'n_src_init' in kwargs:
+                kwargs['dist_table_density'] = kwargs['n_src_init'] /2
+            else:
+                kwargs['dist_table_density'] = 100
+        
         super(KCSD3D, self).__init__(ele_pos, pots, **kwargs)
         return
     
@@ -122,7 +128,6 @@ class sKCSD3D(KCSD3D):
         ny = (self.ymax - self.ymin)/self.gdy
         nz = (self.zmax - self.zmin)/self.gdz
     
-        print(nx, ny, nz)
         #Making a mesh of points where estimation is to be made.
         self.estm_x, self.estm_y, self.estm_z = np.mgrid[self.xmin:self.xmax:np.complex(0,nx), 
                                                          self.ymin:self.ymax:np.complex(0,ny),
@@ -154,6 +159,7 @@ class sKCSD3D(KCSD3D):
         source_type = self.src_type
         try:
             self.basis = basis.basis_3D[source_type]
+            
         except:
             print('Invalid source_type for basis! available are:', basis.basis_3D.keys())
             raise KeyError
@@ -179,12 +185,13 @@ class sKCSD3D(KCSD3D):
         src_loc = np.array((self.src_x.ravel(), 
                             self.src_y.ravel(), 
                             self.src_z.ravel()))
-        est_loc = np.array((self.estm_x.ravel(), 
+        est_loc = np.array((self.estm_x.ravel(), #the 3D grid for estimation
                             self.estm_y.ravel(), 
                             self.estm_z.ravel()))
-        self.src_ele_dists = distance.cdist(src_loc.T, self.ele_pos, 'euclidean')
-        self.src_estm_dists = distance.cdist(src_loc.T, est_loc.T,  'euclidean')
+        self.src_ele_dists = distance.cdist(src_loc.T, self.ele_pos, 'euclidean')#self.cell.loop_pos
+        self.src_estm_dists = distance.cdist(src_loc.T, est_loc.T,  'euclidean')#self.cell.loop_pos,self.cell.source_pos (on morphology, add)
         self.dist_max = max(np.max(self.src_ele_dists), np.max(self.src_estm_dists)) + self.R
+
         return
 
     def forward_model(self, x, R, h, sigma, src_type):
@@ -333,7 +340,6 @@ if __name__ == '__main__':
     ymax = morphology[:,3].max()+morphology[:,5].max()
     zmin = morphology[:,4].min()-morphology[:,5].max()
     zmax = morphology[:,4].max()+morphology[:,5].max()
-    print(xmin,xmax,ymin,ymax,zmin,zmax)
     gdx = (xmax-xmin)/88
     gdy = (ymax-ymin)/112
     gdz = (zmax-zmin)/20
