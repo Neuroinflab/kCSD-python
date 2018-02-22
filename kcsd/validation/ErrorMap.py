@@ -143,7 +143,7 @@ class ErrorMap1D(ValidationClassKCSD1D):
         point_error = self.calculate_point_error(test_csd, est_csd[:, 0])
         return [rms, kcsd], point_error
 
-    def plot_mean_error(self, point_error, ele_pos):
+    def plot_error_map(self, point_error, ele_pos):
         """
         Creates plot of mean error calculated separately for every point of
         estimation space
@@ -292,10 +292,10 @@ class ErrorMap2D(ValidationClassKCSD2D):
         point_error = np.array(point_error)
         toc = time.time() - tic
         print('time: ', toc)
-#        self.plot_mean_error(point_error, nr_broken_ele)
+#        self.plot_error_map(point_error, nr_broken_ele)
         return rms, point_error
 
-    def plot_mean_error(self, point_error, ele_pos):
+    def plot_error_map(self, point_error, ele_pos):
         """
         Creates plot of mean error calculated separately for every point of
         estimation space
@@ -458,7 +458,7 @@ class ErrorMap3D(ValidationClassKCSD3D):
         print('time: ', toc)
         return rms, point_error
 
-    def plot_mean_error(self, point_error, ele_pos):
+    def plot_error_map(self, point_error, ele_pos):
         """
         Creates plot of mean error calculated separately for every point of
         estimation space
