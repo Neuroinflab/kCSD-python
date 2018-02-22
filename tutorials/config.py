@@ -1,15 +1,10 @@
 
 from kcsd import csd_profile as csd
-from kcsd import KCSD1D, KCSD2D, KCSD3D, MoIKCSD
-from kcsd.validation.ValidationClassKCSD import ValidationClassKCSD1D, ValidationClassKCSD2D, \
-    ValidationClassKCSD3D, SpectralStructure
+from kcsd import MoIKCSD
+from kcsd.validation.ValidationClassKCSD import ValidationClassKCSD1D, \
+    ValidationClassKCSD2D, ValidationClassKCSD3D, SpectralStructure
 from kcsd.validation.ErrorMap import ErrorMap1D, ErrorMap2D, ErrorMap3D
 
-# These are the default setting  -can be changed to what ever after UI
-# interaction.
-#dim = 1
-#csd_profile = csd.gauss_1d_mono
-#kCSD = KCSD1D
 
 # Function to initialize default parameters
 def initialize(value):
@@ -30,11 +25,13 @@ def initialize(value):
         error_map = ErrorMap3D
     return dim, csd_profile, kCSD, error_map
 
+
 dim, csd_profile, kCSD, error_map = initialize('1D')
 
 
 kcsd_options = {1: {'ValidationClassKCSD1D': ValidationClassKCSD1D},
-                2: {'ValidationClassKCSD2D': ValidationClassKCSD2D, 'MoIKCSD': MoIKCSD},
+                2: {'ValidationClassKCSD2D': ValidationClassKCSD2D,
+                    'MoIKCSD': MoIKCSD},
                 3: {'ValidationClassKCSD3D': ValidationClassKCSD3D}}
 
 csd_options = {1: {'monopole gauss': csd.gauss_1d_mono,
@@ -81,4 +78,4 @@ defaults = {'ValidationClassKCSD1D': {'R_init': 0.27,
                                       'ext_x': 0.0, 'ext_y': 0.0, 'ext_z': 0.0,
                                       'sigma': 1.0,
                                       'h': 1.0,
-                                      'lambd': 0.0 }}
+                                      'lambd': 0.0}}

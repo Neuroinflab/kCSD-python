@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 
 from kcsd.validation.ValidationClassKCSD import ValidationClassKCSD1D, \
     ValidationClassKCSD2D, ValidationClassKCSD3D
-import csd_profile as CSD
+from kcsd import csd_profile as CSD
 from kcsd import KCSD1D, KCSD2D, KCSD3D
 
 try:
@@ -292,7 +292,6 @@ class ErrorMap2D(ValidationClassKCSD2D):
         point_error = np.array(point_error)
         toc = time.time() - tic
         print('time: ', toc)
-#        self.plot_error_map(point_error, nr_broken_ele)
         return rms, point_error
 
     def plot_error_map(self, point_error, ele_pos):
@@ -313,10 +312,6 @@ class ErrorMap2D(ValidationClassKCSD2D):
         None
         """
         ele_x, ele_y = ele_pos[0], ele_pos[1]
-#        if self.config == 'broken':
-#            ele_x, ele_y = self.broken_electrode(10, nr_broken_ele)
-#        else:
-#            ele_x, ele_y = self.generate_electrodes()
 #        x, y = np.mgrid[np.min(ele_x):np.max(ele_x):
 #                        np.complex(0, self.est_xres),
 #                        np.min(ele_y):np.max(ele_y):

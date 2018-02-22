@@ -19,7 +19,7 @@ import matplotlib.cm as cm
 from matplotlib.mlab import griddata
 from matplotlib import colors, gridspec
 from scipy.integrate import simps
-import csd_profile as CSD
+from kcsd import csd_profile as CSD
 from kcsd import KCSD1D, KCSD2D, KCSD3D
 
 
@@ -776,7 +776,8 @@ class ValidationClassKCSD1D(ValidationClassKCSD):
         Integral = simps(y, csd_at)
         return Integral
 
-    def make_reconstruction(self, csd_profile, noise=None, nr_broken_ele=0):
+    def make_reconstruction(self, csd_profile, noise=None, nr_broken_ele=0,
+                            Rs=None, lambdas=None):
         """
         Main method, makes the whole kCSD reconstruction.
 
@@ -806,7 +807,8 @@ class ValidationClassKCSD1D(ValidationClassKCSD):
                                               nr_broken_ele)
         kcsd = KCSD1D(ele_pos, pots, src_type='gauss', sigma=self.sigma,
                       h=self.h, n_src_init=self.n_src_init, ext_x=self.ext_x)
-        est_csd, est_pot = self.do_kcsd(ele_pos, pots, kcsd)
+        est_csd, est_pot = self.do_kcsd(ele_pos, pots, kcsd, Rs=Rs,
+                                        lambdas=lambdas)
         test_csd = csd_profile(kcsd.estm_x, self.csd_seed)
         rms = self.calculate_rms(test_csd, est_csd[:, 0])
         title = "Lambda: %0.2E; R: %0.2f; RMS_Error: %0.2E;" % (kcsd.lambd,
@@ -984,7 +986,8 @@ class ValidationClassKCSD2D(ValidationClassKCSD):
         F = simps(integral_1D, xlin)         # then an integral over the result
         return F
 
-    def make_reconstruction(self, csd_profile, noise=None, nr_broken_ele=0):
+    def make_reconstruction(self, csd_profile, noise=None, nr_broken_ele=0,
+                            Rs=None, lambdas=None):
         """
         Main method, makes the whole kCSD reconstruction.
 
@@ -1015,8 +1018,8 @@ class ValidationClassKCSD2D(ValidationClassKCSD):
         kcsd = KCSD2D(ele_pos, pots, xmin=0., xmax=1., ymin=0.,
                       ymax=1., h=self.h, sigma=self.sigma,
                       n_src_init=self.n_src_init)
-        est_csd, est_pot = self.do_kcsd(ele_pos, pots, kcsd,
-                                        Rs=np.arange(0.1, 0.31, 0.05))
+        est_csd, est_pot = self.do_kcsd(ele_pos, pots, kcsd, Rs=Rs,
+                                        lambdas=lambdas)
         test_csd = csd_profile([kcsd.estm_x, kcsd.estm_y], self.csd_seed)
         rms = self.calculate_rms(test_csd, est_csd[:, :, 0])
         title = "Lambda: %0.2E; R: %0.2f; RMS: %0.2E; CV_Error: %0.2E; "\
@@ -1026,33 +1029,6 @@ class ValidationClassKCSD2D(ValidationClassKCSD):
         ss.picard_plot(pots)
         point_error = self.calculate_point_error(test_csd, est_csd[:, :, 0])
         return kcsd, rms, point_error
-
-    def plot_point_error(self, point_error, k):
-        """
-        Creates plot of point error
-
-        Parameters
-        ----------
-        point_error: numpy array
-            Error of reconstruction calculated at every point of reconstruction
-            space.
-        k: object of the class
-            Object of KCSD2D class.
-
-        Returns
-        -------
-        None
-        """
-
-        plt.figure(figsize=(10, 6))
-        plt.contourf(k.estm_x, k.estm_y, point_error, cmap=cm.Greys)
-        plt.xlim([0., 1.])
-        plt.ylim([0., 1.])
-        plt.xlabel('x [mm]')
-        plt.ylabel('y [mm]')
-        plt.colorbar()
-        plt.show()
-        return
 
     def make_plot(self, csd_at, true_csd, kcsd, est_csd, ele_pos, pots,
                   fig_title):
@@ -1318,7 +1294,8 @@ class ValidationClassKCSD3D(ValidationClassKCSD):
         pots /= 4*np.pi*self.sigma
         return pots
 
-    def make_reconstruction(self, csd_profile, noise=None, nr_broken_ele=0):
+    def make_reconstruction(self, csd_profile, noise=None, nr_broken_ele=0,
+                            Rs=None, lambdas=None):
         """
         Main method, makes the whole kCSD reconstruction.
 
@@ -1350,8 +1327,8 @@ class ValidationClassKCSD3D(ValidationClassKCSD):
                       h=self.h, sigma=self.sigma, xmax=1, xmin=0, ymax=1,
                       ymin=0, zmax=1, zmin=0, n_src_init=self.n_src_init)
         tic = time.time()
-        est_csd, est_pot = self.do_kcsd(ele_pos, pots, kcsd,
-                                        np.arange(0.08, 0.4, 0.05))
+        est_csd, est_pot = self.do_kcsd(ele_pos, pots, kcsd, Rs=Rs,
+                                        lambdas=lambdas)
         ss = SpectralStructure(kcsd)
         ss.picard_plot(pots)
         toc = time.time() - tic
@@ -1485,7 +1462,7 @@ if __name__ == '__main__':
                               true_csd_xlims=true_csd_xlims, sigma=0.3,
                               src_type='gauss', ext_x=0.1,
                               config='regular')
-    k.make_reconstruction(csd_profile)
+    k.make_reconstruction(csd_profile, Rs=np.arange(0.2, 0.6, 0.1))
 
     print('Checking 2D')
     csd_profile = CSD.gauss_2d_small
@@ -1495,7 +1472,7 @@ if __name__ == '__main__':
     k = ValidationClassKCSD2D(csd_profile, csd_seed, total_ele=total_ele,
                               h=50., sigma=1., config='regular', err_map='no',
                               n_src_init=400)
-    k.make_reconstruction(csd_profile)
+    k.make_reconstruction(csd_profile, Rs=np.arange(0.2, 0.6, 0.1))
 
     print('Checking 3D')
     total_ele = 125
@@ -1505,6 +1482,6 @@ if __name__ == '__main__':
     k = ValidationClassKCSD3D(csd_profile, csd_seed, total_ele=total_ele, h=50,
                               sigma=1, xmax=1, xmin=0, ymax=1, ymin=0, zmax=1,
                               zmin=0, config='regular')
-    k.make_reconstruction(csd_profile)
+    k.make_reconstruction(csd_profile, Rs=np.arange(0.2, 0.6, 0.1))
     toc = time.time() - tic
     print('time', toc)
