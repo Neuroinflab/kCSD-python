@@ -16,8 +16,8 @@ from numpy.linalg import LinAlgError
 from scipy import special, integrate, interpolate
 from scipy.spatial import distance
 
-import utility_functions as utils
-import basis_functions as basis
+from . import utility_functions as utils
+from . import basis_functions as basis
 
 try:
     from skmonaco import mcmiser
