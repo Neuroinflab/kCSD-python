@@ -21,7 +21,7 @@ from matplotlib.mlab import griddata
 from matplotlib import colors, gridspec
 from scipy.integrate import simps
 import csd_profile as CSD
-sys.path.append('../corelib')
+sys.path.append('..')
 from KCSD import KCSD1D, KCSD2D, KCSD3D
 
 
@@ -44,63 +44,59 @@ class ValidationClassKCSD(object):
         Parameters
         ----------
         dim: int
-            case dimention (1, 2 or 3 D)
+            Case dimension (1, 2 or 3 D).
         **kwargs
             configuration parameters, that may contain the following keys:
             src_type : str
-                basis function type ('gauss', 'step', 'gauss_lim')
-                Defaults to 'gauss'
+                Basis function type ('gauss', 'step', 'gauss_lim').
+                Default: 'gauss'.
             sigma : float
-                space conductance of the medium
-                Defaults to 0.3
+                Space conductance of the medium.
+                Default: 0.3.
             R_init : float
-                demanded thickness of the basis element
-                Defaults to 0.23
+                Demanded thickness of the basis element.
+                Default: 0.23.
             h : float
-                thickness of analyzed cylindrical slice
-                Defaults to 1.
+                Thickness of analyzed cylindrical slice.
+                Default: 1.
             nr_basis: int
-                number of basis sources
-                Defaults to 300
+                Number of basis sources.
+                Default: 300.
             total_ele: int
-                number of electrodes
-                Defaults to 10
-            ele_seed: int
-                seed for random electrodes position placement
-                Defaults to 10
+                Number of electrodes.
+                Default: 10.
             ext_x : float
-                length of space extension: x_min-ext_x ... x_max+ext_x
-                Defaults to 0.
+                Length of space extension: x_min-ext_x ... x_max+ext_x.
+                Default: 0.
             est_xres: int
-                resolution of kcsd estimation
-                Defaults to 100
+                Resolution of kcsd estimation.
+                Default: 100.
             true_csd_xlims: list
-                boundaries for ground truth space
-                Defaults to [0., 1.]
+                Boundaries for ground truth space.
+                Default: [0., 1.].
             ele_xlims: list
-                boundaries for electrodes placement
-                Defaults to [0., 1.]
+                Boundaries for electrodes placement.
+                Default: [0., 1.].
             csd_xres: int
-                resolution of ground truth
-                Defaults to 100
+                Resolution of ground truth.
+                Default: 100.
 
         Returns
         -------
         None
         """
         self.dim = dim
-        self.general_parameters(**kwargs)
         self.dimension_parameters(**kwargs)
         return
 
-    def general_parameters(self, **kwargs):
+    def dimension_parameters(self, **kwargs):
         """
-        Defining the default values of the method passed as kwargs
+        Defining the default values of the method passed as kwargs.
 
         Parameters
         ----------
         **kwargs
-            Same as those passed to initialize the Class
+            Same as those passed to initialize the Class.
 
         Returns
         -------
@@ -108,29 +104,12 @@ class ValidationClassKCSD(object):
         """
         self.src_type = kwargs.get('src_type', 'gauss')
         self.sigma = kwargs.get('sigma', 0.3)
-        self.h = kwargs.get('h', 0.25)
+        self.h = kwargs.get('h', 1.)
         self.R_init = kwargs.get('R_init', 0.23)
         self.n_src_init = kwargs.get('n_src_init', 300)
         self.total_ele = kwargs.get('total_ele', 10)
         self.config = kwargs.get('ele_config', 'regular')
         self.mask = kwargs.get('mask', False)
-        return
-
-    def dimension_parameters(self, **kwargs):
-        """
-        Defining the default values of the method passed as kwargs
-
-        Parameters
-        ----------
-        dim: int
-            dimention of analyzed case (1, 2 or 3D)
-        **kwargs
-            Same as those passed to initialize the Class
-
-        Returns
-        -------
-        None
-        """
         self.ext_x = kwargs.get('ext_x', 0.0)
         self.est_xres = kwargs.get('est_xres', 100)
         self.true_csd_xlims = kwargs.get('true_csd_xlims', [0., 1.])
@@ -161,20 +140,20 @@ class ValidationClassKCSD(object):
 
     def broken_electrodes(self, ele_seed, n):
         """
-        Produces electrodes positions for setup with n pseudo randomly
-        (ele_seed) removed electrodes
+        Produces electrodes positions for setup with n (pseudo) randomly
+        (ele_seed) removed electrodes.
 
         Parameters
         ----------
         ele_seed: int
-            internal state of the random number generator
+            Internal state of the random number generator.
         n: int
-            number of broken/missing electrodes
+            Number of broken/missing electrodes.
 
         Returns
         -------
         ele_pos: numpy array
-            electrodes positions
+            Electrodes positions.
         """
         if self.dim == 1:
             ele_grid = self.generate_electrodes()
@@ -237,14 +216,14 @@ class ValidationClassKCSD(object):
     def electrode_config(self, csd_profile, noise=None, nr_broken_ele=0):
         """
         Produces electrodes positions and calculates potentials measured at
-        these points
+        these points.
 
         Parameters
         ----------
         csd_profile: function
             Function to produce ground truth csd profile.
         noise: str, optional
-            Determins if data contains noise. For noise='noise' white Gaussian
+            Determines if data contains noise. For noise='noise' white Gaussian
             noise is added to potentials.
             Default: None
         nr_broken_ele: int, optional
@@ -383,7 +362,7 @@ class ValidationClassKCSD(object):
     def sigmoid_mean(self, error):
         '''
         Calculates sigmoidal mean across errors of reconstruction for many
-        different sources - used for error maps
+        different sources - used for error maps.
 
         Parameters
         ----------
@@ -422,6 +401,30 @@ class ValidationClassKCSD(object):
         pots_noise = pots + noise.reshape(len(noise), 1)
         return pots_noise
 
+    def grid(self, x, y, z, resX=100, resY=100):
+        """
+        Convert 3 column data to matplotlib grid
+
+        Parameters
+        ----------
+        x
+        y
+        z
+
+        Returns
+        -------
+        xi
+        yi
+        zi
+        """
+        x = x.flatten()
+        y = y.flatten()
+        z = z.flatten()
+        xi = np.linspace(min(x), max(x), resX)
+        yi = np.linspace(min(y), max(y), resY)
+        zi = griddata(x, y, z, xi, yi, interp='linear')
+        return xi, yi, zi
+
 
 class SpectralStructure(object):
     """
@@ -430,15 +433,16 @@ class SpectralStructure(object):
     """
     def __init__(self, k):
         """
-        Initialize SpectralStructure class
+        Initialize SpectralStructure class.
+
+        Defines:
+            self.k: instance of the class
+            Instance of ValidationClassKCSD1D, ValidationClassKCSD2D or
+            ValidationClassKCSD3D class.
 
         Parameters
         ----------
         k: instance of the class
-            Instance of ValidationClassKCSD1D, ValidationClassKCSD2D or
-            ValidationClassKCSD3D class.
-        Defines:
-            self.k: instance of the class
             Instance of ValidationClassKCSD1D, ValidationClassKCSD2D or
             ValidationClassKCSD3D class.
 
@@ -452,7 +456,8 @@ class SpectralStructure(object):
     def svd(self):
         """
         Method that calculates singular value decomposition of total kernel
-        matrix. K~*K^-1  from eq. 18 (Potworowski 2012)
+        matrix. K~*K^-1  from eq. 18 (Potworowski 2012). It calls also plotting
+        methods.
 
         Parameters
         ----------
@@ -530,7 +535,7 @@ class SpectralStructure(object):
         Parameters
         ----------
         s: numpy array
-            Eigenvalues of k_pot matrix
+            Eigenvalues of k_pot matrix.
 
         Returns
         -------
@@ -548,7 +553,7 @@ class SpectralStructure(object):
     def evd(self):
         """
         Method that calculates eigenvalue decomposition of kernel (k_pot
-        matrix)
+        matrix).
 
         Parameters
         ----------
@@ -567,17 +572,17 @@ class SpectralStructure(object):
         idx = eigenvalues.argsort()[::-1]
         eigenvalues = eigenvalues[idx]
         eigenvectors = eigenvectors[:, idx]
-        self.plot_evd(eigenvalues)
+        self.plot_evd_sigma(eigenvalues)
         return eigenvectors, eigenvalues
 
     def plot_svd_sigma(self, sigma):
         """
-        Creates plot of singular values of kernels product (K~*K^-1)
+        Creates plot of singular values of kernels product (K~*K^-1).
 
         Parameters
         ----------
         sigma: numpy array
-            Singular values of kernels product
+            Singular values of kernels product.
 
         Returns
         -------
@@ -592,41 +597,14 @@ class SpectralStructure(object):
         plt.show()
         return
 
-    def plot_u(self, u):
-        """
-        Creates plot of left singular vectors.
-
-        Parameters
-        ----------
-        u: numpy array
-            Left singular vectors.
-
-        Returns
-        -------
-        None
-        """
-        a = int(u.shape[1] - int(np.sqrt(u.shape[1]))**2)
-        if a == 0:
-            size = int(np.sqrt(u.shape[1]))
-        else:
-            size = int(np.sqrt(u.shape[1])) + 1
-        fig, axs = plt.subplots(int(np.sqrt(u.shape[1])),
-                                size, figsize=(15, 13))
-        axs = axs.ravel()
-        fig.suptitle('Left singular vectors of k_pot matrix')
-        for i in range(u.shape[1]):
-            axs[i].plot(u[:, i], marker='.')
-            axs[i].set_title(r'$u_{'+str(i+1)+'}$')
-        plt.show()
-        return
-
     def plot_v(self, v):
         """
-        Creates plot of right singular values
+        Creates plot of eigen vectors.
 
         Parameters
         ----------
-        v: right singular vectors
+        v: numpy array
+            Eigen vectors.
 
         Returns
         -------
@@ -640,7 +618,7 @@ class SpectralStructure(object):
         fig, axs = plt.subplots(int(np.sqrt(v.shape[1])),
                                 size, figsize=(15, 13))
         axs = axs.ravel()
-        fig.suptitle('right singular vectors of k_pot matrix')
+        fig.suptitle('Eigen vectors of k_pot matrix')
         for i in range(v.shape[1]):
             axs[i].plot(v[i, :], marker='.')
             axs[i].set_title(r'$v_{'+str(i+1)+'}$')
@@ -649,11 +627,12 @@ class SpectralStructure(object):
 
     def plot_svd_u(self, u_svd):
         """
-        Creates plot of left singular values
+        Creates plot of left singular values.
 
         Parameters
         ----------
-        u_svd: left singular vectors
+        u_svd: numpy array
+            Left singular vectors.
 
         Returns
         -------
@@ -680,7 +659,8 @@ class SpectralStructure(object):
 
         Parameters
         ----------
-        v_svd: right singular vectors
+        v_svd: numpy array
+            Right singular vectors.
 
         Returns
         -------
@@ -701,43 +681,23 @@ class SpectralStructure(object):
         plt.show()
         return
 
-    def plot_evd(self, eigenvalues):
-        """
-        Creates plot of eigenvalues
-
-        Parameters
-        ----------
-        eigenvalues: eigenvalues
-
-        Returns
-        -------
-        None
-        """
-        plt.figure()
-        plt.plot(eigenvalues, 'b.')
-        plt. title('Eigenvalues of kernels product')
-        plt.xlabel('Components number')
-        plt.ylabel('Eigenvalues')
-        plt.show()
-        return
-
 
 class ValidationClassKCSD1D(ValidationClassKCSD):
     """
-    TestKCSD1D - The 1D variant of tests for kCSD method.
+    ValidationClassKCSD1D - The 1D variant of validation tests for kCSD method.
     """
     def __init__(self, csd_profile, csd_seed, **kwargs):
         """
-        Initialize TestKCSD1D class
+        Initialize ValidationClassKCSD1D class.
 
         Parameters
         ----------
         csd_profile: function
-            function to produce csd profile
+            Function to produce csd profile.
         csd_seed: int
-            seed for random generator
+            Seed for random generator to choose random CSD profile.
         **kwargs
-            configuration parameters
+            Configuration parameters.
 
         Returns
         -------
@@ -750,19 +710,19 @@ class ValidationClassKCSD1D(ValidationClassKCSD):
     def generate_csd(self, csd_profile):
         """
         Gives CSD profile at the requested spatial location,
-        at 'res' resolution
+        at 'res' resolution.
 
         Parameters
         ----------
         csd_profile: function
-            function to produce csd profile
+            Function to produce csd profile.
 
         Returns
         -------
-        csd_x: numpy array, shape (csd_xres)
-            positions at x axis (where is the ground truth)
-        true_csd: numpy array, shape (csd_xres)
-            csd at csd_x positions
+        csd_at: numpy array
+            Positions (coordinates) at which CSD is generated.
+        true_csd: numpy array
+            CSD at csd_at positions.
         """
         csd_at = np.linspace(self.true_csd_xlims[0], self.true_csd_xlims[1],
                              self.csd_xres)
@@ -771,19 +731,21 @@ class ValidationClassKCSD1D(ValidationClassKCSD):
 
     def calculate_potential(self, true_csd, csd_at, ele_pos):
         """
-        Calculates potentials
+        Calculates potentials at electrodes' positions.
 
         Parameters
         ----------
-        electrode_locations: numpy array, shape()
-            locations of electrodes
-        csd_xres: int
-            resolution of ground truth
+        ele_pos: numpy array
+            Locations of electrodes.
+        true_csd: numpy array
+            Values of generated CSD.
+        csd_at: numpy array
+            Positions (coordinates) at which CSD is generated.
 
         Returns
         -------
-        pots: numpy array, shape (total_ele)
-            normalized values of potentials as in eq.:26 from Potworowski(2012)
+        pots: numpy array
+            Normalized values of potentials as in eq.:26 Potworowski(2012).
         """
         pots = np.zeros(len(ele_pos))
         for index in range(len(ele_pos)):
@@ -795,21 +757,21 @@ class ValidationClassKCSD1D(ValidationClassKCSD):
     def integrate(self, csd_at, csd, x0):
         """
         Calculates integrals (potential values) according to Simpson's rule in
-        1D space
+        1D space.
 
         Parameters
         ----------
-        csd_x: numpy array, shape (csd_xres)
-            position on x axis
-        csd: numpy array, shape (csd_xres)
-            values of csd (ground truth) at csd_x positions
+        csd_at: numpy array
+            Positions (coordinates) at which CSD is generated.
+        csd: numpy array
+            Values of csd (ground truth) at csd_at positions.
         x0: float
-            single electrode location/position
+            Single electrode location/position.
 
         Returns
         -------
         Integral: float
-            calculated potential at x0 position
+            Calculated potential at x0 position.
         """
         m = np.sqrt((csd_at - x0)**2 + self.h**2) - abs(csd_at - x0)
         y = csd * m
@@ -818,20 +780,28 @@ class ValidationClassKCSD1D(ValidationClassKCSD):
 
     def make_reconstruction(self, csd_profile, noise=None, nr_broken_ele=0):
         """
-        Main method, makes the whole kCSD reconstruction
+        Main method, makes the whole kCSD reconstruction.
 
         Parameters
         ----------
         csd_profile: function
-            function to produce csd profile
+            Function to produce csd profile.
+        noise: string
+            Determines if we want to generate data with noise.
+            Default: None.
+        nr_broken_ele: int
+            How many electrodes are broken (excluded from analysis)
+            Default: 0
 
         Returns
         -------
+        kcsd: instance of the class
+            Instance of class KCSD1D.
         rms: float
-            error of reconstruction
+            Error of reconstruction.
         point_error: numpy array
-            error of reconstruction calculated at every point of reconstruction
-            space
+            Error of reconstruction calculated at every point of reconstruction
+            space.
         """
         csd_at, true_csd = self.generate_csd(csd_profile)
         ele_pos, pots = self.electrode_config(csd_profile, noise,
@@ -843,34 +813,32 @@ class ValidationClassKCSD1D(ValidationClassKCSD):
         rms = self.calculate_rms(test_csd, est_csd[:, 0])
         title = "Lambda: %0.2E; R: %0.2f; RMS_Error: %0.2E;" % (kcsd.lambd,
                                                                 kcsd.R, rms)
-        self.make_plot(kcsd, csd_at, true_csd, ele_pos, pots, est_csd,
-                       est_pot, title)
+        self.make_plot(csd_at, true_csd, kcsd, est_csd, ele_pos, pots, title)
         ss = SpectralStructure(kcsd)
         ss.picard_plot(pots)
         point_error = self.calculate_point_error(test_csd, est_csd[:, 0])
-        return kcsd
+        return kcsd, rms, point_error
 
-    def make_plot(self, k, csd_at, true_csd, ele_pos, pots, est_csd,
-                  est_pot, title):
+    def make_plot(self, csd_at, true_csd, kcsd, est_csd, ele_pos, pots,
+                  fig_title):
         """
         Creates plots of ground truth, measured potentials and recontruction
 
         Parameters
         ----------
         k: object of the class
-        csd_x: numpy array
-            x coordinates of ground truth (true_csd)
+        csd_at: numpy array
+            Coordinates of ground truth (true_csd).
         true_csd: numpy array
-            ground truth data
-        kcsd: object of the class
-        est_csd: numpy array
-            reconstructed csd
+            Values of generated CSD.
         ele_pos: numpy array
-            positions of electrodes
+            Positions of electrodes.
         pots: numpy array
-            potentials measured on electrodes
-        rms: float
-            error of reconstruction
+            Potentials measured on electrodes.
+        est_csd: numpy array
+            Reconstructed csd.
+        est_pot: numpy array
+            Reconstructed potentials.
         title: string
             title of the plot
 
@@ -882,7 +850,7 @@ class ValidationClassKCSD1D(ValidationClassKCSD):
         fig = plt.figure(figsize=(12, 10))
         ax1 = plt.subplot(211)
         ax1.plot(csd_at, true_csd, 'g', label='TrueCSD')
-        ax1.plot(k.estm_x, est_csd[:, 0], 'r--', label='kCSD')
+        ax1.plot(kcsd.estm_x, est_csd[:, 0], 'r--', label='kCSD')
         ax1.plot(ele_pos, np.zeros(len(pots)), 'ko')
         ax1.set_xlim(csd_at[0], csd_at[-1])
         ax1.set_xlabel('Depth [mm]')
@@ -892,63 +860,58 @@ class ValidationClassKCSD1D(ValidationClassKCSD):
         # Potentials
         ax2 = plt.subplot(212)
         ax2.plot(ele_pos, pots, 'b.', label='TruePots')
-        ax2.plot(k.estm_x, est_pot, 'y--', label='EstPots')
+        ax2.plot(kcsd.estm_x, kcsd.values('POT'), 'y--', label='EstPots')
         ax2.set_xlim(csd_at[0], csd_at[-1])
         ax2.set_xlabel('Depth [mm]')
         ax2.set_ylabel('Potential [mV]')
         ax2.set_title('B) Potentials')
         ax2.legend()
-        fig.suptitle(title)
+        fig.suptitle(fig_title)
         plt.show()
         return
 
 
 class ValidationClassKCSD2D(ValidationClassKCSD):
     """
-    TestKCSD2D - The 2D variant of tests for kCSD method.
+    ValidationClassKCSD2D - The 2D variant of validation tests for kCSD method.
     """
     def __init__(self, csd_profile, csd_seed, **kwargs):
         """
-        Initialize TestKCSD2D class
+        Initialize ValidationClassKCSD2D class.
 
         Parameters
         ----------
         csd_profile: function
-            function to produce csd profile
+            Function to produce csd profile.
         csd_seed: int
-            seed for random generator
+            Seed for random generator to choose random CSD profile.
         **kwargs
-            configuration parameters
+            Configuration parameters.
 
         Returns
         -------
         None
         """
         super(ValidationClassKCSD2D, self).__init__(dim=2, **kwargs)
-#        self.general_parameters(**kwargs)
-#        self.dimension_parameters(**kwargs)
         self.csd_seed = csd_seed
         return
 
     def generate_csd(self, csd_profile):
         """
         Gives CSD profile at the requested spatial location,
-        at 'res' resolution
+        at 'res' resolution.
 
         Parameters
         ----------
         csd_profile: function
-            function to produce csd profile
+            Function to produce csd profile.
 
         Returns
         -------
-        csd_x: numpy array, shape (res_x, res_y)
-            x coordinates of ground truth data
-        csd_y: numpy array, shape (res_x, res_y)
-            y coordinates of ground truth data
-        f: numpy array, shape (res_x, res_y)
-            y coordinates of ground truth data
-            calculated csd at locations indicated by csd_x and csd_y
+        csd_at: numpy array
+            Coordinates of ground truth data.
+        f: numpy array
+            Calculated csd at locations indicated by csd_at.
 
         """
         csd_at = np.mgrid[self.true_csd_xlims[0]:self.true_csd_xlims[1]:
@@ -960,25 +923,23 @@ class ValidationClassKCSD2D(ValidationClassKCSD):
 
     def calculate_potential(self, true_csd, csd_at, ele_x, ele_y):
         """
-        Computes the LFP generated by true_csd (ground truth)
+        Computes the LFP generated by true_csd (ground truth).
 
         Parameters
         ----------
-        true_csd: numpy array, shape (res_x, res_y)
-            ground truth data (true_csd)
-        csd_x: numpy array, shape (res_x, res_y)
-            x coordinates of ground truth data
-        csd_y: numpy array, shape (res_x, res_y)
-            y coordinates of ground truth data
-        ele_x: numpy array, shape (len(ele_pos.shape[0]))
-            x coordinates of electrodes
-        ele_y: numpy array, shape (len(ele_pos.shape[0]))
-            y coordinates of electrodes
+        true_csd: numpy array
+            Values of ground truth data (true_csd).
+        csd_at: numpy array
+            Coordinates of ground truth data.
+        ele_x: numpy array
+            x coordinates of electrodes.
+        ele_y: numpy array
+            y coordinates of electrodes.
 
         Returns
         -------
-        pots: numpy array, shape (total_ele)
-            calculated potentials
+        pots: numpy array
+            Calculated potentials.
         """
         xlin = csd_at[0, :, 0]
         ylin = csd_at[1, 0, :]
@@ -991,29 +952,27 @@ class ValidationClassKCSD2D(ValidationClassKCSD):
 
     def integrate(self, x, y, true_csd, xlin, ylin, csd_at):
         """
-        Integrates currents to calculate potentials on electrode in 2D space
+        Integrates currents to calculate potentials on electrode in 2D space.
 
         Parameters
         ----------
         x: float
-            x coordinate of electrode
+            x coordinate of electrode.
         y: float
-            y coordinate of electrode
-        true_csd: numpy array, shape (res_x, res_y)
-            ground truth data (true_csd)
-        xlin: numpy array, shape (res_x, 1)
-            x range for coordinates of true_csd
-        ylin: numpy array, shape (res_y, 1)
+            y coordinate of electrode.
+        true_csd: numpy array
+            Values of ground truth data (true_csd).
+        xlin: numpy array
+            x range for coordinates of true_csd.
+        ylin: numpy array
             y range for coordinates of true_csd
-        csd_x: numpy array, shape (res_x, res_y)
-            full x coordinates of true_csd
-        csd_y: numpy array, shape (res_x, res_y)
-            full y coordinates of true_csd
+        csd_at: numpy array
+            Coordinates of true_csd.
 
         Returns
         -------
         F: float
-            potential on a single electrode
+            Potential on a single electrode.
         """
         csd_x = csd_at[0]
         csd_y = csd_at[1]
@@ -1029,16 +988,28 @@ class ValidationClassKCSD2D(ValidationClassKCSD):
 
     def make_reconstruction(self, csd_profile, noise=None, nr_broken_ele=0):
         """
-        Main method, makes the whole kCSD reconstruction
+        Main method, makes the whole kCSD reconstruction.
 
         Parameters
         ----------
         csd_profile: function
-            function to produce csd profile
+            Function to produce csd profile.
+        noise: string
+            Determines if we want to generate data with noise.
+            Default: None.
+        nr_broken_ele: int
+            How many electrodes are broken (excluded from analysis)
+            Default: 0
 
         Returns
         -------
-        None
+        kcsd: instance of the class
+            Instance of class KCSD1D.
+        rms: float
+            Error of reconstruction.
+        point_error: numpy array
+            Error of reconstruction calculated at every point of reconstruction
+            space.
         """
         csd_at, true_csd = self.generate_csd(csd_profile)
         ele_pos, pots = self.electrode_config(csd_profile, noise,
@@ -1050,14 +1021,13 @@ class ValidationClassKCSD2D(ValidationClassKCSD):
                                         Rs=np.arange(0.1, 0.31, 0.05))
         test_csd = csd_profile([kcsd.estm_x, kcsd.estm_y], self.csd_seed)
         rms = self.calculate_rms(test_csd, est_csd[:, :, 0])
-        title = 'csd_profile_' + csd_profile.__name__ + '_seed' +\
-            str(self.csd_seed) + '_total_ele' + str(self.total_ele)
-        self.make_plot(csd_at, test_csd, kcsd, est_csd, ele_pos, pots,
-                       rms, title)
+        title = "Lambda: %0.2E; R: %0.2f; RMS: %0.2E; CV_Error: %0.2E; "\
+                % (kcsd.lambd, kcsd.R, rms, kcsd.cv_error)
+        self.make_plot(csd_at, test_csd, kcsd, est_csd, ele_pos, pots, title)
         ss = SpectralStructure(kcsd)
         ss.picard_plot(pots)
         point_error = self.calculate_point_error(test_csd, est_csd[:, :, 0])
-        return kcsd, point_error
+        return kcsd, rms, point_error
 
     def plot_point_error(self, point_error, k):
         """
@@ -1066,7 +1036,10 @@ class ValidationClassKCSD2D(ValidationClassKCSD):
         Parameters
         ----------
         point_error: numpy array
+            Error of reconstruction calculated at every point of reconstruction
+            space.
         k: object of the class
+            Object of KCSD2D class.
 
         Returns
         -------
@@ -1084,30 +1057,29 @@ class ValidationClassKCSD2D(ValidationClassKCSD):
         return
 
     def make_plot(self, csd_at, true_csd, kcsd, est_csd, ele_pos, pots,
-                  rms, title):
+                  fig_title):
         """
         Creates plot of ground truth data, calculated potentials and
         reconstruction
 
         Parameters
         ----------
-        csd_x: numpy array
-            x coordinates of ground truth (true_csd)
-        csd_y: numpy array
-            y coordinates of ground truth (true_csd)
+        csd_at: numpy array
+            Coordinates of ground truth (true_csd).
         true_csd: numpy array
-            ground truth data
+            Values of ground truth data.
         kcsd: object of the class
+            Object of KCSD2D class.
         est_csd: numpy array
-            reconstructed csd
+            Reconstructed csd.
         ele_pos: numpy array
-            positions of electrodes
+            Positions of electrodes.
         pots: numpy array
-            potentials measured on electrodes
+            Potentials measured on electrodes.
         rms: float
-            error of reconstruction
-        title: string
-            title of the plot
+            Error of reconstruction.
+        fig_title: string
+            Title of the plot.
 
         Returns
         -------
@@ -1115,10 +1087,8 @@ class ValidationClassKCSD2D(ValidationClassKCSD):
         """
         csd_x = csd_at[0]
         csd_y = csd_at[1]
-        suptitle = "Lambda: %0.2E; R: %0.2f; RMS_Error: %0.2E;" % (kcsd.lambd,
-                                                                   kcsd.R, rms)
         fig = plt.figure(figsize=(15, 7))
-        fig.suptitle(suptitle)
+        fig.suptitle(fig_title)
         ax1 = plt.subplot(141, aspect='equal')
         t_max = np.max(np.abs(true_csd))
         levels = np.linspace(-1 * t_max, t_max, 16)
@@ -1181,28 +1151,6 @@ class ValidationClassKCSD2D(ValidationClassKCSD):
         plt.show()
         return
 
-    def grid(self, x, y, z, resX=100, resY=100):
-        """
-        Convert 3 column data to matplotlib grid
-
-        Parameters
-        ----------
-        x
-        y
-        z
-
-        Returns
-        -------
-        xi
-        yi
-        zi
-        """
-        z = z.flatten()
-        xi = np.linspace(min(x), max(x), resX)
-        yi = np.linspace(min(y), max(y), resY)
-        zi = griddata(x, y, z, xi, yi, interp='linear')
-        return xi, yi, zi
-
 
 class ValidationClassKCSD3D(ValidationClassKCSD):
     """
@@ -1210,48 +1158,41 @@ class ValidationClassKCSD3D(ValidationClassKCSD):
     """
     def __init__(self, csd_profile, csd_seed, **kwargs):
         """
-        Initialize TestKCSD3D class
+        Initialize ValidationClassKCSD3D class
 
         Parameters
         ----------
         csd_profile: function
-            function to produce csd profile
+            Function to produce csd profile.
         csd_seed: int
-            seed for random generator
+            Seed for random generator to choose random CSD profile.
         **kwargs
-            configuration parameters
+            Configuration parameters.
 
         Returns
         -------
         None
         """
         super(ValidationClassKCSD3D, self).__init__(dim=3, **kwargs)
-#        self.general_parameters(**kwargs)
-#        self.dimension_parameters(**kwargs)
         self.csd_seed = csd_seed
         return
 
     def generate_csd(self, csd_profile):
         """
         Gives CSD profile at the requested spatial location,
-        at 'res' resolution
+        at 'res' resolution.
 
         Parameters
         ----------
         csd_profile: function
-            function to produce csd profile
+            Function to produce csd profile.
 
         Returns
         -------
-        csd_x: numpy array, shape (res_x, res_y, res_z)
-            x coordinates of ground truth data
-        csd_y: numpy array, shape (res_x, res_y, res_z)
-            y coordinates of ground truth data
-        csd_z: numpy array, shape (res_x, res_y, res_z)
-            z coordinates of ground truth data
-        f: numpy array, shape (res_x, res_y, res_z)
-            y coordinates of ground truth data
-            calculated csd at locations indicated by csd_x and csd_y
+        csd_at: numpy array
+            Coordinates of ground truth data.
+        f: numpy array
+            Calculated csd at locations indicated by csd_at.
 
         """
         csd_at = np.mgrid[self.true_csd_xlims[0]:self.true_csd_xlims[1]:
@@ -1263,37 +1204,43 @@ class ValidationClassKCSD3D(ValidationClassKCSD):
         f = csd_profile(csd_at, self.csd_seed)
         return csd_at, f
 
-    def integrate(self, x, y, z, csd, xlin, ylin, zlin, X, Y, Z):
+    def integrate(self, x, y, z, true_csd, xlin, ylin, zlin, X, Y, Z):
         """
-        Integrates currents to calculate potentials on electrode in 3D space
+        Integrates currents to calculate potentials on electrode in 3D space.
 
         Parameters
         ----------
         x: float
-            x coordinate of electrode
+            x coordinate of electrode.
         y: float
-            y coordinate of electrode
-        true_csd: numpy array, shape (res_x, res_y)
-            ground truth data (true_csd)
-        xlin: numpy array, shape (res_x, 1)
-            x range for coordinates of true_csd
-        ylin: numpy array, shape (res_y, 1)
-            y range for coordinates of true_csd
-        csd_x: numpy array, shape (res_x, res_y)
-            full x coordinates of true_csd
-        csd_y: numpy array, shape (res_x, res_y)
-            full y coordinates of true_csd
+            y coordinate of electrode.
+        z: float
+            z coordinate of electrode.
+        true_csd: numpy array
+            Values of ground truth data (true_csd).
+        xlin: numpy array
+            x range for coordinates of true_csd.
+        ylin: numpy array
+            y range for coordinates of true_csd.
+        zlin: numpy array
+            z range for coordinates of true_csd.
+        X: numpy array
+            Full x coordinates of true_csd.
+        Y: numpy array
+            Full y coordinates of true_csd.
+        Z: numpy array
+            Full z coordinates of true_csd.
 
         Returns
         -------
         F: float
-            potential on a single electrode
+            Potential on a single electrode.
         """
         Nz = zlin.shape[0]
         Ny = ylin.shape[0]
         m = np.sqrt((x - X)**2 + (y - Y)**2 + (z - Z)**2)
         m[m < 0.0000001] = 0.0000001
-        z = csd / m
+        z = true_csd / m
         Iy = np.zeros(Ny)
         for j in range(Ny):
             Iz = np.zeros(Nz)
@@ -1309,25 +1256,21 @@ class ValidationClassKCSD3D(ValidationClassKCSD):
 
         Parameters
         ----------
-        true_csd: numpy array, shape (res_x, res_y, res_z)
-            ground truth data (true_csd)
-        csd_x: numpy array, shape (res_x, res_y, res_z)
-            x coordinates of ground truth data
-        csd_y: numpy array, shape (res_x, res_y, res_z)
-            y coordinates of ground truth data
-        csd_z: numpy array, shape (res_x, res_y, res_z)
-            z coordinates of ground truth data
-        ele_xx: numpy array, shape (len(ele_pos.shape[0]))
-            xx coordinates of electrodes
-        ele_yy: numpy array, shape (len(ele_pos.shape[0]))
-            yy coordinates of electrodes
-        ele_zz: numpy array, shape (len(ele_pos.shape[0]))
-            zz coordinates of electrodes
+        true_csd: numpy array
+            Values of ground truth data (true_csd)
+        ele_xx: numpy array
+            xx coordinates of electrodes.
+        ele_yy: numpy array
+            yy coordinates of electrodes.
+        ele_zz: numpy array
+            zz coordinates of electrodes.
+        csd_at: numpy array
+            Coordinates of ground truth data.
 
         Returns
         -------
-        pots: numpy array, shape (total_ele)
-            calculated potentials
+        pots: numpy array
+            Calculated potentials.
         """
         xlin = csd_at[0, :, 0, 0]
         ylin = csd_at[1, 0, :, 0]
@@ -1344,29 +1287,25 @@ class ValidationClassKCSD3D(ValidationClassKCSD):
                                      csd_at):
         """
         Computes the LFP generated by true_csd (ground truth) using parallel
-        computing
+        computing.
 
         Parameters
         ----------
-        true_csd: numpy array, shape (res_x, res_y, res_z)
-            ground truth data (true_csd)
-        csd_x: numpy array, shape (res_x, res_y, res_z)
-            x coordinates of ground truth data
-        csd_y: numpy array, shape (res_x, res_y, res_z)
-            y coordinates of ground truth data
-        csd_z: numpy array, shape (res_x, res_y, res_z)
-            z coordinates of ground truth data
-        ele_xx: numpy array, shape (len(ele_pos.shape[0]))
-            xx coordinates of electrodes
-        ele_yy: numpy array, shape (len(ele_pos.shape[0]))
-            yy coordinates of electrodes
-        ele_zz: numpy array, shape (len(ele_pos.shape[0]))
-            zz coordinates of electrodes
+        true_csd: numpy array
+            Values of ground truth data (true_csd).
+        ele_xx: numpy array
+            xx coordinates of electrodes.
+        ele_yy: numpy array
+            yy coordinates of electrodes.
+        ele_zz: numpy array
+            zz coordinates of electrodes.
+        csd_at: numpy array
+            Coordinates of ground truth data.
 
         Returns
         -------
-        pots: numpy array, shape (total_ele)
-            calculated potentials
+        pots: numpy array
+            Calculated potentials.
         """
         xlin = csd_at[0, :, 0, 0]
         ylin = csd_at[1, 0, :, 0]
@@ -1383,16 +1322,28 @@ class ValidationClassKCSD3D(ValidationClassKCSD):
 
     def make_reconstruction(self, csd_profile, noise=None, nr_broken_ele=0):
         """
-        Main method, makes the whole kCSD reconstruction
+        Main method, makes the whole kCSD reconstruction.
 
         Parameters
         ----------
         csd_profile: function
-            function to produce csd profile
+            Function to produce csd profile.
+        noise: string
+            Determines if we want to generate data with noise.
+            Default: None.
+        nr_broken_ele: int
+            How many electrodes are broken (excluded from analysis)
+            Default: 0
 
         Returns
         -------
-        None
+        kcsd: instance of the class
+            Instance of class KCSD1D.
+        rms: float
+            Error of reconstruction.
+        point_error: numpy array
+            Error of reconstruction calculated at every point of reconstruction
+            space.
         """
         csd_at, true_csd = self.generate_csd(csd_profile)
         ele_pos, pots = self.electrode_config(csd_profile, noise,
@@ -1413,37 +1364,31 @@ class ValidationClassKCSD3D(ValidationClassKCSD):
                                                  est_csd[:, :, :, 0])
         title = "Lambda: %0.2E; R: %0.2f; RMS: %0.2E; CV_Error: %0.2E; "\
                 "Time: %0.2f" % (kcsd.lambd, kcsd.R, rms, kcsd.cv_error, toc)
-        self.make_plot(csd_at, test_csd, kcsd, est_csd, ele_pos,
-                       pots, rms, title)
-        return kcsd
+        self.make_plot(csd_at, test_csd, kcsd, est_csd, ele_pos, pots, title)
+        return kcsd, rms, point_error
 
-    def make_plot(self, csd_at, true_csd, kcsd, est_csd, ele_pos,
-                  pots, rms, fig_title):
+    def make_plot(self, csd_at, true_csd, kcsd, est_csd, ele_pos, pots,
+                  fig_title):
         """
         Creates plot of ground truth data, calculated potentials and
-        reconstruction
+        reconstruction.
 
         Parameters
         ----------
-        csd_x: numpy array
-            x coordinates of ground truth (true_csd)
-        csd_y: numpy array
-            y coordinates of ground truth (true_csd)
-        csd_z: numpy array
-            z coordinates of ground truth (true_csd)
+        csd_at: numpy array
+            Coordinates of ground truth (true_csd).
         true_csd: numpy array
-            ground truth data
+            Values of ground truth data.
         kcsd: object of the class
+            Object of KCSD3D class.
         est_csd: numpy array
-            reconstructed csd
+            Reconstructed csd.
         ele_pos: numpy array
-            positions of electrodes
+            Positions of electrodes.
         pots: numpy array
-            potentials measured on electrodes
-        rms: float
-            error of reconstruction
-        title: string
-            title of the plot
+            Potentials measured on electrodes.
+        fig_title: string
+            Title of the plot.
 
         Returns
         -------
@@ -1525,56 +1470,43 @@ class ValidationClassKCSD3D(ValidationClassKCSD):
         plt.show()
         return
 
-    def grid(self, x, y, z, resX=100, resY=100):
-        """
-        Convert 3 column data to matplotlib grid
-        """
-        x = x.flatten()
-        y = y.flatten()
-        z = z.flatten()
-        xi = np.linspace(min(x), max(x), resX)
-        yi = np.linspace(min(y), max(y), resY)
-        zi = griddata(x, y, z, xi, yi, interp='linear')
-        return xi, yi, zi
-
 
 if __name__ == '__main__':
-#    print('Checking 1D')
-#    csd_profile = CSD.gauss_1d_mono
-#    R_init = 0.23
-#    csd_seed = 5
-#    total_ele = 16
-#    n_src_init = 100
-#    ele_lims = [0.1, 0.9]  # range of electrodes space
-#    true_csd_xlims = [0., 1.]
-#
-#    k = ValidationClassKCSD1D(csd_profile, csd_seed,
-#                              total_ele=total_ele, n_src_init=n_src_init,
-#                              h=0.25, R_init=R_init, ele_xlims=ele_lims,
-#                              true_csd_xlims=true_csd_xlims, sigma=0.3,
-#                              src_type='gauss', ext_x=0.1,
-#                              config='regular')
-#    k.make_reconstruction(csd_profile)
+    print('Checking 1D')
+    csd_profile = CSD.gauss_1d_mono
+    R_init = 0.23
+    csd_seed = 5
+    total_ele = 16
+    n_src_init = 100
+    ele_lims = [0.1, 0.9]  # range of electrodes space
+    true_csd_xlims = [0., 1.]
+
+    k = ValidationClassKCSD1D(csd_profile, csd_seed,
+                              total_ele=total_ele, n_src_init=n_src_init,
+                              h=0.25, R_init=R_init, ele_xlims=ele_lims,
+                              true_csd_xlims=true_csd_xlims, sigma=0.3,
+                              src_type='gauss', ext_x=0.1,
+                              config='regular')
+    k.make_reconstruction(csd_profile)
 
     print('Checking 2D')
     csd_profile = CSD.gauss_2d_small
     csd_seed = 7
     total_ele = 36
-#    mask = np.load('/home/mkowalska/Marta/xCSD/branches/kCSD-marta/'
-#                   'refactored_tests/mask.npy')
+
     k = ValidationClassKCSD2D(csd_profile, csd_seed, total_ele=total_ele,
                               h=50., sigma=1., config='regular', err_map='no',
                               n_src_init=400)
     k.make_reconstruction(csd_profile)
 
-#    print('Checking 3D')
-#    total_ele = 125
-#    csd_seed = 20  # 0-49 are small sources, 50-99 are large sources
-#    csd_profile = CSD.gauss_3d_small
-#    tic = time.time()
-#    k = ValidationClassKCSD3D(csd_profile, csd_seed, total_ele=total_ele, h=50,
-#                              sigma=1, xmax=1, xmin=0, ymax=1, ymin=0, zmax=1,
-#                              zmin=0, config='regular')
-#    k.make_reconstruction(csd_profile)
-#    toc = time.time() - tic
-#    print('time', toc)
+    print('Checking 3D')
+    total_ele = 125
+    csd_seed = 20  # 0-49 are small sources, 50-99 are large sources
+    csd_profile = CSD.gauss_3d_small
+    tic = time.time()
+    k = ValidationClassKCSD3D(csd_profile, csd_seed, total_ele=total_ele, h=50,
+                              sigma=1, xmax=1, xmin=0, ymax=1, ymin=0, zmax=1,
+                              zmin=0, config='regular')
+    k.make_reconstruction(csd_profile)
+    toc = time.time() - tic
+    print('time', toc)

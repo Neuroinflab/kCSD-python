@@ -25,7 +25,7 @@ try:
     from joblib import Parallel, delayed
     import multiprocessing
     num_cores = multiprocessing.cpu_count() - 1
-    parallel_available = False
+    parallel_available = True
 except ImportError:
     parallel_available = False
 
@@ -34,22 +34,35 @@ class ErrorMap1D(ValidationClassKCSD1D):
 
     def __init__(self, csd_profile, csd_seed, **kwargs):
         super(ErrorMap1D, self).__init__(csd_profile, csd_seed, **kwargs)
-#        self.calculate_error_map(csd_profile)
         return
 
     def calculate_error_map(self, csd_profile, n=100, noise=None,
                             nr_broken_ele=0):
         """
+        Makes reconstructions for n random simulated ground truth profiles and
+        returns errors of CSD estimation with kCSD method.
+
         Parameters
         ----------
         csd_profile: function
-            function to produce csd profile
-        csd_seed: int
-            seed for random generator
+            Function to produce csd profile.
+        n: int
+            Number of simulations included in error map calculations.
+            Default: 100.
+        noise: string
+            Determines if we want to generate data with noise.
+            Default: None.
+        nr_broken_ele: int
+            How many electrodes are broken (excluded from analysis)
+            Default: 0.
 
         Returns
         -------
-        None
+        rms: float
+            Error of reconstruction.
+        point_error: numpy array
+            Error of reconstruction calculated at every point of reconstruction
+            space.
         """
         if parallel_available:
             err = Parallel(n_jobs=num_cores)(delayed
@@ -74,19 +87,31 @@ class ErrorMap1D(ValidationClassKCSD1D):
     def make_reconstruction(self, csd_profile, csd_seed, noise=None,
                             nr_broken_ele=0):
         """
+        Makes the whole kCSD reconstruction.
+
         Parameters
         ----------
         csd_profile: function
             function to produce csd profile
         csd_seed: int
-            seed for random generator
-        R: float
-        test_point: list
+            Seed for random generator to choose random CSD profile.
+        noise: string
+            Determines if we want to generate data with noise.
+            Default: None.
+        nr_broken_ele: int
+            How many electrodes are broken (excluded from analysis)
+            Default: 0.
 
         Returns
         -------
+        List of [rms, kcsd] and point_error
         rms: float
-            error of reconstruction
+            Error of reconstruction.
+        kcsd: object of a class
+            Object of a class.
+        point_error: numpy array
+            Error of reconstruction calculated at every point of reconstruction
+            space.
         """
         self.csd_seed = csd_seed
         csd_at, true_csd = self.generate_csd(csd_profile)
@@ -100,7 +125,7 @@ class ErrorMap1D(ValidationClassKCSD1D):
         test_csd = csd_profile(kcsd.estm_x, self.csd_seed)
         rms = self.calculate_rms(test_csd, est_csd[:, 0])
         point_error = self.calculate_point_error(test_csd, est_csd[:, 0])
-        return [rms, kcsd, ele_pos], point_error
+        return [rms, kcsd], point_error
 
     def plot_mean_error(self, point_error, ele_pos):
         """
@@ -110,6 +135,10 @@ class ErrorMap1D(ValidationClassKCSD1D):
         Parameters
         ----------
         point_error: numpy array
+            Error of reconstruction calculated at every point of reconstruction
+            space.
+        ele_pos: numpy array
+            Positions of electrodes.
 
         Returns
         -------
@@ -136,25 +165,36 @@ class ErrorMap2D(ValidationClassKCSD2D):
     """
     def __init__(self, csd_profile, csd_seed, **kwargs):
         super(ErrorMap2D, self).__init__(csd_profile, csd_seed, **kwargs)
-#        self.calculate_error_map(csd_profile, noise='noise')
         return
 
     def make_reconstruction(self, csd_profile, csd_seed, noise=None,
                             nr_broken_ele=0):
         """
+        Makes the whole kCSD reconstruction.
+
         Parameters
         ----------
         csd_profile: function
             function to produce csd profile
         csd_seed: int
-            seed for random generator
-        R: float
-        test_point: list
+            Seed for random generator to choose random CSD profile.
+        noise: string
+            Determines if we want to generate data with noise.
+            Default: None.
+        nr_broken_ele: int
+            How many electrodes are broken (excluded from analysis)
+            Default: 0.
 
         Returns
         -------
+        List of [rms, kcsd] and point_error
         rms: float
-            error of reconstruction
+            Error of reconstruction.
+        kcsd: object of a class
+            Object of a class.
+        point_error: numpy array
+            Error of reconstruction calculated at every point of reconstruction
+            space.
         """
         self.csd_seed = csd_seed
         csd_at, true_csd = self.generate_csd(csd_profile)
@@ -173,6 +213,32 @@ class ErrorMap2D(ValidationClassKCSD2D):
 
     def calculate_error_map(self, csd_profile, n=100,  noise=None,
                             nr_broken_ele=0):
+        """
+        Makes reconstructions for n random simulated ground truth profiles and
+        returns errors of CSD estimation with kCSD method.
+
+        Parameters
+        ----------
+        csd_profile: function
+            Function to produce csd profile.
+        n: int
+            Number of simulations included in error map calculations.
+            Default: 100.
+        noise: string
+            Determines if we want to generate data with noise.
+            Default: None.
+        nr_broken_ele: int
+            How many electrodes are broken (excluded from analysis)
+            Default: 0.
+
+        Returns
+        -------
+        rms: float
+            Error of reconstruction.
+        point_error: numpy array
+            Error of reconstruction calculated at every point of reconstruction
+            space.
+        """
         tic = time.time()
         if parallel_available:
             err = Parallel(n_jobs=num_cores)(delayed
@@ -194,10 +260,10 @@ class ErrorMap2D(ValidationClassKCSD2D):
         point_error = np.array(point_error)
         toc = time.time() - tic
         print('time: ', toc)
-        self.plot_mean_error(point_error, nr_broken_ele)
+#        self.plot_mean_error(point_error, nr_broken_ele)
         return rms, point_error
 
-    def plot_mean_error(self, point_error, nr_broken_ele=0):
+    def plot_mean_error(self, point_error, ele_pos):
         """
         Creates plot of mean error calculated separately for every point of
         estimation space
@@ -205,15 +271,20 @@ class ErrorMap2D(ValidationClassKCSD2D):
         Parameters
         ----------
         point_error: numpy array
+            Error of reconstruction calculated at every point of reconstruction
+            space.
+        ele_pos: numpy array
+            Positions of electrodes.
 
         Returns
         -------
         None
         """
-        if self.config == 'broken':
-            ele_x, ele_y = self.broken_electrode(10, nr_broken_ele)
-        else:
-            ele_x, ele_y = self.generate_electrodes()
+        ele_x, ele_y = ele_pos[0], ele_pos[1]
+#        if self.config == 'broken':
+#            ele_x, ele_y = self.broken_electrode(10, nr_broken_ele)
+#        else:
+#            ele_x, ele_y = self.generate_electrodes()
 #        x, y = np.mgrid[np.min(ele_x):np.max(ele_x):
 #                        np.complex(0, self.est_xres),
 #                        np.min(ele_y):np.max(ele_y):
@@ -242,14 +313,37 @@ class ErrorMap3D(ValidationClassKCSD3D):
     """
     def __init__(self, csd_profile, csd_seed, **kwargs):
         super(ErrorMap3D, self).__init__(csd_profile, csd_seed, **kwargs)
-#        self.calculate_error_map(csd_profile)
         return
 
     def make_reconstruction(self, csd_profile, csd_seed, noise=None,
                             nr_broken_ele=0):
-        '''
-        Executes main method
-        '''
+        """
+        Makes the whole kCSD reconstruction.
+
+        Parameters
+        ----------
+        csd_profile: function
+            function to produce csd profile
+        csd_seed: int
+            Seed for random generator to choose random CSD profile.
+        noise: string
+            Determines if we want to generate data with noise.
+            Default: None.
+        nr_broken_ele: int
+            How many electrodes are broken (excluded from analysis)
+            Default: 0.
+
+        Returns
+        -------
+        List of [rms, kcsd] and point_error
+        rms: float
+            Error of reconstruction.
+        kcsd: object of a class
+            Object of a class.
+        point_error: numpy array
+            Error of reconstruction calculated at every point of reconstruction
+            space.
+        """
         self.csd_seed = csd_seed
         csd_at, true_csd = self.generate_csd(csd_profile)
         ele_pos, pots = self.electrode_config(csd_profile, noise,
@@ -267,6 +361,32 @@ class ErrorMap3D(ValidationClassKCSD3D):
 
     def calculate_error_map(self, csd_profile, n=5, noise=None,
                             nr_broken_ele=0):
+        """
+        Makes reconstructions for n random simulated ground truth profiles and
+        returns errors of CSD estimation with kCSD method.
+
+        Parameters
+        ----------
+        csd_profile: function
+            Function to produce csd profile.
+        n: int
+            Number of simulations included in error map calculations.
+            Default: 5.
+        noise: string
+            Determines if we want to generate data with noise.
+            Default: None.
+        nr_broken_ele: int
+            How many electrodes are broken (excluded from analysis)
+            Default: 0.
+
+        Returns
+        -------
+        rms: float
+            Error of reconstruction.
+        point_error: numpy array
+            Error of reconstruction calculated at every point of reconstruction
+            space.
+        """
         tic = time.time()
         if parallel_available:
             err = Parallel(n_jobs=num_cores)(delayed
@@ -290,11 +410,28 @@ class ErrorMap3D(ValidationClassKCSD3D):
         print('time: ', toc)
         return rms, point_error
 
-    def plot_mean_error(self):
-        point_error = np.load('/point_error.npy')
+    def plot_mean_error(self, point_error, ele_pos):
+        """
+        Creates plot of mean error calculated separately for every point of
+        estimation space
+
+        Parameters
+        ----------
+        point_error: numpy array
+            Error of reconstruction calculated at every point of reconstruction
+            space.
+        ele_pos: numpy array
+            Positions of electrodes.
+
+        Returns
+        -------
+        None
+        """
+        ele_x, ele_y = ele_pos[0], ele_pos[1]
         error_mean = self.sigmoid_mean(point_error)
         plt.figure()
         plt.contourf(error_mean[:, :, 0])
+        plt.scatter(ele_x, ele_y)
         plt.axis('equal')
         return
 
@@ -310,12 +447,14 @@ if __name__ == '__main__':
                    R_init=R_init, ele_xlims=ele_lims,
                    true_csd_xlims=true_csd_xlims, sigma=0.3, src_type='gauss',
                    n_src_init=100, ext_x=0.1)
+    k.calculate_error_map(csd_profile)
 
     print('Checking 2D')
     csd_profile = CSD.gauss_2d_small
     csd_seed = 10
     a = ErrorMap2D(csd_profile, csd_seed, total_ele=36, h=50.,
                    sigma=1., n_src_init=400, config='regular', n=15)
+    a.calculate_error_map(csd_profile)
 
     print('Checking 3D')
     csd_profile = CSD.gauss_3d_small
@@ -323,3 +462,4 @@ if __name__ == '__main__':
     total_ele = 27
     a = ErrorMap3D(csd_profile, csd_seed, total_ele=total_ele, h=50.,
                    sigma=1., n_src_init=729, config='regular')
+    a.calculate_error_map(csd_profile, n=10)
