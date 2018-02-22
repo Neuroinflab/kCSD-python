@@ -10,16 +10,14 @@ from __future__ import absolute_import
 from builtins import super
 from builtins import range
 
-import sys
 import numpy as np
 import time
 import matplotlib.pyplot as plt
 
-from ValidationClassKCSD import ValidationClassKCSD1D, ValidationClassKCSD2D, \
-                                ValidationClassKCSD3D
+from kcsd.validation.ValidationClassKCSD import ValidationClassKCSD1D, \
+    ValidationClassKCSD2D, ValidationClassKCSD3D
 import csd_profile as CSD
-sys.path.append('../tests')
-from KCSD import KCSD1D, KCSD2D, KCSD3D
+from kcsd import KCSD1D, KCSD2D, KCSD3D
 
 try:
     from joblib import Parallel, delayed
@@ -31,8 +29,26 @@ except ImportError:
 
 
 class ErrorMap1D(ValidationClassKCSD1D):
-
+    """
+    Class that produces error map for 1D CSD reconstruction.
+    """
     def __init__(self, csd_profile, csd_seed, **kwargs):
+        """
+        Initialize ErrorMap1D class.
+
+        Parameters
+        ----------
+        csd_profile: function
+            Function to produce csd profile.
+        csd_seed: int
+            Seed for random generator to choose random CSD profile.
+        **kwargs
+            Configuration parameters.
+
+        Returns
+        -------
+        None
+        """
         super(ErrorMap1D, self).__init__(csd_profile, csd_seed, **kwargs)
         return
 
@@ -161,9 +177,25 @@ class ErrorMap1D(ValidationClassKCSD1D):
 
 class ErrorMap2D(ValidationClassKCSD2D):
     """
-    Class that produces error map for 2D CSD reconstruction
+    Class that produces error map for 2D CSD reconstruction.
     """
     def __init__(self, csd_profile, csd_seed, **kwargs):
+        """
+        Initialize ErrorMap2D class.
+
+        Parameters
+        ----------
+        csd_profile: function
+            Function to produce csd profile.
+        csd_seed: int
+            Seed for random generator to choose random CSD profile.
+        **kwargs
+            Configuration parameters.
+
+        Returns
+        -------
+        None
+        """
         super(ErrorMap2D, self).__init__(csd_profile, csd_seed, **kwargs)
         return
 
@@ -309,9 +341,25 @@ class ErrorMap2D(ValidationClassKCSD2D):
 
 class ErrorMap3D(ValidationClassKCSD3D):
     """
-    Class that produces error map for 3D CSD reconstruction
+    Class that produces error map for 3D CSD reconstruction.
     """
     def __init__(self, csd_profile, csd_seed, **kwargs):
+        """
+        Initialize ErrorMap3D class.
+
+        Parameters
+        ----------
+        csd_profile: function
+            Function to produce csd profile.
+        csd_seed: int
+            Seed for random generator to choose random CSD profile.
+        **kwargs
+            Configuration parameters.
+
+        Returns
+        -------
+        None
+        """
         super(ErrorMap3D, self).__init__(csd_profile, csd_seed, **kwargs)
         return
 

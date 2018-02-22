@@ -7,10 +7,9 @@ from __future__ import division
 from __future__ import unicode_literals
 from __future__ import absolute_import
 
-import sys
 import time
 
-from builtins import int, range
+# from builtins import int, range
 from past.utils import old_div
 
 import numpy as np
@@ -21,8 +20,7 @@ from matplotlib.mlab import griddata
 from matplotlib import colors, gridspec
 from scipy.integrate import simps
 import csd_profile as CSD
-sys.path.append('..')
-from KCSD import KCSD1D, KCSD2D, KCSD3D
+from kcsd import KCSD1D, KCSD2D, KCSD3D
 
 
 try:
@@ -39,7 +37,7 @@ class ValidationClassKCSD(object):
     Base class for validation of the kCSD method
     """
     def __init__(self, dim, **kwargs):
-        """Initialize TestKCSD class
+        """Initialize ValidationClassKCSD class.
 
         Parameters
         ----------
