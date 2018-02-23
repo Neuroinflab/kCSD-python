@@ -83,11 +83,13 @@ class ValidationClassKCSD(object):
         -------
         None
         """
+        if dim != 1 and dim != 2 and dim != 3:
+            raise ValueError('Wrong dimension. Choose 1, 2 or 3.')
         self.dim = dim
-        self.dimension_parameters(**kwargs)
+        self.parameters(**kwargs)
         return
 
-    def dimension_parameters(self, **kwargs):
+    def parameters(self, **kwargs):
         """
         Defining the default values of the method passed as kwargs.
 
@@ -109,28 +111,27 @@ class ValidationClassKCSD(object):
         self.config = kwargs.pop('config', 'regular')
         self.mask = kwargs.pop('mask', False)
         self.ext_x = kwargs.pop('ext_x', 0.0)
-        self.est_xres = kwargs.pop('est_xres', 100)
+        self.est_xres = kwargs.pop('est_xres', 0.01)
         self.true_csd_xlims = kwargs.pop('true_csd_xlims', [0., 1.])
         self.ele_xlims = kwargs.pop('ele_xlims', [0.1, 0.9])
+        self.kcsd_xlims = kwargs.pop('kcsd_xlims', self.ele_xlims)
         self.ele_xres = kwargs.pop('ele_xres', (self.total_ele))
         self.csd_xres = kwargs.pop('csd_xres', 100)
         if self.dim >= 2:
             self.ext_y = kwargs.pop('ext_y', 0.0)
             self.ele_ylims = kwargs.pop('ele_ylims', [0.1, 0.9])
-            self.basis_ylims = kwargs.pop('basis_ylims', [0., 1.])
-            self.kcsd_ylims = kwargs.pop('kcsd_ylims', [0., 1.])
+            self.kcsd_ylims = kwargs.pop('kcsd_ylims', self.ele_ylims)
             self.true_csd_ylims = kwargs.pop('true_csd_ylims', [0., 1.])
-            self.est_yres = kwargs.pop('est_yres', 100)
+            self.est_yres = kwargs.pop('est_yres', 0.01)
             self.ele_yres = kwargs.pop('ele_yres',
                                        int(np.sqrt(self.total_ele)))
             self.csd_yres = kwargs.pop('csd_yres', 100)
         if self.dim == 3:
             self.ext_z = kwargs.pop('ext_z', 0.0)
             self.ele_zlims = kwargs.pop('ele_zlims', [0.1, 0.9])
-            self.basis_zlims = kwargs.pop('basis_zlims', [0., 1.])
-            self.kcsd_zlims = kwargs.pop('kcsd_zlims', [0., 1.])
+            self.kcsd_zlims = kwargs.pop('kcsd_zlims', self.ele_zlims)
             self.true_csd_zlims = kwargs.pop('true_csd_zlims', [0., 1.])
-            self.est_zres = kwargs.pop('est_zres', 100)
+            self.est_zres = kwargs.pop('est_zres', 0.01)
             self.ele_zres = kwargs.pop('ele_zres',
                                        int(np.cbrt(self.total_ele)))
             self.csd_zres = kwargs.pop('csd_zres', 100)
@@ -196,21 +197,10 @@ class ValidationClassKCSD(object):
         if self.dim == 1:
             ele_grid = self.generate_electrodes()
         elif self.dim == 2:
-            ele_x, ele_y = np.mgrid[self.ele_xlims[0]:self.ele_xlims[1]:
-                                    np.complex(0, self.ele_yres),
-                                    self.ele_ylims[0]:self.ele_ylims[1]:
-                                    np.complex(0, self.ele_yres)]
-            ele_x, ele_y = ele_x.flatten(), ele_y.flatten()
+            ele_x, ele_y = self.generate_electrodes()
             ele_grid = np.vstack((ele_x, ele_y)).T
         else:
-            ele_x, ele_y, ele_z = np.mgrid[self.ele_xlims[0]:self.ele_xlims[1]:
-                                           np.complex(0, self.ele_xres),
-                                           self.ele_ylims[0]:self.ele_ylims[1]:
-                                           np.complex(0, self.ele_yres),
-                                           self.ele_xlims[0]:self.ele_xlims[1]:
-                                           np.complex(0, self.ele_zres)]
-            ele_x, ele_y, ele_z = ele_x.flatten(), ele_y.flatten(), \
-                ele_z.flatten()
+            ele_x, ele_y, ele_z = self.generate_electrodes()
             ele_grid = np.vstack((ele_x, ele_y, ele_z)).T
         random_indices = np.arange(0, ele_grid.shape[0])
         np.random.seed(ele_seed)
@@ -251,7 +241,8 @@ class ValidationClassKCSD(object):
                                            np.complex(0, self.ele_zres)]
             return ele_x.flatten(), ele_y.flatten(), ele_z.flatten()
 
-    def electrode_config(self, csd_profile, noise=None, nr_broken_ele=0):
+    def electrode_config(self, csd_profile, noise=None, nr_broken_ele=0,
+                         ele_seed=10):
         """
         Produces electrodes positions and calculates potentials measured at
         these points.
@@ -278,25 +269,25 @@ class ValidationClassKCSD(object):
         if self.dim == 1:
             csd_at, true_csd = self.generate_csd(csd_profile)
             if self.config == 'broken':
-                ele_pos = self.broken_electrodes(10, nr_broken_ele)
+                ele_pos = self.broken_electrodes(ele_seed, nr_broken_ele)
             else:
                 ele_pos = self.generate_electrodes()
             pots = self.calculate_potential(true_csd, csd_at, ele_pos)
             ele_pos = ele_pos.reshape((len(ele_pos), 1))
-        if self.dim == 2:
+        elif self.dim == 2:
             csd_at, true_csd = self.generate_csd(csd_profile)
             if self.config == 'broken':
-                ele_pos = self.broken_electrodes(10, nr_broken_ele)
+                ele_pos = self.broken_electrodes(ele_seed, nr_broken_ele)
                 ele_x, ele_y = ele_pos[:, 0], ele_pos[:, 1]
             else:
                 ele_x, ele_y = self.generate_electrodes()
             pots = self.calculate_potential(true_csd, csd_at,
                                             ele_x, ele_y)
             ele_pos = np.vstack((ele_x, ele_y)).T
-        if self.dim == 3:
+        else:
             csd_at, true_csd = self.generate_csd(csd_profile)
             if self.config == 'broken':
-                ele_pos = self.broken_electrodes(10, nr_broken_ele)
+                ele_pos = self.broken_electrodes(ele_seed, nr_broken_ele)
                 ele_x, ele_y, ele_z = ele_pos[:, 0], ele_pos[:, 1], \
                     ele_pos[:, 2]
             else:
@@ -829,7 +820,9 @@ class ValidationClassKCSD1D(ValidationClassKCSD):
         ele_pos, pots = self.electrode_config(csd_profile, noise,
                                               nr_broken_ele)
         kcsd = KCSD1D(ele_pos, pots, src_type=self.src_type, sigma=self.sigma,
-                      h=self.h, n_src_init=self.n_src_init, ext_x=self.ext_x)
+                      h=self.h, n_src_init=self.n_src_init, ext_x=self.ext_x,
+                      gdx=self.est_xres, xmin=np.min(self.kcsd_xlims),
+                      xmax=np.max(self.kcsd_xlims))
         est_csd, est_pot = self.do_kcsd(ele_pos, pots, kcsd, Rs=Rs,
                                         lambdas=lambdas)
         test_csd = csd_profile(kcsd.estm_x, self.csd_seed)
@@ -1019,23 +1012,29 @@ class ValidationClassKCSD2D(ValidationClassKCSD):
         csd_at, true_csd = self.generate_csd(csd_profile)
         ele_pos, pots = self.electrode_config(csd_profile, noise,
                                               nr_broken_ele)
-        kcsd = KCSD2D(ele_pos, pots, xmin=0., xmax=1., ymin=0.,
-                      ymax=1., h=self.h, sigma=self.sigma,
-                      n_src_init=self.n_src_init)
+        kcsd = KCSD2D(ele_pos, pots, h=self.h, sigma=self.sigma,
+                      xmin=np.min(self.kcsd_xlims),
+                      xmax=np.max(self.kcsd_xlims),
+                      ymin=np.min(self.kcsd_ylims),
+                      ymax=np.max(self.kcsd_ylims),
+                      n_src_init=self.n_src_init, src_type=self.src_type,
+                      ext_x=self.ext_x, ext_y=self.ext_y,
+                      gdx=self.est_xres, gdy=self.est_yres)
         est_csd, est_pot = self.do_kcsd(ele_pos, pots, kcsd, Rs=Rs,
                                         lambdas=lambdas)
         test_csd = csd_profile([kcsd.estm_x, kcsd.estm_y], self.csd_seed)
         rms = self.calculate_rms(test_csd, est_csd[:, :, 0])
         title = "Lambda: %0.2E; R: %0.2f; RMS: %0.2E; CV_Error: %0.2E; "\
                 % (kcsd.lambd, kcsd.R, rms, kcsd.cv_error)
-        self.make_plot(csd_at, test_csd, kcsd, est_csd, ele_pos, pots, title)
+        self.make_plot(csd_at, true_csd, test_csd, kcsd, est_csd, ele_pos,
+                       pots, title)
         ss = SpectralStructure(kcsd)
         ss.picard_plot(pots)
         point_error = self.calculate_point_error(test_csd, est_csd[:, :, 0])
         return kcsd, rms, point_error
 
-    def make_plot(self, csd_at, true_csd, kcsd, est_csd, ele_pos, pots,
-                  fig_title):
+    def make_plot(self, csd_at, true_csd, test_csd, kcsd, est_csd, ele_pos,
+                  pots, fig_title):
         """
         Creates plot of ground truth data, calculated potentials and
         reconstruction
@@ -1070,6 +1069,7 @@ class ValidationClassKCSD2D(ValidationClassKCSD):
         ax1 = plt.subplot(141, aspect='equal')
         t_max = np.max(np.abs(true_csd))
         levels = np.linspace(-1 * t_max, t_max, 16)
+        print(csd_x.shape, csd_y.shape, true_csd.shape)
         im1 = ax1.contourf(csd_x, csd_y, true_csd, levels=levels,
                            cmap=cm.bwr)
         ax1.set_xlabel('x [mm]')
@@ -1112,7 +1112,7 @@ class ValidationClassKCSD2D(ValidationClassKCSD):
                      ticks=ticks)
 
         ax4 = plt.subplot(144, aspect='equal')
-        difference = abs(true_csd-est_csd[:, :, 0])
+        difference = abs(test_csd-est_csd[:, :, 0])
         cmap = colors.LinearSegmentedColormap.from_list("",
                                                         ["white",
                                                          "darkorange"])
@@ -1122,6 +1122,8 @@ class ValidationClassKCSD2D(ValidationClassKCSD):
         if self.mask is not False:
             ax4.contourf(kcsd.estm_x, kcsd.estm_y, self.mask, levels=levels2,
                          alpha=0.3, cmap='Greys')
+        ax4.set_xlim([0., 1.])
+        ax4.set_ylim([0., 1.])
         ax4.set_xlabel('x [mm]')
         ax4.set_title('D) |True CSD - kCSD|')
         v = np.linspace(0, np.max(difference), 7, endpoint=True)
@@ -1306,9 +1308,16 @@ class ValidationClassKCSD3D(ValidationClassKCSD):
         csd_at, true_csd = self.generate_csd(csd_profile)
         ele_pos, pots = self.electrode_config(csd_profile, noise,
                                               nr_broken_ele)
-        kcsd = KCSD3D(ele_pos, pots, gdx=0.035, gdy=0.035, gdz=0.035,
-                      h=self.h, sigma=self.sigma, xmax=1, xmin=0, ymax=1,
-                      ymin=0, zmax=1, zmin=0, n_src_init=self.n_src_init)
+        kcsd = KCSD3D(ele_pos, pots, h=self.h, sigma=self.sigma,
+                      xmin=np.min(self.kcsd_xlims),
+                      xmax=np.max(self.kcsd_xlims),
+                      ymin=np.min(self.kcsd_ylims),
+                      ymax=np.max(self.kcsd_ylims),
+                      zmin=np.min(self.kcsd_zlims),
+                      zmax=np.max(self.kcsd_zlims),
+                      n_src_init=self.n_src_init, src_type=self.src_type,
+                      ext_x=self.ext_x, ext_y=self.ext_y, ext_z=self.ext_z,
+                      gdx=self.est_xres, gdy=self.est_yres, gdz=self.est_zres)
         tic = time.time()
         est_csd, est_pot = self.do_kcsd(ele_pos, pots, kcsd, Rs=Rs,
                                         lambdas=lambdas)
@@ -1440,7 +1449,7 @@ if __name__ == '__main__':
                               total_ele=16, n_src_init=n_src_init,
                               h=0.25, R_init=0.23, ele_xlims=ELE_LIMS,
                               true_csd_xlims=[0., 1.], sigma=0.3,
-                              src_type='gauss', ext_x=0.1,
+                              src_type='gauss',
                               config='regular')
     k.make_reconstruction(CSD_PROFILE, noise='noise',
                           Rs=np.arange(0.2, 0.5, 0.1))

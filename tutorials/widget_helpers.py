@@ -64,6 +64,13 @@ nr_broken_ele = widgets.BoundedIntText(value=5,
                                        disabled=False)
 
 
+noise_select = widgets.Select(options=[None, 'noise'],
+                                       value=None,
+                                       # rows=10,
+                                       description='Noise:',
+                                       disabled=False)
+
+
 def create_text_wid(txt, val):
     wid = widgets.FloatText(value=val,
                             description=txt + ':',
