@@ -9,7 +9,7 @@ from __future__ import absolute_import
 
 import time
 
-# from builtins import int, range
+from builtins import int, range
 from past.utils import old_div
 
 import numpy as np
@@ -26,10 +26,10 @@ from kcsd import KCSD1D, KCSD2D, KCSD3D
 try:
     from joblib import Parallel, delayed
     import multiprocessing
-    num_cores = multiprocessing.cpu_count() - 1
-    parallel_available = True
+    NUM_CORES = multiprocessing.cpu_count() - 1
+    PARALLEL_AVAILABLE = True
 except ImportError:
-    parallel_available = False
+    PARALLEL_AVAILABLE = False
 
 
 class ValidationClassKCSD(object):
@@ -253,7 +253,6 @@ class ValidationClassKCSD(object):
             pots = self.calculate_potential(true_csd, csd_at,
                                             ele_x, ele_y)
             ele_pos = np.vstack((ele_x, ele_y)).T
-            pots = pots.reshape((len(pots), 1))
         if self.dim == 3:
             csd_at, true_csd = self.generate_csd(csd_profile)
             if self.config == 'broken':
@@ -262,7 +261,7 @@ class ValidationClassKCSD(object):
                     ele_pos[:, 2]
             else:
                 ele_x, ele_y, ele_z = self.generate_electrodes()
-            if parallel_available:
+            if PARALLEL_AVAILABLE:
                 pots = self.calculate_potential_parallel(true_csd,
                                                          ele_x, ele_y, ele_z,
                                                          csd_at)
@@ -396,7 +395,7 @@ class ValidationClassKCSD(object):
         """
         rstate = np.random.RandomState(self.csd_seed)
         noise = level*rstate.normal(np.mean(pots), np.std(pots), len(pots))
-        pots_noise = pots + noise.reshape(len(noise), 1)
+        pots_noise = pots + noise
         return pots_noise
 
     def grid(self, x, y, z, resX=100, resY=100):
@@ -791,6 +790,12 @@ class ValidationClassKCSD1D(ValidationClassKCSD):
         nr_broken_ele: int
             How many electrodes are broken (excluded from analysis)
             Default: 0
+        Rs: numpy 1D array
+            Basis source parameter for crossvalidation.
+            Default: None.
+        lambdas: numpy 1D array
+            Regularization parameter for crossvalidation.
+            Default: None.
 
         Returns
         -------
@@ -1001,6 +1006,12 @@ class ValidationClassKCSD2D(ValidationClassKCSD):
         nr_broken_ele: int
             How many electrodes are broken (excluded from analysis)
             Default: 0
+        Rs: numpy 1D array
+            Basis source parameter for crossvalidation.
+            Default: None.
+        lambdas: numpy 1D array
+            Regularization parameter for crossvalidation.
+            Default: None.
 
         Returns
         -------
@@ -1284,7 +1295,7 @@ class ValidationClassKCSD3D(ValidationClassKCSD):
         xlin = csd_at[0, :, 0, 0]
         ylin = csd_at[1, 0, :, 0]
         zlin = csd_at[2, 0, 0, :]
-        pots = Parallel(n_jobs=num_cores)(delayed(self.integrate)
+        pots = Parallel(n_jobs=NUM_CORES)(delayed(self.integrate)
                                           (ele_xx[ii], ele_yy[ii], ele_zz[ii],
                                            true_csd,
                                            xlin, ylin, zlin,
@@ -1309,6 +1320,12 @@ class ValidationClassKCSD3D(ValidationClassKCSD):
         nr_broken_ele: int
             How many electrodes are broken (excluded from analysis)
             Default: 0
+        Rs: numpy 1D array
+            Basis source parameter for crossvalidation.
+            Default: None.
+        lambdas: numpy 1D array
+            Regularization parameter for crossvalidation.
+            Default: None.
 
         Returns
         -------
@@ -1448,40 +1465,38 @@ class ValidationClassKCSD3D(ValidationClassKCSD):
 
 if __name__ == '__main__':
     print('Checking 1D')
-    csd_profile = CSD.gauss_1d_mono
-    R_init = 0.23
-    csd_seed = 5
-    total_ele = 16
+    CSD_PROFILE = CSD.gauss_1d_mono
+    CSD_SEED = 5
     n_src_init = 100
-    ele_lims = [0.1, 0.9]  # range of electrodes space
-    true_csd_xlims = [0., 1.]
+    ELE_LIMS = [0.1, 0.9]  # range of electrodes space
 
-    k = ValidationClassKCSD1D(csd_profile, csd_seed,
-                              total_ele=total_ele, n_src_init=n_src_init,
-                              h=0.25, R_init=R_init, ele_xlims=ele_lims,
-                              true_csd_xlims=true_csd_xlims, sigma=0.3,
+    k = ValidationClassKCSD1D(CSD_PROFILE, CSD_SEED,
+                              total_ele=16, n_src_init=n_src_init,
+                              h=0.25, R_init=0.23, ele_xlims=ELE_LIMS,
+                              true_csd_xlims=[0., 1.], sigma=0.3,
                               src_type='gauss', ext_x=0.1,
                               config='regular')
-    k.make_reconstruction(csd_profile, Rs=np.arange(0.2, 0.6, 0.1))
+    k.make_reconstruction(CSD_PROFILE, noise='noise',
+                          Rs=np.arange(0.2, 0.6, 0.1))
 
     print('Checking 2D')
-    csd_profile = CSD.gauss_2d_small
-    csd_seed = 7
-    total_ele = 36
+    CSD_PROFILE = CSD.gauss_2d_small
+    CSD_SEED = 7
 
-    k = ValidationClassKCSD2D(csd_profile, csd_seed, total_ele=total_ele,
+    k = ValidationClassKCSD2D(CSD_PROFILE, CSD_SEED, total_ele=36,
                               h=50., sigma=1., config='regular', err_map='no',
                               n_src_init=400)
-    k.make_reconstruction(csd_profile, Rs=np.arange(0.2, 0.6, 0.1))
+    k.make_reconstruction(CSD_PROFILE, noise='noise',
+                          Rs=np.arange(0.2, 0.6, 0.1))
 
     print('Checking 3D')
-    total_ele = 125
-    csd_seed = 20  # 0-49 are small sources, 50-99 are large sources
-    csd_profile = CSD.gauss_3d_small
-    tic = time.time()
-    k = ValidationClassKCSD3D(csd_profile, csd_seed, total_ele=total_ele, h=50,
+    CSD_PROFILE = CSD.gauss_3d_small
+    CSD_SEED = 20  # 0-49 are small sources, 50-99 are large sources
+    TIC = time.time()
+    k = ValidationClassKCSD3D(CSD_PROFILE, CSD_SEED, total_ele=125, h=50,
                               sigma=1, xmax=1, xmin=0, ymax=1, ymin=0, zmax=1,
                               zmin=0, config='regular')
-    k.make_reconstruction(csd_profile, Rs=np.arange(0.2, 0.6, 0.1))
-    toc = time.time() - tic
-    print('time', toc)
+    k.make_reconstruction(CSD_PROFILE, noise='noise',
+                          Rs=np.arange(0.2, 0.6, 0.1))
+    TOC = time.time() - TIC
+    print('time', TOC)
