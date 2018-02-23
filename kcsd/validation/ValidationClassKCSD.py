@@ -100,41 +100,81 @@ class ValidationClassKCSD(object):
         -------
         None
         """
-        self.src_type = kwargs.get('src_type', 'gauss')
-        self.sigma = kwargs.get('sigma', 0.3)
-        self.h = kwargs.get('h', 1.)
-        self.R_init = kwargs.get('R_init', 0.23)
-        self.n_src_init = kwargs.get('n_src_init', 300)
-        self.total_ele = kwargs.get('total_ele', 10)
-        self.config = kwargs.get('ele_config', 'regular')
-        self.mask = kwargs.get('mask', False)
-        self.ext_x = kwargs.get('ext_x', 0.0)
-        self.est_xres = kwargs.get('est_xres', 100)
-        self.true_csd_xlims = kwargs.get('true_csd_xlims', [0., 1.])
-        self.ele_xlims = kwargs.get('ele_xlims', [0.1, 0.9])
-        self.ele_xres = kwargs.get('ele_xres', (self.total_ele))
-        self.csd_xres = kwargs.get('csd_xres', 100)
+        self.src_type = kwargs.pop('src_type', 'gauss')
+        self.sigma = kwargs.pop('sigma', 0.3)
+        self.h = kwargs.pop('h', 1.)
+        self.R_init = kwargs.pop('R_init', 0.23)
+        self.n_src_init = kwargs.pop('n_src_init', 300)
+        self.total_ele = kwargs.pop('total_ele', 10)
+        self.config = kwargs.pop('config', 'regular')
+        self.mask = kwargs.pop('mask', False)
+        self.ext_x = kwargs.pop('ext_x', 0.0)
+        self.est_xres = kwargs.pop('est_xres', 100)
+        self.true_csd_xlims = kwargs.pop('true_csd_xlims', [0., 1.])
+        self.ele_xlims = kwargs.pop('ele_xlims', [0.1, 0.9])
+        self.ele_xres = kwargs.pop('ele_xres', (self.total_ele))
+        self.csd_xres = kwargs.pop('csd_xres', 100)
         if self.dim >= 2:
-            self.ext_y = kwargs.get('ext_y', 0.0)
-            self.ele_ylims = kwargs.get('ele_ylims', [0.1, 0.9])
-            self.basis_ylims = kwargs.get('basis_ylims', [0., 1.])
-            self.kcsd_ylims = kwargs.get('kcsd_ylims', [0., 1.])
-            self.true_csd_ylims = kwargs.get('true_csd_ylims', [0., 1.])
-            self.est_yres = kwargs.get('est_yres', 100)
-            self.ele_yres = kwargs.get('ele_yres',
+            self.ext_y = kwargs.pop('ext_y', 0.0)
+            self.ele_ylims = kwargs.pop('ele_ylims', [0.1, 0.9])
+            self.basis_ylims = kwargs.pop('basis_ylims', [0., 1.])
+            self.kcsd_ylims = kwargs.pop('kcsd_ylims', [0., 1.])
+            self.true_csd_ylims = kwargs.pop('true_csd_ylims', [0., 1.])
+            self.est_yres = kwargs.pop('est_yres', 100)
+            self.ele_yres = kwargs.pop('ele_yres',
                                        int(np.sqrt(self.total_ele)))
-            self.csd_yres = kwargs.get('csd_yres', 100)
+            self.csd_yres = kwargs.pop('csd_yres', 100)
         if self.dim == 3:
-            self.ext_z = kwargs.get('ext_z', 0.0)
-            self.ele_zlims = kwargs.get('ele_zlims', [0.1, 0.9])
-            self.basis_zlims = kwargs.get('basis_zlims', [0., 1.])
-            self.kcsd_zlims = kwargs.get('kcsd_zlims', [0., 1.])
-            self.true_csd_zlims = kwargs.get('true_csd_zlims', [0., 1.])
-            self.est_zres = kwargs.get('est_zres', 100)
-            self.ele_zres = kwargs.get('ele_zres',
+            self.ext_z = kwargs.pop('ext_z', 0.0)
+            self.ele_zlims = kwargs.pop('ele_zlims', [0.1, 0.9])
+            self.basis_zlims = kwargs.pop('basis_zlims', [0., 1.])
+            self.kcsd_zlims = kwargs.pop('kcsd_zlims', [0., 1.])
+            self.true_csd_zlims = kwargs.pop('true_csd_zlims', [0., 1.])
+            self.est_zres = kwargs.pop('est_zres', 100)
+            self.ele_zres = kwargs.pop('ele_zres',
                                        int(np.cbrt(self.total_ele)))
-            self.csd_zres = kwargs.get('csd_zres', 100)
+            self.csd_zres = kwargs.pop('csd_zres', 100)
+        if kwargs:
+            raise TypeError('Invalid keyword arguments:', kwargs.keys())
         return
+
+    def generate_csd(self, csd_profile):
+        """
+        Gives CSD profile at the requested spatial location,
+        at 'res' resolution.
+
+        Parameters
+        ----------
+        csd_profile: function
+            Function to produce csd profile.
+
+        Returns
+        -------
+        csd_at: numpy array
+            Positions (coordinates) at which CSD is generated.
+        true_csd: numpy array
+            CSD at csd_at positions.
+        """
+        if self.dim == 1:
+            csd_at = np.linspace(self.true_csd_xlims[0],
+                                 self.true_csd_xlims[1],
+                                 self.csd_xres)
+            true_csd = csd_profile(csd_at, self.csd_seed)
+        elif self.dim == 2:
+            csd_at = np.mgrid[self.true_csd_xlims[0]:self.true_csd_xlims[1]:
+                              np.complex(0, self.csd_xres),
+                              self.true_csd_ylims[0]:self.true_csd_ylims[1]:
+                              np.complex(0, self.csd_yres)]
+            true_csd = csd_profile(csd_at, self.csd_seed)
+        else:
+            csd_at = np.mgrid[self.true_csd_xlims[0]:self.true_csd_xlims[1]:
+                              np.complex(0, self.csd_xres),
+                              self.true_csd_ylims[0]:self.true_csd_ylims[1]:
+                              np.complex(0, self.csd_yres),
+                              self.true_csd_zlims[0]:self.true_csd_zlims[1]:
+                              np.complex(0, self.csd_zres)]
+            true_csd = csd_profile(csd_at, self.csd_seed)
+        return csd_at, true_csd
 
     def broken_electrodes(self, ele_seed, n):
         """
@@ -377,7 +417,7 @@ class ValidationClassKCSD(object):
         error_mean = np.mean(sig_error, axis=0)
         return error_mean
 
-    def add_noise(self, pots, level=0.001):
+    def add_noise(self, pots, level=0.1):
         """
         Adds Gaussian noise to potentials.
 
@@ -704,28 +744,6 @@ class ValidationClassKCSD1D(ValidationClassKCSD):
         self.csd_seed = csd_seed
         return
 
-    def generate_csd(self, csd_profile):
-        """
-        Gives CSD profile at the requested spatial location,
-        at 'res' resolution.
-
-        Parameters
-        ----------
-        csd_profile: function
-            Function to produce csd profile.
-
-        Returns
-        -------
-        csd_at: numpy array
-            Positions (coordinates) at which CSD is generated.
-        true_csd: numpy array
-            CSD at csd_at positions.
-        """
-        csd_at = np.linspace(self.true_csd_xlims[0], self.true_csd_xlims[1],
-                             self.csd_xres)
-        true_csd = csd_profile(csd_at, self.csd_seed)
-        return csd_at, true_csd
-
     def calculate_potential(self, true_csd, csd_at, ele_pos):
         """
         Calculates potentials at electrodes' positions.
@@ -810,7 +828,7 @@ class ValidationClassKCSD1D(ValidationClassKCSD):
         csd_at, true_csd = self.generate_csd(csd_profile)
         ele_pos, pots = self.electrode_config(csd_profile, noise,
                                               nr_broken_ele)
-        kcsd = KCSD1D(ele_pos, pots, src_type='gauss', sigma=self.sigma,
+        kcsd = KCSD1D(ele_pos, pots, src_type=self.src_type, sigma=self.sigma,
                       h=self.h, n_src_init=self.n_src_init, ext_x=self.ext_x)
         est_csd, est_pot = self.do_kcsd(ele_pos, pots, kcsd, Rs=Rs,
                                         lambdas=lambdas)
@@ -900,31 +918,6 @@ class ValidationClassKCSD2D(ValidationClassKCSD):
         super(ValidationClassKCSD2D, self).__init__(dim=2, **kwargs)
         self.csd_seed = csd_seed
         return
-
-    def generate_csd(self, csd_profile):
-        """
-        Gives CSD profile at the requested spatial location,
-        at 'res' resolution.
-
-        Parameters
-        ----------
-        csd_profile: function
-            Function to produce csd profile.
-
-        Returns
-        -------
-        csd_at: numpy array
-            Coordinates of ground truth data.
-        f: numpy array
-            Calculated csd at locations indicated by csd_at.
-
-        """
-        csd_at = np.mgrid[self.true_csd_xlims[0]:self.true_csd_xlims[1]:
-                          np.complex(0, self.csd_xres),
-                          self.true_csd_ylims[0]:self.true_csd_ylims[1]:
-                          np.complex(0, self.csd_yres)]
-        f = csd_profile(csd_at, self.csd_seed)
-        return csd_at, f
 
     def calculate_potential(self, true_csd, csd_at, ele_x, ele_y):
         """
@@ -1161,33 +1154,6 @@ class ValidationClassKCSD3D(ValidationClassKCSD):
         super(ValidationClassKCSD3D, self).__init__(dim=3, **kwargs)
         self.csd_seed = csd_seed
         return
-
-    def generate_csd(self, csd_profile):
-        """
-        Gives CSD profile at the requested spatial location,
-        at 'res' resolution.
-
-        Parameters
-        ----------
-        csd_profile: function
-            Function to produce csd profile.
-
-        Returns
-        -------
-        csd_at: numpy array
-            Coordinates of ground truth data.
-        f: numpy array
-            Calculated csd at locations indicated by csd_at.
-
-        """
-        csd_at = np.mgrid[self.true_csd_xlims[0]:self.true_csd_xlims[1]:
-                          np.complex(0, self.csd_xres),
-                          self.true_csd_ylims[0]:self.true_csd_ylims[1]:
-                          np.complex(0, self.csd_yres),
-                          self.true_csd_zlims[0]:self.true_csd_zlims[1]:
-                          np.complex(0, self.csd_zres)]
-        f = csd_profile(csd_at, self.csd_seed)
-        return csd_at, f
 
     def integrate(self, x, y, z, true_csd, xlin, ylin, zlin, X, Y, Z):
         """
@@ -1477,26 +1443,25 @@ if __name__ == '__main__':
                               src_type='gauss', ext_x=0.1,
                               config='regular')
     k.make_reconstruction(CSD_PROFILE, noise='noise',
-                          Rs=np.arange(0.2, 0.6, 0.1))
+                          Rs=np.arange(0.2, 0.5, 0.1))
 
     print('Checking 2D')
     CSD_PROFILE = CSD.gauss_2d_small
-    CSD_SEED = 7
+    CSD_SEED = 5
 
-    k = ValidationClassKCSD2D(CSD_PROFILE, CSD_SEED, total_ele=36,
-                              h=50., sigma=1., config='regular', err_map='no',
+    k = ValidationClassKCSD2D(CSD_PROFILE, CSD_SEED, total_ele=16,
+                              h=50., sigma=1., config='regular',
                               n_src_init=400)
     k.make_reconstruction(CSD_PROFILE, noise='noise',
-                          Rs=np.arange(0.2, 0.6, 0.1))
+                          Rs=np.arange(0.2, 0.5, 0.1))
 
     print('Checking 3D')
     CSD_PROFILE = CSD.gauss_3d_small
     CSD_SEED = 20  # 0-49 are small sources, 50-99 are large sources
     TIC = time.time()
     k = ValidationClassKCSD3D(CSD_PROFILE, CSD_SEED, total_ele=125, h=50,
-                              sigma=1, xmax=1, xmin=0, ymax=1, ymin=0, zmax=1,
-                              zmin=0, config='regular')
+                              sigma=1, config='regular')
     k.make_reconstruction(CSD_PROFILE, noise='noise',
-                          Rs=np.arange(0.2, 0.6, 0.1))
+                          Rs=np.arange(0.2, 0.5, 0.1))
     TOC = time.time() - TIC
     print('time', TOC)
