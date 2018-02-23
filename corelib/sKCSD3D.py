@@ -99,15 +99,22 @@ class sKCSD3D(KCSD3D):
             Basis function (src_type) not implemented. See basis_functions.py for available
         """
         self.morphology = morphology
-        if 'dist_table_density' not in kwargs:
-            if 'n_src_init' in kwargs:
-                kwargs['dist_table_density'] = kwargs['n_src_init'] /2
-            else:
-                kwargs['dist_table_density'] = 100
-        
         super(KCSD3D, self).__init__(ele_pos, pots, **kwargs)
         return
     
+    def parameters(self, **kwargs):
+
+        self.src_type = kwargs.pop('src_type', 'gauss')
+        self.sigma = kwargs.pop('sigma', 1.0)
+        self.h = kwargs.pop('h', 1.0)
+        self.n_src_init = kwargs.pop('n_src_init', 1000)
+        self.lambd = kwargs.pop('lambd', 1e-4)
+        self.R_init = kwargs.pop('R_init', 2.3e-6) #microns
+        self.dist_table_density = kwargs.pop('dist_table_density',self.n_src_init/2)
+        self.dim = 'skCSD'
+        if kwargs:
+            raise TypeError('Invalid keyword arguments:', kwargs.keys())
+
     def estimate_at(self):
         """Defines locations where the estimation is wanted
         Defines:         
@@ -123,17 +130,6 @@ class sKCSD3D(KCSD3D):
         -------
         None
         """
-        #Number of points where estimation is to be made.
-        nx = (self.xmax - self.xmin)/self.gdx
-        ny = (self.ymax - self.ymin)/self.gdy
-        nz = (self.zmax - self.zmin)/self.gdz
-    
-        #Making a mesh of points where estimation is to be made.
-        self.estm_x, self.estm_y, self.estm_z = np.mgrid[self.xmin:self.xmax:np.complex(0,nx), 
-                                                         self.ymin:self.ymax:np.complex(0,ny),
-                                                         self.zmin:self.zmax:np.complex(0,nz)]
-        self.n_estm = self.estm_x.size
-        self.ngx, self.ngy, self.ngz = self.estm_x.shape
         return
     
     def place_basis(self):
@@ -158,10 +154,9 @@ class sKCSD3D(KCSD3D):
         #If Valid basis source type passed?
         source_type = self.src_type
         try:
-            self.basis = basis.basis_3D[source_type]
-            
+            self.basis = basis.basis_1D[source_type]
         except:
-            print('Invalid source_type for basis! available are:', basis.basis_3D.keys())
+            print('Invalid source_type for basis! available are:', basis.basis_1D.keys())
             raise KeyError
         #Mesh where the source basis are placed is at self.src_x
         self.R = self.R_init
@@ -169,6 +164,7 @@ class sKCSD3D(KCSD3D):
         self.cell.distribute_srcs_3D_morph()
         (self.src_x, self.src_y, self.src_z) = self.cell.get_xyz()
         self.n_src = self.src_x.size
+        self.n_estm = self.cell.est_pos.size
         return        
 
     def create_src_dist_tables(self):
@@ -185,13 +181,9 @@ class sKCSD3D(KCSD3D):
         src_loc = np.array((self.src_x.ravel(), 
                             self.src_y.ravel(), 
                             self.src_z.ravel()))
-        est_loc = np.array((self.estm_x.ravel(), #the 3D grid for estimation
-                            self.estm_y.ravel(), 
-                            self.estm_z.ravel()))
-        self.src_ele_dists = distance.cdist(src_loc.T, self.ele_pos, 'euclidean')#self.cell.loop_pos
-        self.src_estm_dists = distance.cdist(src_loc.T, est_loc.T,  'euclidean')#self.cell.loop_pos,self.cell.source_pos (on morphology, add)
+        self.src_ele_dists = distance.cdist(self.cell.source_xyz, self.ele_pos, 'euclidean')#self.cell.loop_pos
+        self.src_estm_dists = distance.cdist(self.cell.loop_pos, self.cell.est_pos,  'euclidean')#self.cell.loop_pos,self.cell.source_pos (on morphology, add)
         self.dist_max = max(np.max(self.src_ele_dists), np.max(self.src_estm_dists)) + self.R
-
         return
 
     def forward_model(self, x, R, h, sigma, src_type):
@@ -213,10 +205,10 @@ class sKCSD3D(KCSD3D):
         pot : float
             value of potential at specified distance from the source
         """
-        if src_type.__name__ == "gauss_3D":
+        if src_type.__name__ == "gauss_1D":
             if x == 0: x=0.0001
             pot = special.erf(x/(np.sqrt(2)*R/3.0)) / x
-        elif src_type.__name__ == "gauss_lim_3D":
+        elif src_type.__name__ == "gauss_lim_1D":
             if x == 0: x=0.0001
             d = R/3.
             if x < R:
@@ -230,7 +222,7 @@ class sKCSD3D(KCSD3D):
                 #4*pi*integrate((r**2)*exp(-(r**2 / (2*d**2)))*dr) between 0 and 3*d
                 pot = 15.28828*(d)**3 / x 
             pot /= (np.sqrt(2*np.pi)*d)**3
-        elif src_type.__name__ == "step_3D":
+        elif src_type.__name__ == "step_1D":
             Q = 4.*np.pi*(R**3)/3.
             if x < R:
                 pot = (Q * (3 - (x/R)**2)) / (2.*R)
@@ -319,6 +311,33 @@ class sKCSD3D(KCSD3D):
         xp, yp, zp = xyz
         return self.int_pot_3D(xp, yp, zp, x, R, h, basis_func)
 
+    def values(self, estimate):
+        '''In skCSD CSD is calculated on the morphology, which is 1D, and
+        the CSD needs to be translated to cartesian coordinates.
+
+        '''
+        #estimate self.n_src_init x self.n_time
+        self.cell.get_grid()
+        estimated = super(sKCSD3D,self).values(estimate=estimate)
+        weights = np.zeros((self.cell.dims))
+        new_dims = list(self.cell.dims)
+        new_dims.append(self.n_time)
+        result = np.zeros(new_dims)
+        new_coorr = np.zeros((self.cell.est_xyz.shape),dtype=np.int)
+        
+        for i in range(len(self.cell.dims)):
+            if self.cell.dxs[i]:
+                new_coorr[:,i] = np.floor((self.cell.est_xyz[:,i]-self.cell.minis[i])/self.cell.dxs[i])
+                
+        for i,coor in enumerate(self.cell.est_xyz):
+            x,y,z, = new_coorr[i]
+            result[x,y,z,:] += estimated[i,:]
+            weights[x,y,z] += 1
+            
+        non_zero_weights = np.array(np.where(weights>0)).T
+        for (x,y,z) in non_zero_weights:
+            result[x,y,z,:] = result[x,y,z,:]/weights[x,y,z]
+        return result
 
 if __name__ == '__main__':
     import loadData as ld

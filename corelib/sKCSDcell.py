@@ -29,24 +29,23 @@ class sKCSDcell(object):
         self.src_distributed = 0
         self.morph_points_dist = 0
         self.total_dist = self.calculate_total_distance()
-        self.loop_pos = np.linspace(0,self.total_dist,n_src)
+        self.loop_pos = np.linspace(0,self.total_dist,n_src) #positions of sources on the morphology (1D)
+        self.est_pos = []
         rep = collections.Counter(self.morphology[:,6])
         self.branching = [key for key in rep.keys() if rep[key]>1]
         self.source_xyz = np.zeros(shape=(n_src,3))
         self.loop_xyz = np.zeros(shape=(n_src+self.morphology.shape[0]*2,3))
         self.source_xyz_borders = []
-        
+        self.loops = []
         self.xmin =  np.min(self.morphology[:,2])
         self.xmax = np.max(self.morphology[:,2])
         self.ymin =  np.min(self.morphology[:,3])
         self.ymax = np.max(self.morphology[:,3])
         self.zmin =  np.min(self.morphology[:,4])
         self.zmax = np.max(self.morphology[:,4])
-        radius = np.max(self.morphology[:,5])
-        self.loops = None
-        self.xmin, self.xmax = self.correct_min_max(self.xmin,self.xmax,radius)
-        self.ymin, self.ymax = self.correct_min_max(self.ymin,self.ymax, radius)
-        self.zmin, self.zmax = self.correct_min_max(self.zmin,self.zmax, radius)
+        self.dims = None
+        self.dxs = None
+        self.minis = minis = [self.xmin,self.ymin,self.zmin]
         
     def correct_min_max(self, xmin,xmax,radius):
         if xmin == xmax:
@@ -80,9 +79,30 @@ class sKCSDcell(object):
             if int(self.morphology[parent,6]) == -1:
                 break
             last_point = parent
-            
         self.loops = np.array(self.loops)
-    
+        self.est_pos = np.zeros((len(self.loops),1))
+        self.est_xyz = np.zeros((len(self.loops),3))
+        self.est_xyz[0,:] = self.morphology[0,2:5]
+        for i,loop in enumerate(self.loops[1:]):
+            length = 0
+            for j in [2,3,4]:
+                length += (self.morphology[loop[1]][j]-self.morphology[loop[0]][j])**2
+            self.est_pos[i+1] = self.est_pos[i] + length**0.5
+            self.est_xyz[i+1,:] = self.morphology[loop[0],2:5]
+        self.loop_pos = self.loop_pos.reshape(-1,1)
+
+    def get_grid(self):
+        vals = [[self.xmin,self.xmax],[self.ymin,self.ymax],[self.zmin, self.zmax]]
+        dx = np.zeros((self.est_xyz.shape[0]-1,self.est_xyz.shape[1]))
+        self.dims = np.ones((3,),dtype=np.int)
+        self.dxs = np.zeros((3,))
+        for i in range(self.est_xyz.shape[1]):
+            dx[:,i] = abs(self.est_xyz[1:,i]-self.est_xyz[:-1,i])
+            if not len(dx[dx[:,i]>1e-8,i]):
+                continue
+            self.dxs[i] = min(dx[dx[:,i]>1e-8,i])
+            self.dims[i] = np.floor((vals[i][1]-vals[i][0])/self.dxs[i])+1
+
     def distribute_src_cylinder(self,mp1, mp2):
         xyz1 = self.morphology[mp1,2:5]
         xyz2 = self.morphology[mp2,2:5]
@@ -217,8 +237,6 @@ class sKCSDcell(object):
         plt.imshow(image,extent=extent,aspect='auto',origin="lower")
         plt.show()
         return image,extent
-
-
 
 if __name__ == '__main__':
     path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
