@@ -4,6 +4,10 @@ sudo: false
 python:
   - 2.7.13
 
+branches:
+  only:
+  - ipynb_tests
+
 env:
   matrix:
     # This environment tests the newest supported anaconda env
