@@ -1,17 +1,38 @@
 
 from kcsd import csd_profile as csd
-from kcsd import KCSD1D, KCSD2D, KCSD3D, MoIKCSD
-
-# These are the default setting  -can be changed to what ever after UI
-# interaction.
-dim = 1
-csd_profile = csd.gauss_1d_mono
-kCSD = KCSD1D
+from kcsd import MoIKCSD
+from kcsd.validation.ValidationClassKCSD import ValidationClassKCSD1D, \
+    ValidationClassKCSD2D, ValidationClassKCSD3D, SpectralStructure
+from kcsd.validation.ErrorMap import ErrorMap1D, ErrorMap2D, ErrorMap3D
 
 
-kcsd_options = {1: {'KCSD1D': KCSD1D},
-                2: {'KCSD2D': KCSD2D, 'MoIKCSD': MoIKCSD},
-                3: {'KCSD3D': KCSD3D}}
+# Function to initialize default parameters
+def initialize(value):
+    if value == '1D':
+        dim = 1
+        csd_profile = csd.gauss_1d_mono
+        kCSD = ValidationClassKCSD1D
+        error_map = ErrorMap1D
+    elif value == '2D':
+        dim = 2
+        csd_profile = csd.gauss_2d_small
+        kCSD = ValidationClassKCSD2D
+        error_map = ErrorMap2D
+    else:
+        dim = 3
+        csd_profile = csd.gauss_3d_small
+        kCSD = ValidationClassKCSD3D
+        error_map = ErrorMap3D
+    return dim, csd_profile, kCSD, error_map
+
+
+dim, csd_profile, kCSD, error_map = initialize('1D')
+
+
+kcsd_options = {1: {'ValidationClassKCSD1D': ValidationClassKCSD1D},
+                2: {'ValidationClassKCSD2D': ValidationClassKCSD2D,
+                    'MoIKCSD': MoIKCSD},
+                3: {'ValidationClassKCSD3D': ValidationClassKCSD3D}}
 
 csd_options = {1: {'monopole gauss': csd.gauss_1d_mono,
                    'dipole gauss': csd.gauss_1d_dipole},
@@ -19,24 +40,21 @@ csd_options = {1: {'monopole gauss': csd.gauss_1d_mono,
                    'dipole large': csd.gauss_2d_large},
                3: {'gaussian small': csd.gauss_3d_small}}
 
-defaults = {'KCSD1D': {'R_init': 0.27,
-                       'n_src_init': 300,
-                       'gdx': 0.01,
-                       'xmin': 0.0,
-                       'xmax': 1.0,
-                       'ext_x': 0.0,
-                       'sigma': 1.0,
-                       'h': 1.0,
-                       'lambd': 0.0},
-            'KCSD2D': {'R_init': 0.08,
-                       'n_src_init': 1000,
-                       'gdx': 0.01, 'gdy': 0.01,
-                       'xmin': 0.0, 'xmax': 1.0,
-                       'ymin': 0.0, 'ymax': 1.0,
-                       'ext_x': 0.0, 'ext_y': 0.0,
-                       'sigma': 1.0,
-                       'h': 1.0,
-                       'lambd': 0.0},
+defaults = {'ValidationClassKCSD1D': {'R_init': 0.23,
+                                      'n_src_init': 300,
+                                      'true_csd_xlims': [0., 1.],
+                                      'ele_xlims': [0.1, 0.9],
+                                      'kcsd_xlims': [0.1, 0.9],
+                                      'est_xres': 0.01,
+                                      'ext_x': 0.0,
+                                      'sigma': 1.0,
+                                      'h': 1.0},
+            'ValidationClassKCSD2D': {'R_init': 0.08,
+                                      'n_src_init': 1000,
+                                      'est_xres': 0.01, 'est_yres': 0.01,
+                                      'ext_x': 0.0, 'ext_y': 0.0,
+                                      'sigma': 1.0,
+                                      'h': 1.0},
             'MoIKCSD': {'R_init': 0.08,
                         'n_src_init': 1000,
                         'gdx': 0.01, 'gdy': 0.01,
@@ -48,13 +66,9 @@ defaults = {'KCSD1D': {'R_init': 0.27,
                         'lambd': 0.0,
                         'MoI_iters': 20,
                         'sigma_S': 5.0},
-            'KCSD3D': {'R_init': 0.31,
-                       'n_src_init': 300,
-                       'gdx': 0.05, 'gdy': 0.05, 'gdz': 0.05,
-                       'xmin': 0.0, 'xmax': 1.0,
-                       'ymin': 0.0, 'ymax': 1.0,
-                       'zmin': 0.0, 'zmax': 1.0,
-                       'ext_x': 0.0, 'ext_y': 0.0, 'ext_z': 0.0,
-                       'sigma': 1.0,
-                       'h': 1.0,
-                       'lambd': 0.0}}
+            'ValidationClassKCSD3D': {'R_init': 0.31,
+                                      'n_src_init': 300,
+                                      'est_xres': 0.05, 'est_yres': 0.05, 'est_zres': 0.05
+                                      'ext_x': 0.0, 'ext_y': 0.0, 'ext_z': 0.0,
+                                      'sigma': 1.0,
+                                      'h': 1.0}}

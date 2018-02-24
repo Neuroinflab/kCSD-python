@@ -4,11 +4,14 @@ import config
 
 def change_dim(value):
     if dim_select.value == '1D':
-        config.dim = 1
+        config.dim, config.csd_profile, config.kCSD, config.error_map = \
+            config.initialize(dim_select.value)
     elif dim_select.value == '2D':
-        config.dim = 2
+        config.dim, config.csd_profile, config.kCSD, config.error_map = \
+            config.initialize(dim_select.value)
     else:
-        config.dim = 3
+        config.dim, config.csd_profile, config.kCSD, config.error_map = \
+            config.initialize(dim_select.value)
     update_csd_types()
     update_kcsd_types()
     update_accordion()
@@ -29,7 +32,7 @@ def update_csd_types():
 def update_kcsd_types():
     kcsd_select.options = list(config.kcsd_options[config.dim].keys())
 
-    
+
 dim_select = widgets.ToggleButtons(options=['1D', '2D', '3D'],
                                    description='Dimensions of the setup:',
                                    disabled=False,
@@ -46,6 +49,26 @@ kcsd_select = widgets.ToggleButtons(options=list(config.kcsd_options[1].keys()),
                                     description='KCSD method',
                                     button_style='')
 
+nr_ele_select = widgets.BoundedIntText(value=10,
+                                       min=1,
+                                       max=200,
+                                       step=1,
+                                       description='Select nr of electrodes:',
+                                       disabled=False)
+
+nr_broken_ele = widgets.BoundedIntText(value=5,
+                                       min=1,
+                                       max=nr_ele_select.value - 1,
+                                       step=1,
+                                       description='Select number of broken electrodes:',
+                                       disabled=False)
+
+
+noise_select = widgets.Select(options=[None, 'noise'],
+                                       value=None,
+                                       # rows=10,
+                                       description='Noise:',
+                                       disabled=False)
 
 
 def create_text_wid(txt, val):
@@ -66,6 +89,7 @@ def wid_lists(var_list):
             pass
     return big_wid
 
+
 def refresh_accordion_wids():
     src_ass = wid_lists(['R_init', 'n_src_init', 'lambd'])
     est_pos = wid_lists(['xmin', 'xmax',
@@ -82,11 +106,13 @@ accordion.set_title(0, 'Source assumptions')
 accordion.set_title(1, 'Estimate positions')
 accordion.set_title(2, 'Medium assumptions')
 
+
 def update_accordion():
     accordion.children = refresh_accordion_wids()
     accordion.set_title(0, 'Source assumptions')
     accordion.set_title(1, 'Estimate positions')
     accordion.set_title(2, 'Medium assumptions')
+
 
 dim_select.observe(change_dim, 'value')
 csd_select.observe(change_csd, 'value')
