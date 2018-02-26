@@ -352,20 +352,8 @@ if __name__ == '__main__':
     morphology = data.morphology 
     morphology[:,2:6] = morphology[:,2:6]/scaling_factor
     R_init = 32/scaling_factor
-    #xmin, ymin, zmin, xmax,ymax,zmax = -4.3251, -4.8632, 0., 4.4831, 6.3881, 0.875
-    xmin = morphology[:,2].min()-morphology[:,5].max()
-    xmax = morphology[:,2].max()+morphology[:,5].max()
-    ymin = morphology[:,3].min()-morphology[:,5].max()
-    ymax = morphology[:,3].max()+morphology[:,5].max()
-    zmin = morphology[:,4].min()-morphology[:,5].max()
-    zmax = morphology[:,4].max()+morphology[:,5].max()
-    gdx = (xmax-xmin)/88
-    gdy = (ymax-ymin)/112
-    gdz = (zmax-zmin)/20
-    k = sKCSD3D(ele_pos, pots,morphology,
-               gdx=gdx, gdy=gdy, gdz=gdz,
-               xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, zmin=zmin, zmax=zmax,
-                n_src_init=1000, src_type='gauss_lim', R_init=R_init)
+   
+    k = sKCSD3D(ele_pos, pots,morphology,n_src_init=1000, src_type='gauss_lim', R_init=R_init)
     #k.cross_validate()
     
     if sys.version_info >= (3, 0):
