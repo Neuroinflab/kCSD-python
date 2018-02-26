@@ -98,9 +98,9 @@ class sKCSDcell(object):
         self.dxs = np.zeros((3,))
         for i in range(self.est_xyz.shape[1]):
             dx[:,i] = abs(self.est_xyz[1:,i]-self.est_xyz[:-1,i])
-            if not len(dx[dx[:,i]>1e-8,i]):
+            if not len(dx[dx[:,i]>1e-6,i]):
                 continue
-            self.dxs[i] = min(dx[dx[:,i]>1e-8,i])
+            self.dxs[i] = min(dx[dx[:,i]>2e-6,i])
             self.dims[i] = np.floor((vals[i][1]-vals[i][0])/self.dxs[i])+1
 
     def distribute_src_cylinder(self,mp1, mp2):
@@ -244,11 +244,12 @@ if __name__ == '__main__':
     data_dir = os.path.join(path,"tutorials/Data/gang_7x7_200")
     data = ld.Data(data_dir)
     morphology = data.morphology
+    data.morphology[:,2:5] = data.morphology[:,2:5]/1e6
     ele_pos = data.ele_pos
-    n_src = 100
+    n_src = 512
     cell = sKCSDcell(morphology,ele_pos,n_src)
     cell.distribute_srcs_3D_morph()
-    print(cell.loops)
+    cell.get_grid()
     #cell.plot3Dloop()
     #cell.draw_cell2D(axis=0,resolution = (176,225,17))
     #cell.draw_cell2D(axis=1,resolution = (176,225,17))
