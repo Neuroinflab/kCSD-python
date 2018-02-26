@@ -20,11 +20,11 @@ if __name__ == '__main__':
     tstop = 75
     scaling_factor = 1000**2
     scaling_factor_LFP = 1000
-    R_inits = [2**i/np.sqrt(2)*3 for i in [3,4,5,6,7]]
+    R_inits = [(2**i)/np.sqrt(2) for i in [3,4,5,6,7]]
     electrode_number = [8,16,32,64,128]
-    nx,ny,nz = 10,10,52*4
+   
     
-    for lambd in [1e-5,1e-4,1e-3,1e-2,1e-1,1,0]:
+    for lambd in [1e-5,1e-4,1e-3,1e-2,1e-1]:
         for R_init in R_inits:
             simulation_paths = []
             data_paths = []
@@ -39,12 +39,11 @@ if __name__ == '__main__':
                 c.save_memb_curr()
                 c.save_seg_length()
                 data_dir = c.return_paths_skCSD_python()
-                print(data_dir)
                 data = ld.Data(data_dir)
  
                 ele_pos = data.ele_pos/scaling_factor
 
-                pots = data.LFP#/scaling_factor_LFP
+                pots = data.LFP/scaling_factor_LFP
                 ax_lfp.append(fig_lfp.add_subplot(1,5,l+1))
                 x = ax_lfp[l].imshow(data.LFP,extent=[0, tstop,1, 52,],origin='lower',aspect='auto',cmap='bwr')
                 
@@ -54,19 +53,12 @@ if __name__ == '__main__':
                 morphology = data.morphology
                 morphology[:,2:6] = morphology[:,2:6]/scaling_factor
                 R = R_init/scaling_factor
-                xmin = morphology[:,2].min()-morphology[:,5].max()*2
-                xmax = morphology[:,2].max()+morphology[:,5].max()*2
-                ymin = morphology[:,3].min()-morphology[:,5].max()*2
-                ymax = morphology[:,3].max()+morphology[:,5].max()*2
-                zmin = morphology[:,4].min()-morphology[:,5].max()*2
-                zmax = morphology[:,4].max()+morphology[:,5].max()*2
+               
                 #print(ele_pos,'\n',R,'\n',morphology[:,2:5])
-                gdx = (xmax-xmin)/nx
-                gdy = (ymax-ymin)/ny
-                gdz = (zmax-zmin)/nz
-                k = sKCSD3D.sKCSD3D(ele_pos,data.LFP,morphology, gdx=gdx, gdy=gdy, gdz=gdz, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, zmin=zmin, zmax=zmax, n_src_init=n_src, src_type='gauss_lim',lambd=lambd,R_init=R)
+                
+                k = sKCSD3D.sKCSD3D(ele_pos,data.LFP,morphology, n_src_init=n_src, src_type='gauss',lambd=lambd,R_init=R)
                 #k.cross_validate()
-                dir_name = "ball_stick_R_"+str(R_init)+'_lambda_'+str(lambd)+'_src_'+str(n_src)+'_nx_'+str(nx)+'_ny_'+str(ny)+'_nz_'+str(nz)
+                dir_name = "ball_stick_R_"+str(R_init)+'_lambda_'+str(lambd)+'_src_'+str(n_src)
                 if sys.version_info >= (3, 0):
                     path = os.path.join(data_dir,"preprocessed_data/Python_3", dir_name)
                 else:
@@ -88,7 +80,7 @@ if __name__ == '__main__':
             LFP = pots
    
             ground_truth = ground_truth/seglen[:,None]
-            
+            print(ground_truth.max(),ground_truth.min())
                 
             fig = plt.figure()
             ax = []
@@ -122,7 +114,7 @@ if __name__ == '__main__':
                     tot_len = sum(seglen)
                     for k in range(new_csd.shape[0]):
                         for j in range(new_csd.shape[1]):
-                            new_csd[k,j] = est_csd[:,:,k,j].sum()/(est_csd.shape[0]*est_csd.shape[1])
+                            new_csd[k,j] = est_csd[:,:,k,j].sum()/(est_csd.shape[0]*est_csd.shape[1])*(np.pi)**0.5*R_inits[i-1]
                             new_pot[k,j] = est_pot[:,:,k,j].sum()/(est_pot.shape[0]*est_pot.shape[1])
                  
                     csd = np.zeros(ground_truth.shape)
