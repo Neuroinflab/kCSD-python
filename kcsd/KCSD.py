@@ -100,6 +100,15 @@ class KCSD(CSD):
         ----------
         **kwargs
             Same as those passed to initialize the Class
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        TypeError
+            If invalid keyword arguments inserted into **kwargs.
         """
         self.src_type = kwargs.pop('src_type', 'gauss')
         self.sigma = kwargs.pop('sigma', 1.0)
@@ -338,6 +347,11 @@ class KCSD(CSD):
         -------
         err : float
             the sum of the error computed.
+
+        Raises
+        ------
+        LinAlgError
+            If the matrix is not numerically invertible.
         """
         err = 0
         for idx_train, idx_test in index_generator:
@@ -409,7 +423,7 @@ class KCSD1D(KCSD):
 
         Raises
         ------
-        LinAlgException
+        LinAlgError
             If the matrix is not numerically invertible.
         KeyError
             Basis function (src_type) not implemented. See basis_functions.py for available

@@ -13,6 +13,7 @@ from builtins import int, range
 from past.utils import old_div
 
 import numpy as np
+from numpy.linalg import LinAlgError
 from scipy.linalg import inv
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
@@ -82,12 +83,16 @@ class ValidationClassKCSD(object):
         Returns
         -------
         None
+
+        Raises
+        ------
+        ValueError
+            If dimension of estimation space differs from 1, 2 or 3.
         """
         if dim != 1 and dim != 2 and dim != 3:
             raise ValueError('Wrong dimension. Choose 1, 2 or 3.')
         self.dim = dim
         self.parameters(**kwargs)
-        return
 
     def parameters(self, **kwargs):
         """
@@ -101,6 +106,11 @@ class ValidationClassKCSD(object):
         Returns
         -------
         None
+
+        Raises
+        ------
+        TypeError
+            If invalid keyword arguments inserted into **kwargs.
         """
         self.src_type = kwargs.pop('src_type', 'gauss')
         self.sigma = kwargs.pop('sigma', 0.3)
@@ -193,7 +203,16 @@ class ValidationClassKCSD(object):
         -------
         ele_pos: numpy array
             Electrodes positions.
+
+        Raises
+        ------
+        ValueError
+            If number of broken electrodes is bigger or equal to the total
+            number of electrodes.
         """
+        if n >= self.total_ele:
+            raise ValueError('Number of broken electrodes bigger than total'
+                             'number of electrodes. Choose smaller number.')
         if self.dim == 1:
             ele_grid = self.generate_electrodes()
         elif self.dim == 2:
@@ -499,11 +518,22 @@ class SpectralStructure(object):
             Singular values of kernels product.
         v_svd: numpy array
             Right singular vectors of kernels product.
+
+        Raises
+        ------
+        LinAlgError
+            If the matrix is not numerically invertible.
+            If SVD computation does not converge.
         """
-        kernel = np.dot(self.k.k_interp_cross,
-                        inv(self.k.k_pot +
-                            self.k.lambd * np.identity(self.k.k_pot.shape[0])))
-        u_svd, sigma, v_svd = np.linalg.svd(kernel, full_matrices=False)
+        try:
+            kernel = np.dot(self.k.k_interp_cross,
+                            inv(self.k.k_pot +
+                                self.k.lambd *
+                                np.identity(self.k.k_pot.shape[0])))
+            u_svd, sigma, v_svd = np.linalg.svd(kernel, full_matrices=False)
+        except LinAlgError:
+            raise LinAlgError('Encoutered Singular Matrix Error:'
+                              'try changing ele_pos slightly')
         self.plot_svd_sigma(sigma)
         self.plot_svd_u(u_svd)
         self.plot_svd_v(v_svd)
@@ -521,9 +551,18 @@ class SpectralStructure(object):
         Returns
         -------
         None
+
+        Raises
+        ------
+        LinAlgError
+            If SVD computation does not converge.
         """
-        u, s, v = np.linalg.svd(self.k.k_pot + self.k.lambd *
-                                np.identity(self.k.k_pot.shape[0]))
+        try:
+            u, s, v = np.linalg.svd(self.k.k_pot + self.k.lambd *
+                                    np.identity(self.k.k_pot.shape[0]))
+        except LinAlgError:
+            raise LinAlgError('SVD is failing - try moving the electrodes'
+                              'slightly')
         picard = np.zeros(len(s))
         picard_norm = np.zeros(len(s))
         for i in range(len(s)):
@@ -593,10 +632,20 @@ class SpectralStructure(object):
             Eigen vectors of k_pot matrix.
         eigrnvalues: numpy array
             Eigenvalues of k_pot matrix.
+
+        Raises
+        ------
+        LinAlgError
+            If EVD computation does not converge.
         """
-        eigenvalues, eigenvectors = np.linalg.eigh(self.k.k_pot +
-                                                   self.k.lambd * np.identity
-                                                   (self.k.k_pot.shape[0]))
+        try:
+            eigenvalues, eigenvectors = np.linalg.eigh(self.k.k_pot +
+                                                       self.k.lambd *
+                                                       np.identity
+                                                       (self.k.k_pot.shape[0]))
+        except LinAlgError:
+            raise LinAlgError('EVD is failing - try moving the electrodes'
+                              'slightly')
         idx = eigenvalues.argsort()[::-1]
         eigenvalues = eigenvalues[idx]
         eigenvectors = eigenvectors[:, idx]
