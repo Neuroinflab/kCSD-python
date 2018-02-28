@@ -10,7 +10,7 @@ import argparse
 """cell_types = {'Ballstick:1, 'Y_shaped':2, 'Morpho1':3, 'Agasbogas':4, 'Mainen':5, 'User_defined:6', 'Gang_simple':7, 'Domi':8}
 electrode_orientation = {'x':1, 'y':2, 'z':3}
 electrode_distribute = {'Grid':1, 'Random':2, 'Hexagonal':3, 'Domi':4}
-LFPy_sim = {'Random':1, 'Y_symmetric':2, 'Mainen':3, 'Oscill':4, 'Const':5 }
+LFPy_sim = {'Random':1, 'Y_symmetric':2, 'Mainen':3, 'Oscill':4, 'Const':5, 'Sine':6 }
 
 """
 
@@ -271,6 +271,31 @@ class CellModel():
 
             synapse.set_spike_times(pre_syn_sptimes[self.pre_syn_pick[i_syn]])
             
+    def sine_synaptic_input(self,tstop=None):
+        if not tstop:
+            tstop = self.cell.tstopms
+        frequencies = np.arange(0.5,13,0.5)
+        i = 0
+        distance = 0
+        nseg = self.cell.get_idx()
+        freq_step = sum(self.cell.length)/len(frequencies)
+        for j,istim in enumerate(nseg):
+            distance += self.cell.length[j]
+
+            if distance>(i+1)*freq_step:
+                i += 1
+            freq = frequencies[i]
+            pointprocess= {
+                'idx' : istim,
+                'pptype' : 'SinSyn',
+                'pkamp' :  3.6,
+                'freq':freq,
+                'phase':-np.pi/2,
+                'dur':self.cell.tstopms,
+            }
+    
+            stimulus = LFPy.StimIntElectrode(self.cell, **pointprocess)
+            
     def simulate(self,stimulus=None):
         if stimulus:
             self.stimulus = stimulus
@@ -280,7 +305,8 @@ class CellModel():
             self.constant_current_injection(amp=1,idx=0)
         elif self.stimulus == 'random':
             self.random_synaptic_input()
-            
+        elif self.stimulus == 'sine':
+            self.sine_synaptic_input()
         self.cell.simulate(**self.simulation_parameters)
         
     def save_LFP(self,directory=''):
