@@ -11,8 +11,6 @@ from corelib import sKCSD3D
 import corelib.utility_functions as utils
 import corelib.loadData as ld
 
-R_init = 10
-lambd = 0.0001
 n_src = 512
 if __name__ == '__main__':
     fname_base = "ball_stick_"
@@ -58,7 +56,7 @@ if __name__ == '__main__':
                 
                 k = sKCSD3D.sKCSD3D(ele_pos,data.LFP,morphology, n_src_init=n_src, src_type='gauss',lambd=lambd,R_init=R)
                 #k.cross_validate()
-                dir_name = "ball_stick_R_"+str(R_init)+'_lambda_'+str(lambd)+'_src_'+str(n_src)
+                dir_name = "ball_stick_random_R_"+str(R_init)+'_lambda_'+str(lambd)+'_src_'+str(n_src)
                 if sys.version_info >= (3, 0):
                     path = os.path.join(data_dir,"preprocessed_data/Python_3", dir_name)
                 else:
