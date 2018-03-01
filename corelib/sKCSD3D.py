@@ -311,7 +311,7 @@ class sKCSD3D(KCSD3D):
         xp, yp, zp = xyz
         return self.int_pot_3D(xp, yp, zp, x, R, h, basis_func)
 
-    def values(self, estimate):
+    def values(self, estimate='CSD'):
         '''In skCSD CSD is calculated on the morphology, which is 1D, and
         the CSD needs to be translated to cartesian coordinates.
 
