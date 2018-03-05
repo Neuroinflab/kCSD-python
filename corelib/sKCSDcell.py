@@ -244,7 +244,28 @@ class sKCSDcell(object):
             if self.dxs[i]:
                 self.coor_3D[:,i] = np.floor((self.est_xyz[:,i]-self.minis[i])/self.dxs[i])
                 
+    def from_morphology_loop_to_3D(self,estimated):
+        
+        self.get_grid()
+        self.coordinates_3D()
 
+        n_time = estimated.shape[-1]
+        weights = np.zeros((self.dims))
+
+        new_dims = list(self.dims)+[n_time]
+        result = np.zeros(new_dims)
+ 
+        for i,coor in enumerate(self.est_xyz):
+            x,y,z, = self.coor_3D[i]
+            result[x,y,z,:] += estimated[i,:]
+            weights[x,y,z] += 1
+            
+        non_zero_weights = np.array(np.where(weights>0)).T
+        
+        for (x,y,z) in non_zero_weights:
+            result[x,y,z,:] = result[x,y,z,:]/weights[x,y,z]
+        return result
+    
 if __name__ == '__main__':
     path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
     

@@ -339,26 +339,10 @@ class sKCSD3D(KCSD3D):
                 weights[loop[0]] += 1
             return result/weights[:,None]
         
-        return self.from_morphology_loop_to_3D(estimated)
+        return self.cell.from_morphology_loop_to_3D(estimated)
    
    
-    def from_morphology_loop_to_3D(self,estimated):
-        
-        self.cell.get_grid()
-        self.cell.coordinates_3D()
-        weights = np.zeros((self.cell.dims))
-        new_dims = list(self.cell.dims)+[self.n_time]
-        result = np.zeros(new_dims)
- 
-        for i,coor in enumerate(self.cell.est_xyz):
-            x,y,z, = self.cell.coor_3D[i]
-            result[x,y,z,:] += estimated[i,:]
-            weights[x,y,z] += 1
-            
-        non_zero_weights = np.array(np.where(weights>0)).T
-        for (x,y,z) in non_zero_weights:
-            result[x,y,z,:] = result[x,y,z,:]/weights[x,y,z]
-        return result
+    
 
 if __name__ == '__main__':
     import loadData as ld
