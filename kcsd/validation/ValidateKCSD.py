@@ -33,12 +33,12 @@ except ImportError:
     PARALLEL_AVAILABLE = False
 
 
-class ValidationClassKCSD(object):
+class ValidateKCSD(object):
     """
     Base class for validation of the kCSD method
     """
     def __init__(self, dim, **kwargs):
-        """Initialize ValidationClassKCSD class.
+        """Initialize ValidateKCSD class.
 
         Parameters
         ----------
@@ -759,7 +759,7 @@ class SpectralStructure(object):
         return
 
 
-class ValidationClassKCSD1D(ValidationClassKCSD):
+class ValidateKCSD1D(ValidateKCSD):
     """
     ValidationClassKCSD1D - The 1D variant of validation tests for kCSD method.
     """
@@ -780,7 +780,7 @@ class ValidationClassKCSD1D(ValidationClassKCSD):
         -------
         None
         """
-        super(ValidationClassKCSD1D, self).__init__(dim=1, **kwargs)
+        super(ValidateKCSD1D, self).__init__(dim=1, **kwargs)
         self.csd_seed = csd_seed
         return
 
@@ -936,7 +936,7 @@ class ValidationClassKCSD1D(ValidationClassKCSD):
         return
 
 
-class ValidationClassKCSD2D(ValidationClassKCSD):
+class ValidateKCSD2D(ValidateKCSD):
     """
     ValidationClassKCSD2D - The 2D variant of validation tests for kCSD method.
     """
@@ -957,7 +957,7 @@ class ValidationClassKCSD2D(ValidationClassKCSD):
         -------
         None
         """
-        super(ValidationClassKCSD2D, self).__init__(dim=2, **kwargs)
+        super(ValidateKCSD2D, self).__init__(dim=2, **kwargs)
         self.csd_seed = csd_seed
         return
 
@@ -1181,7 +1181,7 @@ class ValidationClassKCSD2D(ValidationClassKCSD):
         return
 
 
-class ValidationClassKCSD3D(ValidationClassKCSD):
+class ValidateKCSD3D(ValidateKCSD):
     """
     ValidationClassKCSD3D - The 3D variant of validation class for kCSD method.
     """
@@ -1202,7 +1202,7 @@ class ValidationClassKCSD3D(ValidationClassKCSD):
         -------
         None
         """
-        super(ValidationClassKCSD3D, self).__init__(dim=3, **kwargs)
+        super(ValidateKCSD3D, self).__init__(dim=3, **kwargs)
         self.csd_seed = csd_seed
         return
 
@@ -1494,12 +1494,10 @@ if __name__ == '__main__':
     n_src_init = 100
     ELE_LIMS = [0.1, 0.9]  # range of electrodes space
 
-    k = ValidationClassKCSD1D(CSD_PROFILE, CSD_SEED,
-                              total_ele=16, n_src_init=n_src_init,
-                              h=0.25, R_init=0.23, ele_xlims=ELE_LIMS,
-                              true_csd_xlims=[0., 1.], sigma=0.3,
-                              src_type='gauss',
-                              config='regular')
+    k = ValidateKCSD1D(CSD_PROFILE, CSD_SEED, total_ele=16,
+                       n_src_init=n_src_init, h=0.25, R_init=0.23,
+                       ele_xlims=ELE_LIMS, true_csd_xlims=[0., 1.], sigma=0.3,
+                       src_type='gauss', config='regular')
     k.make_reconstruction(CSD_PROFILE, noise='noise',
                           Rs=np.arange(0.2, 0.5, 0.1))
 
@@ -1507,9 +1505,8 @@ if __name__ == '__main__':
     CSD_PROFILE = CSD.gauss_2d_small
     CSD_SEED = 5
 
-    k = ValidationClassKCSD2D(CSD_PROFILE, CSD_SEED, total_ele=16,
-                              h=50., sigma=1., config='regular',
-                              n_src_init=400)
+    k = ValidateKCSD2D(CSD_PROFILE, CSD_SEED, total_ele=16, h=50., sigma=1.,
+                       config='regular', n_src_init=400)
     k.make_reconstruction(CSD_PROFILE, noise='noise',
                           Rs=np.arange(0.2, 0.5, 0.1))
 
@@ -1517,8 +1514,8 @@ if __name__ == '__main__':
     CSD_PROFILE = CSD.gauss_3d_small
     CSD_SEED = 20  # 0-49 are small sources, 50-99 are large sources
     TIC = time.time()
-    k = ValidationClassKCSD3D(CSD_PROFILE, CSD_SEED, total_ele=125, h=50,
-                              sigma=1, config='regular')
+    k = ValidateKCSD3D(CSD_PROFILE, CSD_SEED, total_ele=125, h=50, sigma=1,
+                       config='regular')
     k.make_reconstruction(CSD_PROFILE, noise='noise',
                           Rs=np.arange(0.2, 0.5, 0.1))
     TOC = time.time() - TIC

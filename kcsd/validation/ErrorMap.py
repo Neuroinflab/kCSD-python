@@ -12,8 +12,8 @@ import time
 import numpy as np
 import matplotlib.pyplot as plt
 
-from kcsd.validation.ValidationClassKCSD import ValidationClassKCSD1D, \
-    ValidationClassKCSD2D, ValidationClassKCSD3D
+from kcsd.validation.ValidateKCSD import ValidateKCSD1D, \
+    ValidateKCSD2D, ValidateKCSD3D
 from kcsd import csd_profile as CSD
 from kcsd import KCSD1D, KCSD2D, KCSD3D
 
@@ -26,7 +26,7 @@ except ImportError:
     PARALLEL_AVAILABLE = False
 
 
-class ErrorMap1D(ValidationClassKCSD1D):
+class ErrorMap1D(ValidateKCSD1D):
     """
     Class that produces error map for 1D CSD reconstruction.
     """
@@ -185,7 +185,7 @@ class ErrorMap1D(ValidationClassKCSD1D):
         return
 
 
-class ErrorMap2D(ValidationClassKCSD2D):
+class ErrorMap2D(ValidateKCSD2D):
     """
     Class that produces error map for 2D CSD reconstruction.
     """
@@ -354,7 +354,7 @@ class ErrorMap2D(ValidationClassKCSD2D):
         return
 
 
-class ErrorMap3D(ValidationClassKCSD3D):
+class ErrorMap3D(ValidateKCSD3D):
     """
     Class that produces error map for 3D CSD reconstruction.
     """
