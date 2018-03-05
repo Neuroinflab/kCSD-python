@@ -310,27 +310,48 @@ class sKCSD3D(KCSD3D):
         """
         xp, yp, zp = xyz
         return self.int_pot_3D(xp, yp, zp, x, R, h, basis_func)
+    
+    def potential_at_the_electrodes(self):
+        
+        estimation = np.zeros((self.n_ele,self.n_time))
+        k_inv = np.linalg.inv(self.k_pot + self.lambd *
+                              np.identity(self.k_pot.shape[0]))
+        for t in range(self.n_time):
+            beta = np.dot(k_inv, self.pots[:, t])
+            for i in range(self.n_ele):
+                
+                estimation[:, t] += self.k_pot[:, i]*beta[i]  # C*(x) Eq 18
+        return estimation
 
-    def values(self, estimate='CSD'):
+    def values(self, estimate='CSD',segments=False):
         '''In skCSD CSD is calculated on the morphology, which is 1D, and
         the CSD needs to be translated to cartesian coordinates.
 
         '''
         #estimate self.n_src_init x self.n_time
-        self.cell.get_grid()
-        estimated = super(sKCSD3D,self).values(estimate=estimate)
-        weights = np.zeros((self.cell.dims))
-        new_dims = list(self.cell.dims)
-        new_dims.append(self.n_time)
-        result = np.zeros(new_dims)
-        new_coorr = np.zeros((self.cell.est_xyz.shape),dtype=np.int)
+
+        estimated = super(sKCSD3D,self).values(estimate=estimate) 
+        if segments:
+            result = np.zeros((self.cell.morphology.shape[0],estimated.shape[1]))
+            weights = np.zeros((self.cell.morphology.shape[0]))
+            for i, loop in enumerate(self.cell.loops):
+                result[loop[0],:] += estimated[i,:]
+                weights[loop[0]] += 1
+            return result/weights[:,None]
         
-        for i in range(len(self.cell.dims)):
-            if self.cell.dxs[i]:
-                new_coorr[:,i] = np.floor((self.cell.est_xyz[:,i]-self.cell.minis[i])/self.cell.dxs[i])
-                
+        return self.from_morphology_loop_to_3D(estimated)
+   
+   
+    def from_morphology_loop_to_3D(self,estimated):
+        
+        self.cell.get_grid()
+        self.cell.coordinates_3D()
+        weights = np.zeros((self.cell.dims))
+        new_dims = list(self.cell.dims)+[self.n_time]
+        result = np.zeros(new_dims)
+ 
         for i,coor in enumerate(self.cell.est_xyz):
-            x,y,z, = new_coorr[i]
+            x,y,z, = self.cell.coor_3D[i]
             result[x,y,z,:] += estimated[i,:]
             weights[x,y,z] += 1
             

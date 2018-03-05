@@ -238,6 +238,13 @@ class sKCSDcell(object):
         plt.show()
         return image,extent
 
+    def coordinates_3D(self):
+        self.coor_3D = np.zeros((self.est_xyz.shape),dtype=np.int)
+        for i in range(len(self.dims)):
+            if self.dxs[i]:
+                self.coor_3D[:,i] = np.floor((self.est_xyz[:,i]-self.minis[i])/self.dxs[i])
+                
+
 if __name__ == '__main__':
     path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
     
