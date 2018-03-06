@@ -17,7 +17,7 @@ LFPy_sim = {'Random':1, 'Y_symmetric':2, 'Mainen':3, 'Oscill':4, 'Const':5, 'Sin
 class CellModel():
     MORPHOLOGY_FILES = {
         1:"morphology/ballstick.swc",
-        2:"morphology/villa.swc",
+        2:"morphology/villa.hoc",
         3:"morphology/morpho1.swc",
         4:"morphology/neuron_agasbogas.swc",
         5:"morphology/Mainen_swcLike.swc",
@@ -96,12 +96,20 @@ class CellModel():
         
         if morphology in range(1,9):
             morphology = self.MORPHOLOGY_FILES[morphology]
-        
+            if morphology == 2:
+                self.make_y_shaped()
+                
         self.make_cell(morphology,custom_code)
         self.setup_LFPy_2D_grid(eldistribute,orientation,colnb,rownb,xmin,xmax,ymin,ymax,cell_electrode_dist,triside,ssNB)
 
         self.add_electrodes()
  
+    def make_y_shaped(self):
+        self.cell_parameters['rm'] =  30000.
+        self.cell_parameters['cm'] =  1.
+        self.cell_parameters['Ra'] =  100.
+        self.simulation_parameters['rec_vmem'] = True
+        self.synapse_parameters['idx']
         
     def stationary_poisson(self,nsyn,lambd,tstart,tstop):
         ''' Generates nsyn stationary possion processes with rate lambda between tstart and tstop'''
@@ -144,11 +152,10 @@ class CellModel():
 
         for section in self.cell.allseclist:
             parents[section.name()] = section.parentseg()
-              
+        
         for secn in self.cell.allsecnames:
             idxs = self.cell.get_idx(secn)
             for i,idx in enumerate(idxs):
-                
                 self.morphology[idx,0] = idx+1
                 self.morphology[idx,2:5] = ends[idx]
                 self.morphology[idx,5] = segdiam[idx]
@@ -170,7 +177,17 @@ class CellModel():
                     if not parents[secn]:
                         self.morphology[idx,6] = -1
                     else:
-                        self.morphology[idx,6] = self.cell.get_idx(parents[secn].sec.name())[-1]+1
+                        cex,cey,cez = ends[idx]
+                        csx,csy,csz = coords[idx]
+                        parent = self.cell.get_idx(parents[secn].sec.name())[-1]
+                        psx,psy,psz = coords[parent]
+                        pex,pey,pez = ends[parent]
+                        if np.isclose(csx,pex) and np.isclose(csy,pey) and np.isclose(csz,pez):
+                            self.morphology[idx,6] = parent+1
+                        elif np.isclose(cex,psx) and np.isclose(cey,psy) and np.isclose(cez,psz):
+                            self.morphology[idx,6] = parent+1
+                        else:
+                            self.morphology[idx,6] = self.find_parent(idx,coords,ends) + 1
                 else:
                     self.morphology[idx,6] = idx
                                        
@@ -181,6 +198,12 @@ class CellModel():
         fname = os.path.join(morph_path,self.cell_name)+'.swc'
         print('Saving morphology to',fname)
         np.savetxt(fname, self.morphology, header='',fmt=['%d','%d','%6.2f','%6.2f','%6.2f','%6.2f','%d'])
+        
+    def find_parent(self,i,coords,ends):
+        for j, end in enumerate(ends):
+            check_parent = np.isclose(coords[i],end)
+            if check_parent[0] and check_parent[1] and check_parent[2]:
+                  return j
         
     def add_electrodes(self):
       self.electrode_parameters['x'] =  self.ele_coordinates[:,0],        # x,y,z-coordinates of contact points
@@ -270,6 +293,17 @@ class CellModel():
             synapse = LFPy.Synapse(self.cell, **self.synapse_parameters)
 
             synapse.set_spike_times(pre_syn_sptimes[self.pre_syn_pick[i_syn]])
+            
+    def y_shaped_symmetric_input(self,lambd=2,tstart=0,tstop=70):
+        self.synapse_parameters['idx'] = 0
+        pre_syn_sptimes = np.array([5.,25., 60.])
+        synapses = [33,65]
+
+        for i_syn in range(synapses):
+            syn_idx = i_syn
+            self.synapse_parameters.update({'idx' : syn_idx})
+            synapse = LFPy.Synapse(self.cell, **self.synapse_parameters)
+            synapse.set_spike_times(pre_syn_sptimes)
             
     def sine_synaptic_input(self,tstop=None):
         if not tstop:
