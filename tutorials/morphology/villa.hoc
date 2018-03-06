@@ -40,7 +40,7 @@ dend[1] {
 
 dend[2] {
     pt3dadd(0, 0, 200, 2)
-    pt3dadd(100, 0, 500, 2)
+    pt3dadd(-100, 0, 500, 2)
 }
 
 connect dend[0](0), soma[0](1)
