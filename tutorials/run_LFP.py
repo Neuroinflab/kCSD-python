@@ -294,16 +294,16 @@ class CellModel():
 
             synapse.set_spike_times(pre_syn_sptimes[self.pre_syn_pick[i_syn]])
             
-    def y_shaped_symmetric_input(self,lambd=2,tstart=0,tstop=70):
+    def y_shaped_symmetric_input(self):
         self.synapse_parameters['idx'] = 0
-        pre_syn_sptimes = np.array([5.,25., 60.])
-        synapses = [33,65]
+        pre_syn_sptimes = [np.array([5.,25., 60.]),np.array([5.,45., 60.])]
+        syn_no = [65,33]
 
-        for i_syn in range(synapses):
-            syn_idx = i_syn
-            self.synapse_parameters.update({'idx' : syn_idx})
-            synapse = LFPy.Synapse(self.cell, **self.synapse_parameters)
-            synapse.set_spike_times(pre_syn_sptimes)
+        for i, i_syn in enumerate(syn_no):
+            new_pars = self.synapse_parameters.copy()
+            new_pars['idx'] = i_syn 
+            synapse = LFPy.Synapse(self.cell, **new_pars)
+            synapse.set_spike_times(pre_syn_sptimes[i])
             
     def sine_synaptic_input(self,tstop=None):
         if not tstop:
@@ -333,14 +333,15 @@ class CellModel():
     def simulate(self,stimulus=None):
         if stimulus:
             self.stimulus = stimulus
-        if self.stimulus == 'cosine':
-            self.constant_current_injection(amp=3.6,idx=0)
-        elif self.stimulus == 'constant':
+        
+        if self.stimulus == 'constant':
             self.constant_current_injection(amp=1,idx=0)
         elif self.stimulus == 'random':
             self.random_synaptic_input()
         elif self.stimulus == 'sine':
             self.sine_synaptic_input()
+        elif self.stimulus == 'symmetric':
+            self.y_shaped_symmetric_input()
         self.cell.simulate(**self.simulation_parameters)
         
     def save_LFP(self,directory=''):
