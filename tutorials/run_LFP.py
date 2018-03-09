@@ -228,10 +228,10 @@ class CellModel():
         if eldistribute == 1: ###grid
             self.ele_coordinates[:,i] = np.array(colnb*list(np.linspace(xmin,xmax,rownb)))
             self.ele_coordinates[:,j] = np.repeat(np.linspace(ymin,ymax,colnb),rownb)
-        elif eldistribute == 2:
+        elif eldistribute == 2:###random
 
-            self.ele_coordinates[:,i] = np.array(colnb*list(np.linspace(xmin,xmax,rownb)))
-            self.ele_coordinates[:,j] = np.repeat(np.linspace(ymin,ymax,colnb),rownb)
+            self.ele_coordinates[:,i] = np.random.uniform(low=xmin,high=xmax,size=rownb*colnb) #np.array(colnb*list(np.linspace(xmin,xmax,rownb)))
+            self.ele_coordinates[:,j] =np.random.uniform(low=ymin,high=ymax,size=rownb*colnb) #np.repeat(np.linspace(ymin,ymax,colnb),rownb)
 
         elif eldistribute == 3:
             assert (rownb % 2 == 0), "For hexagon grids row number needs to be even"
