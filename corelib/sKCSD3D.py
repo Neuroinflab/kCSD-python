@@ -339,7 +339,7 @@ class sKCSD3D(KCSD3D):
                 weights[loop[0]] += 1
             return result/weights[:,None]
         
-        return self.cell.from_morphology_loop_to_3D(estimated)
+        return self.cell.transform_to_3D(estimated,what="loop")
    
    
     

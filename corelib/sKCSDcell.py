@@ -232,31 +232,44 @@ class sKCSDcell(object):
 
                     image[idx_arr[i,0]-1:idx_arr[i,0]+1,idx_arr[i,1]-1:idx_arr[i,1]+1,:] = np.array([0,0,0,20])
             x0, y0 = xi, yi
-
        
         plt.imshow(image,extent=extent,aspect='auto',origin="lower")
         plt.show()
         return image,extent
-
-    def coordinates_3D(self):
-        self.coor_3D = np.zeros((self.est_xyz.shape),dtype=np.int)
+                
+    def coordinates_3D(self,morpho):
+        
+        coor_3D = np.zeros((morpho.shape),dtype=np.int)
         for i in range(len(self.dims)):
             if self.dxs[i]:
-                self.coor_3D[:,i] = np.floor((self.est_xyz[:,i]-self.minis[i])/self.dxs[i])
-                
-    def from_morphology_loop_to_3D(self,estimated):
+                coor_3D[:,i] = np.floor((morpho[:,i]-self.minis[i])/self.dxs[i])
+        return coor_3D
+
+    def transform_to_3D(self,estimated,what="loop"):
         
+        if what == "loop":
+            morpho = self.est_xyz #morphology loop
+        elif what == "morpho":
+            morpho = self.morphology[:,2:5] #segments
+        else:
+            if len(estimated) == len(self.est_xyz):
+                morpho = self.est_xyz
+            elif len(estimated) == len(self.morphology[:,2:5]):
+                morpho = self.morphology[:,2:5]
+            else:
+                sys.exit("I do not know how to transform ",estimated.shape)
+                
         self.get_grid()
-        self.coordinates_3D()
+        
+        coor_3D = self.coordinates_3D(morpho)
 
         n_time = estimated.shape[-1]
         weights = np.zeros((self.dims))
 
         new_dims = list(self.dims)+[n_time]
         result = np.zeros(new_dims)
- 
-        for i,coor in enumerate(self.est_xyz):
-            x,y,z, = self.coor_3D[i]
+        for i,coor in enumerate(morpho):
+            x,y,z, = coor_3D[i]
             result[x,y,z,:] += estimated[i,:]
             weights[x,y,z] += 1
             
@@ -265,7 +278,7 @@ class sKCSDcell(object):
         for (x,y,z) in non_zero_weights:
             result[x,y,z,:] = result[x,y,z,:]/weights[x,y,z]
         return result
-    
+   
 if __name__ == '__main__':
     path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
     
