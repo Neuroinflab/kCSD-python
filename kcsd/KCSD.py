@@ -356,23 +356,37 @@ class KCSD(CSD):
         return err
     
     def plot_lcurve(self,residualseq,modelnormseq,imax,curveseq,lambdas,R):
-            fig_L = plt.figure()
-            ax_L= fig_L.add_subplot(121)
-            plt.title('ind_max :' +str(imax)+ ' R: ' + str(R))
-            plt.xscale('log')
-            plt.yscale('log')
-            plt.ylabel("Norm of Model")
-            plt.xlabel("Norm of Prediction Error")
-#            ax_L.plot(residualseq,marker=".",c="green")
-            ax_L.plot(residualseq,modelnormseq,marker=".",c="green")
-            ax_L.plot([residualseq[imax]],[modelnormseq[imax]],marker="o",c="red")
-    
-            ax2_L = fig_L.add_subplot(122)
-            plt.xscale('log')
-            plt.ylabel("Curvature")
-            plt.xlabel("Norm of Prediction Error")
-            ax2_L.plot(residualseq,curveseq,marker=".",c="green")
-            ax2_L.plot([residualseq[imax]],[curveseq[imax]],marker="o",c="red")
+        '''Method for plotting L-curve and triangle areas 
+        Parameters
+        ----------
+        residualseq: from L_fit
+        modelnormseq: from L_fit
+        imax: point index for maximum triangle area
+        curveseq: from L_fit - triangle areas
+        Lambdas: lambda vector 
+        R: Radius of basis source
+        
+        Shows
+        ----------
+        Two Plots
+        ''' 
+        fig_L = plt.figure()
+        ax_L= fig_L.add_subplot(121)
+        plt.title('ind_max :' +str(lambdas(imax))+ ' R: ' + str(R))
+        plt.xscale('log')
+        plt.yscale('log')
+        plt.ylabel("Norm of Model")
+        plt.xlabel("Norm of Prediction Error")
+        ax_L.plot(residualseq,modelnormseq,marker=".",c="green")
+        ax_L.plot([residualseq[imax]],[modelnormseq[imax]],marker="o",c="red")
+
+        ax2_L = fig_L.add_subplot(122)
+        plt.xscale('log')
+        plt.ylabel("Curvature")
+        plt.xlabel("Norm of Prediction Error")
+        ax2_L.plot(residualseq,curveseq,marker=".",c="green")
+        ax2_L.plot([residualseq[imax]],[curveseq[imax]],marker="o",c="red")
+        
     def triangle_area(self, x1, y1, x2, y2, x3, y3):
         '''Method to estimate triangle area
         Parameters
@@ -441,8 +455,8 @@ class KCSD(CSD):
             modelnorm= np.linalg.norm(estimation)
             modelnormseq[index] = modelnorm
             residualseq[index] = residual
-            norm_log = np.log(modelnormseq)
-            res_log = np.log(residualseq)
+            norm_log = np.log(modelnormseq+np.finfo(np.float64).eps)
+            res_log = np.log(residualseq+np.finfo(np.float64).eps)
         curveseq = []
         for i,lamb in enumerate(lambdas):
             curv_lcurve = self.triangle_area(res_log[0], norm_log[0], res_log[i], norm_log[i],res_log[-1], norm_log[-1])
