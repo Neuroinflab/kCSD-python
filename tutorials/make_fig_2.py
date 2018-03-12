@@ -4,6 +4,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sys
 import os
+from distutils.spawn import find_executable, spawn
+import shutil
+import subprocess
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
@@ -14,10 +17,19 @@ import functions as fun
 
 n_src = 512
 
+if find_executable('nrnivmodl') is not None:
+    for path in ['x86_64', 'i686', 'powerpc']:
+        if os.path.isdir(path):
+            shutil.rmtree(path)
+    spawn([find_executable('nrnivmodl')])
+    subprocess.call(["nrnivmodl", "sinsyn.mod"])
+else:
+    print("nrnivmodl script not found in PATH, thus NEURON .mod files could" +
+"not be compiled, and LFPy.test() functions will fail")
 if __name__ == '__main__':
-    fname_base = "ball_stick_random"
+    fname_base = "ball_stick_sine"
     
-    tstop = 75
+    tstop = 850
     scaling_factor = 1000**2
     scaling_factor_LFP = 1000
     R_inits = [(2**i)/np.sqrt(2) for i in [3,4,5,6,7]]
@@ -26,14 +38,14 @@ if __name__ == '__main__':
     
     for rownb in electrode_number:
         fname = fname_base+str(rownb)
-        c = run_LFP.CellModel(morphology=1,cell_name=fname,colnb=1,rownb=rownb,xmin=-100,xmax=600,ymin=0,ymax=200,tstop=tstop,seed=1988,weight=0.01,n_syn=100)
-        c.simulate()
+        c = run_LFP.CellModel(morphology=1,cell_name=fname,colnb=1,rownb=rownb,xmin=-100,xmax=600,ymin=0,ymax=200,tstop=tstop,seed=1988,weight=0.1,n_syn=100)
+        c.simulate(stimulus='sine')
         c.save_skCSD_python()
         c.save_memb_curr()
         c.save_seg_length()
         data_dir.append(c.return_paths_skCSD_python())
         
-    seglen = np.loadtxt(os.path.join(data_dir[0],'seglength'))#/scaling_factor
+    seglen = np.loadtxt(os.path.join(data_dir[0],'seglength'))
     ground_truth = np.loadtxt(os.path.join(data_dir[0],'membcurr'))
     ground_truth = ground_truth/seglen[:,None]
     gvmin, gvmax = fun.get_min_max(ground_truth)
@@ -54,9 +66,9 @@ if __name__ == '__main__':
                 R = R_init/scaling_factor
                
                 k = sKCSD3D.sKCSD3D(ele_pos,data.LFP,morphology, n_src_init=n_src, src_type='gauss',lambd=lambd,R_init=R)
-                print(k.cross_validate(lambdas=np.array([lambd])))
+                #k.cross_validate()
                 est_csd = k.values()
-                dir_name = "ball_stick_random_R_"+str(R_init)+'_lambda_'+str(lambd)+'_src_'+str(n_src)
+                dir_name = "ball_stick_sine_R_"+str(R_init)+'_lambda_'+str(lambd)+'_src_'+str(n_src)
                 
                 if sys.version_info >= (3, 0):
                     new_path = os.path.join(datd,"preprocessed_data/Python_3", dir_name)
