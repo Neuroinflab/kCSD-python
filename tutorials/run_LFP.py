@@ -60,39 +60,41 @@ class CellModel():
         
         }
     def __init__(self,**kwargs):
-        
+         
         self.cell_parameters = self.CELL_PARAMETERS.copy()
         self.synapse_parameters = self.SYNAPSE_PARAMETERS.copy()
         self.simulation_parameters = self.SIMULATION_PARAMETERS.copy()
         self.electrode_parameters = self.ELECTRODE_PARAMETERS.copy()
         self.point_process = self.POINT_PROCESS.copy()
         
-        self.cell_name = kwargs.get('cell_name','cell_1')
-        self.path = kwargs.get('path','simulation')
-        self.stimulus = kwargs.get('stimulus','random')
+        self.cell_name = kwargs.pop('cell_name','cell_1')
+        self.path = kwargs.pop('path','simulation')
+        self.stimulus = kwargs.pop('stimulus','random')
         
-        eldistribute = kwargs.get('electrode_distribution',1)
-        orientation = kwargs.get('electrode_orientation',2)
-        colnb = kwargs.get('colnb',4)
-        rownb = kwargs.get('rownb',4)
-        xmin = kwargs.get('xmin',0)
-        xmax = kwargs.get('xmax',200)
-        ymin = kwargs.get('ymin',-100)
-        ymax = kwargs.get('xmax',-500)
-        tstop = kwargs.get('tstop',850)
+        eldistribute = kwargs.pop('electrode_distribution',1)
+        orientation = kwargs.pop('electrode_orientation',2)
+        colnb = kwargs.pop('colnb',4)
+        rownb = kwargs.pop('rownb',4)
+        xmin = kwargs.pop('xmin',0)
+        xmax = kwargs.pop('xmax',200)
+        ymin = kwargs.pop('ymin',-100)
+        ymax = kwargs.pop('xmax',-500)
+        tstop = kwargs.pop('tstop',850)
         self.cell_parameters['tstopms'] = tstop
-        cell_electrode_dist = kwargs.get('electrode_distance',50)
-        triside = kwargs.get('triside',19)
-        ssNB = kwargs.get('seed',123456)
-        custom_code = kwargs.get('custom_code',[])
-        morphology = kwargs.get('morphology',1)
-        self.sigma = kwargs.get('sigma',.3)
-        self.n_pre_syn = kwargs.get('n_presyn',1000)
-        self.n_synapses = kwargs.get('n_syn', 1000)
+        cell_electrode_dist = kwargs.pop('electrode_distance',50)
+        triside = kwargs.pop('triside',19)
+        ssNB = kwargs.pop('seed',123456)
+        custom_code = kwargs.pop('custom_code',[])
+        morphology = kwargs.pop('morphology',1)
+        self.sigma = kwargs.pop('sigma',.3)
+        self.n_pre_syn = kwargs.pop('n_presyn',1000)
+        self.n_synapses = kwargs.pop('n_syn', 1000)
         self.new_path = os.path.join(self.path, self.cell_name)
         np.random.seed(ssNB)        
         
-        self.synapse_parameters['weight'] = kwargs.get('weight',0.04)
+        self.synapse_parameters['weight'] = kwargs.pop('weight',0.04)
+        if kwargs:
+            raise TypeError('Invalid keyword arguments:', kwargs.keys())
         
         if morphology in range(1,9):
             morphology = self.MORPHOLOGY_FILES[morphology]
@@ -103,7 +105,6 @@ class CellModel():
         self.setup_LFPy_2D_grid(eldistribute,orientation,colnb,rownb,xmin,xmax,ymin,ymax,cell_electrode_dist,triside,ssNB)
 
         self.add_electrodes()
- 
     def make_y_shaped(self):
         self.cell_parameters['rm'] =  30000.
         self.cell_parameters['cm'] =  1.
