@@ -13,19 +13,46 @@ import corelib.loadData as ld
 import functions as fun
 
 n_src = 512
+def merge_maps(maps,tstart=40,tstop=60,merge=4):
+    single_width = (tstop-tstart)//merge
+    outs = np.zeros((maps[0].shape[0],single_width*len(maps)))
+    for i,mappe in enumerate(maps):
+        outs[:,i*single_width:(i+1)*single_width] = make_output(mappe,tstart=tstart,tstop=tstop,merge=merge)
 
-def plot(ax,i,what):
-    xmax, xmin = fun.get_min_max(what)
-    im = ax[i].imshow(what,extent=extent,origin='lower',aspect='auto',cmap='seismic_r',vmin=xmin,vmax=xmax)
-    return im
+    return outs
+
+def make_output(what,tstart=40,tstop=60,merge=4):
+    plotage = what[:,tstart:tstop]
+    out = np.zeros((what.shape[0],(tstop-tstart)//merge))
+    
+    for k in range((tstop-tstart)//merge):
+        out[:,k] = plotage[:,k*merge:(k+1)*merge].sum(axis=1)/merge
+    return out
+
+def plot(ax,i,what,xticks=[],yticks=[],fig=None,title=None):
+    xmax, xmin = 0.05, -0.05#fun.get_min_max(what)
+    cax = ax[i].imshow(what,origin='lower',aspect='auto',cmap='seismic_r',interpolation='none',vmin=xmin,vmax=xmax)
+    ax[i].set_xticks(xticks)
+   
+    ax[i].set_yticks(yticks)
+    if xticks != []:
+        ax[i].set_xticklabels(['8','16','32','64'])
+    
+    if not i:
+        cbar = fig.colorbar(cax, ticks=[-0.05, 0, 0.05])
+
+    if title:
+        ax[i].set_title(title)
+    return cax
 
 if __name__ == '__main__':
     fname_base = "y_shaped_symmetric_different_electrode_positions"
-    
+    atstart = 41
+    atstop = 51
     tstop = 70
     scale_factor = 1000**2
     scale_factor_LFP = 1000
-    R_inits = [(2**i)/np.sqrt(2) for i in [2,3,4,5,6,7,8]]
+    R_inits = np.array([(2**i)/np.sqrt(2)/scale_factor for i in range(9)])
     electrode_number = [8,16,32,64]
     data_dir_grid = []
     data_dir_random = []
@@ -33,56 +60,97 @@ if __name__ == '__main__':
     rows = [2,4,8,16]
     lfps_grid = []
     lfps_random = []
-    extent = [-200, 200, -200, 600]
-
+    #extent = [-200, 200, -200, 600]
+    lambd = 1e-5
+    lambdas = np.array([(10**(-i))for i in range(10)])
+    R = 0.02
     for i, rownb in enumerate(rows):
-        fname = fname_base+str(rownb)
-        c = run_LFP.CellModel(morphology=2,cell_name=fname,colnb=colnb,rownb=rownb,xmin=-200,xmax=200,zmin=-200,zmax=600,tstop=tstop,seed=1988,weight=0.01,n_syn=100)
+        fname = fname_base+str(rownb)+'_grid_'
+        c = run_LFP.CellModel(morphology=2,cell_name=fname,colnb=colnb,rownb=rownb,xmin=-200,xmax=600,ymin=-200,ymax=200,tstop=tstop,seed=1988,weight=0.04,n_syn=100)
         c.simulate('symmetric')
         c.save_skCSD_python()
         c.save_memb_curr()
         c.save_seg_length()
         lfps_grid.append(c.simulation_parameters['electrode'].LFP)
         data_dir_grid.append(c.return_paths_skCSD_python())
+        data = ld.Data(c.return_paths_skCSD_python())
+        ele_pos = data.ele_pos/scale_factor
+        pots = data.LFP/scale_factor_LFP
+        morphology = data.morphology
+        morphology[:,2:6] = morphology[:,2:6]/scale_factor
         
-    for i, e_no in enumerate(electrode_number):
-        fname = fname_base+str(rownb)
-        c = run_LFP.CellModel(morphology=2,cell_name=fname,electrode_distribution=2,xmin=-200,xmax=200,zmin=-200,zmax=600,tstop=tstop,seed=1988,weight=0.01,n_syn=100)
+    for i, rownb in enumerate(rows):
+        fname = fname_base+str(rownb)+'_random_'
+        c = run_LFP.CellModel(morphology=2,cell_name=fname,electrode_distribution=2,colnb=colnb,rownb=rownb,xmin=-200,xmax=600,ymin=-200,ymax=200,tstop=tstop,seed=1988,weight=0.01,n_syn=100)
         c.simulate('symmetric')
         c.save_skCSD_python()
         c.save_memb_curr()
         c.save_seg_length()
         lfps_random.append(c.simulation_parameters['electrode'].LFP)
         data_dir_random.append(c.return_paths_skCSD_python())
-        
+        data = ld.Data(c.return_paths_skCSD_python())
+        ele_pos = data.ele_pos/scale_factor
+        pots = data.LFP/scale_factor_LFP
+        morphology = data.morphology
+        morphology[:,2:6] = morphology[:,2:6]/scale_factor
+       
     seglen = np.loadtxt(os.path.join(data_dir_random[0],'seglength'))#/scale_factor
     ground_truth = np.loadtxt(os.path.join(data_dir_random[0],'membcurr'))
     ground_truth = ground_truth/seglen[:,None]
-    ground_truth_grid = []
-    ground_truth_t1 = None
-    ground_truth_t2 = None
-    
-    for lambd in [1e-5,1e-4,1e-3,1e-2,1e-1]:
-        for R_init in R_inits:
+
+    for lambd in [1e-5]:
+        for R_init in [16/scale_factor/2**.5]:
             simulation_paths = []
             data_paths = []
             fig = plt.figure()
             ax = []
-            for j in range(9):
-                ax.append(fig.add_subplot(1,9,j+1))
-            ax[0].imshow(ground_truth_t2,[1)
+            for j in range(3):
+                ax.append(fig.add_subplot(1,3,j+1))
+            plot(ax,0,ground_truth[:,atstart:atstop],yticks=[x for x in range(0,86,5)],fig=fig,title="Ground truth")
+            R = R_init
+            skcsd_grid = []
+            skcsd_random = []
+            
             for i, datd in enumerate(data_dir_grid):
                 data = ld.Data(datd)
                 ele_pos = data.ele_pos/scale_factor
                 pots = data.LFP/scale_factor_LFP
                 morphology = data.morphology
                 morphology[:,2:6] = morphology[:,2:6]/scale_factor
-                R = R_init/scale_factor
+                k = sKCSD3D.sKCSD3D(ele_pos,data.LFP,morphology, n_src_init=n_src, src_type='gauss',lambd=lambd,R_init=R)
+                                  
+                est_skcsd = k.values(estimate='CSD',segments=True)/seglen[:,None]
+                dir_name = fname_base+"_grid_R_"+str(R_init)+'_lambda_'+str(lambd)+'_src_'+str(n_src)
+
+                if sys.version_info >= (3, 0):
+                    new_path = os.path.join(datd,"preprocessed_data/Python_3", dir_name)
+                else:
+                    new_path = os.path.join(datd,"preprocessed_data/Python_2",dir_name)
+                
+                if not os.path.exists(new_path):
+                    print("Creating",new_path)
+                    os.makedirs(new_path)
+
+                utils.save_sim(new_path,k)
+                simulation_paths.append(new_path)
+                skcsd_grid.append(est_skcsd)
+            skcsd_maps = merge_maps(skcsd_grid,tstart=atstart,tstop=atstop,merge=2)
+            step = skcsd_maps.shape[1]/4
+            xticks = [i+2 for i in range(0, skcsd_maps.shape[1],5)]
+                      
+            plot(ax,1,skcsd_maps,xticks=xticks,title="Grid")
+            for i, datd in enumerate(data_dir_random):
+                data = ld.Data(datd)
+                ele_pos = data.ele_pos/scale_factor
+                pots = data.LFP/scale_factor_LFP
+                morphology = data.morphology
+                morphology[:,2:6] = morphology[:,2:6]/scale_factor
+               
                
                 k = sKCSD3D.sKCSD3D(ele_pos,data.LFP,morphology, n_src_init=n_src, src_type='gauss',lambd=lambd,R_init=R)
                                   
-                est_skcsd = k.values(estimate='CSD',segments=True)
-                dir_name = fname_base+"_R_"+str(R_init)+'_lambda_'+str(lambd)+'_src_'+str(n_src)
+                est_skcsd = k.values(estimate='CSD',segments=True)/seglen[:,None]
+                dir_name = fname_base+"_random_R_"+str(R_init)+'_lambda_'+str(lambd)+'_src_'+str(n_src)
 
                 if sys.version_info >= (3, 0):
                     new_path = os.path.join(datd,"preprocessed_data/Python_3", dir_name)
@@ -95,22 +163,11 @@ if __name__ == '__main__':
         
                 utils.save_sim(new_path,k)
                 simulation_paths.append(new_path)
-
-                if i == 0:
-                    cax = plot(ax,6,ground_truth_t1)
-                    cax = plot(ax,10,ground_truth_t2)
-                    cax = plot(ax,7,est_skcsd_t1)
-                    cax = plot(ax,11,est_skcsd_t2)
-                else:
-                    cax = plot(ax,0,est_kcsd_pot[:,:,:,t1].sum(axis=1))
-                    cax = plot(ax,1,est_kcsd[:,:,:,t1].sum(axis=1))
-                    cax = plot(ax,2, ground_truth_t1)
-                    cax = plot(ax,3,est_skcsd_t1)
-                    cax = plot(ax,4,est_kcsd_pot[:,:,:,t1].sum(axis=1))
-                    cax = plot(ax,5,est_kcsd[:,:,:,t1].sum(axis=1))
-                    cax = plot(ax,8,est_kcsd_pot[:,:,:,t2].sum(axis=1))
-                    cax = plot(ax,9,est_kcsd[:,:,:,t2].sum(axis=1))
-            fig.savefig(dir_name+'.png', bbox_inches='tight', transparent=True, pad_inches=0.1)
+                skcsd_random.append(est_skcsd)
+            skcsd_maps = merge_maps(skcsd_random,tstart=atstart,tstop=atstop,merge=2)
+            plot(ax,2,skcsd_maps,xticks=xticks,title="Random")
+    
+            fig.savefig(fname_base+'_'+str(R)+'_'+str(lambd)+'.png', bbox_inches='tight', transparent=True, pad_inches=0.1)
 
     
            
