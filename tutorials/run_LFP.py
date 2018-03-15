@@ -72,7 +72,7 @@ class CellModel():
         self.stimulus = kwargs.pop('stimulus','random')
         
         eldistribute = kwargs.pop('electrode_distribution',1)
-        orientation = kwargs.pop('electrode_orientation',2)
+        orientation = kwargs.pop('electrode_orientation',2) #according to which axis
         colnb = kwargs.pop('colnb',4)
         rownb = kwargs.pop('rownb',4)
         xmin = kwargs.pop('xmin',0)
@@ -230,7 +230,6 @@ class CellModel():
             self.ele_coordinates[:,i] = np.array(colnb*list(np.linspace(xmin,xmax,rownb)))
             self.ele_coordinates[:,j] = np.repeat(np.linspace(ymin,ymax,colnb),rownb)
         elif eldistribute == 2:###random
-
             self.ele_coordinates[:,i] = np.random.uniform(low=xmin,high=xmax,size=rownb*colnb) #np.array(colnb*list(np.linspace(xmin,xmax,rownb)))
             self.ele_coordinates[:,j] =np.random.uniform(low=ymin,high=ymax,size=rownb*colnb) #np.repeat(np.linspace(ymin,ymax,colnb),rownb)
 
