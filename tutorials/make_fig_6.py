@@ -47,6 +47,10 @@ def plot(ax,i,what,xticks=[],yticks=[],fig=None,title=None):
 
 if __name__ == '__main__':
     fname_base = "y_shaped_symmetric_different_electrode_positions"
+    fig_dir = 'Figures'
+    if not os.path.exists(fig_dir):
+        print("Creating",fig_dir)
+        os.makedirs(fig_dir)
     atstart = 41
     atstop = 51
     tstop = 70
@@ -121,7 +125,7 @@ if __name__ == '__main__':
                                   
                 est_skcsd = k.values(estimate='CSD',segments=True)/seglen[:,None]
                 dir_name = fname_base+"_grid_R_"+str(R_init)+'_lambda_'+str(lambd)+'_src_'+str(n_src)
-
+                fig_name = os.path.join(fig_dir,dir_name+'.png')
                 if sys.version_info >= (3, 0):
                     new_path = os.path.join(datd,"preprocessed_data/Python_3", dir_name)
                 else:
@@ -167,7 +171,7 @@ if __name__ == '__main__':
             skcsd_maps = merge_maps(skcsd_random,tstart=atstart,tstop=atstop,merge=2)
             plot(ax,2,skcsd_maps,xticks=xticks,title="Random")
     
-            fig.savefig(fname_base+'_'+str(R)+'_'+str(lambd)+'.png', bbox_inches='tight', transparent=True, pad_inches=0.1)
+            fig.savefig(fig_name, bbox_inches='tight', transparent=True, pad_inches=0.1)
 
     
            

@@ -28,7 +28,10 @@ else:
 "not be compiled, and LFPy.test() functions will fail")
 if __name__ == '__main__':
     fname_base = "ball_stick_sine"
-    
+    fig_dir = 'Figures'
+    if not os.path.exists(fig_dir):
+        print("Creating",fig_dir)
+        os.makedirs(fig_dir)
     tstop = 850
     scaling_factor = 1000**2
     scaling_factor_LFP = 1000
@@ -50,8 +53,8 @@ if __name__ == '__main__':
     ground_truth = ground_truth/seglen[:,None]
     gvmin, gvmax = fun.get_min_max(ground_truth)
     
-    for lambd in [1e-5,1e-4,1e-3,1e-2,1e-1]:
-        for R_init in R_inits:
+    for lambd in [1e-5]:
+        for R_init in [64/2**.5]:
             simulation_paths = []
             data_paths = []
             fig = plt.figure()
@@ -74,7 +77,7 @@ if __name__ == '__main__':
                     new_path = os.path.join(datd,"preprocessed_data/Python_3", dir_name)
                 else:
                     new_path = os.path.join(datd,"preprocessed_data/Python_2",dir_name)
-                
+                fig_name = os.path.join(fig_dir,dir_name+'.png')
                 if not os.path.exists(new_path):
                     print("Creating",new_path)
                     os.makedirs(new_path)
@@ -113,7 +116,7 @@ if __name__ == '__main__':
                     ax[i].set_title(electrode_number[i-1])
                     cbar.ax.set_yticklabels(['source','sink'])
     
-            fig.savefig(dir_name+'.png', bbox_inches='tight', transparent=True, pad_inches=0.1)
+            fig.savefig(fig_name, bbox_inches='tight', transparent=True, pad_inches=0.1)
 
     
             #plt.show()

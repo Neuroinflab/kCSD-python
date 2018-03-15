@@ -16,7 +16,11 @@ n_src = 512
 
 if __name__ == '__main__':
     fname_base = "ball_stick_random"
-    
+    fig_dir = 'Figures'
+    if not os.path.exists(fig_dir):
+        print("Creating",fig_dir)
+        os.makedirs(fig_dir)
+        
     tstop = 75
     scaling_factor = 1000**2
     scaling_factor_LFP = 1000
@@ -38,8 +42,8 @@ if __name__ == '__main__':
     ground_truth = ground_truth/seglen[:,None]
     gvmin, gvmax = fun.get_min_max(ground_truth)
     
-    for lambd in [1e-5,1e-4,1e-3,1e-2,1e-1]:
-        for R_init in R_inits:
+    for lambd in [1e-5]:
+        for R_init in [64/2**0.5]:
             simulation_paths = []
             data_paths = []
             fig = plt.figure()
@@ -54,10 +58,9 @@ if __name__ == '__main__':
                 R = R_init/scaling_factor
                
                 k = sKCSD3D.sKCSD3D(ele_pos,data.LFP,morphology, n_src_init=n_src, src_type='gauss',lambd=lambd,R_init=R)
-                print(k.cross_validate(lambdas=np.array([lambd])))
                 est_csd = k.values()
                 dir_name = "ball_stick_random_R_"+str(R_init)+'_lambda_'+str(lambd)+'_src_'+str(n_src)
-                
+                fig_name = os.path.join(fig_dir,dir_name+'.png')
                 if sys.version_info >= (3, 0):
                     new_path = os.path.join(datd,"preprocessed_data/Python_3", dir_name)
                 else:
@@ -101,7 +104,7 @@ if __name__ == '__main__':
                     ax[i].set_title(electrode_number[i-1])
                     cbar.ax.set_yticklabels(['source','sink'])
     
-            fig.savefig(dir_name+'.png', bbox_inches='tight', transparent=True, pad_inches=0.1)
+            fig.savefig(fig_name, bbox_inches='tight', transparent=True, pad_inches=0.1)
 
     
             #plt.show()
