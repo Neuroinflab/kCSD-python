@@ -16,7 +16,7 @@ LFPy_sim = {'Random':1, 'Y_symmetric':2, 'Mainen':3, 'Oscill':4, 'Const':5, 'Sin
 
 class CellModel():
     MORPHOLOGY_FILES = {
-        1:"morphology/ballstick.swc",
+        1:"morphology/ballstick.hoc",
         2:"morphology/villa.hoc",
         3:"morphology/morpho1.swc",
         4:"morphology/neuron_agasbogas.swc",
@@ -78,7 +78,7 @@ class CellModel():
         xmin = kwargs.pop('xmin',0)
         xmax = kwargs.pop('xmax',200)
         ymin = kwargs.pop('ymin',-100)
-        ymax = kwargs.pop('xmax',-500)
+        ymax = kwargs.pop('ymax',-500)
         tstop = kwargs.pop('tstop',850)
         self.cell_parameters['tstopms'] = tstop
         cell_electrode_dist = kwargs.pop('electrode_distance',50)
