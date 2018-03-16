@@ -43,7 +43,7 @@ def simulate(fname_base,**kwargs):
 
 
 def L1_error(csd,est_csd):
-    return (abs(csd-est_csd)).sum()/csd.sum()
+    return (abs(csd-est_csd)).sum()/abs(csd).sum()
 
 
 def make_output(what,tstart,tstop,merge):
@@ -76,10 +76,12 @@ def get_min_max(csd):
 def calculate_ticks(ticklabels,length):
     n = len(ticklabels)
     step = length//n
+    if not step:
+        step = 1
     
-    return [i+2 for i in range(0, length,step)]
+    return [i for i in range(0, length,step)]
 
-def plot(ax_i,what,xticklabels=None,yticklabels=None,fig=None,title=None,vmin=None,vmax=None):
+def plot(ax_i,what,xticklabels=None,yticklabels=None,fig=None,title=None,vmin=None,vmax=None,sinksource=True):
     if not vmin or not vmax:
         xmax, xmin = get_min_max(what)
     else:
@@ -95,7 +97,9 @@ def plot(ax_i,what,xticklabels=None,yticklabels=None,fig=None,title=None,vmin=No
         ax_i.set_xticks([])
         
     if yticklabels:
+
         yticks = calculate_ticks(yticklabels,what.shape[0])
+        
         ax_i.set_yticks(yticks)
         ax_i.set_yticklabels(yticklabels)
     else:
@@ -103,7 +107,8 @@ def plot(ax_i,what,xticklabels=None,yticklabels=None,fig=None,title=None,vmin=No
     
     if fig:
         cbar = fig.colorbar(cax, ticks=[xmin, 0, xmax])
-        cbar.ax.set_yticklabels(['source','sink'])
+        if sinksource:
+            cbar.ax.set_yticklabels(['source','sink'])
     if title:
         ax_i.set_title(title)
     return cax
