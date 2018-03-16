@@ -537,6 +537,7 @@ class SpectralStructure(object):
         self.plot_svd_sigma(sigma)
         self.plot_svd_u(u_svd)
         self.plot_svd_v(v_svd)
+        self.plot_svd_sigma_lambd(sigma)
         return u_svd, sigma, v_svd
 
     def picard_plot(self, b):
@@ -617,6 +618,38 @@ class SpectralStructure(object):
         plt.show()
         return
 
+    def plot_evd_sigma_lambd(self, s):
+        """
+        Creates plots of:
+            - 1 over (eigenvalues of k_pot matrix + lambda).
+            - eigenvalues over (eigenvalues**2 + lambda)
+
+        Parameters
+        ----------
+        sigma: numpy array
+            Singular values of kernels product.
+
+        Returns
+        -------
+        None
+        """
+        x = np.arange(1, len(s) + 1)
+        plt.figure()
+        plt.plot(x, 1/(s + self.k.lambd), 'b.')
+        plt.title(r'$\frac{1}{(\mu_j + \lambda)}$')
+        plt.xlabel('Components number j')
+        plt.ylabel(r'1/($\mu_j + \lambda)$')
+        plt.yscale('log')
+        plt.show()
+        plt.figure()
+        plt.plot(x, s/(s**2 + self.k.lambd), 'b.')
+        plt.title(r'$\frac{\mu_j}{(\mu_j^2 + \lambda)}$')
+        plt.xlabel('Components number j')
+        plt.ylabel(r'$\mu_j/(\mu_j^2 + \lambda)$')
+        plt.yscale('log')
+        plt.show()
+        return
+
     def evd(self):
         """
         Method that calculates eigenvalue decomposition of kernel (k_pot
@@ -650,6 +683,7 @@ class SpectralStructure(object):
         eigenvalues = eigenvalues[idx]
         eigenvectors = eigenvectors[:, idx]
         self.plot_evd_sigma(eigenvalues)
+        self.plot_evd_sigma_lambd(eigenvalues)
         return eigenvectors, eigenvalues
 
     def plot_svd_sigma(self, sigma):
@@ -670,6 +704,38 @@ class SpectralStructure(object):
         plt.title('Singular values of kernels product')
         plt.xlabel('Components number')
         plt.ylabel('Singular values')
+        plt.yscale('log')
+        plt.show()
+        return
+
+    def plot_svd_sigma_lambd(self, sigma):
+        """
+        Creates plots of:
+            - 1 over (singular values of kernels product (K~*K^-1) + lambda).
+            - singular values over (singular values**2 + lambda)
+
+        Parameters
+        ----------
+        sigma: numpy array
+            Singular values of kernels product.
+
+        Returns
+        -------
+        None
+        """
+        x = np.arange(1, len(sigma) + 1)
+        plt.figure()
+        plt.plot(x, 1/(sigma + self.k.lambd), 'b.')
+        plt.title(r'$\frac{1}{(\sigma_j + \lambda)}$')
+        plt.xlabel('Components number j')
+        plt.ylabel(r'1/($\sigma_j + \lambda)$')
+        plt.yscale('log')
+        plt.show()
+        plt.figure()
+        plt.plot(x, sigma/(sigma**2 + self.k.lambd), 'b.')
+        plt.title(r'$\frac{\sigma_j}{(\sigma_j^2 + \lambda)}$')
+        plt.xlabel('Components number j')
+        plt.ylabel(r'$\sigma_j/(\sigma_j^2 + \lambda)$')
         plt.yscale('log')
         plt.show()
         return
@@ -880,7 +946,8 @@ class ValidateKCSD1D(ValidateKCSD):
                                                                 kcsd.R, rms)
         self.make_plot(csd_at, true_csd, kcsd, est_csd, ele_pos, pots, title)
         ss = SpectralStructure(kcsd)
-        ss.picard_plot(pots)
+#        ss.picard_plot(pots)
+        ss.evd()
         point_error = self.calculate_point_error(test_csd, est_csd[:, 0])
         return kcsd, rms, point_error
 
@@ -1490,15 +1557,15 @@ class ValidateKCSD3D(ValidateKCSD):
 if __name__ == '__main__':
     print('Checking 1D')
     CSD_PROFILE = CSD.gauss_1d_mono
-    CSD_SEED = 5
+    CSD_SEED = 15
     n_src_init = 100
     ELE_LIMS = [0.1, 0.9]  # range of electrodes space
 
-    k = ValidateKCSD1D(CSD_PROFILE, CSD_SEED, total_ele=16,
+    k = ValidateKCSD1D(CSD_PROFILE, CSD_SEED, total_ele=64,
                        n_src_init=n_src_init, h=0.25, R_init=0.23,
                        ele_xlims=ELE_LIMS, true_csd_xlims=[0., 1.], sigma=0.3,
                        src_type='gauss', config='regular')
-    k.make_reconstruction(CSD_PROFILE, noise='noise',
+    k.make_reconstruction(CSD_PROFILE, noise=None,
                           Rs=np.arange(0.2, 0.5, 0.1))
 
     print('Checking 2D')
