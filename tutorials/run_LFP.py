@@ -254,7 +254,7 @@ class CellModel():
             self.ele_coordinates[:,k] *= cellelectrodedist
 
         elif eldistribute == 4:
-            self.ele_coordinates = np.loadtxt(os.path.join(path,'simulation/ElcoordsDomi14.txt'))
+            self.ele_coordinates = np.loadtxt('morphology/ElcoordsDomi14.txt'))
         
         if not os.path.exists(self.new_path):
             print("Creating",self.new_path)
@@ -269,7 +269,7 @@ class CellModel():
         self.point_process['delay'] = 2
         stimulus = LFPy.StimIntElectrode(cell, **self.pointprocess)
         
-    def cosine_current_injection(self,amp,idx=0):
+    def cosine_current_injection(self):
         self.point_process['idx'] = idx
         self.point_process['dur'] = 1
 
@@ -342,6 +342,8 @@ class CellModel():
             self.sine_synaptic_input()
         elif self.stimulus == 'symmetric':
             self.y_shaped_symmetric_input()
+        elif self.stimulus == 'oscillatory':
+            self.cosine_current_injection()
         self.cell.simulate(**self.simulation_parameters)
         
     def save_LFP(self,directory=''):
