@@ -13,7 +13,7 @@ electrode_distribute = {'Grid':1, 'Random':2, 'Hexagonal':3, 'Domi':4}
 LFPy_sim = {'Random':1, 'Y_symmetric':2, 'Mainen':3, 'Oscill':4, 'Const':5, 'Sine':6 }
 
 """
-
+rm = 4
 class CellModel():
     MORPHOLOGY_FILES = {
         1:"morphology/ballstick.hoc",
@@ -30,10 +30,10 @@ class CellModel():
    
 
 	'Ra': 123,
-        'tstartms' : 0.,                 # start time of simulation, recorders start at t=0
+        'tstart' : 0.,                 # start time of simulation, recorders start at t=0
 	'passive' : True,
+        'passive_parameters':{'e_pas' : -65,'g_pas' : 1./30000},
     	'v_init' : -65,             # initial crossmembrane potential
-    	'e_pas' : -65,              # reversal potential passive mechs
 	'nsegs_method' :  'fixed_length',
 	'max_nsegs_length':10, 
         'custom_code'  : [], # will run this file
@@ -49,7 +49,6 @@ class CellModel():
 
     SIMULATION_PARAMETERS = {
 	'rec_imem' : True,  # Record Membrane currents during simulation
-	'rec_isyn' : True,  # Record synaptic currents
     }
     ELECTRODE_PARAMETERS = {
         'method' : 'linesource'
@@ -80,7 +79,7 @@ class CellModel():
         ymin = kwargs.pop('ymin',-100)
         ymax = kwargs.pop('ymax',-500)
         tstop = kwargs.pop('tstop',850)
-        self.cell_parameters['tstopms'] = tstop
+        self.cell_parameters['tstop'] = tstop
         cell_electrode_dist = kwargs.pop('electrode_distance',50)
         triside = kwargs.pop('triside',19)
         ssNB = kwargs.pop('seed',123456)
@@ -189,6 +188,7 @@ class CellModel():
                             self.morphology[idx,6] = parent+1
                         else:
                             self.morphology[idx,6] = self.find_parent(idx,coords,ends) + 1
+                        #self.morphology[idx,6] = self.cell.get_idx(parents[secn].sec.name())[-1]+1
                 else:
                     self.morphology[idx,6] = idx
                                        
@@ -201,6 +201,8 @@ class CellModel():
         np.savetxt(fname, self.morphology, header='',fmt=['%d','%d','%6.2f','%6.2f','%6.2f','%6.2f','%d'])
         
     def find_parent(self,i,coords,ends):
+        for j in range(len(coords)):
+            print(coords[i],ends[i],coords[j],ends[j])
         for j, end in enumerate(ends):
             check_parent = np.isclose(coords[i],end)
             if check_parent[0] and check_parent[1] and check_parent[2]:
@@ -254,7 +256,7 @@ class CellModel():
             self.ele_coordinates[:,k] *= cellelectrodedist
 
         elif eldistribute == 4:
-            self.ele_coordinates = np.loadtxt('morphology/ElcoordsDomi14.txt'))
+            self.ele_coordinates = np.loadtxt('morphology/ElcoordsDomi14.txt')
         
         if not os.path.exists(self.new_path):
             print("Creating",self.new_path)
@@ -265,12 +267,12 @@ class CellModel():
     def constant_current_injection(self,amp,idx=0):
         self.point_process['idx'] = idx
         self.point_process['amp'] = amp
-        self.point_process['dur'] = self.cell.tstopms
+        self.point_process['dur'] = self.cell.tstop
         self.point_process['delay'] = 2
-        stimulus = LFPy.StimIntElectrode(cell, **self.pointprocess)
+        stimulus = LFPy.StimIntElectrode(self.cell, **self.point_process)
         
     def cosine_current_injection(self):
-        self.point_process['idx'] = idx
+        self.point_process['idx'] = 0
         self.point_process['dur'] = 1
 
 
@@ -280,7 +282,7 @@ class CellModel():
             self.point_process['amp'] = time_series[istim]
             self.point_process['delay'] = istim
 
-            stimulus = LFPy.StimIntElectrode(cell, **self.pointprocess)
+            stimulus = LFPy.StimIntElectrode(self.cell, **self.point_process)
             
     def random_synaptic_input(self,lambd=2,tstart=0,tstop=70):
         self.synapse_parameters['idx'] = 0
@@ -307,7 +309,7 @@ class CellModel():
             
     def sine_synaptic_input(self,tstop=None):
         if not tstop:
-            tstop = self.cell.tstopms
+            tstop = self.cell.tstop
         frequencies = np.arange(0.5,13,0.5)
         i = 0
         distance = 0
@@ -325,7 +327,7 @@ class CellModel():
                 'pkamp' :  3.6,
                 'freq':freq,
                 'phase':-np.pi/2,
-                'dur':self.cell.tstopms,
+                'dur':self.cell.tstop,
             }
     
             stimulus = LFPy.StimIntElectrode(self.cell, **pointprocess)

@@ -29,7 +29,7 @@ if __name__ == '__main__':
 
     colnb = 4
     rownb = 4
-    lfp_dir,data_dir = fun.simulate(fname_base,(morphology=2,cell_name=fname,colnb=colnb,rownb=rownb,xmin=-200,xmax=600,ymin=-200,ymax=200,tstop=tstop,seed=1988,weight=0.04,n_syn=100,simulate_what='symmetric')
+    lfp_dir,data_dir = fun.simulate(fname_base,morphology=2,colnb=colnb,rownb=rownb,xmin=-200,xmax=600,ymin=-200,ymax=200,tstop=tstop,seed=1988,weight=0.04,n_syn=100,simulate_what='symmetric')
     data = ld.Data(data_dir)
     ele_pos = data.ele_pos/scale_factor
     pots = data.LFP/scale_factor_LFP

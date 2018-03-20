@@ -21,8 +21,8 @@ def plot(ax,i,what):
     return im
 
 if __name__ == '__main__':
-    fname_base = "y_shaped_symmetric"
-    
+    fname_base = "Figure_5_"
+    fig_name = fun.make_fig_names(fname_base)
     tstop = 70
     scale_factor = 1000**2
     scale_factor_LFP = 1000
@@ -35,7 +35,7 @@ if __name__ == '__main__':
     xmin = [50,-200]
     for i, rownb in enumerate(electrode_number):
         fname = fname_base+str(rownb)
-        c = run_LFP.CellModel(morphology=2,cell_name=fname,colnb=colnb,rownb=rownb,xmin=xmin[i],xmax=200,zmin=-200,zmax=600,tstop=tstop,seed=1988,weight=0.01,n_syn=100)
+        c = run_LFP.CellModel(morphology=2,cell_name=fname,colnb=colnb,rownb=rownb,xmin=-200,xmax=600,ymin=xmin[i],ymax=200,tstop=tstop,seed=1988,weight=0.01,n_syn=100)
         c.simulate('symmetric')
         c.save_skCSD_python()
         c.save_memb_curr()
@@ -49,9 +49,9 @@ if __name__ == '__main__':
     ground_truth_grid = []
     ground_truth_t1 = None
     ground_truth_t2 = None
-    t1 = 364
-    t2 = 44
-    
+    t1 = 405
+    t2 = 81
+    print(ground_truth[65,:].argmax(),ground_truth[65,:].argmin())
     for lambd in [1e-5,1e-4,1e-3,1e-2,1e-1]:
         for R_init in R_inits:
             simulation_paths = []
@@ -93,7 +93,7 @@ if __name__ == '__main__':
                 est_kcsd = kcsd.values(estimate='CSD')
                 est_kcsd_pot = kcsd.values(estimate='POT')
 
-                dir_name = fname_base+"_R_"+str(R_init)+'_lambda_'+str(lambd)+'_src_'+str(n_src)
+                dir_name = fig_name+"_R_"+str(R_init)+'_lambda_'+str(lambd)+'_src_'+str(n_src)
 
                 if sys.version_info >= (3, 0):
                     new_path = os.path.join(datd,"preprocessed_data/Python_3", dir_name)
