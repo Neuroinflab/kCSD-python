@@ -7,7 +7,7 @@ import LFPy
 import argparse
 """Electrode grid is 2D. If z is the zero dimention x=x, y=y. If x is the zero dimension x=0, y=x, z=y. If y is the zero dimention, z=x & x=y"""
 
-"""cell_types = {'Ballstick:1, 'Y_shaped':2, 'Morpho1':3, 'Agasbogas':4, 'Mainen':5, 'User_defined:6', 'Gang_simple':7, 'Domi':8}
+"""cell_types = {'Ballstick:1, 'Y_shaped':2, 'Morpho1':3, 'Agasbogas':4, 'Mainen':5, 'User_defined:6', 'Gang_simple':7, 'Domi':8,'test':9}
 electrode_orientation = {'x':1, 'y':2, 'z':3}
 electrode_distribute = {'Grid':1, 'Random':2, 'Hexagonal':3, 'Domi':4}
 LFPy_sim = {'Random':1, 'Y_symmetric':2, 'Mainen':3, 'Oscill':4, 'Const':5, 'Sine':6 }
@@ -24,6 +24,7 @@ class CellModel():
         6:"morphology/retina_ganglion.swc",
         7:"morphology/Badea2011Fig2Du.CNG.swc",
         8:"morphology/DomiCell.swc",
+        9:"morphology/Test.swc",
         
     }
     CELL_PARAMETERS = {         
@@ -95,9 +96,12 @@ class CellModel():
         if kwargs:
             raise TypeError('Invalid keyword arguments:', kwargs.keys())
         
-        if morphology in range(1,9):
+        try:
             morphology = self.MORPHOLOGY_FILES[morphology]
-            if morphology == 2:
+        except AttributeError:
+            sys.exit('Unknown morphology %d\n',morphology)
+            
+        if morphology == 2:
                 self.make_y_shaped()
                 
         self.make_cell(morphology,custom_code)
@@ -172,23 +176,24 @@ class CellModel():
                     self.morphology[idx,1] = 4
                 else:
                     self.morphology[idx,1] = 5
-
+            
                 if i == 0:
                     if not parents[secn]:
                         self.morphology[idx,6] = -1
                     else:
-                        cex,cey,cez = ends[idx]
-                        csx,csy,csz = coords[idx]
-                        parent = self.cell.get_idx(parents[secn].sec.name())[-1]
-                        psx,psy,psz = coords[parent]
-                        pex,pey,pez = ends[parent]
-                        if np.isclose(csx,pex) and np.isclose(csy,pey) and np.isclose(csz,pez):
-                            self.morphology[idx,6] = parent+1
-                        elif np.isclose(cex,psx) and np.isclose(cey,psy) and np.isclose(cez,psz):
-                            self.morphology[idx,6] = parent+1
-                        else:
-                            self.morphology[idx,6] = self.find_parent(idx,coords,ends) + 1
-                        #self.morphology[idx,6] = self.cell.get_idx(parents[secn].sec.name())[-1]+1
+                    #     cex,cey,cez = ends[idx]
+                    #     csx,csy,csz = coords[idx]
+                    #     parent = self.cell.get_idx(parents[secn].sec.name())[-1]
+                    #     psx,psy,psz = coords[parent]
+                    #     pex,pey,pez = ends[parent]
+                    #     if np.isclose(csx,pex) and np.isclose(csy,pey) and np.isclose(csz,pez):
+                    #         self.morphology[idx,6] = parent+1
+                    #     elif np.isclose(cex,psx) and np.isclose(cey,psy) and np.isclose(cez,psz):
+                    #         self.morphology[idx,6] = parent+1
+                    #     else:
+                    #         self.morphology[idx,6] = self.find_parent(idx,coords,ends) + 1
+                       
+                        self.morphology[idx,6] = self.cell.get_idx(parents[secn].sec.name())[-1]+1
                 else:
                     self.morphology[idx,6] = idx
                                        
