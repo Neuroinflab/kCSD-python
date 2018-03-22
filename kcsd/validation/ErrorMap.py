@@ -12,8 +12,7 @@ import time
 import numpy as np
 import matplotlib.pyplot as plt
 
-from kcsd.validation.ValidateKCSD import ValidateKCSD1D, \
-    ValidateKCSD2D, ValidateKCSD3D
+from kcsd import ValidateKCSD1D, ValidateKCSD2D, ValidateKCSD3D
 from kcsd import csd_profile as CSD
 from kcsd import KCSD1D, KCSD2D, KCSD3D
 
@@ -522,16 +521,16 @@ if __name__ == '__main__':
                    n_src_init=100, ext_x=0.1)
     k.calculate_error_map(CSD_PROFILE)
 
-    print('Checking 2D')
-    CSD_PROFILE = CSD.gauss_2d_small
-    CSD_SEED = 10
-    a = ErrorMap2D(CSD_PROFILE, CSD_SEED, total_ele=36, h=50.,
-                   sigma=1., n_src_init=400, config='regular', n=15)
-    a.calculate_error_map(CSD_PROFILE)
-
-    print('Checking 3D')
-    CSD_PROFILE = CSD.gauss_3d_small
-    CSD_SEED = 10
-    a = ErrorMap3D(CSD_PROFILE, CSD_SEED, total_ele=27, h=50.,
-                   sigma=1., n_src_init=729, config='regular')
-    a.calculate_error_map(CSD_PROFILE, n=10)
+#    print('Checking 2D')
+#    CSD_PROFILE = CSD.gauss_2d_small
+#    CSD_SEED = 10
+#    a = ErrorMap2D(CSD_PROFILE, CSD_SEED, total_ele=36, h=50.,
+#                   sigma=1., n_src_init=400, config='regular', n=15)
+#    a.calculate_error_map(CSD_PROFILE)
+#
+#    print('Checking 3D')
+#    CSD_PROFILE = CSD.gauss_3d_small
+#    CSD_SEED = 10
+#    a = ErrorMap3D(CSD_PROFILE, CSD_SEED, total_ele=27, h=50.,
+#                   sigma=1., n_src_init=729, config='regular')
+#    a.calculate_error_map(CSD_PROFILE, n=10)

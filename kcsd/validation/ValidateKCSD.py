@@ -43,7 +43,7 @@ class ValidateKCSD(object):
         Parameters
         ----------
         dim: int
-            Case dimension (1, 2 or 3 D).
+            Case dimension (1, 2 or 3D).
         **kwargs
             configuration parameters, that may contain the following keys:
             src_type : str
@@ -357,13 +357,13 @@ class ValidateKCSD(object):
         est_pot = k.values('POT')
         return est_csd, est_pot
 
-    def calculate_rms(self, test_csd, est_csd):
+    def calculate_rms(self, true_csd, est_csd):
         """
         Calculates normalized error of reconstruction.
 
         Parameters
         ----------
-        test_csd: numpy array
+        true_csd: numpy array
             Values of true CSD at points of kCSD estimation.
         est_csd: numpy array
             CSD estimated with kCSD method.
@@ -373,19 +373,19 @@ class ValidateKCSD(object):
         rms: float
             Normalized error of reconstruction.
         """
-        rms = np.linalg.norm((test_csd - est_csd))
+        rms = np.linalg.norm((true_csd - est_csd))
         epsilon = 0.0000000001
-        rms /= np.linalg.norm(test_csd) + epsilon
+        rms /= np.linalg.norm(true_csd) + epsilon
         return rms
 
-    def calculate_point_error(self, test_csd, est_csd):
+    def calculate_point_error(self, true_csd, est_csd):
         """
         Calculates normalized error of reconstruction at every point of
         estimation space separetly.
 
         Parameters
         ----------
-        test_csd: numpy array
+        true_csd: numpy array
             Values of true csd at points of kCSD estimation.
         est_csd: numpy array
             CSD estimated with kCSD method.
@@ -397,14 +397,57 @@ class ValidateKCSD(object):
             point of estimation space.
         """
         epsilon = 0.0000000001
-        point_error = np.linalg.norm(test_csd.reshape(test_csd.size, 1) -
+        point_error = np.linalg.norm(true_csd.reshape(true_csd.size, 1) -
                                      est_csd.reshape(est_csd.size, 1),
                                      axis=1)
-        point_error /= np.linalg.norm(test_csd.reshape(test_csd.size, 1),
+        point_error /= np.linalg.norm(true_csd.reshape(true_csd.size, 1),
                                       axis=1) + epsilon
         if self.dim != 1:
-            point_error = point_error.reshape(test_csd.shape)
+            point_error = point_error.reshape(true_csd.shape)
         return point_error
+
+    def calculate_rdm(self, true_csd, est_csd):
+        """
+        Calculates relative difference measure between reconstructed source and
+        ground truth.
+
+        Parameters
+        ----------
+        true_csd: numpy array
+            Values of true CSD at points of kCSD estimation.
+        est_csd: numpy array
+            CSD estimated with kCSD method.
+
+        Returns
+        -------
+        rdm: float
+            Relative difference measure.
+        """
+        epsilon = 0.0000000001
+        rdm = np.linalg.norm(est_csd/(np.linalg.norm(est_csd) + epsilon) -
+                             true_csd/(np.linalg.norm(true_csd) + epsilon))
+        return rdm
+
+    def calculate_mag(self, true_csd, est_csd):
+        """
+        Calculates magnitude ratio between reconstructed source and ground
+        truth.
+
+        Parameters
+        ----------
+        test_csd: numpy array
+            Values of true CSD at points of kCSD estimation.
+        est_csd: numpy array
+            CSD estimated with kCSD method.
+
+        Returns
+        -------
+        mag: float
+            Magnitude ratio.
+        """
+        epsilon = 0.0000000001
+        mag = np.linalg.norm(est_csd/(true_csd + epsilon))
+        return mag
 
     def sigmoid_mean(self, error):
         '''

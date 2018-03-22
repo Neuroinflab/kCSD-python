@@ -1,9 +1,7 @@
-
 from kcsd import csd_profile as csd
 from kcsd import MoIKCSD
-from kcsd.validation.ValidateKCSD import ValidateKCSD1D, \
-    ValidateKCSD2D, ValidateKCSD3D, SpectralStructure
-from kcsd.validation.ErrorMap import ErrorMap1D, ErrorMap2D, ErrorMap3D
+from kcsd import ValidateKCSD1D, ValidateKCSD2D, ValidateKCSD3D, SpectralStructure
+from kcsd import ErrorMap1D, ErrorMap2D, ErrorMap3D
 
 
 # Function to initialize default parameters
@@ -68,7 +66,7 @@ defaults = {'ValidateKCSD1D': {'R_init': 0.23,
                         'sigma_S': 5.0},
             'ValidateKCSD3D': {'R_init': 0.31,
                                'n_src_init': 300,
-                               'est_xres': 0.05, 'est_yres': 0.05, 'est_zres': 0.05
+                               'est_xres': 0.05, 'est_yres': 0.05, 'est_zres': 0.05,
                                'ext_x': 0.0, 'ext_y': 0.0, 'ext_z': 0.0,
                                'sigma': 1.0,
                                'h': 1.0}}
