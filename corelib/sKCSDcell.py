@@ -6,6 +6,7 @@ import collections
 import utility_functions as utils
 import os
 import loadData as ld
+from  bresenhamline import bresenhamline
 #testing
 
 class sKCSDcell(object):
@@ -34,7 +35,8 @@ class sKCSDcell(object):
         rep = collections.Counter(self.morphology[:,6])
         self.branching = [key for key in rep.keys() if rep[key]>1]
         self.source_xyz = np.zeros(shape=(n_src,3))
-        self.loop_xyz = np.zeros(shape=(n_src+self.morphology.shape[0]*2,3))
+        self.loop_xyz = np.zeros(shape=(n_src+self.morphology.shape[0]*2,3))#?
+        
         self.source_xyz_borders = []
         self.loops = []
         self.xmin =  np.min(self.morphology[:,2])
@@ -45,7 +47,8 @@ class sKCSDcell(object):
         self.zmax = np.max(self.morphology[:,4])
         self.dims = None
         self.dxs = None
-        self.minis = minis = [self.xmin,self.ymin,self.zmin]
+        self.minis =  np.array([self.xmin,self.ymin,self.zmin])
+        self.zero_coords = np.zeros((3,),dtype=int)
         
     def correct_min_max(self, xmin,xmax,radius):
         if xmin == xmax:
@@ -90,19 +93,7 @@ class sKCSDcell(object):
             self.est_pos[i+1] = self.est_pos[i] + length**0.5
             self.est_xyz[i+1,:] = self.morphology[loop[0],2:5]
         self.loop_pos = self.loop_pos.reshape(-1,1)
-
-    def get_grid(self):
-        vals = [[self.xmin,self.xmax],[self.ymin,self.ymax],[self.zmin, self.zmax]]
-        dx = np.zeros((self.est_xyz.shape[0]-1,self.est_xyz.shape[1]))
-        self.dims = np.ones((3,),dtype=np.int)
-        self.dxs = np.zeros((3,))
-        for i in range(self.est_xyz.shape[1]):
-            dx[:,i] = abs(self.est_xyz[1:,i]-self.est_xyz[:-1,i])
-            if not len(dx[dx[:,i]>1e-6,i]):
-                continue
-            self.dxs[i] = min(dx[dx[:,i]>2e-6,i])
-            self.dims[i] = np.floor((vals[i][1]-vals[i][0])/self.dxs[i])+1
-
+  
     def distribute_src_cylinder(self,mp1, mp2):
         xyz1 = self.morphology[mp1,2:5]
         xyz2 = self.morphology[mp2,2:5]
@@ -157,10 +148,6 @@ class sKCSDcell(object):
            ax.plot([xb], [yb], [zb], 'w')
         plt.grid()
         plt.show()
-     
-    def plot3Dmorph(self):
-        for i in range(1,self.morphology.shape[0]):
-            print("s")
     
     def getlinepoints(self,x0, y0, x1, y1):
         "Bresenham's line algorithm"
@@ -191,10 +178,13 @@ class sKCSDcell(object):
         points_in_line.append([x,y])
         return np.array(points_in_line)
     
-    def draw_cell2D(self,axis=2, resolution=(176,225,100)):
+ 
+    
+    def draw_cell2D(self,axis=2):
         from mpl_toolkits.mplot3d import Axes3D
         import matplotlib.pyplot as plt
-       
+        self.get_grid()
+        resolution = self.dims
         xgrid = np.linspace(self.xmin, self.xmax, resolution[0])
         ygrid = np.linspace(self.ymin, self.ymax, resolution[1])
         zgrid = np.linspace(self.zmin, self.zmax, resolution[2])
@@ -233,52 +223,116 @@ class sKCSDcell(object):
                     image[idx_arr[i,0]-1:idx_arr[i,0]+1,idx_arr[i,1]-1:idx_arr[i,1]+1,:] = np.array([0,0,0,20])
             x0, y0 = xi, yi
        
-        plt.imshow(image,extent=extent,aspect='auto',origin="lower")
-        plt.show()
-        return image,extent
-                
-    def coordinates_3D(self,morpho):
+        #plt.imshow(image,extent=extent,aspect='auto',origin="lower")
         
-        coor_3D = np.zeros((morpho.shape),dtype=np.int)
-        for i in range(len(self.dims)):
+        return image,extent
+    
+    def get_grid(self):
+        vals = [[self.xmin,self.xmax],[self.ymin,self.ymax],[self.zmin, self.zmax]]
+        dx = np.zeros((self.est_xyz.shape[0]-1,self.est_xyz.shape[1]))
+        self.dims = np.ones((3,),dtype=np.int)
+        self.dxs = np.zeros((3,))
+        for i in range(self.est_xyz.shape[1]):
+            dx[:,i] = abs(self.est_xyz[1:,i]-self.est_xyz[:-1,i])
+            try:
+                self.dxs[i] = min(dx[dx[:,i]>1e-6,i])
+            except ValueError:
+                pass
+                
+            self.dims[i] = 1
             if self.dxs[i]:
-                coor_3D[:,i] = np.floor((morpho[:,i]-self.minis[i])/self.dxs[i])
-        return coor_3D
+                self.dims[i] += np.floor((vals[i][1]-vals[i][0])/self.dxs[i])
+                
+    def point_coordinates(self,morpho):
 
+        self.get_grid()
+        coor_3D = np.zeros((morpho.shape),dtype=np.int)
+        for i,dx in enumerate(self.dxs):
+            if dx:
+                coor_3D[:,i] = np.floor((morpho[:,i]-self.minis[None,i])/self.dxs[None,i])
+                self.zero_coords[i] = np.floor((0-self.minis[i])/self.dxs[i])
+        return coor_3D
+    
+    def points_in_between(self,p1,p0):
+    
+        new_p1 = np.ndarray((1,3),dtype=np.int) #bresenhamline only works with 2D vectors with coordinates
+        new_p0 = np.ndarray((1,3),dtype=np.int)
+        for i in range(3):
+            new_p1[0,i] = p1[i]
+            new_p0[0,i] = p0[i]
+            
+        intermediate_points = bresenhamline(new_p1,new_p0,-1)
+
+        return np.concatenate((new_p1,intermediate_points))
+    
+    def coordinates_3D_loops(self):
+        
+        coor_3D = self.point_coordinates(self.est_xyz)
+        p0 = self.zero_coords
+        segment_coordinates = {}
+
+        for i,p1 in enumerate(coor_3D):
+            segment_coordinates[i] = self.points_in_between(p1,p0)
+            p0 = p1
+        
+        return segment_coordinates
+
+    def coordinates_3D_segments(self):
+
+        coor_3D = self.point_coordinates(self.morphology[:,2:5])
+
+        p0 = self.zero_coords
+        segment_coordinates = {}
+        
+        for i, p1 in enumerate(coor_3D):
+            if i:
+                p0_idx = int(self.morphology[i,6]) - 1
+                p0 = coor_3D[p0_idx]
+            segment_coordinates[i] = self.points_in_between(p1,p0)
+          
+        return segment_coordinates
+                
     def transform_to_3D(self,estimated,what="loop"):
         
         if what == "loop":
-            morpho = self.est_xyz #morphology loop
+            coor_3D = self.coordinates_3D_loops()
         elif what == "morpho":
-            morpho = self.morphology[:,2:5] #segments
+            coor_3D = self.coordinates_3D_segments()
         else:
-            if len(estimated) == len(self.est_xyz):
-                morpho = self.est_xyz
-            elif len(estimated) == len(self.morphology[:,2:5]):
-                morpho = self.morphology[:,2:5]
-            else:
-                sys.exit("I do not know how to transform ",estimated.shape)
-                
-        self.get_grid()
-        
-        coor_3D = self.coordinates_3D(morpho)
-
+            sys.exit('Do not understand morphology %s\n'%what)
+            
         n_time = estimated.shape[-1]
         weights = np.zeros((self.dims))
-
         new_dims = list(self.dims)+[n_time]
         result = np.zeros(new_dims)
-        for i,coor in enumerate(morpho):
-            x,y,z, = coor_3D[i]
-            result[x,y,z,:] += estimated[i,:]
-            weights[x,y,z] += 1
-            
+
+        for i in coor_3D:
+            coor = coor_3D[i]
+ 
+            for p in coor:
+                x,y,z, = p
+                
+                result[x,y,z,:] += estimated[i,:]
+                weights[x,y,z] += 1
+                
         non_zero_weights = np.array(np.where(weights>0)).T
         
         for (x,y,z) in non_zero_weights:
             result[x,y,z,:] = result[x,y,z,:]/weights[x,y,z]
         return result
-   
+
+    def morphology_3D_for_images(self):
+        
+        estimated = np.ones((self.morphology.shape[0],1))
+
+        morpho = self.transform_to_3D(estimated,what="morpho")
+        return morpho.sum(axis=3)
+    def morphology_2D_for_images(self, axis=2):
+        morpho = self.morphology_3D_for_images().sum(axis=axis)
+       
+        return morpho
+        
+        
 if __name__ == '__main__':
     path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
     
