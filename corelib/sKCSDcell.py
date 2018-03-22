@@ -7,6 +7,7 @@ import utility_functions as utils
 import os
 import loadData as ld
 from  bresenhamline import bresenhamline
+import sys
 #testing
 
 class sKCSDcell(object):
@@ -35,8 +36,6 @@ class sKCSDcell(object):
         rep = collections.Counter(self.morphology[:,6])
         self.branching = [key for key in rep.keys() if rep[key]>1]
         self.source_xyz = np.zeros(shape=(n_src,3))
-        self.loop_xyz = np.zeros(shape=(n_src+self.morphology.shape[0]*2,3))#?
-        
         self.source_xyz_borders = []
         self.loops = []
         self.xmin =  np.min(self.morphology[:,2])
@@ -106,13 +105,10 @@ class sKCSDcell(object):
  
         if len(in_range)>0:
             for src_idx in in_range:
-                self.source_xyz[src_idx,:] = xyz1-(xyz2-xyz1)*(self.loop_pos[src_idx]
-                    -self.max_dist)/(self.max_dist-self.min_dist)
-                self.loop_xyz[src_idx+self.morph_points_dist,:] =  xyz1-(xyz2-xyz1)*(self.loop_pos[src_idx]
-                    -self.max_dist)/(self.max_dist-self.min_dist)
+                self.source_xyz[src_idx,:] = xyz1-(xyz2-xyz1)*(self.loop_pos[src_idx] -self.max_dist)/(self.max_dist-self.min_dist)
+     
         self.min_dist = self.max_dist
         #Add morphology point to the loop
-        self.loop_xyz[self.morph_points_dist+self.src_distributed] = self.morphology[mp1,2:5]
         self.morph_points_dist +=1
     
     def calculate_total_distance(self):
@@ -149,82 +145,22 @@ class sKCSDcell(object):
         plt.grid()
         plt.show()
     
-    def getlinepoints(self,x0, y0, x1, y1):
-        "Bresenham's line algorithm"
-        points_in_line = []
-        dx = abs(x1 - x0)
-        dy = abs(y1 - y0)
-        x, y = x0, y0
-        sx = -1 if x0 > x1 else 1
-        sy = -1 if y0 > y1 else 1
-        if dx > dy:
-            err = dx / 2
-            while x != x1:
-                points_in_line.append((x, y))
-                err -= dy
-                if err < 0:
-                    y += sy
-                    err += dx
-                x += sx
-        else:
-            err = dy / 2
-            while y != y1:
-                points_in_line.append((x, y))
-                err -= dx
-                if err < 0:
-                    x += sx
-                    err += dy
-                y += sy
-        points_in_line.append([x,y])
-        return np.array(points_in_line)
-    
- 
-    
     def draw_cell2D(self,axis=2):
-        from mpl_toolkits.mplot3d import Axes3D
-        import matplotlib.pyplot as plt
-        self.get_grid()
-        resolution = self.dims
-        xgrid = np.linspace(self.xmin, self.xmax, resolution[0])
-        ygrid = np.linspace(self.ymin, self.ymax, resolution[1])
-        zgrid = np.linspace(self.zmin, self.zmax, resolution[2])
-    
-        if axis == 0:
-            image = np.ones(shape=(resolution[1], resolution[2], 4), dtype=np.uint8) * 255
-            extent = [self.ymin,self.ymax,self.zmin,self.zmax,]
-        elif axis == 1:
-            image = np.ones(shape=(resolution[0], resolution[2], 4), dtype=np.uint8) * 255
-            extent = [self.xmin,self.xmax,self.zmin,self.zmax,]
-        elif axis == 2:
-            image = np.ones(shape=(resolution[0], resolution[1], 4), dtype=np.uint8) * 255
-            extent = [self.xmin,self.xmax,self.ymin,self.ymax,]
-        image[:, :, 3] = 0
-        xs = []
-        ys = []
-        x0,y0 = 0,0
-
-        for p in range(self.loop_xyz.shape[0]):
-            x = (np.abs(xgrid-self.loop_xyz[p,0])).argmin()
-            y = (np.abs(ygrid-self.loop_xyz[p,1])).argmin()
-            z = (np.abs(zgrid-self.loop_xyz[p,2])).argmin()
-            if axis == 0:
-                xi, yi = y,z
-            elif axis == 1:
-                xi, yi =  x,z
-            elif axis == 2:
-                xi, yi = x,y
-            xs.append(xi)
-            ys.append(yi)
-            image[xi,yi,:] = np.array([0,0,0,1])
-            if x0 !=0:
-                idx_arr = self.getlinepoints(xi,yi,x0,y0)
-                for i in range(len(idx_arr)):
-
-                    image[idx_arr[i,0]-1:idx_arr[i,0]+1,idx_arr[i,1]-1:idx_arr[i,1]+1,:] = np.array([0,0,0,20])
-            x0, y0 = xi, yi
-       
-        #plt.imshow(image,extent=extent,aspect='auto',origin="lower")
         
+        morphology = self.morphology_2D_for_images(axis=axis)
+        if axis == 0:
+            extent = [self.ymin, self.ymax, self.zmin,self.zmax]
+        elif axis == 1:
+            extent = [self.xmin, self.xmax, self.zmin,self.zmax]
+        elif axis == 2:
+            extent = [self.xmin, self.xmax, self.ymin,self.ymax]
+        else:
+            sys.exit('In drawing 2D morphology unknown axis ' + str(axis))
+            
+        resolution_0, resolution_1 = morphology.shape
+        image = np.ones(shape=(resolution_0, resolution_1, 4))
+        non_zero = np.where(morphology > 0)
+        image[non_zero] = np.array([0,0,0,1])
         return image,extent
     
     def get_grid(self):
