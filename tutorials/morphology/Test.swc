@@ -1,0 +1,39 @@
+# SWC to SWC conversion from L-Measure. Sridevi Polavaram: spolavar@gmu.edu
+# Original fileName:/cng_repository/Soumya/LM_Automated_Testing_Enviornment/Test_Lm3.7.2_10062011_SG_Linux_NMOConv6/TestResults/LoadTest/test_7/021105.CNG.swc
+#
+# Original file 021105.swc edited using StdSwc version 1.31 on 3/21/11.
+# Irregularities and fixes documented in 021105.swc.std.  See StdSwc1.31.doc for more information.
+#
+# Neurolucida to SWC conversion from L-Measure. R. Scorcioni: rscorcio@gmu.edu
+# Original fileName:C:\Users\praveen\Desktop\File_Processing_in_progress\Master File Processing\Original\021105.asc
+#
+ 1 1 0 0 0 15.73 -1
+ 2 1 0 15.73 0 15.73 1
+ 3 1 0 -15.73 0 15.73 1
+ 4 3 -1.41 -13.71 -0.1 0.15 1
+ 5 3 -1.79 -15.86 -0.12 0.15 4
+ 6 3 -1.73 -18 -0.13 0.15 5
+ 7 3 -2.29 -21.22 -0.16 0.15 6
+ 8 3 -2.48 -21.87 -0.16 0.15 7
+ 9 3 0.81 -25.41 -0.16 0.15 8
+ 10 3 2.57 -27.51 -0.16 0.15 9
+ 11 3 3.68 -28.98 -0.16 0.15 10
+ 12 3 4.58 -30.66 -0.16 0.15 11
+ 13 3 5.9 -31.91 -0.16 0.15 12
+ 14 3 7.85 -33.35 -0.15 0.15 13
+ 15 3 8.78 -35.9 -0.16 0.15 14
+ 16 3 8.19 -37.84 -0.18 0.15 15
+ 17 3 6.49 -38.74 -0.2 0.15 16
+ 18 3 6.99 -41.29 -0.21 0.15 17
+ 19 3 8.31 -42.54 -0.21 0.15 18
+ 20 3 9.39 -42.72 -0.2 0.15 19
+ 21 3 14.55 -43.87 -0.16 0.15 20
+ 22 3 16.02 -43.19 -0.15 0.15 21
+ 23 3 21.28 -39.85 -0.08 0.15 22
+ 24 3 22.53 -38.53 -0.06 0.15 23
+ 25 3 26.55 -36.93 -0.01 0.15 24
+ 26 3 27.78 -35.19 0 0.15 25
+ 27 3 29.23 -33.23 0.02 0.15 26
+ 28 3 32.7 -34.85 0.04 0.15 27
+ 29 3 33.55 -34.83 0.05 0.15 28
+ 30 3 35.89 -34.55 0.07 0.15 29
