@@ -13,15 +13,10 @@ import corelib.loadData as ld
 import functions as fun
 
 n_src = 512
-
-
-def plot(ax,i,what):
-    xmax, xmin = fun.get_min_max(what)
-    im = ax[i].imshow(what,extent=extent,origin='lower',aspect='auto',cmap='seismic_r',vmin=xmin,vmax=xmax)
-    return im
-
+R = 32e-6/2**.5
+lambd = 1e-5
 if __name__ == '__main__':
-    fname_base = "Figure_5_"
+    fname_base = "Figure_5"
     fig_name = fun.make_fig_names(fname_base)
     tstop = 70
     scale_factor = 1000**2
@@ -51,77 +46,58 @@ if __name__ == '__main__':
     ground_truth_t2 = None
     t1 = 405
     t2 = 81
-    print(ground_truth[65,:].argmax(),ground_truth[65,:].argmin())
-    for lambd in [1e-5,1e-4,1e-3,1e-2,1e-1]:
-        for R_init in R_inits:
-            simulation_paths = []
-            data_paths = []
-            fig = plt.figure()
-            ax = []
-            for j in range(12):
-                ax.append(fig.add_subplot(3,4,j+1))
+ 
+    fig = plt.figure()
+    ax = []
+    for j in range(12):
+        ax.append(fig.add_subplot(3,4,j+1))
                 
-            for i, datd in enumerate(data_dir):
-                data = ld.Data(datd)
-                ele_pos = data.ele_pos/scale_factor
-                pots = data.LFP/scale_factor_LFP
-                morphology = data.morphology
-                morphology[:,2:6] = morphology[:,2:6]/scale_factor
-                R = R_init/scale_factor
-               
-                k = sKCSD3D.sKCSD3D(ele_pos,data.LFP,morphology, n_src_init=n_src, src_type='gauss',lambd=lambd,R_init=R)
-                xmin = -200/scale_factor
-                xmax = 200/scale_factor
-                ymin = -100/scale_factor
-                ymax = 200/scale_factor
-                zmin = -200/scale_factor
-                zmax = 600/scale_factor
-                gdx = (xmax-xmin)/100
-                gdy = (ymax-ymin)/2
-                gdz = (zmax-zmin)/200
-
-                kcsd = KCSD.KCSD3D(ele_pos,data.LFP,n_src_init=n_src, src_type='gauss',lambd=lambd,R_init=R,dist_table_density=100,xmin=xmin,xmax=xmax,ymin=ymin,ymax=ymax,zmin=zmin,zmax=zmax,gdx=gdx,gdy=gdy,gdz=gdz)
-                
-                if not len(ground_truth_grid):
-                    ground_truth_grid = k.cell.transform_to_3D(ground_truth,what="morpho")
-                    ground_truth_t1 = ground_truth_grid[:,:,:,t1].sum(axis=1).T
-                    ground_truth_t2 = ground_truth_grid[:,:,:,t2].sum(axis=1).T
-                    
-                est_skcsd = k.values(estimate='CSD')
-                est_skcsd_t1 = est_skcsd[:,:,:,t1].sum(axis=1).T
-                est_skcsd_t2 = est_skcsd[:,:,:,t2].sum(axis=1).T
-                est_kcsd = kcsd.values(estimate='CSD')
-                est_kcsd_pot = kcsd.values(estimate='POT')
-
-                dir_name = fig_name+"_R_"+str(R_init)+'_lambda_'+str(lambd)+'_src_'+str(n_src)
-
-                if sys.version_info >= (3, 0):
-                    new_path = os.path.join(datd,"preprocessed_data/Python_3", dir_name)
-                else:
-                    new_path = os.path.join(datd,"preprocessed_data/Python_2",dir_name)
-                
-                if not os.path.exists(new_path):
-                    print("Creating",new_path)
-                    os.makedirs(new_path)
+    for i, datd in enumerate(data_dir):
+        data = ld.Data(datd)
+        ele_pos = data.ele_pos/scale_factor
+        pots = data.LFP/scale_factor_LFP
+        morphology = data.morphology
+        morphology[:,2:6] = morphology[:,2:6]/scale_factor
         
-                utils.save_sim(new_path,k)
-                simulation_paths.append(new_path)
+        k = sKCSD3D.sKCSD3D(ele_pos,data.LFP,morphology, n_src_init=n_src, src_type='gauss',lambd=lambd,R_init=R)
+        xmin = -200/scale_factor
+        xmax = 200/scale_factor
+        ymin = -100/scale_factor
+        ymax = 200/scale_factor
+        zmin = -200/scale_factor
+        zmax = 600/scale_factor
+        gdx = (xmax-xmin)/100
+        gdy = (ymax-ymin)/2
+        gdz = (zmax-zmin)/200
+        
+        kcsd = KCSD.KCSD3D(ele_pos,data.LFP,n_src_init=n_src, src_type='gauss',lambd=lambd,R_init=R,dist_table_density=100,xmin=xmin,xmax=xmax,ymin=ymin,ymax=ymax,zmin=zmin,zmax=zmax,gdx=gdx,gdy=gdy,gdz=gdz)
+                
+        if not len(ground_truth_grid):
+            ground_truth_grid = k.cell.transform_to_3D(ground_truth,what="morpho")
+            ground_truth_t1 = ground_truth_grid[:,:,:,t1].sum(axis=1).T
+            ground_truth_t2 = ground_truth_grid[:,:,:,t2].sum(axis=1).T
+                    
+        est_skcsd = k.values(estimate='CSD')
+        est_skcsd_t1 = est_skcsd[:,:,:,t1].sum(axis=1).T
+        est_skcsd_t2 = est_skcsd[:,:,:,t2].sum(axis=1).T
+        est_kcsd = kcsd.values(estimate='CSD')
+        est_kcsd_pot = kcsd.values(estimate='POT')
 
-                if i == 0:
-                    cax = plot(ax,6,ground_truth_t1)
-                    cax = plot(ax,10,ground_truth_t2)
-                    cax = plot(ax,7,est_skcsd_t1)
-                    cax = plot(ax,11,est_skcsd_t2)
-                else:
-                    cax = plot(ax,0,est_kcsd_pot[:,:,:,t1].sum(axis=1))
-                    cax = plot(ax,1,est_kcsd[:,:,:,t1].sum(axis=1))
-                    cax = plot(ax,2, ground_truth_t1)
-                    cax = plot(ax,3,est_skcsd_t1)
-                    cax = plot(ax,4,est_kcsd_pot[:,:,:,t1].sum(axis=1))
-                    cax = plot(ax,5,est_kcsd[:,:,:,t1].sum(axis=1))
-                    cax = plot(ax,8,est_kcsd_pot[:,:,:,t2].sum(axis=1))
-                    cax = plot(ax,9,est_kcsd[:,:,:,t2].sum(axis=1))
-            fig.savefig(dir_name+'.png', bbox_inches='tight', transparent=True, pad_inches=0.1)
+        if i == 0:
+            cax = fun.plot(ax[6],ground_truth_t1)
+            cax = fun.plot(ax[10],ground_truth_t2)
+            cax = fun.plot(ax[7],est_skcsd_t1)
+            cax = fun.plot(ax[11],est_skcsd_t2)
+        else:
+            cax = fun.plot(ax[0],est_kcsd_pot[:,:,:,t1].sum(axis=1))
+            cax = fun.plot(ax[1],est_kcsd[:,:,:,t1].sum(axis=1))
+            cax = fun.plot(ax[2], ground_truth_t1)
+            cax = fun.plot(ax[3],est_skcsd_t1)
+            cax = fun.plot(ax[4],est_kcsd_pot[:,:,:,t1].sum(axis=1))
+            cax = fun.plot(ax[5],est_kcsd[:,:,:,t1].sum(axis=1))
+            cax = fun.plot(ax[8],est_kcsd_pot[:,:,:,t2].sum(axis=1),extent=[-200,200,-200,600])
+            cax = fun.plot(ax[9],est_kcsd[:,:,:,t2].sum(axis=1))
+    fig.savefig(fig_name+'.png', bbox_inches='tight', transparent=True, pad_inches=0.1)
 
     
            
