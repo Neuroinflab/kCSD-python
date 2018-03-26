@@ -30,8 +30,8 @@ if __name__ == '__main__':
     orientation = 1
     for rownb in electrode_number:
         fname = "Figure_3"
-        lfpsd, data_d = fun.simulate(fname,morphology=1,simulate_what="random",colnb=1,rownb=rownb,xmin=xmin,xmax=xmax,ymin=ymin,ymax=ymax,tstop=tstop,seed=1988,weight=0.1,n_syn=100)
-        data_dir.append(data_d)
+        c = fun.simulate(fname,morphology=1,simulate_what="random",colnb=1,rownb=rownb,xmin=xmin,xmax=xmax,ymin=ymin,ymax=ymax,tstop=tstop,seed=1988,weight=0.1,n_syn=100)
+        data_dir.append(c.return_paths_skCSD_python())
         
     seglen = np.loadtxt(os.path.join(data_dir[0],'seglength'))#/scaling_factor
     ground_truth = np.loadtxt(os.path.join(data_dir[0],'membcurr'))

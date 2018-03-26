@@ -30,12 +30,8 @@ if __name__ == '__main__':
     xmin = [50,-200]
     for i, rownb in enumerate(electrode_number):
         fname = fname_base+str(rownb)
-        c = run_LFP.CellModel(morphology=2,cell_name=fname,colnb=colnb,rownb=rownb,xmin=-200,xmax=600,ymin=xmin[i],ymax=200,tstop=tstop,seed=1988,weight=0.01,n_syn=100)
-        c.simulate('symmetric')
-        c.save_skCSD_python()
-        c.save_memb_curr()
-        c.save_seg_length()
-        lfps.append(c.simulation_parameters['electrode'].LFP)
+        c = fun.simulate(fname,morphology=2,colnb=colnb,rownb=rownb,xmin=-200,xmax=600,ymin=xmin[i],ymax=200,tstop=tstop,seed=1988,weight=0.01,n_syn=100,simulate_what="symmetric")
+      
         data_dir.append(c.return_paths_skCSD_python())
         
     seglen = np.loadtxt(os.path.join(data_dir[0],'seglength'))#/scale_factor

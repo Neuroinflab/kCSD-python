@@ -39,7 +39,7 @@ def simulate(fname_base,**kwargs):
     c.save_skCSD_python()
     c.save_memb_curr()
     c.save_seg_length()
-    return c.simulation_parameters['electrode'].LFP, c.return_paths_skCSD_python()
+    return c
 
 
 def L1_error(csd,est_csd):

@@ -35,8 +35,8 @@ if __name__ == '__main__':
     for i, rownb in enumerate(rows):
         for orientation in [1,2]:
             fname = "Figure_6_"+sim_type[str(orientation)]
-            lfpsd, data_d = fun.simulate(fname,morphology=2,simulate_what="symmetric",colnb=colnb,rownb=rownb,xmin=xmin,xmax=xmax,ymin=ymin,ymax=ymax,tstop=tstop,seed=1988,weight=0.04,n_syn=100,electrode_distribution=orientation)
-            data_dir.append(data_d)
+            c = fun.simulate(fname,morphology=2,simulate_what="symmetric",colnb=colnb,rownb=rownb,xmin=xmin,xmax=xmax,ymin=ymin,ymax=ymax,tstop=tstop,seed=1988,weight=0.04,n_syn=100,electrode_distribution=orientation)
+            data_dir.append(c.return_paths_skCSD_python())
             
     seglen = np.loadtxt(os.path.join(data_dir[0],'seglength'))
     ground_truth = np.loadtxt(os.path.join(data_dir[0],'membcurr'))
