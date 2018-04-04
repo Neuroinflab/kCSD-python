@@ -11,7 +11,7 @@ from corelib import sKCSD3D, KCSD
 import corelib.utility_functions as utils
 import corelib.loadData as ld
 import functions as fun
-
+import run_LFP
 n_src = 512
 
 if __name__ == '__main__':
@@ -28,9 +28,10 @@ if __name__ == '__main__':
     #x_ticklabels = [2**i for i in range(1,7)]
     #y_ticklabels = [str(lambd) for lambd in lambdas]
 
-    colnb = 4
-    rownb = 4
-    lfp_dir,data_dir = fun.simulate(fname_base,morphology=6,tstop=tstop,seed=1988,weight=0.04,n_syn=100,simulate_what='oscillatory',electrode_distribution=4)
+    colnb = 10
+    rownb = 10
+    c = fun.simulate(fname_base,morphology=6,tstop=tstop,seed=1988,weight=0.04,n_syn=1000,simulate_what='oscillatory',electrode_distribution=3,electrode_orientation=3,xmin=-400,xmax=400,ymin=-400,ymax=400,colnb=colnb,rownb=rownb)
+    data_dir = c.return_paths_skCSD_python()
     data = ld.Data(data_dir)
     ele_pos = data.ele_pos/scale_factor
     pots = data.LFP/scale_factor_LFP
@@ -39,9 +40,16 @@ if __name__ == '__main__':
     
     ground_truth = np.loadtxt(os.path.join(data_dir,'membcurr'))
     ground_truth = ground_truth
-    
-   
-
+    dt = run_LFP.CellModel.CELL_PARAMETERS['dt']
+    t0 = int(492.25/dt)
+    #for i in range(14):
+    fig = plt.figure()
+    ax = fig.add_subplot(1,1,1)
+    fun.plot(ax,ground_truth,fig=fig,sinksource=False)
+    fig = plt.figure()
+    ax = fig.add_subplot(1,1,1)
+    fun.plot(ax,pots,fig=fig,sinksource=False)
+    plt.show()
     for i,R in enumerate(R_inits):
         for j,lambd in enumerate(lambdas):
             ker = sKCSD3D.sKCSD3D(ele_pos,data.LFP,morphology, n_src_init=n_src, src_type='gauss',lambd=lambd,R_init=R)
@@ -50,6 +58,8 @@ if __name__ == '__main__':
             #    ground_truth_3D = ker.cell.transform_to_3D(ground_truth,what="morpho")
             #    vmax, vmin = fun.get_min_max(ground_truth_3D)
             ker_dir = data_dir+'_R_%f_lambda_%f'%(R,lambd)
+            c.new_path = ker_dir
+            c.save_skCSD_python()
             if sys.version_info < (3,0):
                 path = os.path.join(ker_dir, "preprocessed_data/Python_2")
             else:

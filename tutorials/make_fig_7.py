@@ -40,9 +40,9 @@ if __name__ == '__main__':
 
     ground_truth = np.loadtxt(os.path.join(c.return_paths_skCSD_python(),'membcurr'))
     ground_truth = ground_truth
-
+    print(ground_truth.shape, pots.shape)
     outs = np.zeros((len(n_srcs),len(lambdas),len(R_inits)))
-    print(outs.shape)
+
     for i, n_src in enumerate(n_srcs):
         for j, lambd in enumerate(lambdas):
             for k, R in enumerate(R_inits):

@@ -21,8 +21,8 @@ if __name__ == '__main__':
     fname_base = "Figure_6.png"
     fig_name = fun.make_fig_names(fname_base)
 
-    atstart = 50*2
-    atstop = 65*2
+    atstart = 50
+    atstop = 65
     tstop = 70
     scale_factor = 1000**2
     scale_factor_LFP = 1000

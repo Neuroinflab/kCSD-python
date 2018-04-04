@@ -30,7 +30,7 @@ else:
 "not be compiled, and LFPy.test() functions will fail")
     
 if __name__ == '__main__':
-    fname_base = "Figure_2.png"
+    fname_base = "Figure_2"
     fig_name = fun.make_fig_names(fname_base)
     tstop = 850
     scaling_factor = 1000**2
@@ -41,7 +41,7 @@ if __name__ == '__main__':
     ymin, ymax = 0, 200
     orientation = 1
     for rownb in electrode_number:
-        fname = "Figure_1"
+        fname = "Figure_2"
         c = fun.simulate(fname,morphology=1,simulate_what="sine",colnb=1,rownb=rownb,xmin=xmin,xmax=xmax,ymin=ymin,ymax=ymax,tstop=tstop,seed=1988,weight=0.1,n_syn=100)
         
         data_dir.append(c.return_paths_skCSD_python())
@@ -69,4 +69,4 @@ if __name__ == '__main__':
             fun.plot(ax[i+1],est_csd,xticklabels=xticklabels,yticklabels=yticklabels)
         else:
             fun.plot(ax[i+1],est_csd)
-        fig.savefig(fig_name, bbox_inches='tight', transparent=True, pad_inches=0.1)
+        fig.savefig(fig_name+'.png', bbox_inches='tight', transparent=True, pad_inches=0.1)

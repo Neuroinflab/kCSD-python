@@ -379,7 +379,6 @@ class CellModel():
             os.makedirs(LFP_path)
         fname = os.path.join(LFP_path,'MyLFP')
         np.savetxt( fname, self.simulation_parameters['electrode'].LFP)
-
         
     def save_electrode_pos(self,directory=''):
         electr = np.hstack((self.ele_coordinates[:,0],self.ele_coordinates[:,1],self.ele_coordinates[:,2]))

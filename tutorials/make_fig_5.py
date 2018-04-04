@@ -40,8 +40,9 @@ if __name__ == '__main__':
     ground_truth_grid = []
     ground_truth_t1 = None
     ground_truth_t2 = None
-    t1 = 405
-    t2 = 81
+    dt = run_LFP.CellModel.CELL_PARAMETERS['dt']
+    t1 = int(45.5/dt)
+    t2 = int(5.5/dt)
  
     fig = plt.figure()
     ax = []
