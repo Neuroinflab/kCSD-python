@@ -38,6 +38,7 @@ class CellModel():
 	'nsegs_method' :  'fixed_length',
 	'max_nsegs_length':10, 
         'custom_code'  : [], # will run this file
+        'dt':.2,
     }
 
     SYNAPSE_PARAMETERS = { #idx to be set later
@@ -55,7 +56,7 @@ class CellModel():
         'method' : 'linesource'
     }
     POINT_PROCESS = {
-        'idx':0.,
+        'idx':0,
         'pptype':'IClamp',
         
         }
@@ -105,6 +106,7 @@ class CellModel():
                 self.make_y_shaped()
                 
         self.make_cell(morphology,custom_code)
+        
         self.setup_LFPy_2D_grid(eldistribute,orientation,colnb,rownb,xmin,xmax,ymin,ymax,cell_electrode_dist,triside,ssNB)
 
         self.add_electrodes()
@@ -206,8 +208,6 @@ class CellModel():
         np.savetxt(fname, self.morphology, header='',fmt=['%d','%d','%6.2f','%6.2f','%6.2f','%6.2f','%d'])
         
     def find_parent(self,i,coords,ends):
-        for j in range(len(coords)):
-            print(coords[i],ends[i],coords[j],ends[j])
         for j, end in enumerate(ends):
             check_parent = np.isclose(coords[i],end)
             if check_parent[0] and check_parent[1] and check_parent[2]:
@@ -243,21 +243,27 @@ class CellModel():
         elif eldistribute == 3:
             assert (rownb % 2 == 0), "For hexagon grids row number needs to be even"
             triheight = triside*np.cos(np.pi/6)
+            
             rownb = rownb//2
             triX1 = xmin + triside*np.arange(1,colnb+1) - triside
             triX2 = xmin - triside/2 + triside*np.arange(1,colnb+1)
             triY1 = ymin + 2*triheight*np.arange(1,rownb+1) - triheight
             triY2 = ymin + 2*triheight*np.arange(1,rownb+1)
-
-            grid1 = [(x,y) for x in triX1 for y in triY1]
-            grid2 = [(x,y) for x in triX2 for y in triY2]
-
-            Xcoord = grid1[0].extend(grid2[0])
-            Ycoord = grid1[1].extend(grid2[1])
+            grid1 = [[],[]]
+            grid2 = [[],[]]
+            for l2 in range(len(triY1)):
+                for l1 in range(len(triX1)):
+                    grid1[0].append(triX1[l1])
+                    grid1[1].append(triY1[l2])
+                    grid2[0].append(triX2[l1])
+                    grid2[1].append(triY2[l2])
+            
+            
+            Xcoord = grid1[0]+grid2[0]
+            Ycoord = grid1[1]+grid2[1]
 
             self.ele_coordinates[:,i] = Xcoord
             self.ele_coordinates[:,j] = Ycoord
-        
             self.ele_coordinates[:,k] *= cellelectrodedist
 
         elif eldistribute == 4:
@@ -276,15 +282,28 @@ class CellModel():
         self.point_process['delay'] = 2
         stimulus = LFPy.StimIntElectrode(self.cell, **self.point_process)
         
-    def cosine_current_injection(self):
-        self.point_process['idx'] = 0
+    def cosine_current_injection(self,tstop=850):
+        pre_syn_sptimes = self.stationary_poisson(nsyn=self.n_pre_syn, lambd=2, tstart=0, tstop=400)
+        pre_syn_pick = np.random.permutation(np.arange(self.n_pre_syn))[0:self.n_synapses]
+        self.synapse_parameters['weight'] = 0.04
+        pars = {}
+        for i_syn in range(self.n_synapses):
+            syn_idx = int(self.cell.get_rand_idx_area_norm())
+            spike_times = pre_syn_sptimes[pre_syn_pick[i_syn]]
+            if syn_idx in pars:
+                pars[syn_idx].extend(list(spike_times))
+            else:
+                pars[syn_idx] = list(spike_times)
+
+        for syn_idx in pars:
+            self.synapse_parameters.update({'idx' : syn_idx})
+            synapse = LFPy.Synapse(self.cell, **self.synapse_parameters)
+            synapse.set_spike_times(np.array(pars[syn_idx]))
+            
         self.point_process['dur'] = 1
-
-
-        times_stim= np.arange(self.point_process['dur'])
-        time_series = np.array(3.6*np.sin(2.*3.141*6.5*times_stim/1000.))
-        for istim in range(self.point_process['dur']):
-            self.point_process['amp'] = time_series[istim]
+        TimesStim = np.arange(tstop)
+        for istim in range(tstop):
+            self.point_process['amp'] = np.array(3.6*np.sin(2.*3.141*6.5*TimesStim/1000.))[istim]#time_series[istim]
             self.point_process['delay'] = istim
 
             stimulus = LFPy.StimIntElectrode(self.cell, **self.point_process)
