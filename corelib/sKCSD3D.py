@@ -6,7 +6,7 @@ These scripts are based on Grzegorz Parka's,
 Google Summer of Code 2014, INFC/pykCSD  
 
 This was written by :
-Jan Maka, Chaitanya Chintaluri  
+Jan Maka, Chaitanya Chintaluri
 Laboratory of Neuroinformatics,
 Nencki Institute of Experimental Biology, Warsaw.
 """
@@ -25,14 +25,14 @@ try:
 except ImportError:
     skmonaco_available = False
     
-from KCSD import KCSD3D
+from KCSD import KCSD1D
 from sKCSDcell import sKCSDcell
 import utility_functions as utils
 import basis_functions as basis
 #testing
 
     
-class sKCSD3D(KCSD3D):
+class sKCSD3D(KCSD1D):
     """KCSD3D - The 3D variant for the Kernel Current Source Density method.
 
     This estimates the Current Source Density, for a given configuration of 
@@ -66,23 +66,8 @@ class sKCSD3D(KCSD3D):
                 demanded thickness of the basis element
                 Defaults to 0.23
             h : float
-                thickness of analyzed tissue slice
-                Defaults to 1.
-            xmin, xmax, ymin, ymax, zmin, zmax : floats
-                boundaries for CSD estimation space
-                Defaults to min(ele_pos(x)), and max(ele_pos(x))
-                Defaults to min(ele_pos(y)), and max(ele_pos(y))
-                Defaults to min(ele_pos(z)), and max(ele_pos(z))
-            ext_x, ext_y, ext_z : float
-                length of space extension: xmin-ext_x ... xmax+ext_x
-                length of space extension: ymin-ext_y ... ymax+ext_y 
-                length of space extension: zmin-ext_z ... zmax+ext_z 
-                Defaults to 0.
-            gdx, gdy, gdz : float
-                space increments in the estimation space
-                Defaults to 0.01(xmax-xmin)
-                Defaults to 0.01(ymax-ymin)
-                Defaults to 0.01(zmax-zmin)
+                neuron radius
+                Defaults to 10 um.
             lambd : float
                 regularization parameter for ridge regression
                 Defaults to 0.
@@ -99,19 +84,20 @@ class sKCSD3D(KCSD3D):
             Basis function (src_type) not implemented. See basis_functions.py for available
         """
         self.morphology = morphology
-        super(KCSD3D, self).__init__(ele_pos, pots, **kwargs)
+        super(KCSD1D, self).__init__(ele_pos, pots, **kwargs)
         return
     
     def parameters(self, **kwargs):
 
         self.src_type = kwargs.pop('src_type', 'gauss')
         self.sigma = kwargs.pop('sigma', 1.0)
-        self.h = kwargs.pop('h', 1.0)
+        self.h = kwargs.pop('h', 1e-5)
         self.n_src_init = kwargs.pop('n_src_init', 1000)
         self.lambd = kwargs.pop('lambd', 1e-4)
         self.R_init = kwargs.pop('R_init', 2.3e-6) #microns
-        self.dist_table_density = kwargs.pop('dist_table_density',self.n_src_init/2)
+        self.dist_table_density = kwargs.pop('dist_table_density',200)
         self.dim = 'skCSD'
+        self.tolerance = kwargs.pop('tolerance',1e-06)
         if kwargs:
             raise TypeError('Invalid keyword arguments:', kwargs.keys())
 
@@ -131,7 +117,7 @@ class sKCSD3D(KCSD3D):
         None
         """
         return
-    
+
     def place_basis(self):
         """Places basis sources of the defined type.
         Checks if a given source_type is defined, if so then defines it
@@ -160,11 +146,11 @@ class sKCSD3D(KCSD3D):
             raise KeyError
         #Mesh where the source basis are placed is at self.src_x
         self.R = self.R_init
-        self.cell = sKCSDcell(self.morphology,self.ele_pos,self.n_src_init)
-        self.cell.distribute_srcs_3D_morph()
-        (self.src_x, self.src_y, self.src_z) = self.cell.get_xyz()
-        self.n_src = self.src_x.size
-        self.n_estm = self.cell.est_pos.size
+        self.cell = sKCSDcell(self.morphology,self.ele_pos,self.n_src_init,self.tolerance)
+        self.src_x = self.cell.distribute_srcs_3D_morph()
+        self.n_src = self.cell.src_distributed
+        self.n_estm = len(self.src_x)
+        
         return        
 
     def create_src_dist_tables(self):
@@ -178,13 +164,12 @@ class sKCSD3D(KCSD3D):
         -------
         None
         """
-        src_loc = np.array((self.src_x.ravel(), 
-                            self.src_y.ravel(), 
-                            self.src_z.ravel()))
-        self.src_ele_dists = distance.cdist(self.cell.source_xyz, self.ele_pos, 'euclidean')#self.cell.loop_pos
-        self.src_estm_dists = distance.cdist(self.cell.loop_pos, self.cell.est_pos,  'euclidean')#self.cell.loop_pos,self.cell.source_pos (on morphology, add)
+        self.src_ele_dists = distance.cdist(self.cell.source_xyz, self.ele_pos, 'euclidean')
+        self.src_estm_dists = distance.cdist(self.cell.loop_pos, self.cell.est_pos,  'euclidean')
+       
         self.dist_max = max(np.max(self.src_ele_dists), np.max(self.src_estm_dists)) + self.R
         return
+
 
     def forward_model(self, x, R, h, sigma, src_type):
         """FWD model functions
@@ -205,111 +190,23 @@ class sKCSD3D(KCSD3D):
         pot : float
             value of potential at specified distance from the source
         """
-        if src_type.__name__ == "gauss_1D":
-            if x == 0: x=0.0001
-            pot = special.erf(x/(np.sqrt(2)*R/3.0)) / x
-        elif src_type.__name__ == "gauss_lim_1D":
-            if x == 0: x=0.0001
-            d = R/3.
-            if x < R:
-                #4*pi*((1/a)*(integrate(r**2 * exp(-r**2 / (2*d**2)) *dr ) between 0 and a ) + 
-                #(integrate(r *exp(-r**2 / (2*d**2)) * dr) between a and 3*d))
-                e = np.exp(-(x/ (np.sqrt(2)*d))**2)
-                erf = special.erf(x / (np.sqrt(2)*d))
-                pot = 4* np.pi * ( (d**2)*(e - np.exp(-4.5)) +
-                                   (1/x)*((np.sqrt(np.pi/2)*(d**3)*erf) - x*(d**2)*e))
-            else:
-                #4*pi*integrate((r**2)*exp(-(r**2 / (2*d**2)))*dr) between 0 and 3*d
-                pot = 15.28828*(d)**3 / x 
-            pot /= (np.sqrt(2*np.pi)*d)**3
-        elif src_type.__name__ == "step_1D":
-            Q = 4.*np.pi*(R**3)/3.
-            if x < R:
-                pot = (Q * (3 - (x/R)**2)) / (2.*R)
-            else:
-                pot = Q / x
-            pot *= 3/(4*np.pi*R**3)
+        assert 2**1.5*R < self.cell.max_dist
+        if skmonaco_available:
+            pot, err = mcmiser(self.int_pot_1D, 
+                               npoints=1e5,
+                               xl= -2**1.5*R, 
+                               xu=2**1.5*R+self.cell.max_dist,
+                               seed=42, 
+                               nprocs=num_cores, 
+                               args=(x, R, src_type))
         else:
-            if skmonaco_available:
-                pot, err = mcmiser(self.int_pot_3D_mc, 
-                                   npoints=1e5,
-                                   xl=[-R, -R, -R], 
-                                   xu=[R, R, R],
-                                   seed=42, 
-                                   nprocs=num_cores, 
-                                   args=(x, R, h, src_type))
-            else:
-                pot, err = integrate.tplquad(self.int_pot_3D, 
-                                             -R, 
-                                             R,
-                                             lambda x: -R, 
-                                             lambda x: R,
-                                             lambda x, y: -R, 
-                                             lambda x, y: R,
-                                             args=(x, R, h, src_type))
-        pot *= 1./(4.0*np.pi*sigma)
-        return pot
+            pot, err = integrate.quad(self.int_pot_1D, 
+                                      -2**1.5*R, 
+                                      2**1.5*R+self.cell.max_dist,
+                                      args=(x, R, src_type))
 
-    def int_pot_3D(self, xp, yp, zp, x, R, h, basis_func):
-        """FWD model function.
-        Returns contribution of a point xp,yp, belonging to a basis source
-        support centered at (0,0) to the potential measured at (x,0),
-        integrated over xp,yp gives the potential generated by a
-        basis source element centered at (0,0) at point (x,0)
+        return pot/(4.0*np.pi*sigma)
 
-        Parameters
-        ----------
-        xp, yp, zp : floats or np.arrays
-            point or set of points where function should be calculated
-        x :  float
-            position at which potential is being measured
-        R : float
-            The size of the basis function
-        h : float
-            thickness of slice
-        basis_func : method
-            Fuction of the basis source
-
-        Returns
-        -------
-        pot : float
-        """
-        y = ((x-xp)**2 + yp**2 + zp**2)**0.5
-        if y < 0.00001:
-            y = 0.00001
-        dist = np.sqrt(xp**2 + yp**2 + zp**2)
-        pot = 1.0/y
-        pot *= basis_func(dist, R)
-        return pot
-
-    def int_pot_3D_mc(self, xyz, x, R, h, basis_func):
-        """
-        The same as int_pot_3D, just different input: x,y,z <-- xyz (tuple)
-        FWD model function, using Monte Carlo Method of integration
-        Returns contribution of a point xp,yp, belonging to a basis source
-        support centered at (0,0) to the potential measured at (x,0),
-        integrated over xp,yp gives the potential generated by a
-        basis source element centered at (0,0) at point (x,0)
-
-        Parameters
-        ----------
-        xp, yp, zp : floats or np.arrays
-            point or set of points where function should be calculated
-        x :  float
-            position at which potential is being measured
-        R : float
-            The size of the basis function
-        h : float
-            thickness of slice
-        basis_func : method
-            Fuction of the basis source
-
-        Returns
-        -------
-        pot : float
-        """
-        xp, yp, zp = xyz
-        return self.int_pot_3D(xp, yp, zp, x, R, h, basis_func)
     
     def potential_at_the_electrodes(self):
         
@@ -341,7 +238,46 @@ class sKCSD3D(KCSD3D):
         
         return self.cell.transform_to_3D(estimated,what="loop")
    
-   
+    def int_pot_1D(self, xp, x, R, basis_func):
+        """FWD model function.
+        Returns contribution of a point sp,yp, belonging to a basis source
+        support centered at (0,0) to the potential measured at (x,0,0),
+        integrated over xp,yp gives the potential generated by a
+        basis source element centered at (0,0) at point (x,0)
+        Eq 26 kCSD by Jan,2012
+
+        Parameters
+        ----------
+        xp : floats or np.arrays
+            point or set of points where function should be calculated
+        x :  float
+            position at which potential is being measured
+        R : float
+            The size of the basis function
+        h : float
+            thickness of slice
+        basis_func : method
+            Fuction of the basis source
+
+        Returns
+        -------
+        pot : float
+        """
+        if xp > self.cell.max_dist:
+            xp = xp - self.cell.max_dist
+        elif xp < 0:
+            xp = xp +  self.cell.max_dist
+
+        dist = 0
+        xp_coor = self.cell.get_xyz(xp)
+        point = (x,0,0)
+        for i,p in enumerate(point):
+            dist += (p-xp_coor[i])**2
+        pot = 1/np.sqrt(dist)
+        pot *= basis_func(xp, R)# xp is the distance
+        
+        return pot
+
     
 
 if __name__ == '__main__':
