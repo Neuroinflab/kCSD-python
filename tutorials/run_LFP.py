@@ -38,7 +38,7 @@ class CellModel():
 	'nsegs_method' :  'fixed_length',
 	'max_nsegs_length':10, 
         'custom_code'  : [], # will run this file
-        'dt':.2,
+        'dt':.5,
     }
 
     SYNAPSE_PARAMETERS = { #idx to be set later
@@ -301,9 +301,10 @@ class CellModel():
             synapse.set_spike_times(np.array(pars[syn_idx]))
             
         self.point_process['dur'] = 1
+        stim = np.array(3.6*np.sin(2.*3.141*6.5*TimesStim/1000.))/10
         TimesStim = np.arange(tstop)
         for istim in range(tstop):
-            self.point_process['amp'] = np.array(3.6*np.sin(2.*3.141*6.5*TimesStim/1000.))[istim]#time_series[istim]
+            self.point_process['amp'] = stim[istim]#time_series[istim]
             self.point_process['delay'] = istim
 
             stimulus = LFPy.StimIntElectrode(self.cell, **self.point_process)
