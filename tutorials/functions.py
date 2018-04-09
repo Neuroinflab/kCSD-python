@@ -28,13 +28,13 @@ def simulate(fname_base,**kwargs):
     tstop = kwargs.pop("tstop",100)
     seed = kwargs.pop("seed",1988)
     weight = kwargs.pop("weight",.01)
-    n_syn = kwargs.pop("n_syn",100)
+    n_syn = kwargs.pop("n_syn",1000)
     fname = fname_base+'_rows_%s'%rownb
-    
+    triside = kwargs.pop("triside",60)
     if kwargs:
             raise TypeError('Invalid keyword arguments:', kwargs.keys())
         
-    c = run_LFP.CellModel(morphology=morphology,cell_name=fname,colnb=colnb,rownb=rownb,xmin=xmin,xmax=xmax,ymin=ymin,ymax=ymax,tstop=tstop,seed=seed,weight=weight,n_syn=n_syn,electrode_distribution=electrode_distribution)
+    c = run_LFP.CellModel(morphology=morphology,cell_name=fname,colnb=colnb,rownb=rownb,xmin=xmin,xmax=xmax,ymin=ymin,ymax=ymax,tstop=tstop,seed=seed,weight=weight,n_syn=n_syn,electrode_distribution=electrode_distribution,electrode_orientation=electrode_orientation,triside=triside)
     c.simulate(stimulus=simulate_what)
     c.save_skCSD_python()
     c.save_memb_curr()
@@ -44,6 +44,7 @@ def simulate(fname_base,**kwargs):
 
 def L1_error(csd,est_csd):
     return (abs(csd-est_csd)).sum()/abs(csd).sum()
+    
 
 
 def make_output(what,tstart,tstop,merge):
