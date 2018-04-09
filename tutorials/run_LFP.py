@@ -301,8 +301,8 @@ class CellModel():
             synapse.set_spike_times(np.array(pars[syn_idx]))
             
         self.point_process['dur'] = 1
-        stim = np.array(3.6*np.sin(2.*3.141*6.5*TimesStim/1000.))/10
         TimesStim = np.arange(tstop)
+        stim = np.array(3.6*np.sin(2.*3.141*6.5*TimesStim/1000.))/10
         for istim in range(tstop):
             self.point_process['amp'] = stim[istim]#time_series[istim]
             self.point_process['delay'] = istim
