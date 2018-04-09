@@ -32,21 +32,23 @@ def skCSD_reconstruction_plot(pots,est_csd,est_pot,cell_obj,t_min=0,electrode=5)
     if not cell_obj.morph_points_dist:
         cell_obj.distribute_srcs_3D_morph()
     
-    image,extent = cell_obj.draw_cell2D(axis=2, resolution=est_csd.shape[:3])
+    image, extent = cell_obj.draw_cell2D(axis=2)
+    
     n_x,n_y,n_z,n_t = est_pot.shape
     y_max = np.max(pots[electrode,t_min:t_min+n_t])
     y_min = np.min(pots[electrode,t_min:t_min+n_t])
     fig = plt.figure(figsize=(10, 8))
-    plt.subplots_adjust(left=0.25, bottom=0.25)
+    fig.subplots_adjust(left=0.25, bottom=0.25, hspace=1,wspace=1)
     gridspec.GridSpec(5, 4)
-    plt.subplot2grid((5, 4), (0, 0), colspan=4, rowspan=1)
-    t_plot, = plt.plot(pots[electrode,t_min:t_min+n_t], color='black')
-    l, v = plt.plot(t_min, y_min, t_min+n_t, y_min, linewidth=2, color='red')
+    ax1 = plt.subplot2grid((5, 4), (0, 0), colspan=4, rowspan=1)
+    t_plot, = ax1.plot(pots[electrode,t_min:t_min+n_t], color='black')
+    l, v = ax1.plot(t_min, y_min, t_min+n_t, y_min, linewidth=2, color='red')
+    ax1.set_yticks(ax1.get_yticks()[::2])
     est_csd_sub = plt.subplot2grid((5, 4), (1, 0), colspan=2, rowspan=2)
     est_csd_sub.set_title("skCSD")
-
     est_csd_plot = est_csd_sub.imshow(est_csd[:,:,n_z//2,0],cmap=plt.cm.bwr_r,vmin=np.min(est_csd),vmax=np.max(est_csd), aspect="auto",extent=extent)
     est_csd_morph = est_csd_sub.imshow(image, aspect="auto",extent=extent)
+    
     est_pot_sub = plt.subplot2grid((5, 4), (1, 2), colspan=2, rowspan=2)
     est_pot_sub.set_title("Potential")
     est_pot_plot = est_pot_sub.imshow(est_pot[:,:,n_z//2,0].T, cmap=plt.cm.PRGn,vmin=np.min(est_pot),vmax=np.max(est_pot),aspect="auto",extent=extent)
@@ -73,8 +75,15 @@ def skCSD_reconstruction_plot(pots,est_csd,est_pot,cell_obj,t_min=0,electrode=5)
     tcut.on_changed(update)
     slicecut.on_changed(update)
 
-    morphax = plt.axes([0.01, 0.125, 0.15, 0.04])
+    morphax = fig.add_axes([0.01, 0.75-0.08, 0.15, 0.04]) 
+    projectionaxxy = fig.add_axes([0.01, 0.25-0.00, 0.15, 0.02])
+    projectionaxxz = fig.add_axes([0.01, 0.25-0.03, 0.15, 0.02])
+    projectionaxyz = fig.add_axes([0.01, 0.25-0.06, 0.15, 0.02])
+   
     morphbutton = Button(morphax, 'Hide Morphology', color=axcolor, hovercolor='0.975')
+    projectionbuttonxy = Button(projectionaxxy, 'XY', color=axcolor, hovercolor='0.975')
+    projectionbuttonxz = Button(projectionaxxz, 'switch to XZ', color=axcolor, hovercolor='0.975')
+    projectionbuttonyz = Button(projectionaxyz, 'switch to YZ', color=axcolor, hovercolor='0.975')
 
 
     def switch(event):
@@ -89,7 +98,22 @@ def skCSD_reconstruction_plot(pots,est_csd,est_pot,cell_obj,t_min=0,electrode=5)
             est_pot_morph.set_data(image)
             morphbutton.label.set_text('Hide Morphology')
         fig.canvas.draw_idle()
+
+    def switchyz(event):
+        #print(morphbutton.label.get_text())
+        if morphbutton.label.get_text()=='Hide Morphology':
+            est_csd_morph.set_data(np.zeros(shape=image.shape))
+            est_pot_morph.set_data(np.zeros(shape=image.shape))
+            morphbutton.label.set_text('Show Morphology')
+        else:
+            #print()
+            est_csd_morph.set_data(image)
+            est_pot_morph.set_data(image)
+            morphbutton.label.set_text('Hide Morphology')
+        fig.canvas.draw_idle()
+
     morphbutton.on_clicked(switch)
+
 
     #rax = plt.axes([0.025, 0.5, 0.15, 0.15], axisbg=axcolor)
     #radio = RadioButtons(rax, ('red', 'blue', 'green'), active=0)
@@ -117,7 +141,7 @@ if __name__ == '__main__':
         path = os.path.join(data_dir, "preprocessed_data/Python_3")
 
     est_csd, est_pot, cell_obj = utils.load_sim(path)
-    print(cell_obj.zmin,cell_obj.zmax)
+    print( est_csd.shape, est_pot.shape)
     skCSD_reconstruction_plot(pots,est_csd,est_pot,cell_obj)
  
     plt.show()
