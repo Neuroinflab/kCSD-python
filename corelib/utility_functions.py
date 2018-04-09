@@ -26,7 +26,10 @@ def save_sim(path,k):
     est_csd = k.values('CSD')
     est_pot = k.values("POT")
     np.save(os.path.join(path,"csd.npy"), est_csd)
+    print("Save csd, ", os.path.join(path,"csd.npy"))
     np.save(os.path.join(path,"pot.npy"), est_pot)
+    print("Save pot, ", os.path.join(path,"pot.npy"))
+    
     cell_data = {'morphology':k.cell.morphology.tolist(),'ele_pos':k.cell.ele_pos.tolist(),'n_src':k.cell.n_src}
 
     with open(os.path.join(path, "cell_data"), 'w') as handle:
