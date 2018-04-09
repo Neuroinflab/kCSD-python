@@ -94,7 +94,7 @@ class sKCSD3D(KCSD1D):
         self.h = kwargs.pop('h', 1e-5)
         self.n_src_init = kwargs.pop('n_src_init', 1000)
         self.lambd = kwargs.pop('lambd', 1e-4)
-        self.R_init = kwargs.pop('R_init', 2.3e-6) #microns
+        self.R_init = kwargs.pop('R_init', 2.3e-5) #microns
         self.dist_table_density = kwargs.pop('dist_table_density',200)
         self.dim = 'skCSD'
         self.tolerance = kwargs.pop('tolerance',1e-06)
