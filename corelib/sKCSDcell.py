@@ -22,7 +22,7 @@ class sKCSDcell(object):
     electrodes. The method implented here is based on the original paper
     by Jan Potworowski et.al. 2012.
     """
-    def __init__(self, morphology, ele_pos, n_src,tolerance):
+    def __init__(self, morphology, ele_pos, n_src,tolerance=2e-6):
         """
         
         """

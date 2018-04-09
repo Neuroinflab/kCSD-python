@@ -97,7 +97,7 @@ class sKCSD3D(KCSD1D):
         self.R_init = kwargs.pop('R_init', 2.3e-5) #microns
         self.dist_table_density = kwargs.pop('dist_table_density',200)
         self.dim = 'skCSD'
-        self.tolerance = kwargs.pop('tolerance',1e-06)
+        self.tolerance = kwargs.pop('tolerance',2e-06)
         if kwargs:
             raise TypeError('Invalid keyword arguments:', kwargs.keys())
 
