@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function, division
+from __future__ import print_function, division, absolute_import
 
 import os
 import sys
 import numpy as np
 from scipy import interpolate
 from collections import Counter
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-import utility_functions as utils
-import loadData as ld
-from  bresenhamline import bresenhamline
+import corelib.utility_functions as utils
+import corelib.loadData as ld
+from  corelib.bresenhamline import bresenhamline
 
 #testing
 
@@ -225,17 +226,17 @@ class sKCSDcell(object):
         #morphology = self.morphology_2D_for_images(axis=axis)
         if axis == 0:
             image = np.ones(shape=(resolution[1], resolution[2], 4), dtype=np.uint8) * 255
-            extent = [self.ymin, self.ymax, self.zmin,self.zmax]
+            extent = [1e6*self.ymin, 1e6*self.ymax, 1e6*self.zmin, 1e6*self.zmax]
         elif axis == 1:
             image = np.ones(shape=(resolution[0], resolution[2], 4), dtype=np.uint8) * 255
-            extent = [self.xmin, self.xmax, self.zmin,self.zmax]
+            extent = [1e6*self.xmin, 1e6*self.xmax, 1e6*self.zmin, 1e6*self.zmax]
         elif axis == 2:
             image = np.ones(shape=(resolution[0], resolution[1], 4), dtype=np.uint8) * 255
-            extent = [self.xmin, self.xmax, self.ymin,self.ymax]
+            extent = [1e6*self.xmin, 1e6*self.xmax, 1e6*self.ymin, 1e6*self.ymax]
         else:
             sys.exit('In drawing 2D morphology unknown axis ' + str(axis))
             
-      
+        
         image[:, :, 3] = 0
         xs = []
         ys = []

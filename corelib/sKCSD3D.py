@@ -10,12 +10,13 @@ Jan Maka, Chaitanya Chintaluri
 Laboratory of Neuroinformatics,
 Nencki Institute of Experimental Biology, Warsaw.
 """
-from __future__ import print_function, division
+from __future__ import print_function, division, absolute_import
 import numpy as np
 import os
 from scipy.spatial import distance
 from scipy import special, interpolate, integrate
 import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 try:
     from skmonaco import mcmiser
@@ -25,10 +26,10 @@ try:
 except ImportError:
     skmonaco_available = False
     
-from KCSD import KCSD1D
-from sKCSDcell import sKCSDcell
-import utility_functions as utils
-import basis_functions as basis
+from corelib.KCSD import KCSD1D
+from corelib.sKCSDcell import sKCSDcell
+import corelib.utility_functions as utils
+import corelib.basis_functions as basis
 #testing
 
     
@@ -95,7 +96,7 @@ class sKCSD3D(KCSD1D):
         self.n_src_init = kwargs.pop('n_src_init', 1000)
         self.lambd = kwargs.pop('lambd', 1e-4)
         self.R_init = kwargs.pop('R_init', 2.3e-5) #microns
-        self.dist_table_density = kwargs.pop('dist_table_density',200)
+        self.dist_table_density = kwargs.pop('dist_table_density',100)
         self.dim = 'skCSD'
         self.tolerance = kwargs.pop('tolerance',2e-06)
         if kwargs:
@@ -273,8 +274,7 @@ class sKCSD3D(KCSD1D):
         point = (x,0,0)
         for i,p in enumerate(point):
             dist += (p-xp_coor[i])**2
-        pot = 1/np.sqrt(dist)
-        pot *= basis_func(xp, R)# xp is the distance
+        pot = basis_func(xp, R)/np.sqrt(dist)# xp is the distance
         
         return pot
 

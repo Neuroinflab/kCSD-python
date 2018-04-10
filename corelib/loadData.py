@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # encoding: utf-8
-from __future__ import print_function, division
+from __future__ import print_function, division, absolute_import
 import sys
 import os
-import utility_functions as utils
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+import corelib.utility_functions as utils
 import numpy as np
 
 
@@ -81,8 +82,10 @@ class Data(object):
         except ValueError:
             print('Could not load file',path)
             self.assign(what,None)
+            f.close()
             return
         print('Load',path)
+        f.close()
     
             
     def __init__(self,path):

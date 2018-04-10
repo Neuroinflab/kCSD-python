@@ -10,12 +10,14 @@ Michal Czerwinski, Chaitanya Chintaluri
 Laboratory of Neuroinformatics,
 Nencki Institute of Experimental Biology, Warsaw.
 """
-from __future__ import print_function, division
+from __future__ import print_function, division, absolute_import
 import numpy as np
 import os
 import pickle
 from scipy import interpolate
 import json
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 def load_swc(path):
     """Load swc file"""
@@ -48,7 +50,7 @@ def load_sim(path):
         print('Could not load',os.path.join(path,"cell_data"))
         return est_csd, est_pot, None
     
-    import sKCSDcell
+    import corelib.sKCSDcell
     
     morphology = np.array(cell_data['morphology'])
     ele_pos = np.array(cell_data['ele_pos'])

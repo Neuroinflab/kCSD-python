@@ -4,16 +4,20 @@ Created on Mon Jun 26 15:11:07 2017
 
 @author: Jan Maka
 """
-from __future__ import print_function, division
+from __future__ import print_function, division, absolute_imports
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider, Button, RadioButtons
 import matplotlib.gridspec as gridspec
 import os
-import utility_functions as utils
-import glob
 import sys
-import loadData as ld
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+import corelib.utility_functions as utils
+import glob
+
+import corelib.loadData as ld
 sliders = []
 def skCSD_reconstruction_plot(pots,est_csd,est_pot,cell_obj,t_min=0,electrode=5):
     """Displays interactive skCSD reconstruction plot

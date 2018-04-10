@@ -9,14 +9,18 @@ Nencki Institute of Exprimental Biology, Warsaw.
 KCSD1D[1][2], KCSD2D[1], KCSD3D[1], MoIKCSD[1]
 
 """
-from __future__ import division
+from __future__ import division, print_function, absolute_import
 
 import numpy as np
 from scipy import special, integrate, interpolate
 from scipy.spatial import distance
 from numpy.linalg import LinAlgError
-import utility_functions as utils
-import basis_functions as basis
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+import corelib.utility_functions as utils
+import corelib.basis_functions as basis
 
 # from . import utility_functions as utils
 # from . import basis_functions as basis
