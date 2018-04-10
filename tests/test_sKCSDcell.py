@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # encoding: utf-8
-from __future__ import print_function, division
+from __future__ import print_function, division, absolute_import
 import sys
 import os
 import unittest
@@ -12,7 +12,8 @@ try:
 except NameError:
   basestring = str
   
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.insert(0,
+os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from corelib import utility_functions as utils
 from corelib.loadData import Data
