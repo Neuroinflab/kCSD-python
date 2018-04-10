@@ -22,16 +22,9 @@ params = {}
 morphology = data.morphology 
 morphology[:,2:6] = morphology[:,2:6].copy()/scaling_factor
 
-xmin, ymin, zmin, xmax,ymax,zmax = -20/scaling_factor,-20/scaling_factor,-100/scaling_factor,20/scaling_factor,20/scaling_factor,600/scaling_factor
-print(xmin, ymin, zmin, xmax,ymax,zmax)
-gdx = (xmax-xmin)/100.
-gdy = (ymax-ymin)/100.
-gdz = (zmax-zmin)/10.
 
-k = sKCSD3D.sKCSD3D(ele_pos, pots,morphology,
-            gdx=gdx, gdy=gdx, gdz=gdz,
-            xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, zmin=zmin, zmax=zmax,
-            n_src_init=1000, src_type='gauss_lim')
+
+k = sKCSD3D.sKCSD3D(ele_pos, pots,morphology, n_src_init=1000, src_type='gauss_lim')
 k.cross_validate()
 
 if sys.version_info >= (3, 0):
