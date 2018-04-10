@@ -7,7 +7,6 @@ import run_LFP
 def make_fig_names(fname_base):
     
     if not os.path.exists('Figures'):
-        print("Creating",'Figures')
         os.makedirs('Figures')
         
     return os.path.join('Figures',fname_base)
@@ -31,10 +30,11 @@ def simulate(fname_base,**kwargs):
     n_syn = kwargs.pop("n_syn",1000)
     fname = fname_base+'_rows_%s'%rownb
     triside = kwargs.pop("triside",60)
+    dt = kwargs.pop("dt",.5)
     if kwargs:
             raise TypeError('Invalid keyword arguments:', kwargs.keys())
         
-    c = run_LFP.CellModel(morphology=morphology,cell_name=fname,colnb=colnb,rownb=rownb,xmin=xmin,xmax=xmax,ymin=ymin,ymax=ymax,tstop=tstop,seed=seed,weight=weight,n_syn=n_syn,electrode_distribution=electrode_distribution,electrode_orientation=electrode_orientation,triside=triside)
+    c = run_LFP.CellModel(morphology=morphology,cell_name=fname,colnb=colnb,rownb=rownb,xmin=xmin,xmax=xmax,ymin=ymin,ymax=ymax,tstop=tstop,seed=seed,weight=weight,n_syn=n_syn,electrode_distribution=electrode_distribution,electrode_orientation=electrode_orientation,triside=triside,dt=dt)
     c.simulate(stimulus=simulate_what)
     c.save_skCSD_python()
     c.save_memb_curr()
@@ -57,6 +57,7 @@ def make_output(what,tstart,tstop,merge):
 
 def merge_maps(maps,tstart,tstop,merge):
     single_width = (tstop-tstart)//merge
+    print(single_width,tstop-tstart)
     outs = np.zeros((maps[0].shape[0],single_width*len(maps)))
     for i,mappe in enumerate(maps):
         outs[:,i*single_width:(i+1)*single_width] = make_output(mappe,tstart=tstart,tstop=tstop,merge=merge)

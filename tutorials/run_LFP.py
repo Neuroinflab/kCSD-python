@@ -71,7 +71,8 @@ class CellModel():
         self.cell_name = kwargs.pop('cell_name','cell_1')
         self.path = kwargs.pop('path','simulation')
         self.stimulus = kwargs.pop('stimulus','random')
-        
+        dt = kwargs.pop('dt',.5)
+        self.cell_parameters['dt'] = dt
         eldistribute = kwargs.pop('electrode_distribution',1)
         orientation = kwargs.pop('electrode_orientation',2) #according to which axis
         colnb = kwargs.pop('colnb',4)
