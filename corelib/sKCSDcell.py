@@ -40,11 +40,11 @@ class sKCSDcell(object):
         self.est_pos = [] #loop positions on the 1D morphology
         
         rep = Counter(self.morphology[:,6])
-        self.branching = [key for key in rep.keys() if rep[key]>1]
+        self.branching = [int(key) for key in rep.keys() if rep[key]>1]
 
         self.loop_xyz = np.zeros(shape=(n_src+self.morphology.shape[0]*2,3))#for morphology plotting
         self.source_xyz = np.zeros(shape=(n_src,3))
-        self.loops = [] #loop positions -- which 2 segments are connected, mostly for debug
+        self.loops = [] #loop positions -- which 2 points are connected, mostly for debug
         self.xmin =  np.min(self.morphology[:,2])
         self.xmax = np.max(self.morphology[:,2])
         self.ymin =  np.min(self.morphology[:,3])
@@ -52,9 +52,13 @@ class sKCSDcell(object):
         self.zmin =  np.min(self.morphology[:,4])
         self.zmax = np.max(self.morphology[:,4])
         self.tolerance = tolerance
+        self.segments = {}
+        self.segment_counter = 0
+        
     def distribute_srcs_3D_morph(self):
         self.loops = []
         for morph_pnt in range(1,self.morphology.shape[0]):
+            
             if self.morphology[morph_pnt-1,0]==self.morphology[morph_pnt,6]:
                 self.distribute_src_cylinder(morph_pnt, morph_pnt-1)
             elif self.morphology[morph_pnt,6] in self.branching:
@@ -77,22 +81,33 @@ class sKCSDcell(object):
             if int(self.morphology[parent,6]) == -1:
                 break
             last_point = parent
+
         self.loops = np.array(self.loops)
-        self.est_pos = np.zeros((len(self.loops),1))
-        self.est_xyz = np.zeros((len(self.loops),3))
+        self.est_pos = np.zeros((len(self.loops)+1,1))
+        self.est_xyz = np.zeros((len(self.loops)+1,3))
         self.est_xyz[0,:] = self.morphology[0,2:5]
-        for i,loop in enumerate(self.loops[1:]):
+        for i,loop in enumerate(self.loops):
             length = 0
             for j in [2,3,4]:
                 length += (self.morphology[loop[1]][j]-self.morphology[loop[0]][j])**2
             self.est_pos[i+1] = self.est_pos[i] + length**0.5
-            self.est_xyz[i+1,:] = self.morphology[loop[0],2:5]
+            self.est_xyz[i+1,:] = self.morphology[loop[1],2:5]
         self.loop_pos = self.loop_pos.reshape(-1,1)
         self.max_dist = self.est_pos.max()
-        
         return self.est_pos
-  
+
+    def add_segment(self, mp1, mp2):
+        key1 = "%d_%d"%(mp1, mp2)
+        key2 = "%d_%d"%(mp2, mp1)
+        
+        if key1 not in  self.segments:
+            self.segments[key1] = self.segment_counter
+            self.segments[key2] = self.segment_counter
+            self.segment_counter += 1
+            
     def distribute_src_cylinder(self,mp1, mp2):
+
+        self.add_segment(mp1,mp2)
         xyz1 = self.morphology[mp1,2:5]
         xyz2 = self.morphology[mp2,2:5]
         self.loops.append([mp2,mp1])
@@ -108,6 +123,7 @@ class sKCSDcell(object):
                 self.loop_xyz[src_idx+self.morph_points_dist,:] =  xyz1-(xyz2-xyz1)*(self.loop_pos[src_idx]  -self.max_dist)/(self.max_dist - self.min_dist)
         self.min_dist = self.max_dist
         #Add morphology point to the loop
+        
         self.loop_xyz[self.morph_points_dist+self.src_distributed] = self.morphology[mp1,2:5]
         self.morph_points_dist +=1
 
@@ -123,7 +139,7 @@ class sKCSDcell(object):
         total_dist*=2
         return total_dist
       
-    def points_in_between(self,p1,p0):
+    def points_in_between(self,p1,p0,last):
     
         new_p1 = np.ndarray((1,3),dtype=np.int) #bresenhamline only works with 2D vectors with coordinates
         new_p0 = np.ndarray((1,3),dtype=np.int)
@@ -131,9 +147,12 @@ class sKCSDcell(object):
             new_p1[0,i] = p1[i]
             new_p0[0,i] = p0[i]
             
-        intermediate_points = bresenhamline(new_p1,new_p0,-1)
+        intermediate_points = bresenhamline(new_p0,new_p1,-1)
+        if last:
+            return np.concatenate((new_p0,intermediate_points))
 
-        return np.concatenate((new_p1,intermediate_points))   
+        else:
+            return intermediate_points        
    
     def get_grid(self):
         vals = [[self.xmin,self.xmax],[self.ymin,self.ymax],[self.zmin, self.zmax]]
@@ -157,22 +176,22 @@ class sKCSDcell(object):
         minis =  np.array([self.xmin,self.ymin,self.zmin])
         dims, dxs = self.get_grid()
         zero_coords = np.zeros((3,),dtype=int)
-        coor_3D = np.zeros((morpho.shape),dtype=np.int)
+        coor_3D = np.zeros((morpho.shape[0]-1,morpho.shape[1]),dtype=np.int)
         for i,dx in enumerate(dxs):
             if dx:
-                coor_3D[:,i] = np.floor((morpho[:,i] - minis[None,i])/dxs[None,i])
-                zero_coords[i] = np.floor((0 - minis[i])/dxs[i])
+                coor_3D[:,i] = np.floor((morpho[1:,i] - minis[None,i])/dxs[None,i])
+                zero_coords[i] = np.floor((morpho[0,i] - minis[i])/dxs[i])
         return coor_3D, zero_coords
          
     def coordinates_3D_loops(self):
         
         coor_3D, p0 = self.point_coordinates(self.est_xyz)
         segment_coordinates = {}
-
-        for i,p1 in enumerate(coor_3D):
-            segment_coordinates[i] = self.points_in_between(p1,p0)
-            p0 = p1
         
+        for i, p1 in enumerate(coor_3D):
+            last = (i+1 ==len(coor_3D))
+            segment_coordinates[i] = self.points_in_between(p0,p1,last)
+            p0 = p1
         return segment_coordinates
 
     def coordinates_3D_segments(self):
@@ -180,11 +199,23 @@ class sKCSDcell(object):
         coor_3D, p0 = self.point_coordinates(self.morphology[:,2:5])
         segment_coordinates = {}
         
-        for i, p1 in enumerate(coor_3D):
+        parentage = self.morphology[1:,6]-2        
+        i = 0
+        p1 = coor_3D[0]
+        while True:
+            last = (i+1 ==len(coor_3D))
+
+            segment_coordinates[i] = self.points_in_between(p0,p1,last)
+            if i+1 == len(coor_3D):
+                break
             if i:
-                p0_idx = int(self.morphology[i,6]) - 1
+                p0_idx = int(parentage[i+1])
                 p0 = coor_3D[p0_idx]
-            segment_coordinates[i] = self.points_in_between(p1,p0)
+            else:
+                p0 = p1
+            
+            i = i+1
+            p1 = coor_3D[i]
         return segment_coordinates
                 
     def transform_to_3D(self, estimated, what="loop"):
