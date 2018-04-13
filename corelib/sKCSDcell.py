@@ -37,7 +37,7 @@ class sKCSDcell(object):
         rep = Counter(self.morphology[:,6])
         self.branching = [int(key) for key in rep.keys() if rep[key]>1]
 
-        total_dist = self.morphology_loop()#self.calculate_total_distance()
+        total_dist = self.morphology_loop()
 
         self.source_pos = np.zeros((n_src,1))
         self.source_pos[:,0] = np.linspace(0, total_dist, n_src) #positions of sources on the morphology (1D), necessary for source division
@@ -277,7 +277,7 @@ class sKCSDcell(object):
             image[xi,yi,:] = np.array([0,0,0,1])
             if x0 !=0:
                 
-                idx_arr = self.points_in_between([xi,yi,0],[x0,y0,0])#getlinepoints(xi,yi,x0,y0)
+                idx_arr = self.points_in_between([xi,yi,0],[x0,y0,0],0)
 
                 for i in range(len(idx_arr)):
 
