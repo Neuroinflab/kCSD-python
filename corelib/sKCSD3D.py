@@ -167,7 +167,6 @@ class sKCSD3D(KCSD1D):
         """
         self.src_ele_dists = distance.cdist(self.cell.source_xyz, self.ele_pos, 'euclidean')
         self.src_estm_dists = distance.cdist(self.cell.loop_pos, self.cell.est_pos,  'euclidean')
-       
         self.dist_max = max(np.max(self.src_ele_dists), np.max(self.src_estm_dists)) + self.R
         return
 
@@ -221,20 +220,27 @@ class sKCSD3D(KCSD1D):
                 estimation[:, t] += self.k_pot[:, i]*beta[i]  # C*(x) Eq 18
         return estimation
 
-    def values(self, estimate='CSD',segments=False):
+    def values(self, estimate='CSD',segments=False,no_transformation=False):
         '''In skCSD CSD is calculated on the morphology, which is 1D, and
         the CSD needs to be translated to cartesian coordinates.
 
         '''
         #estimate self.n_src_init x self.n_time
 
-        estimated = super(sKCSD3D,self).values(estimate=estimate) 
+        estimated = super(sKCSD3D,self).values(estimate=estimate)
+        if no_transformation:
+            return estimated
         if segments:
-            result = np.zeros((self.cell.morphology.shape[0],estimated.shape[1]))
-            weights = np.zeros((self.cell.morphology.shape[0]))
+            result = np.zeros((self.cell.morphology.shape[0]-1,estimated.shape[1]))
+            weights = np.zeros((self.cell.morphology.shape[0]-1))
+
             for i, loop in enumerate(self.cell.loops):
-                result[loop[0],:] += estimated[i,:]
-                weights[loop[0]] += 1
+                key = "%d_%d"%(loop[0],loop[1])
+                seg_no = self.cell.segments[key]
+                
+                result[seg_no,:] += estimated[i,:]
+                weights[seg_no] += 1
+
             return result/weights[:,None]
         
         return self.cell.transform_to_3D(estimated,what="loop")
