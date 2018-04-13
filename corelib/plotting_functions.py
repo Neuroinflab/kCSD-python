@@ -4,7 +4,7 @@ Created on Mon Jun 26 15:11:07 2017
 
 @author: Jan Maka
 """
-from __future__ import print_function, division, absolute_imports
+from __future__ import print_function, division, absolute_import
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider, Button, RadioButtons

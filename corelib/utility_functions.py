@@ -50,7 +50,7 @@ def load_sim(path):
         print('Could not load',os.path.join(path,"cell_data"))
         return est_csd, est_pot, None
     
-    import corelib.sKCSDcell
+    import corelib.sKCSDcell as sKCSDcell
     
     morphology = np.array(cell_data['morphology'])
     ele_pos = np.array(cell_data['ele_pos'])
