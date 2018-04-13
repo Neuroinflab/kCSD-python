@@ -16,7 +16,7 @@ import corelib.loadData as ld
 import functions as fun
 
 n_src = 512
-lambd = 1e-5
+lambd = 1e-2
 R = 64e-6/2**.5
 
 if find_executable('nrnivmodl') is not None:
@@ -50,23 +50,30 @@ if __name__ == '__main__':
     ground_truth = np.loadtxt(os.path.join(data_dir[0],'membcurr'))
     ground_truth = ground_truth/seglen[:,None]
     gvmin, gvmax = fun.get_min_max(ground_truth)
-    
-    data_paths = []
-    fig, ax = plt.subplots(4,1)
-    xticklabels = list(np.linspace(0,800,5))
-    yticklabels = list(np.linspace(0,52,5))
-    fun.plot(ax[0],ground_truth)
-    for i, datd in enumerate(data_dir):
-        l = 0
-        data = ld.Data(datd)
-        ele_pos = data.ele_pos/scaling_factor
-        pots = data.LFP/scaling_factor_LFP
-        morphology = data.morphology
-        morphology[:,2:6] = morphology[:,2:6]/scaling_factor
-        k = sKCSD3D.sKCSD3D(ele_pos,data.LFP,morphology, n_src_init=n_src, src_type='gauss',lambd=lambd,R_init=R)
-        est_csd = k.values(segments=True)/seglen[:,None]
-        if i == 2:
-            fun.plot(ax[i+1],est_csd,xticklabels=xticklabels,yticklabels=yticklabels)
-        else:
-            fun.plot(ax[i+1],est_csd)
-        fig.savefig(fig_name+'.png', bbox_inches='tight', transparent=True, pad_inches=0.1)
+    R_inits = [2**i for i in range(3,8)]
+    lambdas = [10**(-i) for i in range(6)]
+    for R_init in R_inits:
+        for l in lambdas:
+            R = R_init/np.sqrt(2)/scaling_factor
+            lambd = l*2*(2*np.pi)**3*R**2*n_src
+            fname = fname_base+'_R_%d_lambda_%f.png'%(R_init,l)
+            fig_name = fun.make_fig_names(fname)
+            data_paths = []
+            fig, ax = plt.subplots(4,1)
+            xticklabels = list(np.linspace(0,800,5))
+            yticklabels = list(np.linspace(0,52,5))
+            fun.plot(ax[0],ground_truth)
+            for i, datd in enumerate(data_dir):
+                l = 0
+                data = ld.Data(datd)
+                ele_pos = data.ele_pos/scaling_factor
+                pots = data.LFP/scaling_factor_LFP
+                morphology = data.morphology
+                morphology[:,2:6] = morphology[:,2:6]/scaling_factor
+                k = sKCSD3D.sKCSD3D(ele_pos,data.LFP,morphology, n_src_init=n_src, src_type='gauss',lambd=lambd,R_init=R)
+                est_csd = k.values(segments=True)/seglen[:,None]
+                if i == 2:
+                    fun.plot(ax[i+1],est_csd,xticklabels=xticklabels,yticklabels=yticklabels)
+                else:
+                    fun.plot(ax[i+1],est_csd)
+            fig.savefig(fig_name+'.png', bbox_inches='tight', transparent=True, pad_inches=0.1)

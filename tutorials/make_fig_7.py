@@ -19,12 +19,12 @@ if __name__ == '__main__':
     
     tstop = 70
     scale_factor = 1000**2
-    scale_factor_LFP = 1000
+    scale_factor_LFP = 1
     
-    R_inits = np.array([(2**i)/scale_factor for i in range(1,7)])
+    R_inits = np.array([(2**(i-.5))/scale_factor for i in range(3,9)])
     lambdas = np.array([(10**(-i))for i in range(6)])
     n_srcs = np.array([32,64,128,512,1024])
-    x_ticklabels = [2**i for i in range(1,7)]
+    x_ticklabels = [2**i for i in range(3,9)]
     y_ticklabels = [str(lambd) for lambd in lambdas]
 
     colnb = 4
@@ -39,17 +39,18 @@ if __name__ == '__main__':
     
 
     ground_truth = np.loadtxt(os.path.join(c.return_paths_skCSD_python(),'membcurr'))
-    ground_truth = ground_truth
-    print(ground_truth.shape, pots.shape)
+    
     outs = np.zeros((len(n_srcs),len(lambdas),len(R_inits)))
 
     for i, n_src in enumerate(n_srcs):
-        for j, lambd in enumerate(lambdas):
+        for j, l in enumerate(lambdas):
             for k, R in enumerate(R_inits):
+                lambd = l*2*(2*np.pi)**3*R**2*n_src
                 ker = sKCSD3D.sKCSD3D(ele_pos,data.LFP,morphology, n_src_init=n_src, src_type='gauss',lambd=lambd,R_init=R)
                 est_skcsd = ker.values(estimate='CSD',segments=True)
+                print(est_skcsd.max(),est_skcsd.min())
                 outs[i,j,k] = fun.L1_error(ground_truth, est_skcsd)
-            
+                print(outs[i,j,k])
 
     fig, ax = plt.subplots(1, 4, sharey=True)
     vmax = outs.max()
