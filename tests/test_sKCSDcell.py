@@ -23,15 +23,22 @@ class testsKCDcell(unittest.TestCase):
   
   @classmethod
   def setUpClass(cls):
+    sc = 1e6
     cls.data = Data("Data/gang_7x7_200")
+    cls.data.morphology[:,2:6] = cls.data.morphology[:,2:6]/sc
     n_src = 1000
-    cls.cell = sKCSDcell(cls.data.morphology,cls.data.ele_pos,n_src)
+    cls.cell = sKCSDcell(cls.data.morphology,cls.data.ele_pos/sc,n_src)
     cls.cell.distribute_srcs_3D_morph()
     cls.branch_points = []
     for loop in cls.cell.loops:
       if loop[0] != loop[1]+1 and loop[0] != loop[1]-1:
         cls.branch_points.append(loop.tolist())
 
+    data = Data("Data/ball_and_stick_8")
+    data.morphology[:,2:6] = data.morphology[:,2:6]/sc
+    cls.cell_small = sKCSDcell(data.morphology,data.ele_pos/sc,10)
+    cls.cell_small.distribute_srcs_3D_morph()
+  # Test if morphology loop is done correctly
   def test_all_sources_distributed(self):
     
     self.assertEqual(self.cell.src_distributed,self.cell.n_src)
@@ -82,6 +89,30 @@ class testsKCDcell(unittest.TestCase):
         branch_count -=1
     self.assertTrue(branch_count==0)
             
-            
+  def test_calculate_total_distance(self):
+    
+    self.assertTrue(np.isclose(self.cell_small.calculate_total_distance(),2*505.97840005636186e-6))
+
+  def test_get_xyz_x(self):
+    x,y,z = self.cell_small.get_xyz(15e-6)
+    self.assertTrue(x == 0)
+
+  def test_get_xyz_y(self):
+    x,y,z = self.cell_small.get_xyz(15e-6)
+    self.assertTrue(y == 0)
+
+  def test_get_xyz_z(self):
+    a =  9.85499990e-06 + (1.97099998e-05 - 9.85499990e-06)/2
+    b = -1.09375002e-05 + (-1.08250028e-06 - (-1.09375002e-05))/2
+    x,y,z = self.cell_small.get_xyz(a)
+    self.assertTrue(np.isclose(z,b))
+    
+  def test_segments_small(self):
+    self.assertTrue(self.cell_small.segment_counter == len(self.cell_small.morphology)-1)
+
+  def test_segments(self):  
+    self.assertTrue(self.cell.segment_counter == len(self.cell.morphology)-1)
+
+    
 if __name__ == '__main__':
   unittest.main()
