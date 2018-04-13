@@ -149,7 +149,7 @@ class sKCSD3D(KCSD1D):
         self.R = self.R_init
         self.cell = sKCSDcell(self.morphology,self.ele_pos,self.n_src_init,self.tolerance)
         self.src_x = self.cell.distribute_srcs_3D_morph()
-        self.n_src = self.cell.src_distributed
+        self.n_src = self.cell.n_src
         self.n_estm = len(self.src_x)
         
         return        
@@ -166,7 +166,7 @@ class sKCSD3D(KCSD1D):
         None
         """
         self.src_ele_dists = distance.cdist(self.cell.source_xyz, self.ele_pos, 'euclidean')
-        self.src_estm_dists = distance.cdist(self.cell.loop_pos, self.cell.est_pos,  'euclidean')
+        self.src_estm_dists = distance.cdist(self.cell.source_pos, self.cell.est_pos,  'euclidean')
         self.dist_max = max(np.max(self.src_ele_dists), np.max(self.src_estm_dists)) + self.R
         return
 

@@ -43,14 +43,14 @@ class testsKCDcell(unittest.TestCase):
     cls.cell_small = sKCSDcell(data.morphology,data.ele_pos/sc,10)
     cls.cell_small.distribute_srcs_3D_morph()
   # Test if morphology loop is done correctly
-  def test_all_sources_distributed(self):
+  # def test_all_sources_distributed(self):
     
-    self.assertEqual(self.cell.src_distributed,self.cell.n_src)
+  #   self.assertEqual(self.cell.src_distributed,self.cell.n_src)
     
-  def test_all_sources_distributed_few_sources(self):
-    self.cell2 = sKCSDcell(self.data.morphology,self.data.ele_pos,10)
-    self.cell2.distribute_srcs_3D_morph()
-    self.assertEqual(self.cell2.src_distributed,self.cell2.n_src)
+  # def test_all_sources_distributed_few_sources(self):
+  #   self.cell2 = sKCSDcell(self.data.morphology,self.data.ele_pos,10)
+  #   self.cell2.distribute_srcs_3D_morph()
+  #   self.assertEqual(self.cell2.src_distributed,self.cell2.n_src)
     
   def test_if_lost_branch(self):
     segments = self.cell.morphology[1:,:].shape[0]
@@ -142,9 +142,25 @@ class testsKCDcell(unittest.TestCase):
   def test_segments(self):  
     self.assertTrue(self.cell.segment_counter == len(self.cell.morphology)-1)
 
-  def test_distance_between_sources(self):
-    print(self.cell_small.est_pos[1:,0]-self.cell_small.est_pos[:-1,0])
-    print(sum(self.cell_small.est_pos[1:,0]-self.cell_small.est_pos[:-1,0]))
+  def test_get_xyz_source_x_small(self):
+    a =  in_between(self.cell_small.source_pos[1,0],self.cell_small.source_pos[2,0])
+    b =  in_between(self.cell_small.source_xyz[1,0],self.cell_small.source_xyz[2,0])
+   
+    x,y,z = self.cell_small.get_xyz(a)
+    self.assertTrue(x == b)
+
+  def test_get_xyz_source_y_small(self):
+    a =  in_between(self.cell_small.source_pos[1,0],self.cell_small.source_pos[2,0])
+    b =  in_between(self.cell_small.source_xyz[1,1],self.cell_small.source_xyz[2,1])
+    x,y,z = self.cell_small.get_xyz(a)
+    self.assertTrue(y == b)
+
+  def test_get_xyz_source_z_small(self):
+    a =  in_between(self.cell_small.source_pos[1,0],self.cell_small.source_pos[2,0])
+    b =  in_between(self.cell_small.source_xyz[1,2],self.cell_small.source_xyz[2,2])
+    x,y,z = self.cell_small.get_xyz(a)
+    self.assertTrue(np.isclose(z,b))
+
     
 if __name__ == '__main__':
   unittest.main()

@@ -30,21 +30,19 @@ class sKCSDcell(object):
         self.morphology = morphology
         self.ele_pos = ele_pos
         self.n_src = n_src
-        self.min_dist = 0 #counter
         self.max_dist = 0 #counter
-        self.src_distributed = 0 #counter
         self.morph_points_dist = 0 #counter
-        total_dist = self.calculate_total_distance()
-        self.loop_pos = np.linspace(0, total_dist, n_src) #positions of sources on the morphology (1D), necessary for source division
-
-        self.est_pos = [] #loop positions on the 1D morphology
-        
+        self.segments = {}
+        self.segment_counter = 0
         rep = Counter(self.morphology[:,6])
         self.branching = [int(key) for key in rep.keys() if rep[key]>1]
 
-        self.loop_xyz = np.zeros(shape=(n_src+self.morphology.shape[0]*2,3))#for morphology plotting
+        total_dist = self.morphology_loop()#self.calculate_total_distance()
+
+        self.source_pos = np.zeros((n_src,1))
+        self.source_pos[:,0] = np.linspace(0, total_dist, n_src) #positions of sources on the morphology (1D), necessary for source division
         self.source_xyz = np.zeros(shape=(n_src,3))
-        self.loops = [] #loop positions -- which 2 points are connected, mostly for debug
+     
         self.xmin =  np.min(self.morphology[:,2])
         self.xmax = np.max(self.morphology[:,2])
         self.ymin =  np.min(self.morphology[:,3])
@@ -52,36 +50,43 @@ class sKCSDcell(object):
         self.zmin =  np.min(self.morphology[:,4])
         self.zmax = np.max(self.morphology[:,4])
         self.tolerance = tolerance
-        self.segments = {}
-        self.segment_counter = 0
+       
+
+    def add_loop(self, mp1, mp2):
         
-    def distribute_srcs_3D_morph(self):
+        self.add_segment(mp1,mp2)
+        xyz1 = self.morphology[mp1,2:5]
+        xyz2 = self.morphology[mp2,2:5]
+        self.loops.append([mp2,mp1])
+        self.max_dist += np.linalg.norm(xyz1-xyz2)
+            
+    def morphology_loop(self):
+        #loop over morphology
         self.loops = []
         for morph_pnt in range(1,self.morphology.shape[0]):
-            
             if self.morphology[morph_pnt-1,0]==self.morphology[morph_pnt,6]:
-                self.distribute_src_cylinder(morph_pnt, morph_pnt-1)
+                self.add_loop(morph_pnt, morph_pnt-1)
             elif self.morphology[morph_pnt,6] in self.branching:
-                #go back up
                 last_branch = int(self.morphology[morph_pnt,6])-1
                 last_point = morph_pnt - 1
                 while True:
                     parent = int(self.morphology[last_point,6]) - 1
-                    self.distribute_src_cylinder(parent, last_point)
+                    self.add_loop(parent, last_point)
                     if parent == last_branch:
                         break
                     last_point = parent
-                self.distribute_src_cylinder(morph_pnt,int(self.morphology[morph_pnt,6])-1)
-
+                    
+                self.add_loop(morph_pnt,int(self.morphology[morph_pnt,6])-1)
+                
         last_point = morph_pnt
-        
         while True:
             parent = int(self.morphology[last_point,6]) - 1
-            self.distribute_src_cylinder(parent, last_point)
+            self.add_loop(parent, last_point)
             if int(self.morphology[parent,6]) == -1:
                 break
             last_point = parent
 
+        #find estimation points
         self.loops = np.array(self.loops)
         self.est_pos = np.zeros((len(self.loops)+1,1))
         self.est_xyz = np.zeros((len(self.loops)+1,3))
@@ -92,8 +97,14 @@ class sKCSDcell(object):
                 length += (self.morphology[loop[1]][j]-self.morphology[loop[0]][j])**2
             self.est_pos[i+1] = self.est_pos[i] + length**0.5
             self.est_xyz[i+1,:] = self.morphology[loop[1],2:5]
-        self.loop_pos = self.loop_pos.reshape(-1,1)
-        self.max_dist = self.est_pos.max()
+            
+        #self.max_dist = self.est_pos.max()#add test
+        
+        return self.max_dist
+        
+    def distribute_srcs_3D_morph(self):
+        for i,x in enumerate(self.source_pos):
+            self.source_xyz[i] = self.get_xyz(x)
         return self.est_pos
 
     def add_segment(self, mp1, mp2):
@@ -105,28 +116,6 @@ class sKCSDcell(object):
             self.segments[key2] = self.segment_counter
             self.segment_counter += 1
             
-    def distribute_src_cylinder(self,mp1, mp2):
-
-        self.add_segment(mp1,mp2)
-        xyz1 = self.morphology[mp1,2:5]
-        xyz2 = self.morphology[mp2,2:5]
-        self.loops.append([mp2,mp1])
-        self.max_dist += np.linalg.norm(xyz1-xyz2)
-        in_range = [idx for idx in range(self.src_distributed,self.n_src) 
-                    if self.loop_pos[idx]<=self.max_dist or np.isclose(self.loop_pos[idx],self.max_dist)]
-        
-        self.src_distributed += len(in_range)
- 
-        if len(in_range)>0:
-            for src_idx in in_range:
-                self.source_xyz[src_idx,:] = xyz1-(xyz2-xyz1)*(self.loop_pos[src_idx] - self.max_dist)/(self.max_dist - self.min_dist)
-                self.loop_xyz[src_idx+self.morph_points_dist,:] =  xyz1-(xyz2-xyz1)*(self.loop_pos[src_idx]  -self.max_dist)/(self.max_dist - self.min_dist)
-        self.min_dist = self.max_dist
-        #Add morphology point to the loop
-        
-        self.loop_xyz[self.morph_points_dist+self.src_distributed] = self.morphology[mp1,2:5]
-        self.morph_points_dist +=1
-
     def get_xyz(self, x):
         return interpolate.interp1d(self.est_pos[:,0],self.est_xyz, kind='linear',axis=0)(x)
     
@@ -273,10 +262,10 @@ class sKCSDcell(object):
         ys = []
         x0,y0 = 0,0
 
-        for p in range(self.loop_xyz.shape[0]):
-            x = (np.abs(xgrid-self.loop_xyz[p,0])).argmin()
-            y = (np.abs(ygrid-self.loop_xyz[p,1])).argmin()
-            z = (np.abs(zgrid-self.loop_xyz[p,2])).argmin()
+        for p in range(self.source_xyz.shape[0]):
+            x = (np.abs(xgrid-self.source_xyz[p,0])).argmin()
+            y = (np.abs(ygrid-self.source_xyz[p,1])).argmin()
+            z = (np.abs(zgrid-self.source_xyz[p,2])).argmin()
             if axis == 0:
                 xi, yi = y,z
             elif axis == 1:
