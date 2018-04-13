@@ -31,16 +31,13 @@ class sKCSDcell(object):
         self.ele_pos = ele_pos
         self.n_src = n_src
         self.max_dist = 0 #counter
-        self.morph_points_dist = 0 #counter
         self.segments = {}
         self.segment_counter = 0
         rep = Counter(self.morphology[:,6])
         self.branching = [int(key) for key in rep.keys() if rep[key]>1]
-
-        total_dist = self.morphology_loop()
-
+        self.morphology_loop()
         self.source_pos = np.zeros((n_src,1))
-        self.source_pos[:,0] = np.linspace(0, total_dist, n_src) #positions of sources on the morphology (1D), necessary for source division
+        self.source_pos[:,0] = np.linspace(0, self.max_dist, n_src) #positions of sources on the morphology (1D), necessary for source division
         self.source_xyz = np.zeros(shape=(n_src,3))
      
         self.xmin =  np.min(self.morphology[:,2])
@@ -50,7 +47,6 @@ class sKCSDcell(object):
         self.zmin =  np.min(self.morphology[:,4])
         self.zmax = np.max(self.morphology[:,4])
         self.tolerance = tolerance
-       
 
     def add_loop(self, mp1, mp2):
         
@@ -97,11 +93,7 @@ class sKCSDcell(object):
                 length += (self.morphology[loop[1]][j]-self.morphology[loop[0]][j])**2
             self.est_pos[i+1] = self.est_pos[i] + length**0.5
             self.est_xyz[i+1,:] = self.morphology[loop[1],2:5]
-            
-        #self.max_dist = self.est_pos.max()#add test
-        
-        return self.max_dist
-        
+         
     def distribute_srcs_3D_morph(self):
         for i,x in enumerate(self.source_pos):
             self.source_xyz[i] = self.get_xyz(x)
