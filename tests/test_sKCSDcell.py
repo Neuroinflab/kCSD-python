@@ -87,7 +87,15 @@ class testsKCDcell(unittest.TestCase):
   def test_calculate_total_distance(self):
     #self.max_dist = self.est_pos.max()#add test
     self.assertTrue(np.isclose(self.cell_small.max_dist,2*505.97840005636186e-6))
-    
+  def test_calculate_total_distance_max_dist_small(self):
+    #self.max_dist = self.est_pos.max()#add test
+    self.assertTrue(np.isclose(self.cell_small.max_dist,self.cell_small.calculate_total_distance()))
+
+  def test_calculate_total_distance_max_dist(self):
+    #self.max_dist = self.est_pos.max()#add test
+    self.assertTrue(np.isclose(self.cell.max_dist,self.cell.calculate_total_distance()))
+
+                    
   def test_max_est_pos_total_distance_small(self):
     #self.max_dist = self.est_pos.max()#add test
     self.assertTrue(np.isclose(self.cell_small.max_dist,self.cell_small.est_pos.max()))
