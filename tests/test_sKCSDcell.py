@@ -19,6 +19,10 @@ from corelib import utility_functions as utils
 from corelib.loadData import Data
 from corelib.sKCSDcell import sKCSDcell
 
+
+def in_between(a,b):
+  return a+(b-a)/2
+
 class testsKCDcell(unittest.TestCase):
   
   @classmethod
@@ -93,19 +97,44 @@ class testsKCDcell(unittest.TestCase):
     
     self.assertTrue(np.isclose(self.cell_small.calculate_total_distance(),2*505.97840005636186e-6))
 
-  def test_get_xyz_x(self):
-    x,y,z = self.cell_small.get_xyz(15e-6)
-    self.assertTrue(x == 0)
+  def test_get_xyz_x_small(self):
+    a =  in_between(self.cell_small.est_pos[1,0],self.cell_small.est_pos[2,0])
+    b =  in_between(self.cell_small.est_xyz[1,0],self.cell_small.est_xyz[2,0])
+   
+    x,y,z = self.cell_small.get_xyz(a)
+    self.assertTrue(x == b)
 
-  def test_get_xyz_y(self):
-    x,y,z = self.cell_small.get_xyz(15e-6)
-    self.assertTrue(y == 0)
+  def test_get_xyz_y_small(self):
+    a =  in_between(self.cell_small.est_pos[1,0],self.cell_small.est_pos[2,0])
+    b =  in_between(self.cell_small.est_xyz[1,1],self.cell_small.est_xyz[2,1])
+    x,y,z = self.cell_small.get_xyz(a)
+    self.assertTrue(y == b)
 
-  def test_get_xyz_z(self):
-    a =  9.85499990e-06 + (1.97099998e-05 - 9.85499990e-06)/2
-    b = -1.09375002e-05 + (-1.08250028e-06 - (-1.09375002e-05))/2
+  def test_get_xyz_z_small(self):
+    a =  in_between(self.cell_small.est_pos[1,0],self.cell_small.est_pos[2,0])
+    b =  in_between(self.cell_small.est_xyz[1,2],self.cell_small.est_xyz[2,2])
     x,y,z = self.cell_small.get_xyz(a)
     self.assertTrue(np.isclose(z,b))
+
+  def test_get_xyz_x(self):
+    a =  in_between(self.cell.est_pos[1,0],self.cell.est_pos[2,0])
+    b =  in_between(self.cell.est_xyz[1,0],self.cell.est_xyz[2,0])
+   
+    x,y,z = self.cell.get_xyz(a)
+    self.assertTrue(np.isclose(x,b))
+
+  def test_get_xyz_y(self):
+    a =  in_between(self.cell.est_pos[1,0],self.cell.est_pos[2,0])
+    b =  in_between(self.cell.est_xyz[1,1],self.cell.est_xyz[2,1])
+    x,y,z = self.cell.get_xyz(a)
+    self.assertTrue(np.isclose(y,b))
+
+  def test_get_xyz_z(self):
+    a =  in_between(self.cell.est_pos[1,0],self.cell.est_pos[2,0])
+    b =  in_between(self.cell.est_xyz[1,2],self.cell.est_xyz[2,2])
+    x,y,z = self.cell.get_xyz(a)
+    self.assertTrue(np.isclose(z,b))
+  
     
   def test_segments_small(self):
     self.assertTrue(self.cell_small.segment_counter == len(self.cell_small.morphology)-1)
