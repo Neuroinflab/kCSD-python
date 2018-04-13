@@ -142,6 +142,9 @@ class testsKCDcell(unittest.TestCase):
   def test_segments(self):  
     self.assertTrue(self.cell.segment_counter == len(self.cell.morphology)-1)
 
+  def test_distance_between_sources(self):
+    print(self.cell_small.est_pos[1:,0]-self.cell_small.est_pos[:-1,0])
+    print(sum(self.cell_small.est_pos[1:,0]-self.cell_small.est_pos[:-1,0]))
     
 if __name__ == '__main__':
   unittest.main()
