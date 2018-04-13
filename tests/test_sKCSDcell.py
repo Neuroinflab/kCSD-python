@@ -42,16 +42,7 @@ class testsKCDcell(unittest.TestCase):
     data.morphology[:,2:6] = data.morphology[:,2:6]/sc
     cls.cell_small = sKCSDcell(data.morphology,data.ele_pos/sc,10)
     cls.cell_small.distribute_srcs_3D_morph()
-  # Test if morphology loop is done correctly
-  # def test_all_sources_distributed(self):
-    
-  #   self.assertEqual(self.cell.src_distributed,self.cell.n_src)
-    
-  # def test_all_sources_distributed_few_sources(self):
-  #   self.cell2 = sKCSDcell(self.data.morphology,self.data.ele_pos,10)
-  #   self.cell2.distribute_srcs_3D_morph()
-  #   self.assertEqual(self.cell2.src_distributed,self.cell2.n_src)
-    
+  
   def test_if_lost_branch(self):
     segments = self.cell.morphology[1:,:].shape[0]
     self.assertTrue(segments,np.unique(self.cell.loops[:,0]).shape[0])
@@ -94,8 +85,16 @@ class testsKCDcell(unittest.TestCase):
     self.assertTrue(branch_count==0)
             
   def test_calculate_total_distance(self):
+    #self.max_dist = self.est_pos.max()#add test
+    self.assertTrue(np.isclose(self.cell_small.max_dist,2*505.97840005636186e-6))
     
-    self.assertTrue(np.isclose(self.cell_small.calculate_total_distance(),2*505.97840005636186e-6))
+  def test_max_est_pos_total_distance_small(self):
+    #self.max_dist = self.est_pos.max()#add test
+    self.assertTrue(np.isclose(self.cell_small.max_dist,self.cell_small.est_pos.max()))
+
+  def test_max_est_pos_total_distance(self):
+    #self.max_dist = self.est_pos.max()#add test
+    self.assertTrue(np.isclose(self.cell.max_dist,self.cell.est_pos.max()))
 
   def test_get_xyz_x_small(self):
     a =  in_between(self.cell_small.est_pos[1,0],self.cell_small.est_pos[2,0])
@@ -160,7 +159,6 @@ class testsKCDcell(unittest.TestCase):
     b =  in_between(self.cell_small.source_xyz[1,2],self.cell_small.source_xyz[2,2])
     x,y,z = self.cell_small.get_xyz(a)
     self.assertTrue(np.isclose(z,b))
-
     
 if __name__ == '__main__':
   unittest.main()
