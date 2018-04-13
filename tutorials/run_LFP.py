@@ -150,39 +150,45 @@ class CellModel():
         segments = self.cell.get_idx()
         nseg = len(segments)
 
-        self.morphology = np.zeros((nseg,7))
+        self.morphology = np.zeros((nseg+1,7))
         
         coords = np.array((self.cell.xstart, self.cell.ystart, self.cell.zstart)).T
         ends =  np.array((self.cell.xend, self.cell.yend, self.cell.zend)).T
+        
+        
         segdiam = self.cell.diam
         parents = {}
-
+        self.morphology[0,0] = 1
+        self.morphology[0,1] = 1
+        self.morphology[0,2:5] = coords[0]
+        self.morphology[0,5] = segdiam[0]
+        self.morphology[0,6] = -1
         for section in self.cell.allseclist:
             parents[section.name()] = section.parentseg()
         
         for secn in self.cell.allsecnames:
             idxs = self.cell.get_idx(secn)
             for i,idx in enumerate(idxs):
-                self.morphology[idx,0] = idx+1
-                self.morphology[idx,2:5] = ends[idx]
-                self.morphology[idx,5] = segdiam[idx]
+                self.morphology[idx+1,0] = idx+2
+                self.morphology[idx+1,2:5] = ends[idx]
+                self.morphology[idx+1,5] = segdiam[idx]
 
                 if 'soma' in secn:
-                    self.morphology[idx,1] = 1
+                    self.morphology[idx+1,1] = 1
                 elif 'dend' in secn:
-                    self.morphology[idx,1] = 3
+                    self.morphology[idx+1,1] = 3
                 elif 'apic' in secn:
-                    self.morphology[idx,1] = 3
+                    self.morphology[idx+1,1] = 3
                 elif 'axon' in secn:
-                    self.morphology[idx,1] = 2
+                    self.morphology[idx+1,1] = 2
                 elif 'basal' in secn:
-                    self.morphology[idx,1] = 4
+                    self.morphology[idx+1,1] = 4
                 else:
-                    self.morphology[idx,1] = 5
+                    self.morphology[idx+1,1] = 5
             
                 if i == 0:
                     if not parents[secn]:
-                        self.morphology[idx,6] = -1
+                        self.morphology[idx+1,6] = 1
                     else:
                     #     cex,cey,cez = ends[idx]
                     #     csx,csy,csz = coords[idx]
@@ -196,9 +202,9 @@ class CellModel():
                     #     else:
                     #         self.morphology[idx,6] = self.find_parent(idx,coords,ends) + 1
                        
-                        self.morphology[idx,6] = self.cell.get_idx(parents[secn].sec.name())[-1]+1
+                        self.morphology[idx+1,6] = self.cell.get_idx(parents[secn].sec.name())[-1]+2
                 else:
-                    self.morphology[idx,6] = idx
+                    self.morphology[idx+1,6] = idx+1
                                        
         morph_path = os.path.join(self.new_path,'morphology')
         if not os.path.exists(morph_path):
