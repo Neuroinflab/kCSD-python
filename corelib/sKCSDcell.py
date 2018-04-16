@@ -16,20 +16,19 @@ from  corelib.bresenhamline import bresenhamline
 
 class sKCSDcell(object):
     """
-    KCSD3D - The 3D variant for the Kernel Current Source Density method.
+    sKCSDcell -- construction of the morphology loop for sKCSD method (Cserpan et al., 2017).
 
-    This estimates the Current Source Density, for a given configuration of 
-    electrod positions and recorded potentials, in the case of 2D recording
-    electrodes. The method implented here is based on the original paper
-    by Jan Potworowski et.al. 2012.
+    This calculates the morphology loop and helps transform CSDestimates/potential 
+    estimates from loop/segment space to 3D. The method implented here is based 
+    on the original paper by Dorottya Cserpan et al., 2017.
     """
     def __init__(self, morphology, ele_pos, n_src,tolerance=2e-6):
         """
         Parameters
         ----------
-        morphology : numpy array
+        morphology : np.array
             morphology array (swc format)
-        ele_pos : numpy array
+        ele_pos : np.array
             electrode positions
         n_src : int
             number of sources
