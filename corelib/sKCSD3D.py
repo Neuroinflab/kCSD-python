@@ -1,12 +1,12 @@
 """
 This script is used to generate Current Source Density Estimates, 
-using the kCSD method Jan et.al (2012) for 3D case.
+using the sKCSD method Cserpan et.al (2017).
 
 These scripts are based on Grzegorz Parka's, 
 Google Summer of Code 2014, INFC/pykCSD  
 
 This was written by :
-Jan Maka, Chaitanya Chintaluri
+Joanna Jedrzejewska-Szmek, Jan Maka, Chaitanya Chintaluri
 Laboratory of Neuroinformatics,
 Nencki Institute of Experimental Biology, Warsaw.
 """
