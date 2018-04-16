@@ -25,31 +25,71 @@ class sKCSDcell(object):
     """
     def __init__(self, morphology, ele_pos, n_src,tolerance=2e-6):
         """
-        
+        Parameters
+        ----------
+        morphology : numpy array
+            morphology array (swc format)
+        ele_pos : numpy array
+            electrode positions
+        n_src : int
+            number of sources
+        tolerance : float
+            minimum size of dendrite used to calculate 3 D grid parameters
         """
-        self.morphology = morphology
-        self.ele_pos = ele_pos
-        self.n_src = n_src
-        self.max_dist = 0 #counter
-        self.segments = {}
-        self.segment_counter = 0
+        self.morphology = morphology #morphology file
+        self.ele_pos = ele_pos #electrode_positions
+        self.n_src = n_src #number of sources
+        self.max_dist = 0 #maximum distance
+        self.segments = {} #segment dictionary -- keys are loops (eg '2_3' -- segment 2
+        self.segment_counter = 0 #which segment we're on
         rep = Counter(self.morphology[:,6])
-        self.branching = [int(key) for key in rep.keys() if rep[key]>1]
-        self.morphology_loop()
+        self.branching = [int(key) for key in rep.keys() if rep[key]>1] #branchpoints
+        self.morphology_loop() #make the morphology loop
         self.source_pos = np.zeros((n_src,1))
         self.source_pos[:,0] = np.linspace(0, self.max_dist, n_src) #positions of sources on the morphology (1D), necessary for source division
-        self.source_xyz = np.zeros(shape=(n_src,3))
-     
+        self.source_xyz = np.zeros(shape=(n_src,3))#Cartesian coordinates of the sources
+
+        #max and min points of the neuron's morphology
         self.xmin =  np.min(self.morphology[:,2])
         self.xmax = np.max(self.morphology[:,2])
         self.ymin =  np.min(self.morphology[:,3])
         self.ymax = np.max(self.morphology[:,3])
         self.zmin =  np.min(self.morphology[:,4])
         self.zmax = np.max(self.morphology[:,4])
-        self.tolerance = tolerance
+        self.tolerance = tolerance #smallest dendrite used in visualisation
+
+    
+    def add_segment(self, mp1, mp2):
+        """Add indices (mp1, mp2) of morphology points defining a segment
+        to a dictionary of segments. 
+        This dictionary is used for CSD/potential trasformation from
+        loops to segments.
+
+        Parameters
+        ----------
+        mp1: int
+        mp2: int
+
+        """
+        
+        key1 = "%d_%d"%(mp1, mp2)
+        key2 = "%d_%d"%(mp2, mp1)
+        
+        if key1 not in  self.segments:
+            self.segments[key1] = self.segment_counter
+            self.segments[key2] = self.segment_counter
+            self.segment_counter += 1
 
     def add_loop(self, mp1, mp2):
-        
+        """Add indices of morphology points defining a loop to list of loops.
+        Increase maximum distance counter.
+
+        Parameters
+        ----------
+        mp1: int
+        mp2: int
+
+        """
         self.add_segment(mp1,mp2)
         xyz1 = self.morphology[mp1,2:5]
         xyz2 = self.morphology[mp2,2:5]
@@ -57,6 +97,12 @@ class sKCSDcell(object):
         self.max_dist += np.linalg.norm(xyz1-xyz2)
             
     def morphology_loop(self):
+        """Cover the morphology of the cell with loops.
+
+        Parameters
+        ----------
+        None
+        """
         #loop over morphology
         self.loops = []
         for morph_pnt in range(1,self.morphology.shape[0]):
@@ -95,23 +141,41 @@ class sKCSDcell(object):
             self.est_xyz[i+1,:] = self.morphology[loop[1],2:5]
          
     def distribute_srcs_3D_morph(self):
+        """
+        Calculate 3D coordinates of sources placed on the morphology loop.
+
+        Parameters
+        ----------
+        None
+        """
         for i,x in enumerate(self.source_pos):
             self.source_xyz[i] = self.get_xyz(x)
         return self.est_pos
-
-    def add_segment(self, mp1, mp2):
-        key1 = "%d_%d"%(mp1, mp2)
-        key2 = "%d_%d"%(mp2, mp1)
-        
-        if key1 not in  self.segments:
-            self.segments[key1] = self.segment_counter
-            self.segments[key2] = self.segment_counter
-            self.segment_counter += 1
             
     def get_xyz(self, x):
+        """Find cartesian coordinates of a point (x) on the morphology loop. Use
+        morphology point cartesian coordinates (from the morphology file, 
+        self.est_xyz) for interpolation.
+
+        Parameters
+        ----------
+        x : float
+
+        Returns
+        -------
+        tuple of length 3
+        """
         return interpolate.interp1d(self.est_pos[:,0],self.est_xyz, kind='linear',axis=0)(x)
     
     def calculate_total_distance(self):
+        """
+        Calculates doubled total legth of the cell.
+
+        Parameteres
+        -----------
+        None
+        """
+        
         total_dist = 0
         for i in range(1,self.morphology.shape[0]):
             xyz1 = self.morphology[i,2:5]
@@ -121,7 +185,19 @@ class sKCSDcell(object):
         return total_dist
       
     def points_in_between(self,p1,p0,last):
-    
+        """Wrapper for the Bresenheim algorythm, which accepts only 2D vector
+        coordinates. last -- is p1 included in output
+
+        Parameters
+        ----------
+        p1, p0: sequence of length 3
+        last : int
+
+        Return
+        -----
+        np.array 
+        points between p0 and p1 including (last=True) or not including p1
+        """
         new_p1 = np.ndarray((1,3),dtype=np.int) #bresenhamline only works with 2D vectors with coordinates
         new_p0 = np.ndarray((1,3),dtype=np.int)
         for i in range(3):
@@ -131,11 +207,26 @@ class sKCSDcell(object):
         intermediate_points = bresenhamline(new_p0,new_p1,-1)
         if last:
             return np.concatenate((new_p0,intermediate_points))
-
         else:
             return intermediate_points        
    
     def get_grid(self):
+        """Calculate parameters of the 3D grid used to transform CSD 
+        (or potential) according to eq. (22). self.tolerance is used 
+        to specify smalles possible size of neurite.
+        
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+
+        dims: np.array of 3 ints
+        CSD/potential array 3D coordinates
+        dxs: np.array of 3 floats
+        space grain of the 3D CSD/potential
+        """
         vals = [[self.xmin,self.xmax],[self.ymin,self.ymax],[self.zmin, self.zmax]]
         dx = np.zeros((self.est_xyz.shape[0]-1,self.est_xyz.shape[1]))
         dims = np.ones((3,),dtype=np.int)
@@ -153,7 +244,21 @@ class sKCSDcell(object):
         return dims, dxs
                 
     def point_coordinates(self,morpho):
-        
+        """
+        Calculate indices of points in morpho in the 3D grid calculated
+        using self.get_grid()
+
+        Parameters
+        ----------
+        morpho : np.array
+           array with a morphology (either segements or morphology loop)
+
+        Returns
+        -------
+        coor_3D : np.array
+        zero_coords : np.array
+           indices of morpho's initial point
+        """
         minis =  np.array([self.xmin,self.ymin,self.zmin])
         dims, dxs = self.get_grid()
         zero_coords = np.zeros((3,),dtype=int)
@@ -165,7 +270,20 @@ class sKCSDcell(object):
         return coor_3D, zero_coords
          
     def coordinates_3D_loops(self):
+        """
+        Find points of each loop in 3D grid 
+        (for CSD/potential calculation in 3D).
         
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        segment_coordinates : np.array
+           Indices of points of 3D grid for each loop
+        
+        """
         coor_3D, p0 = self.point_coordinates(self.est_xyz)
         segment_coordinates = {}
         
@@ -176,6 +294,20 @@ class sKCSDcell(object):
         return segment_coordinates
 
     def coordinates_3D_segments(self):
+        """
+        Find points of each segment in 3D grid 
+        (for CSD/potential calculation in 3D).
+        
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        segment_coordinates : np.array
+           Indices of points of 3D grid for each segment
+        
+        """
 
         coor_3D, p0 = self.point_coordinates(self.morphology[:,2:5])
         segment_coordinates = {}
@@ -200,6 +332,21 @@ class sKCSDcell(object):
         return segment_coordinates
                 
     def transform_to_3D(self, estimated, what="loop"):
+        """ 
+        Transform potential/csd/ground truth values in segment or loop space 
+        to 3D.
+
+        Parameters
+        ----------
+        estimated : np.array
+        what : string
+           "loop" -- estimated is in loop space
+           "morpho" -- estimated in in segment space
+
+        Returns
+        -------
+        result : np.array
+        """
         dims, dxs = self.get_grid()
         if what == "loop":
             coor_3D = self.coordinates_3D_loops()
@@ -229,7 +376,14 @@ class sKCSDcell(object):
         return result
 
     def draw_cell2D(self,axis=2):
-        
+        """
+        Cell morphology in 3D grid in projection of axis.
+
+        Parameters
+        ----------
+        axis : int
+          0: x axis, 1: y axis, 2: z axis 
+        """
         resolution, dxs = self.get_grid()
         
         xgrid = np.linspace(self.xmin, self.xmax, resolution[0])
@@ -278,27 +432,7 @@ class sKCSDcell(object):
         
         return image,extent
     
-    def plot3Dloop(self):
-        from mpl_toolkits.mplot3d import Axes3D
-        import matplotlib.pyplot as plt
-        
-        X,Y,Z = self.source_xyz[:,0],self.source_xyz[:,1],self.source_xyz[:,2]
-        fig = plt.figure()
-        ax = fig.add_subplot(111, projection='3d')
-        ax.set_aspect('equal')
-        ax.plot(X,Y,Z)
-        X,Y,Z = self.ele_pos[:,0], self.ele_pos[:,1], self.ele_pos[:,2]
-        ax.scatter(X,Y,Z)
-        max_range = np.array([X.max()-X.min(), Y.max()-Y.min(), Z.max()-Z.min()]).max()
-        Xb = 0.5*max_range*np.mgrid[-1:2:2,-1:2:2,-1:2:2][0].flatten() + 0.5*(X.max()+X.min())
-        Yb = 0.5*max_range*np.mgrid[-1:2:2,-1:2:2,-1:2:2][1].flatten() + 0.5*(Y.max()+Y.min())
-        Zb = 0.5*max_range*np.mgrid[-1:2:2,-1:2:2,-1:2:2][2].flatten() + 0.5*(Z.max()+Z.min())
-        # Comment or uncomment following both lines to test the fake bounding box:
-        for xb, yb, zb in zip(Xb, Yb, Zb):
-           ax.plot([xb], [yb], [zb], 'w')
-        plt.grid()
-        plt.show()
-     
+   
 if __name__ == '__main__':
     path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
     
