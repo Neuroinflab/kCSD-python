@@ -24,7 +24,7 @@ def skCSD_reconstruction_plot(pots,est_csd,est_pot,cell_obj,t_min=0,electrode=5)
             Parameters
             ----------
             pots - potentials recorded with electrodes
-            est_csd - csd estimated with sKCSD3D class
+            est_csd - csd estimated with sKCSD class
             est_pot - potentials estimated with sKCSD class
             image - image of morphology constructed with sKCSDcell class
             t_min - starting time of the simulation

@@ -7,7 +7,7 @@ import os
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from corelib import sKCSD3D, KCSD
+from corelib import sKCSD, KCSD
 import corelib.utility_functions as utils
 import corelib.loadData as ld
 import functions as fun
@@ -65,7 +65,7 @@ if __name__ == '__main__':
                 morphology = data.morphology
                 morphology[:,2:6] = morphology[:,2:6]/scaling_factor
         
-                k = sKCSD3D.sKCSD3D(ele_pos,data.LFP,morphology, n_src_init=n_src, src_type='gauss',lambd=lambd,R_init=R,dist_table_density=n)
+                k = sKCSD.sKCSD(ele_pos,data.LFP,morphology, n_src_init=n_src, src_type='gauss',lambd=lambd,R_init=R,dist_table_density=n)
                 xmin = -200/scaling_factor
                 xmax = 200/scaling_factor
                 ymin = -100/scaling_factor

@@ -7,7 +7,7 @@ import os
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from corelib import sKCSD3D, KCSD
+from corelib import sKCSD, KCSD
 import corelib.utility_functions as utils
 import corelib.loadData as ld
 import functions as fun
@@ -46,7 +46,7 @@ if __name__ == '__main__':
         for j, l in enumerate(lambdas):
             for k, R in enumerate(R_inits):
                 lambd = l*2*(2*np.pi)**3*R**2*n_src
-                ker = sKCSD3D.sKCSD3D(ele_pos,data.LFP,morphology, n_src_init=n_src, src_type='gauss',lambd=lambd,R_init=R)
+                ker = sKCSD.sKCSD(ele_pos,data.LFP,morphology, n_src_init=n_src, src_type='gauss',lambd=lambd,R_init=R)
                 est_skcsd = ker.values(estimate='CSD',segments=True)
                 print(est_skcsd.max(),est_skcsd.min())
                 outs[i,j,k] = fun.L1_error(ground_truth, est_skcsd)

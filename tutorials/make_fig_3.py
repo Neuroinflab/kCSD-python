@@ -7,7 +7,7 @@ import os
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from corelib import sKCSD3D
+from corelib import sKCSD
 import corelib.utility_functions as utils
 import corelib.loadData as ld
 import functions as fun
@@ -43,7 +43,7 @@ if __name__ == '__main__':
             
             
             R = R_init/np.sqrt(2)/scaling_factor
-            lambd = l*2*(2*np.pi)**3*R**2*n_src
+            lambd = l#*2*(2*np.pi)**3*R**2*n_src
             print(R,lambd,l)
             data_paths = []
             fig = plt.figure()
@@ -63,7 +63,7 @@ if __name__ == '__main__':
                 pots = data.LFP/scaling_factor_LFP
                 morphology = data.morphology
                 morphology[:,2:6] = morphology[:,2:6]/scaling_factor
-                k = sKCSD3D.sKCSD3D(ele_pos,data.LFP,morphology, n_src_init=n_src, src_type='gauss',lambd=lambd,R_init=R)
+                k = sKCSD.sKCSD(ele_pos,data.LFP,morphology, n_src_init=n_src, src_type='gauss',lambd=lambd,R_init=R)
                 csd = k.values(segments=True)
                 
         

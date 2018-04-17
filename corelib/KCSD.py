@@ -153,7 +153,7 @@ class KCSD(CSD):
         Parameters
         ----------
         dist_table_density : int
-            number of distance values at which potentials are computed.
+            number of distance points at which potentials are computed.
             Default 100
         """
         xs = np.logspace(0., np.log10(self.dist_max+1.), self.dist_table_density)

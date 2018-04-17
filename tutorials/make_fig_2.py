@@ -10,7 +10,7 @@ import subprocess
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from corelib import sKCSD3D
+from corelib import sKCSD
 import corelib.utility_functions as utils
 import corelib.loadData as ld
 import functions as fun
@@ -53,10 +53,10 @@ if __name__ == '__main__':
     R_inits = [2**i for i in range(3,8)]
     lambdas = [10**(-i) for i in range(6)]
     for R_init in R_inits:
-        for l in lambdas:
+        for la in lambdas:
             R = R_init/np.sqrt(2)/scaling_factor
-            lambd = l*2*(2*np.pi)**3*R**2*n_src
-            fname = fname_base+'_R_%d_lambda_%f.png'%(R_init,l)
+            lambd = la*2*(2*np.pi)**3*R**2*n_src
+            fname = fname_base+'_R_%d_lambda_%f.png'%(R_init,la)
             fig_name = fun.make_fig_names(fname)
             data_paths = []
             fig, ax = plt.subplots(4,1)
@@ -70,7 +70,7 @@ if __name__ == '__main__':
                 pots = data.LFP/scaling_factor_LFP
                 morphology = data.morphology
                 morphology[:,2:6] = morphology[:,2:6]/scaling_factor
-                k = sKCSD3D.sKCSD3D(ele_pos,data.LFP,morphology, n_src_init=n_src, src_type='gauss',lambd=lambd,R_init=R)
+                k = sKCSD.sKCSD(ele_pos,data.LFP,morphology, n_src_init=n_src, src_type='gauss',lambd=lambd,R_init=R)
                 est_csd = k.values(segments=True)/seglen[:,None]
                 if i == 2:
                     fun.plot(ax[i+1],est_csd,xticklabels=xticklabels,yticklabels=yticklabels)

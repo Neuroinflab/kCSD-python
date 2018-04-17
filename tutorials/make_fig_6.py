@@ -7,7 +7,7 @@ import os
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from corelib import sKCSD3D, KCSD
+from corelib import sKCSD, KCSD
 import corelib.utility_functions as utils
 import corelib.loadData as ld
 import functions as fun
@@ -31,7 +31,7 @@ if __name__ == '__main__':
     for i, rownb in enumerate(rows):
         for orientation in [1,2]:
             fname = "Figure_6_"+sim_type[str(orientation)]
-            c = fun.simulate(fname,morphology=2,simulate_what="symmetric",colnb=colnb,rownb=rownb,xmin=xmin,xmax=xmax,ymin=ymin,ymax=ymax,tstop=tstop,seed=1988,weight=0.04,n_syn=100,electrode_distribution=orientation,dt=.5)
+            c = fun.simulate(fname,morphology=2,simulate_what="symmetric",colnb=colnb,rownb=rownb,xmin=xmin,xmax=xmax,ymin=ymin,ymax=ymax,tstop=tstop,seed=1988,weight=0.04,n_syn=100,electrode_distribution=orientation,dt=2**(-2))
             data_dir.append(c.return_paths_skCSD_python())
             
     seglen = np.loadtxt(os.path.join(data_dir[0],'seglength'))
@@ -40,12 +40,12 @@ if __name__ == '__main__':
     dt = c.cell_parameters['dt']
     
     t1 = int(42/dt)
-    t2 = int(5.5/dt)
-    atstart = t1
-    atstop = int(60/dt)
+    t2 = int(5/dt)
+    atstart = t2
+    atstop = int(15/dt)
 
     R_inits = [2**i for i in range(3,9)]
-    lambdas = [10**(-i) for i in range(4)]
+    lambdas = [10**(-i) for i in range(6,0,-1)]
     for R_init in R_inits:
         for la in lambdas:
             simulation_paths = []
@@ -55,7 +55,7 @@ if __name__ == '__main__':
             skcsd_random = []
 
             R = R_init/np.sqrt(2)/scaling_factor
-            lambd = la*2*(2*np.pi)**3*R**2*n_src
+            lambd = la#*2*(2*np.pi)**3*R**2*n_src
             fig = plt.figure()
             fig, ax = plt.subplots(1,3)
             fname = fname_base+'_R_%d_lambda_%f.png'%(R_init,la)
@@ -69,7 +69,7 @@ if __name__ == '__main__':
                 pots = data.LFP/scaling_factor_LFP
                 morphology = data.morphology
                 morphology[:,2:6] = morphology[:,2:6]/scaling_factor
-                k = sKCSD3D.sKCSD3D(ele_pos,data.LFP,morphology, n_src_init=n_src, src_type='gauss',lambd=lambd,R_init=R,dist_table_density=500)
+                k = sKCSD.sKCSD(ele_pos,data.LFP,morphology, n_src_init=n_src, src_type='gauss',lambd=lambd,R_init=R,dist_table_density=100)
         
                 est_skcsd = k.values(estimate='CSD',segments=True)
                 

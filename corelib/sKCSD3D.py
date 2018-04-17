@@ -1,6 +1,6 @@
 """
 This script is used to generate Current Source Density Estimates, 
-using the sKCSD method Cserpan et.al (2017).
+using the skCSD method Cserpan et.al (2017).
 
 These scripts are based on Grzegorz Parka's, 
 Google Summer of Code 2014, INFC/pykCSD  
@@ -33,7 +33,7 @@ import corelib.basis_functions as basis
 #testing
 
     
-class sKCSD3D(KCSD1D):
+class sKCSD(KCSD1D):
     """KCSD3D - The 3D variant for the Kernel Current Source Density method.
 
     This estimates the Current Source Density, for a given configuration of 
@@ -227,7 +227,7 @@ class sKCSD3D(KCSD1D):
         '''
         #estimate self.n_src_init x self.n_time
 
-        estimated = super(sKCSD3D,self).values(estimate=estimate)
+        estimated = super(sKCSD,self).values(estimate=estimate)
         if no_transformation:
             return estimated
         if segments:
@@ -300,7 +300,7 @@ if __name__ == '__main__':
     morphology[:,2:6] = morphology[:,2:6]/scaling_factor
     R_init = 32/scaling_factor
    
-    k = sKCSD3D(ele_pos, pots,morphology,n_src_init=1000, src_type='gauss_lim', R_init=R_init)
+    k = sKCSD(ele_pos, pots,morphology,n_src_init=1000, src_type='gauss_lim', R_init=R_init)
     #k.cross_validate()
     
     if sys.version_info >= (3, 0):

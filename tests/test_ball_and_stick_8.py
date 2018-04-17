@@ -3,7 +3,7 @@ import numpy as np
 import os
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from corelib import sKCSD3D
+from corelib import sKCSD
 from corelib import loadData as ld
 from corelib import utility_functions as utils
 try:
@@ -24,7 +24,7 @@ morphology[:,2:6] = morphology[:,2:6].copy()/scaling_factor
 
 
 
-k = sKCSD3D.sKCSD3D(ele_pos, pots,morphology, n_src_init=1000, src_type='gauss_lim')
+k = sKCSD.sKCSD(ele_pos, pots,morphology, n_src_init=1000, src_type='gauss_lim')
 k.cross_validate()
 
 if sys.version_info >= (3, 0):
