@@ -1,6 +1,6 @@
 from kcsd import csd_profile as csd
 from kcsd import MoIKCSD
-from kcsd import ValidateKCSD1D, ValidateKCSD2D, ValidateKCSD3D, SpectralStructure
+from kcsd import ValidateKCSD, ValidateKCSD1D, ValidateKCSD2D, ValidateKCSD3D, SpectralStructure
 from kcsd import ErrorMap1D, ErrorMap2D, ErrorMap3D
 
 
