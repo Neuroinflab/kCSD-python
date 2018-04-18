@@ -182,9 +182,44 @@ class testsKCDcell(unittest.TestCase):
     out = self.cell.points_in_between(point0,point1,last)
     self.assertTrue(np.array_equal(out,np.array(expected)))
     
+  def test_get_grid_small_z(self):
+    self.assertTrue(self.cell_small.dims[2] == len(self.cell_small.morphology))
+
+  def test_get_grid_small_y(self):
+    self.assertTrue(self.cell_small.dims[1] == 1)
+    
+  def test_get_grid_small_x(self):
+    self.assertTrue(self.cell_small.dims[0] == 1)
+
   def test_get_grid(self):
-    dims, dxs = self.cell_small.get_grid()
-    print(dims,dxs,len(self.cell_small.morphology)-1)
-    self.assertTrue(dims[-1] == len(self.cell_small.morphology)-1)
+    self.assertFalse(self.cell.dims[-1] == len(self.cell.morphology))
+
+  def test_get_grid_large_z(self):
+    if self.cell.dxs[2]:
+      self.assertTrue(self.cell.dims[2] == 1 + np.floor((self.cell.zmax-self.cell.zmin)/self.cell.dxs[2]))
+    else:
+      self.assertTrue(self.cell.dims[2] == 1)
+
+  def test_get_grid_large_y(self):
+    if self.cell.dxs[1]:
+      self.assertTrue(self.cell.dims[1] == 1 + np.floor((self.cell.ymax-self.cell.ymin)/self.cell.dxs[1]))
+    else:
+      self.assertTrue(self.cell.dims[1] == 1)
+    
+  def test_get_grid_large_x(self):
+    if self.cell.dxs[2]:
+      self.assertTrue(self.cell.dims[0] == 1 + np.floor((self.cell.xmax-self.cell.xmin)/self.cell.dxs[0]))
+    else:
+      self.assertTrue(self.cell.dims[0] == 1)
+    
+  def test_dxs_small_x(self):
+    self.assertTrue(self.cell_small.dxs[0]>self.cell_small.tolerance or self.cell_small.dxs[0] == 0)
+    
+  def test_dxs_small_y(self):
+    self.assertTrue(self.cell_small.dxs[1]>self.cell_small.tolerance or self.cell_small.dxs[1] == 0)
+
+  def test_dxs_small_z(self):
+    self.assertTrue(self.cell_small.dxs[2]>self.cell_small.tolerance or self.cell_small.dxs[2] == 0)
+
 if __name__ == '__main__':
   unittest.main()

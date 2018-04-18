@@ -47,7 +47,7 @@ class sKCSDcell(object):
         self.source_pos = np.zeros((n_src,1))
         self.source_pos[:,0] = np.linspace(0, self.max_dist, n_src) #positions of sources on the morphology (1D), necessary for source division
         self.source_xyz = np.zeros(shape=(n_src,3))#Cartesian coordinates of the sources
-
+        self.tolerance = tolerance #smallest dendrite used for visualisation
         #max and min points of the neuron's morphology
         self.xmin =  np.min(self.morphology[:,2])
         self.xmax = np.max(self.morphology[:,2])
@@ -55,8 +55,8 @@ class sKCSDcell(object):
         self.ymax = np.max(self.morphology[:,3])
         self.zmin =  np.min(self.morphology[:,4])
         self.zmax = np.max(self.morphology[:,4])
-        self.tolerance = tolerance #smallest dendrite used in visualisation
-
+        self.dxs = self.get_dxs()
+        self.dims = self.get_grid()
     
     def add_segment(self, mp1, mp2):
         """Add indices (mp1, mp2) of morphology points defining a segment
@@ -208,9 +208,33 @@ class sKCSDcell(object):
             return np.concatenate((new_p0,intermediate_points))
         else:
             return intermediate_points        
-   
-    def get_grid(self):
+
+    def get_dxs(self):
         """Calculate parameters of the 3D grid used to transform CSD 
+        (or potential) according to eq. (22). self.tolerance is used 
+        to specify smalles possible size of neurite.
+        
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        dxs: np.array of 3 floats
+
+        """
+        dxs = np.zeros((3,))
+        
+        for i in range(self.est_xyz.shape[1]):
+            dx = abs(self.est_xyz[1:,i]-self.est_xyz[:-1,i])
+            try:
+                dxs[i] = min(dx[dx > self.tolerance])
+            except ValueError:
+                pass
+        return dxs
+    
+    def get_grid(self):
+        """Calculate size of the 3D grid used to transform CSD 
         (or potential) according to eq. (22). self.tolerance is used 
         to specify smalles possible size of neurite.
         
@@ -223,24 +247,15 @@ class sKCSDcell(object):
 
         dims: np.array of 3 ints
         CSD/potential array 3D coordinates
-        dxs: np.array of 3 floats
-        space grain of the 3D CSD/potential
         """
         vals = [[self.xmin,self.xmax],[self.ymin,self.ymax],[self.zmin, self.zmax]]
-        dx = np.zeros((self.est_xyz.shape[0]-1,self.est_xyz.shape[1]))
         dims = np.ones((3,),dtype=np.int)
-        dxs = np.zeros((3,))
-        for i in range(self.est_xyz.shape[1]):
-            dx[:,i] = abs(self.est_xyz[1:,i]-self.est_xyz[:-1,i])
-            try:
-                dxs[i] = min(dx[dx[:,i]>self.tolerance,i])
-            except ValueError:
-                pass
-                
+
+        for i, dx in enumerate(self.dxs):
             dims[i] = 1
-            if dxs[i]:
-                dims[i] += np.floor((vals[i][1]-vals[i][0])/dxs[i])
-        return dims, dxs
+            if dx:
+                dims[i] += np.floor((vals[i][1]-vals[i][0])/dx)
+        return dims
                 
     def point_coordinates(self,morpho):
         """
@@ -259,13 +274,12 @@ class sKCSDcell(object):
            indices of morpho's initial point
         """
         minis =  np.array([self.xmin,self.ymin,self.zmin])
-        dims, dxs = self.get_grid()
         zero_coords = np.zeros((3,),dtype=int)
         coor_3D = np.zeros((morpho.shape[0]-1,morpho.shape[1]),dtype=np.int)
-        for i,dx in enumerate(dxs):
+        for i, dx in enumerate(self.dxs):
             if dx:
-                coor_3D[:,i] = np.floor((morpho[1:,i] - minis[None,i])/dxs[None,i])
-                zero_coords[i] = np.floor((morpho[0,i] - minis[i])/dxs[i])
+                coor_3D[:,i] = np.floor((morpho[1:,i] - minis[None,i])/dx)
+                zero_coords[i] = np.floor((morpho[0,i] - minis[i])/dx)
         return coor_3D, zero_coords
          
     def coordinates_3D_loops(self):
@@ -285,9 +299,9 @@ class sKCSDcell(object):
         """
         coor_3D, p0 = self.point_coordinates(self.est_xyz)
         segment_coordinates = {}
-        
+
         for i, p1 in enumerate(coor_3D):
-            last = (i+1 ==len(coor_3D))
+            last = (i+1 == len(coor_3D))
             segment_coordinates[i] = self.points_in_between(p0,p1,last)
             p0 = p1
         return segment_coordinates
@@ -346,7 +360,7 @@ class sKCSDcell(object):
         -------
         result : np.array
         """
-        dims, dxs = self.get_grid()
+ 
         if what == "loop":
             coor_3D = self.coordinates_3D_loops()
         elif what == "morpho":
@@ -355,12 +369,12 @@ class sKCSDcell(object):
             sys.exit('Do not understand morphology %s\n'%what)
             
         n_time = estimated.shape[-1]
-        new_dims = list(dims)+[n_time]
+        new_dims = list(self.dims)+[n_time]
         result = np.zeros(new_dims)
 
         for i in coor_3D:
+
             coor = coor_3D[i]
-            
             for p in coor:
                 x,y,z, = p
                 result[x,y,z,:] += estimated[i,:]
@@ -376,7 +390,7 @@ class sKCSDcell(object):
         axis : int
           0: x axis, 1: y axis, 2: z axis 
         """
-        resolution, dxs = self.get_grid()
+        resolution = self.dims
         
         xgrid = np.linspace(self.xmin, self.xmax, resolution[0])
         ygrid = np.linspace(self.ymin, self.ymax, resolution[1])
