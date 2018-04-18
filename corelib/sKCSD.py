@@ -99,16 +99,15 @@ class sKCSD(KCSD1D):
         self.dist_table_density = kwargs.pop('dist_table_density',100)
         self.dim = 'skCSD'
         self.tolerance = kwargs.pop('tolerance',2e-06)
+ 
         if kwargs:
             raise TypeError('Invalid keyword arguments:', kwargs.keys())
 
     def estimate_at(self):
         """Defines locations where the estimation is wanted
-        Defines:         
-        self.n_estm = self.estm_x.size
-        self.ngx, self.ngy, self.ngz = self.estm_x.shape
-        self.estm_x, self.estm_y, self.estm_z : Pts. at which CSD is requested
-
+        This is done while construction of morphology loop in sKCSDcell
+        Defines:
+        self.n_estm = len(self.cell.estm_x)
         Parameters
         ----------
         None
@@ -117,6 +116,8 @@ class sKCSD(KCSD1D):
         -------
         None
         """
+        self.cell = sKCSDcell(self.morphology,self.ele_pos,self.n_src_init,self.tolerance)
+        self.n_estm = len(self.cell.est_pos)
         return
 
     def place_basis(self):
@@ -126,9 +127,9 @@ class sKCSD(KCSD1D):
         Defines
         source_type : basis_fuctions.basis_2D.keys()
         self.R based on R_init
-        self.dist_max as maximum distance between electrode and basis
-        self.nsx, self.nsy, self.nsz = self.src_x.shape
-        self.src_x, self.src_y, self.src_z : Locations at which basis sources are placed.
+       
+
+        self.src_x: Locations at which basis sources are placed.
 
         Parameters
         ----------
@@ -139,6 +140,7 @@ class sKCSD(KCSD1D):
         None
         """
         #If Valid basis source type passed?
+        self.R = self.R_init
         source_type = self.src_type
         try:
             self.basis = basis.basis_1D[source_type]
@@ -146,12 +148,10 @@ class sKCSD(KCSD1D):
             print('Invalid source_type for basis! available are:', basis.basis_1D.keys())
             raise KeyError
         #Mesh where the source basis are placed is at self.src_x
-        self.R = self.R_init
-        self.cell = sKCSDcell(self.morphology,self.ele_pos,self.n_src_init,self.tolerance)
+       
         self.src_x = self.cell.distribute_srcs_3D_morph()
         self.n_src = self.cell.n_src
-        self.n_estm = len(self.src_x)
-        
+          
         return        
 
     def create_src_dist_tables(self):
@@ -165,8 +165,11 @@ class sKCSD(KCSD1D):
         -------
         None
         """
-        self.src_ele_dists = distance.cdist(self.cell.source_xyz, self.ele_pos, 'euclidean')
-        self.src_estm_dists = distance.cdist(self.cell.source_pos, self.cell.est_pos,  'euclidean')
+        src_loc = self.cell.source_xyz
+        est_pos = self.cell.est_pos
+        source_pos = self.src_x
+        self.src_ele_dists = distance.cdist(src_loc, self.ele_pos, 'euclidean')
+        self.src_estm_dists = distance.cdist(source_pos, est_pos,  'euclidean')
         self.dist_max = max(np.max(self.src_ele_dists), np.max(self.src_estm_dists)) + self.R
         return
 
@@ -192,10 +195,10 @@ class sKCSD(KCSD1D):
         """
         assert 2**1.5*R < self.cell.max_dist
         if skmonaco_available:
-            pot, err = mcmiser(self.int_pot_1D, 
+            pot, err = mcmiser(self.int_pot_1D_mc, 
                                npoints=1e5,
-                               xl= -2**1.5*R, 
-                               xu=2**1.5*R+self.cell.max_dist,
+                               xl= [-2**1.5*R], 
+                               xu=[2**1.5*R+self.cell.max_dist],
                                seed=42, 
                                nprocs=num_cores, 
                                args=(x, R, src_type))
@@ -204,7 +207,6 @@ class sKCSD(KCSD1D):
                                       -2**1.5*R, 
                                       2**1.5*R+self.cell.max_dist,
                                       args=(x, R, src_type))
-
         return pot/(4.0*np.pi*sigma)
 
     
@@ -232,16 +234,14 @@ class sKCSD(KCSD1D):
             return estimated
         if segments:
             result = np.zeros((self.cell.morphology.shape[0]-1,estimated.shape[1]))
-            weights = np.zeros((self.cell.morphology.shape[0]-1))
 
             for i, loop in enumerate(self.cell.loops):
                 key = "%d_%d"%(loop[0],loop[1])
                 seg_no = self.cell.segments[key]
                 
                 result[seg_no,:] += estimated[i,:]
-                weights[seg_no] += 1
 
-            return result/weights[:,None]
+            return result
         
         return self.cell.transform_to_3D(estimated,what="loop")
    
@@ -261,8 +261,6 @@ class sKCSD(KCSD1D):
             position at which potential is being measured
         R : float
             The size of the basis function
-        h : float
-            thickness of slice
         basis_func : method
             Fuction of the basis source
 
@@ -275,17 +273,39 @@ class sKCSD(KCSD1D):
         elif xp < 0:
             xp = xp +  self.cell.max_dist
 
-        dist = 0
         xp_coor = self.cell.get_xyz(xp)
-        point = (x,0,0)
-        for i,p in enumerate(point):
-            dist += (p-xp_coor[i])**2
-        pot = basis_func(xp, R)/np.sqrt(dist)# xp is the distance
-        
+        dist = ((x-xp_coor[0])**2+xp_coor[1]**2+xp_coor[2]**2)**0.5
+        if dist < 0.00001:
+            dist = 0.00001
+        pot = basis_func(xp, R)/dist# xp is the distance
         return pot
 
-    
+    def int_pot_1D_mc(self, xyz, x, R, basis_func):
+        """
+        The same as int_pot_1D, just different input: x <-- xp (tuple)
+        FWD model function, using Monte Carlo Method of integration
+        Returns contribution of a point xp,yp, belonging to a basis source
+        support centered at (0,0) to the potential measured at (x,0),
+        integrated over xp,yp gives the potential generated by a
+        basis source element centered at (0,0) at point (x,0)
 
+        Parameters
+        ----------
+        xp : floats or np.arrays
+            point or set of points where function should be calculated
+        x :  float
+            position at which potential is being measured
+        R : float
+            The size of the basis function
+        basis_func : method
+            Fuction of the basis source
+
+        Returns
+        -------
+        pot : float
+        """
+        xp = xyz[0]
+        return self.int_pot_1D(xp, x, R, basis_func)
 if __name__ == '__main__':
     import loadData as ld
     path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
