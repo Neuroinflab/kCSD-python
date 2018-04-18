@@ -185,7 +185,7 @@ class sKCSDcell(object):
       
     def points_in_between(self,p1,p0,last):
         """Wrapper for the Bresenheim algorythm, which accepts only 2D vector
-        coordinates. last -- is p1 included in output
+        coordinates. last -- p0 is included in output
 
         Parameters
         ----------
@@ -195,7 +195,7 @@ class sKCSDcell(object):
         Return
         -----
         np.array 
-        points between p0 and p1 including (last=True) or not including p1
+        points between p0 and p1 including (last=True) or not including p0
         """
         new_p1 = np.ndarray((1,3),dtype=np.int) #bresenhamline only works with 2D vectors with coordinates
         new_p0 = np.ndarray((1,3),dtype=np.int)

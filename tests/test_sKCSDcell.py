@@ -167,6 +167,22 @@ class testsKCDcell(unittest.TestCase):
     b =  in_between(self.cell_small.source_xyz[1,2],self.cell_small.source_xyz[2,2])
     x,y,z = self.cell_small.get_xyz(a)
     self.assertTrue(np.isclose(z,b))
-    
+
+  def test_points_in_between(self):
+    point0 = [0,0,0]
+    point1 = [1,1,1]
+    last = False
+    out = self.cell.points_in_between(point0,point1,last)
+    self.assertTrue(np.array_equal(out,np.array([point0])))
+
+  def test_points_in_between_with_last(self):
+    point0 = [0,0,0]
+    point1 = [1,1,1]
+    last = True
+    expected = [point1, point0]
+    out = self.cell.points_in_between(point0,point1,last)
+    print(out,np.array(expected))
+    self.assertTrue(np.array_equal(out,np.array(expected)))
+
 if __name__ == '__main__':
   unittest.main()
