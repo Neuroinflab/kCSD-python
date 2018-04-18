@@ -149,7 +149,7 @@ class sKCSDcell(object):
         """
         for i,x in enumerate(self.source_pos):
             self.source_xyz[i] = self.get_xyz(x)
-        return self.est_pos
+        return self.source_pos
             
     def get_xyz(self, x):
         """Find cartesian coordinates of a point (x) on the morphology loop. Use
@@ -164,7 +164,7 @@ class sKCSDcell(object):
         -------
         tuple of length 3
         """
-        return interpolate.interp1d(self.est_pos[:,0],self.est_xyz, kind='linear',axis=0)(x)
+        return interpolate.interp1d(self.est_pos[:,0],self.est_xyz, kind='slinear',axis=0)(x)
     
     def calculate_total_distance(self):
         """
@@ -355,7 +355,6 @@ class sKCSDcell(object):
             sys.exit('Do not understand morphology %s\n'%what)
             
         n_time = estimated.shape[-1]
-        weights = np.zeros((dims))
         new_dims = list(dims)+[n_time]
         result = np.zeros(new_dims)
 
@@ -364,14 +363,8 @@ class sKCSDcell(object):
             
             for p in coor:
                 x,y,z, = p
-                
                 result[x,y,z,:] += estimated[i,:]
-                weights[x,y,z] += 1
-                
-        non_zero_weights = np.array(np.where(weights>0)).T
-        
-        for (x,y,z) in non_zero_weights:
-            result[x,y,z,:] = result[x,y,z,:]/weights[x,y,z]
+
         return result
 
     def draw_cell2D(self,axis=2):
