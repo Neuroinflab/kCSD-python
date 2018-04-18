@@ -85,8 +85,7 @@ class testsKCDcell(unittest.TestCase):
     self.assertTrue(branch_count==0)
             
   def test_calculate_total_distance(self):
-    #self.max_dist = self.est_pos.max()#add test
-    self.assertTrue(np.isclose(self.cell_small.max_dist,2*505.97840005636186e-6))
+    self.assertTrue(np.isclose(self.cell_small.max_dist,.00102))
   def test_calculate_total_distance_max_dist_small(self):
     #self.max_dist = self.est_pos.max()#add test
     self.assertTrue(np.isclose(self.cell_small.max_dist,self.cell_small.calculate_total_distance()))
@@ -181,8 +180,11 @@ class testsKCDcell(unittest.TestCase):
     last = True
     expected = [point1, point0]
     out = self.cell.points_in_between(point0,point1,last)
-    print(out,np.array(expected))
     self.assertTrue(np.array_equal(out,np.array(expected)))
-
+    
+  def test_get_grid(self):
+    dims, dxs = self.cell_small.get_grid()
+    print(dims,dxs,len(self.cell_small.morphology)-1)
+    self.assertTrue(dims[-1] == len(self.cell_small.morphology)-1)
 if __name__ == '__main__':
   unittest.main()
