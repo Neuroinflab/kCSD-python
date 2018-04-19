@@ -66,10 +66,13 @@ nr_broken_ele = widgets.BoundedIntText(value=5,
 
 noise_select = widgets.Select(options=[None, 'noise'],
                                        value=None,
-                                       # rows=10,
                                        description='Noise:',
                                        disabled=False)
 
+regularization_select = widgets.Select(options=['cross-validation', 'L-curve'],
+                                       value='cross-validation',
+                                       description='Regularization method:',
+                                       disabled=False)
 
 def create_text_wid(txt, val):
     wid = widgets.FloatText(value=val,
