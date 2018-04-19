@@ -54,7 +54,8 @@ class testsKCDcell(unittest.TestCase):
       ps = dic[seg]
       for p in ps:
         cls.small_points[p[2]] += 1
-
+    cls.cell_small_segment_coordinates = cls.cell_small.coordinates_3D_segments()
+    print(cls.cell_small_segment_coordinates)
     #Y-shaped neuron
     data = Data("Data/Y_shaped_neuron")
     data.morphology[:,2:6] = data.morphology[:,2:6]/sc
@@ -71,8 +72,8 @@ class testsKCDcell(unittest.TestCase):
           cls.y_points[s] = 1
         else:
           cls.y_points[s] += 1
-    print(cls.cell_y_segment_coordinates_loops)
-    print(cls.y_points)
+    cls.cell_y_segment_coordinates = cls.cell_y.coordinates_3D_segments()
+    print(cls.cell_y_segment_coordinates)
   def test_if_lost_branch(self):
     segments = self.cell.morphology[1:,:].shape[0]
     self.assertTrue(segments,np.unique(self.cell.loops[:,0]).shape[0])
@@ -283,11 +284,24 @@ class testsKCDcell(unittest.TestCase):
     l = len(self.cell_small_segment_coordinates_loops)-1
     self.assertTrue(len(self.cell_small_segment_coordinates_loops[l]) == 2)
 
+  def test_coordinates_3D_loops_last_loop_difference(self):
+    l = len(self.cell_small_segment_coordinates_loops)-1
+    p0 = self.cell_small_segment_coordinates_loops[l][0]
+    p1 = self.cell_small_segment_coordinates_loops[l][1]
+    self.assertTrue(p0[2] == p1[2] + 1 or p0[2] == p1[2] -1) 
+    
   def test_coordinates_3D_loops_every_but_last_loop_one_point(self):
     l = len(self.cell_small_segment_coordinates_loops)
     for i in range(l-1):
       self.assertTrue(len(self.cell_small_segment_coordinates_loops[i]) == 1)
 
+  def test_coordinates_3D_loops_small_change(self):
+    l = len(self.cell_small_segment_coordinates)
+    for i in range(1,l-1):
+      a = self.cell_small_segment_coordinates[i][0][2]
+      b = self.cell_small_segment_coordinates[i-1][0][2]
+      self.assertTrue(a == b + 1 or a == b-1 )
+  
   def test_coordinates_3D_loops_y_one_count(self):
     self.assertTrue(self.y_points['64055'] == 1 and self.y_points['0055']==1)
  
@@ -299,6 +313,77 @@ class testsKCDcell(unittest.TestCase):
       if key not in ['64055', '0055', '32023']:
         self.assertTrue(self.y_points[key] == 2)
 
+  def test_coordinates_3D_small_length(self):
+    l = len(self.cell_small_segment_coordinates)
+    self.assertTrue(l == self.cell_small.morphology.shape[0]-1)
+
+  def test_coordinates_3D_y_length(self):
+    l = len(self.cell_y_segment_coordinates)
+    self.assertTrue(l == self.cell_y.morphology.shape[0]-1)
+
+  def test_coordinates_3D_small_last(self):
+    l = len(self.cell_small_segment_coordinates)
+    self.assertTrue(len(self.cell_small_segment_coordinates[l-1]) == 2)
+
+  def test_coordinates_3D_y_last(self):
+    l = len(self.cell_y_segment_coordinates)
+    self.assertTrue(len(self.cell_y_segment_coordinates[l-1]) == 2)
+
+  def test_coordinates_3D_small_change(self):
+    l = len(self.cell_small_segment_coordinates)
+    for i in range(1,l-1):
+      self.assertTrue(self.cell_small_segment_coordinates[i][0][2] == self.cell_small_segment_coordinates[i-1][0][2]+1)
+  
+  def test_coordinates_3D_loops_y_point_difference_x(self):
+    l = len(self.cell_y_segment_coordinates_loops)-1
+    d = self.cell_y_segment_coordinates_loops
+    for i in range(l):
+      if len(d[i]) > 1:
+        for j in range(1,len(d[i])):
+          x0, y0, z0 = d[i][j-1]
+          x1, y1, z1 = d[i][j]
+          self.assertTrue(x0 == x1 or x0 == x1+1 or x0 == x1-1)
+
+  def test_coordinates_3D_loops_y_point_difference_y(self):
+    l = len(self.cell_y_segment_coordinates_loops)-1
+    d = self.cell_y_segment_coordinates_loops
+    for i in range(l):
+      if len(d[i]) > 1:
+        for j in range(1,len(d[i])):
+          x0, y0, z0 = d[i][j-1]
+          x1, y1, z1 = d[i][j]
+          self.assertTrue(y0 == y1 or y0 == y1+1 or y0 == y1-1)
+          
+  def test_coordinates_3D_loops_y_point_difference_z(self):
+    l = len(self.cell_y_segment_coordinates_loops)-1
+    d = self.cell_y_segment_coordinates_loops
+    for i in range(l):
+      if len(d[i]) > 1:
+        for j in range(1,len(d[i])):
+          x0, y0, z0 = d[i][j-1]
+          x1, y1, z1 = d[i][j]
+          self.assertTrue(z0 == z1 or z0 == z1+1 or z0 == z1-1)
+
+  def test_continuity_3D_loops_y(self):
+    l = len(self.cell_y_segment_coordinates_loops)-1
+    d = self.cell_y_segment_coordinates_loops
+    for i in range(1,l):
+      d0 = d[i-1]
+      p1 = d[i][-1]
+      if len(d0) > 1:
+        p0 = d0[-2]
+      else:
+        p0 = d0[-1]
+      x0, y0, z0 = p0
+      x1, y1, z1 = p1
+      self.assertTrue(x0 == x1 or x0 == x1-1 or x0 == x1+1)
+      self.assertTrue(y0 == y1 or y0 == y1-1 or y0 == y1+1)
+      self.assertTrue(z0 == z1 or z0 == z1-1 or z0 == z1+1)
+        
+  def test_coordinates_3D_loops_every_but_last_loop_one_point(self):
+    l = len(self.cell_small_segment_coordinates_loops)
+    for i in range(l-1):
+      self.assertTrue(len(self.cell_small_segment_coordinates_loops[i]) == 1)
 
 if __name__ == '__main__':
   unittest.main()
