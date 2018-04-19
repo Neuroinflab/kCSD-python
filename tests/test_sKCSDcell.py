@@ -28,6 +28,7 @@ class testsKCDcell(unittest.TestCase):
   @classmethod
   def setUpClass(cls):
     sc = 1e6
+    #Very branchy neuron (for testing morphology loop)
     cls.data = Data("Data/gang_7x7_200")
     cls.data.morphology[:,2:6] = cls.data.morphology[:,2:6]/sc
     n_src = 1000
@@ -38,11 +39,40 @@ class testsKCDcell(unittest.TestCase):
       if loop[0] != loop[1]+1 and loop[0] != loop[1]-1:
         cls.branch_points.append(loop.tolist())
 
+    cls.morpho = cls.cell.morphology[:,2:5]
+    cls.coor3D, cls.zero = cls.cell.point_coordinates(cls.morpho)
+
+    #ball and stick neuron
     data = Data("Data/ball_and_stick_8")
     data.morphology[:,2:6] = data.morphology[:,2:6]/sc
     cls.cell_small = sKCSDcell(data.morphology,data.ele_pos/sc,10)
     cls.cell_small.distribute_srcs_3D_morph()
-  
+    cls.cell_small_segment_coordinates_loops = cls.cell_small.coordinates_3D_loops()
+    cls.small_points = np.zeros((len(cls.cell_small.morphology),))
+    dic = cls.cell_small_segment_coordinates_loops
+    for seg in dic:
+      ps = dic[seg]
+      for p in ps:
+        cls.small_points[p[2]] += 1
+
+    #Y-shaped neuron
+    data = Data("Data/Y_shaped_neuron")
+    data.morphology[:,2:6] = data.morphology[:,2:6]/sc
+    cls.cell_y = sKCSDcell(data.morphology,data.ele_pos/sc,10)
+    cls.cell_y.distribute_srcs_3D_morph()
+    cls.cell_y_segment_coordinates_loops = cls.cell_y.coordinates_3D_loops()
+    cls.y_points = {}
+    dic = cls.cell_y_segment_coordinates_loops
+    for seg in dic:
+      ps = dic[seg]
+      for p in ps:
+        s = '%d%d%d'%(p[0],p[1],p[2])
+        if s not in cls.y_points:
+          cls.y_points[s] = 1
+        else:
+          cls.y_points[s] += 1
+    print(cls.cell_y_segment_coordinates_loops)
+    print(cls.y_points)
   def test_if_lost_branch(self):
     segments = self.cell.morphology[1:,:].shape[0]
     self.assertTrue(segments,np.unique(self.cell.loops[:,0]).shape[0])
@@ -220,6 +250,55 @@ class testsKCDcell(unittest.TestCase):
 
   def test_dxs_small_z(self):
     self.assertTrue(self.cell_small.dxs[2]>self.cell_small.tolerance or self.cell_small.dxs[2] == 0)
+
+  def test_point_coordinates_morpho_x(self):
+    self.assertTrue(self.zero[0] == np.floor((self.morpho[0,0]-self.cell.xmin)/self.cell.dxs[0]))
+  def test_point_coordinates_morpho_y(self):
+    self.assertTrue(self.zero[1] == np.floor((self.morpho[0,1]-self.cell.ymin)/self.cell.dxs[1]))
+  def test_point_coordinates_morpho_z(self):
+    self.assertTrue(self.zero[2] == np.floor((self.morpho[0,2]-self.cell.zmin)/self.cell.dxs[2]))
+    
+  def test_point_coordinates_morpho_x_max(self):
+    self.assertTrue(max(self.coor3D[:,0]) < self.cell.dims[0])
+  def test_point_coordinates_morpho_y_max(self):
+    self.assertTrue(max(self.coor3D[:,1]) < self.cell.dims[1])
+  def test_point_coordinates_morpho_z_max(self):
+    self.assertTrue(max(self.coor3D[:,2]) < self.cell.dims[2])
+    
+  def test_point_coordinates_morpho_x_min(self):
+    self.assertTrue(min(self.coor3D[:,0]) == 0 or self.zero[0] == 0)
+  def test_point_coordinates_morpho_y_min(self):
+    self.assertTrue(min(self.coor3D[:,1]) == 0 or self.zero[1] == 0)
+  def test_point_coordinates_morpho_z_min(self):
+    self.assertTrue(min(self.coor3D[:,2])  == 0 or self.zero[2] == 0)
+
+  def test_coordinates_3D_loops_is_every_point_except_ending_at_least_twice_small(self):
+    idxs = np.where(self.small_points[:-1]<2)[0]
+    self.assertFalse(idxs)
+
+  def test_coordinates_3D_loops_last_point_once_small(self):
+    self.assertTrue(self.small_points[-1] == 1)
+
+  def test_coordinates_3D_loops_last_loop_two_counts(self):
+    l = len(self.cell_small_segment_coordinates_loops)-1
+    self.assertTrue(len(self.cell_small_segment_coordinates_loops[l]) == 2)
+
+  def test_coordinates_3D_loops_every_but_last_loop_one_point(self):
+    l = len(self.cell_small_segment_coordinates_loops)
+    for i in range(l-1):
+      self.assertTrue(len(self.cell_small_segment_coordinates_loops[i]) == 1)
+
+  def test_coordinates_3D_loops_y_one_count(self):
+    self.assertTrue(self.y_points['64055'] == 1 and self.y_points['0055']==1)
+ 
+  def test_coordinates_3D_loops_y_branch(self):
+    self.assertTrue(self.y_points['32023'] == 3)
+
+  def test_coordinates_3D_loops_y_2_counts(self):
+    for key in self.y_points:
+      if key not in ['64055', '0055', '32023']:
+        self.assertTrue(self.y_points[key] == 2)
+
 
 if __name__ == '__main__':
   unittest.main()

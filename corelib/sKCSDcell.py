@@ -278,7 +278,7 @@ class sKCSDcell(object):
         coor_3D = np.zeros((morpho.shape[0]-1,morpho.shape[1]),dtype=np.int)
         for i, dx in enumerate(self.dxs):
             if dx:
-                coor_3D[:,i] = np.floor((morpho[1:,i] - minis[None,i])/dx)
+                coor_3D[:,i] = np.floor((morpho[1:,i] - minis[i])/dx)
                 zero_coords[i] = np.floor((morpho[0,i] - minis[i])/dx)
         return coor_3D, zero_coords
          
