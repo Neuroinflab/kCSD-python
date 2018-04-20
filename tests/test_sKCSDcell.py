@@ -55,7 +55,7 @@ class testsKCDcell(unittest.TestCase):
       for p in ps:
         cls.small_points[p[2]] += 1
     cls.cell_small_segment_coordinates = cls.cell_small.coordinates_3D_segments()
-    print(cls.cell_small_segment_coordinates)
+
     #Y-shaped neuron
     data = Data("Data/Y_shaped_neuron")
     data.morphology[:,2:6] = data.morphology[:,2:6]/sc
@@ -73,7 +73,7 @@ class testsKCDcell(unittest.TestCase):
         else:
           cls.y_points[s] += 1
     cls.cell_y_segment_coordinates = cls.cell_y.coordinates_3D_segments()
-    print(cls.cell_y_segment_coordinates)
+
   def test_if_lost_branch(self):
     segments = self.cell.morphology[1:,:].shape[0]
     self.assertTrue(segments,np.unique(self.cell.loops[:,0]).shape[0])
