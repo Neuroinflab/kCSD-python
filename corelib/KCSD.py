@@ -412,6 +412,9 @@ class KCSD1D(KCSD):
             lambd : float
                 regularization parameter for ridge regression
                 Defaults to 0.
+            dist_table_density : int
+                size of the potential interpolation table
+                Defaults to 20
 
         Raises
         ------
