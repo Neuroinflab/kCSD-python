@@ -13,6 +13,7 @@ import corelib.loadData as ld
 import functions as fun
 import run_LFP
 n_src = 512
+sKCSD.skmonaco_available = False
 
 if __name__ == '__main__':
     
@@ -23,14 +24,14 @@ if __name__ == '__main__':
     scale_factor = 1000**2
     scale_factor_LFP = 1000
     
-    R_inits = np.array([(2**(i-.5))/scale_factor for i in range(2,8)])
+    R_inits = np.array([(2**(i-.5))/scale_factor for i in range(3,9)])
     lambdas = np.array([(10**(-i))for i in range(5)])
     #x_ticklabels = [2**i for i in range(1,7)]
     #y_ticklabels = [str(lambd) for lambd in lambdas]
 
     colnb = 10
     rownb = 10
-    c = fun.simulate(fname_base,morphology=6,tstop=tstop,seed=1988,weight=0.04,n_syn=1000,simulate_what='oscillatory',electrode_distribution=3,electrode_orientation=3,xmin=-400,xmax=400,ymin=-400,ymax=400,colnb=colnb,rownb=rownb)
+    c = fun.simulate(fname_base,morphology=6,tstop=tstop,seed=1988,weight=0.04,n_syn=1000,simulate_what='oscillatory',electrode_distribution=3,electrode_orientation=3,xmin=-400,xmax=400,ymin=-400,ymax=400,colnb=colnb,rownb=rownb,dt=0.25)
     data_dir = c.return_paths_skCSD_python()
     data = ld.Data(data_dir)
     ele_pos = data.ele_pos/scale_factor
@@ -54,7 +55,7 @@ if __name__ == '__main__':
         
         for j,l in enumerate(lambdas):
             lambd = l*2*(2*np.pi)**3*R**2*n_src
-            ker = sKCSD.sKCSD(ele_pos,data.LFP,morphology, n_src_init=n_src, src_type='gauss',lambd=lambd,R_init=R)
+            ker = sKCSD.sKCSD(ele_pos,data.LFP,morphology, n_src_init=n_src, src_type='gauss',lambd=lambd,R_init=R,dist_table_density=250)
             if not i and not j:
                
                ground_truth_3D = ker.cell.transform_to_3D(ground_truth,what="morpho")
@@ -72,7 +73,7 @@ if __name__ == '__main__':
                 os.makedirs(path)
 
             morpho,extent = ker.cell.draw_cell2D(axis=2)
-            est_skcsd = ker.values(estimate='CSD')
+            est_skcsd = ker.values()
             fig, ax = plt.subplots(1,2)
             utils.save_sim(path,ker)
            

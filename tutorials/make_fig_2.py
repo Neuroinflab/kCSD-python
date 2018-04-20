@@ -14,6 +14,7 @@ from corelib import sKCSD
 import corelib.utility_functions as utils
 import corelib.loadData as ld
 import functions as fun
+sKCSD.skmonaco_available = False
 
 n_src = 512
 lambd = 1e-2
@@ -71,7 +72,7 @@ if __name__ == '__main__':
                 morphology = data.morphology
                 morphology[:,2:6] = morphology[:,2:6]/scaling_factor
                 k = sKCSD.sKCSD(ele_pos,data.LFP,morphology, n_src_init=n_src, src_type='gauss',lambd=lambd,R_init=R)
-                est_csd = k.values(segments=True)/seglen[:,None]
+                est_csd = k.values(transformation='segments')/seglen[:,None]
                 if i == 2:
                     fun.plot(ax[i+1],est_csd,xticklabels=xticklabels,yticklabels=yticklabels)
                 else:

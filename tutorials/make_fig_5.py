@@ -8,6 +8,7 @@ import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from corelib import sKCSD, KCSD
+sKCSD.skmonaco_available = False
 import corelib.utility_functions as utils
 import corelib.loadData as ld
 import functions as fun

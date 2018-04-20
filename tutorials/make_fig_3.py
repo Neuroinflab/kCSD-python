@@ -8,6 +8,7 @@ import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from corelib import sKCSD
+sKCSD.skmonaco_available = False
 import corelib.utility_functions as utils
 import corelib.loadData as ld
 import functions as fun
@@ -64,7 +65,7 @@ if __name__ == '__main__':
                 morphology = data.morphology
                 morphology[:,2:6] = morphology[:,2:6]/scaling_factor
                 k = sKCSD.sKCSD(ele_pos,data.LFP,morphology, n_src_init=n_src, src_type='gauss',lambd=lambd,R_init=R)
-                csd = k.values(segments=True)
+                csd = k.values(transformation='segments')
                 
         
                 vmax, vmin = fun.get_min_max(csd)

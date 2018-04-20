@@ -8,6 +8,7 @@ import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from corelib import sKCSD, KCSD
+sKCSD.skmonaco_available = False
 import corelib.utility_functions as utils
 import corelib.loadData as ld
 import functions as fun
@@ -45,7 +46,7 @@ if __name__ == '__main__':
     atstop = int(15/dt)
 
     R_inits = [2**i for i in range(3,9)]
-    lambdas = [10**(-i) for i in range(6,0,-1)]
+    lambdas = [10**(-i) for i in range(6)]
     for R_init in R_inits:
         for la in lambdas:
             simulation_paths = []
@@ -71,18 +72,14 @@ if __name__ == '__main__':
                 morphology[:,2:6] = morphology[:,2:6]/scaling_factor
                 k = sKCSD.sKCSD(ele_pos,data.LFP,morphology, n_src_init=n_src, src_type='gauss',lambd=lambd,R_init=R,dist_table_density=100)
         
-                est_skcsd = k.values(estimate='CSD',segments=True)
+                est_skcsd = k.values(estimate='CSD',transformation='segments')
                 
-                # #est_skcsd = k.values(estimate='CSD',no_transformation=True)
-                # plt.figure()
-                # plt.imshow(est_skcsd)
-                # plt.colorbar()
-                # plt.show()
                 est_skcsd /= seglen[:,None]
                 
                 if i%2:
                     skcsd_random.append(est_skcsd)
                 else:
+                    print(i)
                     skcsd_grid.append(est_skcsd)
                     #skcsd_grid.append(est_skcsd)
             skcsd_maps_grid = fun.merge_maps(skcsd_grid,tstart=atstart,tstop=atstop,merge=1)

@@ -11,6 +11,7 @@ from corelib import sKCSD, KCSD
 import corelib.utility_functions as utils
 import corelib.loadData as ld
 import functions as fun
+sKCSD.skmonaco_available = False
 
 if __name__ == '__main__':
     
@@ -22,7 +23,7 @@ if __name__ == '__main__':
     scale_factor_LFP = 1
     
     R_inits = np.array([(2**(i-.5))/scale_factor for i in range(3,9)])
-    lambdas = np.array([(10**(-i))for i in range(6)])
+    lambdas = np.array([(10**(-i))for i in range(-2,6)])
     n_srcs = np.array([32,64,128,512,1024])
     x_ticklabels = [2**i for i in range(3,9)]
     y_ticklabels = [str(lambd) for lambd in lambdas]
@@ -47,7 +48,7 @@ if __name__ == '__main__':
             for k, R in enumerate(R_inits):
                 lambd = l*2*(2*np.pi)**3*R**2*n_src
                 ker = sKCSD.sKCSD(ele_pos,data.LFP,morphology, n_src_init=n_src, src_type='gauss',lambd=lambd,R_init=R)
-                est_skcsd = ker.values(estimate='CSD',segments=True)
+                est_skcsd = ker.values(estimate='CSD',transformation='segments')
                 print(est_skcsd.max(),est_skcsd.min())
                 outs[i,j,k] = fun.L1_error(ground_truth, est_skcsd)
                 print(outs[i,j,k])
