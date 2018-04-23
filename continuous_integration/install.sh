@@ -30,7 +30,7 @@ if [[ "$DISTRIB" == "conda_min" ]]; then
     conda create -n testenv --yes python=$PYTHON_VERSION pip nose coverage \
         six=$SIX_VERSION numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION
     source activate testenv
-
+    pip install matplotlib
 
 elif [[ "$DISTRIB" == "conda" ]]; then
     # Deactivate the travis-provided virtual environment and setup a
@@ -51,7 +51,7 @@ elif [[ "$DISTRIB" == "conda" ]]; then
     conda create -n testenv --yes python=$PYTHON_VERSION pip nose coverage six=$SIX_VERSION \
         numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION
     source activate testenv
-
+    
     if [[ "$COVERAGE" == "true" ]]; then
         pip install coveralls
     fi
@@ -94,7 +94,7 @@ elif [[ "$DISTRIB" == "ubuntu" ]]; then
     pip install numpy==$NUMPY_VERSION
     pip install scipy==$SCIPY_VERSION
     pip install six==$SIX_VERSION
- 
+    pip install matplotlib
 
 elif [[ "$DISTRIB" == "ubuntu_extra" ]]; then
     # deactivate

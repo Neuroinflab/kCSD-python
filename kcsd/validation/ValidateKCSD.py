@@ -623,350 +623,6 @@ class ValidateKCSD(object):
         zi = griddata(x, y, z, xi, yi, interp='linear')
         return xi, yi, zi
 
-
-class SpectralStructure(object):
-    """
-    Class that enables examination of spectral structure of CSD reconstruction
-    with kCSD method.
-    """
-    def __init__(self, k):
-        """
-        Initialize SpectralStructure class.
-
-        Defines:
-            self.k: instance of the class
-            Instance of ValidationClassKCSD1D, ValidationClassKCSD2D or
-            ValidationClassKCSD3D class.
-
-        Parameters
-        ----------
-        k: instance of the class
-            Instance of ValidationClassKCSD1D, ValidationClassKCSD2D or
-            ValidationClassKCSD3D class.
-
-        Returns
-        -------
-        None
-        """
-        self.k = k
-
-    def svd(self):
-        """
-        Method that calculates singular value decomposition of total kernel
-        matrix. K~*K^-1  from eq. 18 (Potworowski 2012). It calls also plotting
-        methods.
-
-        Parameters
-        ----------
-        None
-
-        Returns
-        -------
-        u_svd: numpy array
-            Left singular vectors of kernels product.
-        sigma: numpy array
-            Singular values of kernels product.
-        v_svd: numpy array
-            Right singular vectors of kernels product.
-
-        Raises
-        ------
-        LinAlgError
-            If the matrix is not numerically invertible.
-            If SVD computation does not converge.
-        """
-        try:
-            kernel = np.dot(self.k.k_interp_cross,
-                            inv(self.k.k_pot +
-                                self.k.lambd *
-                                np.identity(self.k.k_pot.shape[0])))
-            u_svd, sigma, v_svd = np.linalg.svd(kernel, full_matrices=False)
-        except LinAlgError:
-            raise LinAlgError('Encoutered Singular Matrix Error:'
-                              'try changing ele_pos slightly')
-        self.plot_svd_sigma(sigma)
-        self.plot_svd_u(u_svd)
-        self.plot_svd_v(v_svd)
-        self.plot_svd_sigma_lambd(sigma)
-        return u_svd, sigma, v_svd
-
-    def picard_plot(self, b):
-        """
-        Creates Picard plot according to Hansen's book.
-
-        Parameters
-        ----------
-        b: numpy array
-            Right-hand side of the linear equation.
-
-        Returns
-        -------
-        None
-
-        Raises
-        ------
-        LinAlgError
-            If SVD computation does not converge.
-        """
-        try:
-            u, s, v = np.linalg.svd(self.k.k_pot + self.k.lambd *
-                                    np.identity(self.k.k_pot.shape[0]))
-        except LinAlgError:
-            raise LinAlgError('SVD is failing - try moving the electrodes'
-                              'slightly')
-        picard = np.zeros(len(s))
-        picard_norm = np.zeros(len(s))
-        for i, value in enumerate(s):
-            picard[i] = abs(np.dot(u[:, i].T, b))
-            picard_norm[i] = abs(np.dot(u[:, i].T, b))/value
-        plt.figure(figsize=(10, 6))
-        plt.plot(s, marker='.', label=r'$\sigma_{i}$')
-        plt.plot(picard, marker='.', label='$|u(:, i)^{T}*b|$')
-        plt.plot(picard_norm, marker='.',
-                 label=r'$\frac{|u(:, i)^{T}*b|}{\sigma_{i}}$')
-        plt.yscale('log')
-        plt.legend()
-        plt.title('Picard plot')
-        plt.xlabel('i')
-        plt.show()
-        a = int(len(s) - int(np.sqrt(len(s)))**2)
-        if a == 0:
-            size = int(np.sqrt(len(s)))
-        else:
-            size = int(np.sqrt(len(s))) + 1
-        fig, axs = plt.subplots(int(np.sqrt(len(s))),
-                                size, figsize=(15, 13))
-        axs = axs.ravel()
-        beta = np.zeros(v.shape)
-        fig.suptitle('vectors products of k_pot matrix')
-        for i, value in enumerate(s):
-            beta[i] = ((np.dot(u[:, i].T, b)/value) * v[i, :])
-            axs[i].plot(beta[i, :], marker='.')
-            axs[i].set_title(r'$vec_{'+str(i+1)+'}$')
-        plt.show()
-
-    def plot_evd_sigma(self, s):
-        """
-        Creates plot of eigenvalues of k_pot matrix.
-
-        Parameters
-        ----------
-        s: numpy array
-            Eigenvalues of k_pot matrix.
-
-        Returns
-        -------
-        None
-        """
-        plt.figure()
-        plt.plot(s, '.')
-        plt.title('Eigenvalues of k_pot matrix')
-        plt.xlabel('Components number')
-        plt.ylabel('Eigenvalues')
-        plt.yscale('log')
-        plt.show()
-
-    def plot_evd_sigma_lambd(self, s):
-        """
-        Creates plots of:
-            - 1 over (eigenvalues of k_pot matrix + lambda).
-            - eigenvalues over (eigenvalues**2 + lambda)
-
-        Parameters
-        ----------
-        sigma: numpy array
-            Singular values of kernels product.
-
-        Returns
-        -------
-        None
-        """
-        x = np.arange(1, len(s) + 1)
-        plt.figure()
-        plt.plot(x, 1/(s + self.k.lambd), 'b.')
-        plt.title(r'$\frac{1}{(\mu_j + \lambda)}$')
-        plt.xlabel('Components number j')
-        plt.ylabel(r'1/($\mu_j + \lambda)$')
-        plt.yscale('log')
-        plt.show()
-        plt.figure()
-        plt.plot(x, s/(s**2 + self.k.lambd), 'b.')
-        plt.title(r'$\frac{\mu_j}{(\mu_j^2 + \lambda)}$')
-        plt.xlabel('Components number j')
-        plt.ylabel(r'$\mu_j/(\mu_j^2 + \lambda)$')
-        plt.yscale('log')
-        plt.show()
-
-    def evd(self):
-        """
-        Method that calculates eigenvalue decomposition of kernel (k_pot
-        matrix).
-
-        Parameters
-        ----------
-        k: instance of class (TestKCSD1D, TestKCSD2D or TestKCSD3D)
-
-        Returns
-        -------
-        eigenvectors: numpy array
-            Eigen vectors of k_pot matrix.
-        eigrnvalues: numpy array
-            Eigenvalues of k_pot matrix.
-
-        Raises
-        ------
-        LinAlgError
-            If EVD computation does not converge.
-        """
-        try:
-            eigenvalues, eigenvectors = np.linalg.eigh(self.k.k_pot +
-                                                       self.k.lambd *
-                                                       np.identity
-                                                       (self.k.k_pot.shape[0]))
-        except LinAlgError:
-            raise LinAlgError('EVD is failing - try moving the electrodes'
-                              'slightly')
-        idx = eigenvalues.argsort()[::-1]
-        eigenvalues = eigenvalues[idx]
-        eigenvectors = eigenvectors[:, idx]
-        self.plot_evd_sigma(eigenvalues)
-        self.plot_evd_sigma_lambd(eigenvalues)
-        return eigenvectors, eigenvalues
-
-    def plot_svd_sigma(self, sigma):
-        """
-        Creates plot of singular values of kernels product (K~*K^-1).
-
-        Parameters
-        ----------
-        sigma: numpy array
-            Singular values of kernels product.
-
-        Returns
-        -------
-        None
-        """
-        plt.figure()
-        plt.plot(sigma, 'b.')
-        plt.title('Singular values of kernels product')
-        plt.xlabel('Components number')
-        plt.ylabel('Singular values')
-        plt.yscale('log')
-        plt.show()
-
-    def plot_svd_sigma_lambd(self, sigma):
-        """
-        Creates plots of:
-            - 1 over (singular values of kernels product (K~*K^-1) + lambda).
-            - singular values over (singular values**2 + lambda)
-
-        Parameters
-        ----------
-        sigma: numpy array
-            Singular values of kernels product.
-
-        Returns
-        -------
-        None
-        """
-        x = np.arange(1, len(sigma) + 1)
-        plt.figure()
-        plt.plot(x, 1/(sigma + self.k.lambd), 'b.')
-        plt.title(r'$\frac{1}{(\sigma_j + \lambda)}$')
-        plt.xlabel('Components number j')
-        plt.ylabel(r'1/($\sigma_j + \lambda)$')
-        plt.yscale('log')
-        plt.show()
-        plt.figure()
-        plt.plot(x, sigma/(sigma**2 + self.k.lambd), 'b.')
-        plt.title(r'$\frac{\sigma_j}{(\sigma_j^2 + \lambda)}$')
-        plt.xlabel('Components number j')
-        plt.ylabel(r'$\sigma_j/(\sigma_j^2 + \lambda)$')
-        plt.yscale('log')
-        plt.show()
-
-    def plot_v(self, v):
-        """
-        Creates plot of eigen vectors.
-
-        Parameters
-        ----------
-        v: numpy array
-            Eigen vectors.
-
-        Returns
-        -------
-        None
-        """
-        a = int(v.shape[1] - int(np.sqrt(v.shape[1]))**2)
-        if a == 0:
-            size = int(np.sqrt(v.shape[1]))
-        else:
-            size = int(np.sqrt(v.shape[1])) + 1
-        fig, axs = plt.subplots(int(np.sqrt(v.shape[1])),
-                                size, figsize=(15, 13))
-        axs = axs.ravel()
-        fig.suptitle('Eigen vectors of k_pot matrix')
-        for i in range(v.shape[1]):
-            axs[i].plot(v[i, :], marker='.')
-            axs[i].set_title(r'$v_{'+str(i+1)+'}$')
-        plt.show()
-
-    def plot_svd_u(self, u_svd):
-        """
-        Creates plot of left singular values.
-
-        Parameters
-        ----------
-        u_svd: numpy array
-            Left singular vectors.
-
-        Returns
-        -------
-        None
-        """
-        a = int(u_svd.shape[1] - int(np.sqrt(u_svd.shape[1]))**2)
-        if a == 0:
-            size = int(np.sqrt(u_svd.shape[1]))
-        else:
-            size = int(np.sqrt(u_svd.shape[1])) + 1
-        fig, axs = plt.subplots(int(np.sqrt(u_svd.shape[1])),
-                                size, figsize=(15, 14))
-        axs = axs.ravel()
-        fig.suptitle('Left singular vectors of kernels product')
-        for i in range(u_svd.shape[1]):
-            axs[i].plot(u_svd[:, i], '.')
-            axs[i].set_title(r'$u_{'+str(i+1)+'}$')
-        plt.close()
-
-    def plot_svd_v(self, v_svd):
-        """
-        Creates plot of right singular values
-
-        Parameters
-        ----------
-        v_svd: numpy array
-            Right singular vectors.
-
-        Returns
-        -------
-        None
-        """
-        a = int(v_svd.shape[1] - int(np.sqrt(v_svd.shape[1]))**2)
-        if a == 0:
-            size = int(np.sqrt(v_svd.shape[1]))
-        else:
-            size = int(np.sqrt(v_svd.shape[1])) + 1
-        fig, axs = plt.subplots(int(np.sqrt(v_svd.shape[1])),
-                                size, figsize=(15, 14))
-        axs = axs.ravel()
-        fig.suptitle('Right singular vectors of kernels product')
-        for i in range(v_svd.shape[1]):
-            axs[i].plot(v_svd[i, :], marker='.')
-            axs[i].set_title(r'$v_{'+str(i+1)+'}$')
-        plt.show()
-
-
 class ValidateKCSD1D(ValidateKCSD):
     """
     ValidationClassKCSD1D - The 1D variant of validation tests for kCSD method.
@@ -1587,6 +1243,350 @@ class ValidateKCSD3D(ValidateKCSD):
         return
 
 
+
+class SpectralStructure(object):
+    """
+    Class that enables examination of spectral structure of CSD reconstruction
+    with kCSD method.
+    """
+    def __init__(self, k):
+        """
+        Initialize SpectralStructure class.
+
+        Defines:
+            self.k: instance of the class
+            Instance of ValidationClassKCSD1D, ValidationClassKCSD2D or
+            ValidationClassKCSD3D class.
+
+        Parameters
+        ----------
+        k: instance of the class
+            Instance of ValidationClassKCSD1D, ValidationClassKCSD2D or
+            ValidationClassKCSD3D class.
+
+        Returns
+        -------
+        None
+        """
+        self.k = k
+
+    def svd(self):
+        """
+        Method that calculates singular value decomposition of total kernel
+        matrix. K~*K^-1  from eq. 18 (Potworowski 2012). It calls also plotting
+        methods.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        u_svd: numpy array
+            Left singular vectors of kernels product.
+        sigma: numpy array
+            Singular values of kernels product.
+        v_svd: numpy array
+            Right singular vectors of kernels product.
+
+        Raises
+        ------
+        LinAlgError
+            If the matrix is not numerically invertible.
+            If SVD computation does not converge.
+        """
+        try:
+            kernel = np.dot(self.k.k_interp_cross,
+                            inv(self.k.k_pot +
+                                self.k.lambd *
+                                np.identity(self.k.k_pot.shape[0])))
+            u_svd, sigma, v_svd = np.linalg.svd(kernel, full_matrices=False)
+        except LinAlgError:
+            raise LinAlgError('Encoutered Singular Matrix Error:'
+                              'try changing ele_pos slightly')
+        self.plot_svd_sigma(sigma)
+        self.plot_svd_u(u_svd)
+        self.plot_svd_v(v_svd)
+        self.plot_svd_sigma_lambd(sigma)
+        return u_svd, sigma, v_svd
+
+    def picard_plot(self, b):
+        """
+        Creates Picard plot according to Hansen's book.
+
+        Parameters
+        ----------
+        b: numpy array
+            Right-hand side of the linear equation.
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        LinAlgError
+            If SVD computation does not converge.
+        """
+        try:
+            u, s, v = np.linalg.svd(self.k.k_pot + self.k.lambd *
+                                    np.identity(self.k.k_pot.shape[0]))
+        except LinAlgError:
+            raise LinAlgError('SVD is failing - try moving the electrodes'
+                              'slightly')
+        picard = np.zeros(len(s))
+        picard_norm = np.zeros(len(s))
+        for i, value in enumerate(s):
+            picard[i] = abs(np.dot(u[:, i].T, b))
+            picard_norm[i] = abs(np.dot(u[:, i].T, b))/value
+        plt.figure(figsize=(10, 6))
+        plt.plot(s, marker='.', label=r'$\sigma_{i}$')
+        plt.plot(picard, marker='.', label='$|u(:, i)^{T}*b|$')
+        plt.plot(picard_norm, marker='.',
+                 label=r'$\frac{|u(:, i)^{T}*b|}{\sigma_{i}}$')
+        plt.yscale('log')
+        plt.legend()
+        plt.title('Picard plot')
+        plt.xlabel('i')
+        plt.show()
+        a = int(len(s) - int(np.sqrt(len(s)))**2)
+        if a == 0:
+            size = int(np.sqrt(len(s)))
+        else:
+            size = int(np.sqrt(len(s))) + 1
+        fig, axs = plt.subplots(int(np.sqrt(len(s))),
+                                size, figsize=(15, 13))
+        axs = axs.ravel()
+        beta = np.zeros(v.shape)
+        fig.suptitle('vectors products of k_pot matrix')
+        for i, value in enumerate(s):
+            beta[i] = ((np.dot(u[:, i].T, b)/value) * v[i, :])
+            axs[i].plot(beta[i, :], marker='.')
+            axs[i].set_title(r'$vec_{'+str(i+1)+'}$')
+        plt.show()
+
+    def plot_evd_sigma(self, s):
+        """
+        Creates plot of eigenvalues of k_pot matrix.
+
+        Parameters
+        ----------
+        s: numpy array
+            Eigenvalues of k_pot matrix.
+
+        Returns
+        -------
+        None
+        """
+        plt.figure()
+        plt.plot(s, '.')
+        plt.title('Eigenvalues of k_pot matrix')
+        plt.xlabel('Components number')
+        plt.ylabel('Eigenvalues')
+        plt.yscale('log')
+        plt.show()
+
+    def plot_evd_sigma_lambd(self, s):
+        """
+        Creates plots of:
+            - 1 over (eigenvalues of k_pot matrix + lambda).
+            - eigenvalues over (eigenvalues**2 + lambda)
+
+        Parameters
+        ----------
+        sigma: numpy array
+            Singular values of kernels product.
+
+        Returns
+        -------
+        None
+        """
+        x = np.arange(1, len(s) + 1)
+        plt.figure()
+        plt.plot(x, 1/(s + self.k.lambd), 'b.')
+        plt.title(r'$\frac{1}{(\mu_j + \lambda)}$')
+        plt.xlabel('Components number j')
+        plt.ylabel(r'1/($\mu_j + \lambda)$')
+        plt.yscale('log')
+        plt.show()
+        plt.figure()
+        plt.plot(x, s/(s**2 + self.k.lambd), 'b.')
+        plt.title(r'$\frac{\mu_j}{(\mu_j^2 + \lambda)}$')
+        plt.xlabel('Components number j')
+        plt.ylabel(r'$\mu_j/(\mu_j^2 + \lambda)$')
+        plt.yscale('log')
+        plt.show()
+
+    def evd(self):
+        """
+        Method that calculates eigenvalue decomposition of kernel (k_pot
+        matrix).
+
+        Parameters
+        ----------
+        k: instance of class (TestKCSD1D, TestKCSD2D or TestKCSD3D)
+
+        Returns
+        -------
+        eigenvectors: numpy array
+            Eigen vectors of k_pot matrix.
+        eigrnvalues: numpy array
+            Eigenvalues of k_pot matrix.
+
+        Raises
+        ------
+        LinAlgError
+            If EVD computation does not converge.
+        """
+        try:
+            eigenvalues, eigenvectors = np.linalg.eigh(self.k.k_pot +
+                                                       self.k.lambd *
+                                                       np.identity
+                                                       (self.k.k_pot.shape[0]))
+        except LinAlgError:
+            raise LinAlgError('EVD is failing - try moving the electrodes'
+                              'slightly')
+        idx = eigenvalues.argsort()[::-1]
+        eigenvalues = eigenvalues[idx]
+        eigenvectors = eigenvectors[:, idx]
+        self.plot_evd_sigma(eigenvalues)
+        self.plot_evd_sigma_lambd(eigenvalues)
+        return eigenvectors, eigenvalues
+
+    def plot_svd_sigma(self, sigma):
+        """
+        Creates plot of singular values of kernels product (K~*K^-1).
+
+        Parameters
+        ----------
+        sigma: numpy array
+            Singular values of kernels product.
+
+        Returns
+        -------
+        None
+        """
+        plt.figure()
+        plt.plot(sigma, 'b.')
+        plt.title('Singular values of kernels product')
+        plt.xlabel('Components number')
+        plt.ylabel('Singular values')
+        plt.yscale('log')
+        plt.show()
+
+    def plot_svd_sigma_lambd(self, sigma):
+        """
+        Creates plots of:
+            - 1 over (singular values of kernels product (K~*K^-1) + lambda).
+            - singular values over (singular values**2 + lambda)
+
+        Parameters
+        ----------
+        sigma: numpy array
+            Singular values of kernels product.
+
+        Returns
+        -------
+        None
+        """
+        x = np.arange(1, len(sigma) + 1)
+        plt.figure()
+        plt.plot(x, 1/(sigma + self.k.lambd), 'b.')
+        plt.title(r'$\frac{1}{(\sigma_j + \lambda)}$')
+        plt.xlabel('Components number j')
+        plt.ylabel(r'1/($\sigma_j + \lambda)$')
+        plt.yscale('log')
+        plt.show()
+        plt.figure()
+        plt.plot(x, sigma/(sigma**2 + self.k.lambd), 'b.')
+        plt.title(r'$\frac{\sigma_j}{(\sigma_j^2 + \lambda)}$')
+        plt.xlabel('Components number j')
+        plt.ylabel(r'$\sigma_j/(\sigma_j^2 + \lambda)$')
+        plt.yscale('log')
+        plt.show()
+
+    def plot_v(self, v):
+        """
+        Creates plot of eigen vectors.
+
+        Parameters
+        ----------
+        v: numpy array
+            Eigen vectors.
+
+        Returns
+        -------
+        None
+        """
+        a = int(v.shape[1] - int(np.sqrt(v.shape[1]))**2)
+        if a == 0:
+            size = int(np.sqrt(v.shape[1]))
+        else:
+            size = int(np.sqrt(v.shape[1])) + 1
+        fig, axs = plt.subplots(int(np.sqrt(v.shape[1])),
+                                size, figsize=(15, 13))
+        axs = axs.ravel()
+        fig.suptitle('Eigen vectors of k_pot matrix')
+        for i in range(v.shape[1]):
+            axs[i].plot(v[i, :], marker='.')
+            axs[i].set_title(r'$v_{'+str(i+1)+'}$')
+        plt.show()
+
+    def plot_svd_u(self, u_svd):
+        """
+        Creates plot of left singular values.
+
+        Parameters
+        ----------
+        u_svd: numpy array
+            Left singular vectors.
+
+        Returns
+        -------
+        None
+        """
+        a = int(u_svd.shape[1] - int(np.sqrt(u_svd.shape[1]))**2)
+        if a == 0:
+            size = int(np.sqrt(u_svd.shape[1]))
+        else:
+            size = int(np.sqrt(u_svd.shape[1])) + 1
+        fig, axs = plt.subplots(int(np.sqrt(u_svd.shape[1])),
+                                size, figsize=(15, 14))
+        axs = axs.ravel()
+        fig.suptitle('Left singular vectors of kernels product')
+        for i in range(u_svd.shape[1]):
+            axs[i].plot(u_svd[:, i], '.')
+            axs[i].set_title(r'$u_{'+str(i+1)+'}$')
+        plt.close()
+
+    def plot_svd_v(self, v_svd):
+        """
+        Creates plot of right singular values
+
+        Parameters
+        ----------
+        v_svd: numpy array
+            Right singular vectors.
+
+        Returns
+        -------
+        None
+        """
+        a = int(v_svd.shape[1] - int(np.sqrt(v_svd.shape[1]))**2)
+        if a == 0:
+            size = int(np.sqrt(v_svd.shape[1]))
+        else:
+            size = int(np.sqrt(v_svd.shape[1])) + 1
+        fig, axs = plt.subplots(int(np.sqrt(v_svd.shape[1])),
+                                size, figsize=(15, 14))
+        axs = axs.ravel()
+        fig.suptitle('Right singular vectors of kernels product')
+        for i in range(v_svd.shape[1]):
+            axs[i].plot(v_svd[i, :], marker='.')
+            axs[i].set_title(r'$v_{'+str(i+1)+'}$')
+        plt.show()
+
+
 if __name__ == '__main__':
     print('Checking 1D')
     CSD_PROFILE = CSD.gauss_1d_mono
@@ -1617,3 +1617,4 @@ if __name__ == '__main__':
                            Rs=np.arange(0.2, 0.5, 0.1))
     TOC = time.time() - TIC
     print('time', TOC)
+

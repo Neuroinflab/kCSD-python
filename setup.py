@@ -13,7 +13,7 @@ def readme():
 
 
 setup(name='kcsd',
-      version='1.1.1',
+      version='1.1.2',
       description='kernel current source density methods',
       long_description=readme(),
       classifiers=[
@@ -37,10 +37,11 @@ setup(name='kcsd',
       #     os.path.join('sKCSD', 'test.mat')
       # ]},
       include_package_data=True,
-      install_requires=['numpy>=1.8.2',
-                        'scipy>=0.14.0', ],
-      extras_require={'mpl': ['matplotlib>=0.99'],
-                      'skmonaco': ['scikit-monaco>=0.2'],
+      install_requires=['future>=0.16.0',
+                        'numpy>=1.8.2',
+                        'scipy>=0.14.0',
+                        'matplotlib>=2.0'],
+      extras_require={'skmonaco': ['scikit-monaco>=0.2'],
                       'docs': ['numpydoc>=0.5',
                                'sphinx>=1.2.2']},
       test_suite='kcsd.tests',
