@@ -378,7 +378,6 @@ class sKCSDcell(object):
             for p in coor:
                 x,y,z, = p
                 result[x,y,z,:] += estimated[i,:]
-
         return result
     def transform_to_segments(self, estimated):
         """ 
@@ -418,26 +417,24 @@ class sKCSDcell(object):
         #morphology = self.morphology_2D_for_images(axis=axis)
         if axis == 0:
             image = np.ones(shape=(resolution[1], resolution[2], 4), dtype=np.uint8) * 255
-            extent = [1e6*self.ymin, 1e6*self.ymax, 1e6*self.zmin, 1e6*self.zmax]
+            extent = [ 1e6*self.zmin, 1e6*self.zmax, 1e6*self.ymin, 1e6*self.ymax,]
         elif axis == 1:
             image = np.ones(shape=(resolution[0], resolution[2], 4), dtype=np.uint8) * 255
-            extent = [1e6*self.xmin, 1e6*self.xmax, 1e6*self.zmin, 1e6*self.zmax]
+            extent = [ 1e6*self.zmin, 1e6*self.zmax, 1e6*self.xmin, 1e6*self.xmax,]
         elif axis == 2:
             image = np.ones(shape=(resolution[0], resolution[1], 4), dtype=np.uint8) * 255
-            extent = [1e6*self.xmin, 1e6*self.xmax, 1e6*self.ymin, 1e6*self.ymax]
+            extent = [ 1e6*self.ymin, 1e6*self.ymax,1e6*self.xmin, 1e6*self.xmax]
         else:
             sys.exit('In drawing 2D morphology unknown axis ' + str(axis))
             
-        
         image[:, :, 3] = 0
         xs = []
         ys = []
         x0,y0 = 0,0
-
-        for p in range(self.source_xyz.shape[0]):
-            x = (np.abs(xgrid-self.source_xyz[p,0])).argmin()
-            y = (np.abs(ygrid-self.source_xyz[p,1])).argmin()
-            z = (np.abs(zgrid-self.source_xyz[p,2])).argmin()
+        for p in self.source_xyz:
+            x = (np.abs(xgrid-p[0])).argmin()
+            y = (np.abs(ygrid-p[1])).argmin()
+            z = (np.abs(zgrid-p[2])).argmin()
             if axis == 0:
                 xi, yi = y,z
             elif axis == 1:
@@ -449,14 +446,13 @@ class sKCSDcell(object):
             image[xi,yi,:] = np.array([0,0,0,1])
             if x0 !=0:
                 
-                idx_arr = self.points_in_between([xi,yi,0],[x0,y0,0],0)
-
+                idx_arr = self.points_in_between([xi,yi,0],[x0,y0,0],1)
                 for i in range(len(idx_arr)):
-
+                    
                     image[idx_arr[i,0]-1:idx_arr[i,0]+1,idx_arr[i,1]-1:idx_arr[i,1]+1,:] = np.array([0,0,0,20])
             x0, y0 = xi, yi        
         
-        return image,extent
+        return image, extent
     
    
 if __name__ == '__main__':

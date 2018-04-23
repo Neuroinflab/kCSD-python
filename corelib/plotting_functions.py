@@ -34,9 +34,8 @@ def skCSD_reconstruction_plot(pots,est_csd,est_pot,cell_obj,t_min=0,electrode=5)
             -------
             None
     """
-    
+    cell_obj.distribute_srcs_3D_morph()
     image, extent = cell_obj.draw_cell2D(axis=2)
-    
     n_x,n_y,n_z,n_t = est_pot.shape
     y_max = np.max(pots[electrode,t_min:t_min+n_t])
     y_min = np.min(pots[electrode,t_min:t_min+n_t])
@@ -49,13 +48,13 @@ def skCSD_reconstruction_plot(pots,est_csd,est_pot,cell_obj,t_min=0,electrode=5)
     ax1.set_yticks(ax1.get_yticks()[::2])
     est_csd_sub = plt.subplot2grid((5, 4), (1, 0), colspan=2, rowspan=2)
     est_csd_sub.set_title("skCSD")
-    est_csd_plot = est_csd_sub.imshow(est_csd[:,:,n_z//2,0],cmap=plt.cm.bwr_r,vmin=np.min(est_csd),vmax=np.max(est_csd), aspect="auto",extent=extent)
-    est_csd_morph = est_csd_sub.imshow(image, aspect="auto",extent=extent)
+    est_csd_plot = est_csd_sub.imshow(est_csd[:,:,n_z//2,0],cmap=plt.cm.bwr_r,vmin=np.min(est_csd),vmax=np.max(est_csd), aspect="auto",extent=extent,origin='lower')
+    est_csd_morph = est_csd_sub.imshow(image, aspect="auto",extent=extent,origin='lower')
     
     est_pot_sub = plt.subplot2grid((5, 4), (1, 2), colspan=2, rowspan=2)
     est_pot_sub.set_title("Potential")
-    est_pot_plot = est_pot_sub.imshow(est_pot[:,:,n_z//2,0].T, cmap=plt.cm.PRGn,vmin=np.min(est_pot),vmax=np.max(est_pot),aspect="auto",extent=extent)
-    est_pot_morph = est_pot_sub.imshow(image, aspect="auto",extent=extent)
+    est_pot_plot = est_pot_sub.imshow(est_pot[:,:,n_z//2,0].T, cmap=plt.cm.PRGn,vmin=np.min(est_pot),vmax=np.max(est_pot),aspect="auto",extent=extent,origin='lower')
+    est_pot_morph = est_pot_sub.imshow(image, aspect="auto",extent=extent,origin='lower')
 
     axcolor = 'lightgoldenrodyellow'
     axt = plt.axes([0.25, 0.1, 0.65, 0.03], axisbg=axcolor)
