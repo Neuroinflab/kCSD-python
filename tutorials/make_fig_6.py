@@ -11,6 +11,7 @@ from corelib import sKCSD, KCSD
 sKCSD.skmonaco_available = False
 import corelib.utility_functions as utils
 import corelib.loadData as ld
+import corelib.plotting_functions as pl
 import functions as fun
 
 n_src = 512
@@ -62,7 +63,7 @@ if __name__ == '__main__':
             fname = fname_base+'_R_%d_lambda_%f.png'%(R_init,la)
             fig_name = fun.make_fig_names(fname)
 
-            fun.plot(ax[0],ground_truth[:,atstart:atstop],yticklabels=[x for x in range(0,86,15)],fig=fig,title="Ground truth",vmin=-0.05,vmax=0.05)
+            pl.plot(ax[0],ground_truth[:,atstart:atstop],yticklabels=[x for x in range(0,86,15)],fig=fig,title="Ground truth",vmin=-0.05,vmax=0.05)
 
             for i, datd in enumerate(data_dir):
                 data = ld.Data(datd)
@@ -83,10 +84,10 @@ if __name__ == '__main__':
                     skcsd_grid.append(est_skcsd)
                     #skcsd_grid.append(est_skcsd)
             skcsd_maps_grid = fun.merge_maps(skcsd_grid,tstart=atstart,tstop=atstop,merge=1)
-            fun.plot(ax[1],skcsd_maps_grid,xticklabels=['8','16','32','64'],title="Grid")
+            pl.plot(ax[1],skcsd_maps_grid,xticklabels=['8','16','32','64'],title="Grid")
 
             skcsd_maps_random = fun.merge_maps(skcsd_random,tstart=atstart,tstop=atstop,merge=1)
-            fun.plot(ax[2],skcsd_maps_random,xticklabels=['8','16','32','64'],title="Random")
+            pl.plot(ax[2],skcsd_maps_random,xticklabels=['8','16','32','64'],title="Random")
     
             fig.savefig(fig_name, bbox_inches='tight', transparent=True, pad_inches=0.1)
 

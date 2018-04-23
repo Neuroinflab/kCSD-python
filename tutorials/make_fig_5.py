@@ -11,6 +11,7 @@ from corelib import sKCSD, KCSD
 sKCSD.skmonaco_available = False
 import corelib.utility_functions as utils
 import corelib.loadData as ld
+import corelib.plotting_functions as pl
 import functions as fun
 
 n_src = 512
@@ -91,19 +92,19 @@ if __name__ == '__main__':
                 est_kcsd_pot = kcsd.values(estimate='POT')
 
                 if i == 0:
-                    cax = fun.plot(ax[6],ground_truth_t1)
-                    cax = fun.plot(ax[10],ground_truth_t2)
-                    cax = fun.plot(ax[7],est_skcsd_t1)
-                    cax = fun.plot(ax[11],est_skcsd_t2)
+                    cax = pl.plot(ax[6],ground_truth_t1)
+                    cax = pl.plot(ax[10],ground_truth_t2)
+                    cax = pl.plot(ax[7],est_skcsd_t1)
+                    cax = pl.plot(ax[11],est_skcsd_t2)
                 else:
-                    cax = fun.plot(ax[0],est_kcsd_pot[:,:,:,t1].sum(axis=1))
-                    cax = fun.plot(ax[1],est_kcsd[:,:,:,t1].sum(axis=1))
-                    cax = fun.plot(ax[2], ground_truth_t1)
-                    cax = fun.plot(ax[3],est_skcsd_t1)
-                    cax = fun.plot(ax[4],est_kcsd_pot[:,:,:,t1].sum(axis=1))
-                    cax = fun.plot(ax[5],est_kcsd[:,:,:,t1].sum(axis=1))
-                    cax = fun.plot(ax[8],est_kcsd_pot[:,:,:,t2].sum(axis=1),extent=[-200,200,-200,600])
-                    cax = fun.plot(ax[9],est_kcsd[:,:,:,t2].sum(axis=1))
+                    cax = pl.plot(ax[0],est_kcsd_pot[:,:,:,t1].sum(axis=1))
+                    cax = pl.plot(ax[1],est_kcsd[:,:,:,t1].sum(axis=1))
+                    cax = pl.plot(ax[2], ground_truth_t1)
+                    cax = pl.plot(ax[3],est_skcsd_t1)
+                    cax = pl.plot(ax[4],est_kcsd_pot[:,:,:,t1].sum(axis=1))
+                    cax = pl.plot(ax[5],est_kcsd[:,:,:,t1].sum(axis=1))
+                    cax = pl.plot(ax[8],est_kcsd_pot[:,:,:,t2].sum(axis=1),extent=[-200,200,-200,600])
+                    cax = pl.plot(ax[9],est_kcsd[:,:,:,t2].sum(axis=1))
             fig.savefig(fig_name+'.png', bbox_inches='tight', transparent=True, pad_inches=0.1)
 
     

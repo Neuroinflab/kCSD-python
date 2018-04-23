@@ -11,6 +11,7 @@ from corelib import sKCSD
 sKCSD.skmonaco_available = False
 import corelib.utility_functions as utils
 import corelib.loadData as ld
+import corelib.plotting_functions as pl
 import functions as fun
 
 n_src = 512
@@ -38,7 +39,7 @@ if __name__ == '__main__':
     seglen = np.loadtxt(os.path.join(data_dir[0],'seglength'))#/scaling_factor
     ground_truth = np.loadtxt(os.path.join(data_dir[0],'membcurr'))
     ground_truth = ground_truth/seglen[:,None]
-    gvmax, gvmin = fun.get_min_max(ground_truth)
+    gvmax, gvmin = pl.get_min_max(ground_truth)
     for R_init in R_inits:
         for l in lambdas:
             
@@ -68,7 +69,7 @@ if __name__ == '__main__':
                 csd = k.values(transformation='segments')
                 
         
-                vmax, vmin = fun.get_min_max(csd)
+                vmax, vmin = pl.get_min_max(csd)
                 cax = ax[i+3].imshow(csd,extent=[0, tstop,1, 52,],origin='lower',aspect='auto',cmap='seismic_r',vmax=vmax,vmin=vmin)
                 #cbar = fig.colorbar(cax,ticks=[vmin,vmax])
                 ax[i+3].set_title(electrode_number[i])

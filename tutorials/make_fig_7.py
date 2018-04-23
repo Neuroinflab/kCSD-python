@@ -10,6 +10,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 from corelib import sKCSD, KCSD
 import corelib.utility_functions as utils
 import corelib.loadData as ld
+import corelib.plotting_functions as pl
 import functions as fun
 sKCSD.skmonaco_available = False
 
@@ -60,12 +61,12 @@ if __name__ == '__main__':
     for i, ax_i in enumerate(ax):
         title = "M = %d"%n_srcs[i]
         if not i:
-            fun.plot(ax_i,outs[i],yticklabels=y_ticklabels, xticklabels=x_ticklabels,vmin=vmin,vmax=vmax,title=title)
+            pl.plot(ax_i,outs[i],yticklabels=y_ticklabels, xticklabels=x_ticklabels,vmin=vmin,vmax=vmax,title=title)
         elif i<3:
-            fun.plot(ax_i,outs[i], xticklabels=x_ticklabels,vmin=vmin,vmax=vmax, title=title)
+            pl.plot(ax_i,outs[i], xticklabels=x_ticklabels,vmin=vmin,vmax=vmax, title=title)
 
         else:
-            fun.plot(ax_i,outs[i], xticklabels=x_ticklabels,fig=fig,vmin=vmin,vmax=vmax,sinksource=False,title=title)
+            pl.plot(ax_i,outs[i], xticklabels=x_ticklabels,fig=fig,vmin=vmin,vmax=vmax,sinksource=False,title=title)
         
     plt.show()
     fig.savefig(fig_name, bbox_inches='tight', transparent=True, pad_inches=0.1)

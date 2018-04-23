@@ -10,6 +10,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 from corelib import sKCSD, KCSD
 import corelib.utility_functions as utils
 import corelib.loadData as ld
+import corelib.plotting_functions as pl
 import functions as fun
 import run_LFP
 n_src = 512
@@ -46,10 +47,10 @@ if __name__ == '__main__':
     #for i in range(14):
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
-    fun.plot(ax,ground_truth,fig=fig,sinksource=False)
+    pl.plot(ax,ground_truth,fig=fig,sinksource=False)
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
-    fun.plot(ax,pots,fig=fig,sinksource=False)
+    pl.plot(ax,pots,fig=fig,sinksource=False)
     plt.show()
     for i,R in enumerate(R_inits):
         
@@ -59,7 +60,7 @@ if __name__ == '__main__':
             if not i and not j:
                
                ground_truth_3D = ker.cell.transform_to_3D(ground_truth,what="morpho")
-               vmax, vmin = fun.get_min_max(ground_truth_3D)
+               vmax, vmin = pl.get_min_max(ground_truth_3D)
             ker_dir = data_dir+'_R_%f_lambda_%f'%(R,lambd)
             c.new_path = ker_dir
             c.save_skCSD_python()
@@ -79,10 +80,10 @@ if __name__ == '__main__':
            
             print(R,l,lambd,est_skcsd.max(),est_skcsd.min(),ground_truth.max(),ground_truth.min(),fun.L1_error(ground_truth_3D,est_skcsd))
             
-            fun.plot(ax[1],morpho,extent=extent)
-            fun.plot(ax[1],est_skcsd.sum(axis=(2,3)),extent=extent)
-            fun.plot(ax[0],morpho,extent=extent)
-            fun.plot(ax[0],ground_truth_3D.sum(axis=(2,3)),extent=extent)
+            pl.plot(ax[1],morpho,extent=extent)
+            pl.plot(ax[1],est_skcsd.sum(axis=(2,3)),extent=extent)
+            pl.plot(ax[0],morpho,extent=extent)
+            pl.plot(ax[0],ground_truth_3D.sum(axis=(2,3)),extent=extent)
             
             plt.show()
             

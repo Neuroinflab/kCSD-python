@@ -64,59 +64,7 @@ def merge_maps(maps,tstart,tstop,merge):
 
     return outs
 
-def get_min_max(csd):
-    vmin,vmax = csd.min(),csd.max()
-    
-    if vmin*vmax < 0:
-        if abs(vmax) > abs(vmin):
-            vmin = -vmax
-        else:
-            vmax = -vmin
-            
-    return vmax,vmin
 
-def calculate_ticks(ticklabels,length):
-    n = len(ticklabels)
-    step = length//n
-    if not step:
-        step = 1
-    
-    return [i for i in range(0, length,step)]
 
-def plot(ax_i,what,xticklabels=None,yticklabels=None,fig=None,title=None,vmin=None,vmax=None,sinksource=True,extent=None):
-    if not vmin or not vmax:
-        xmax, xmin = get_min_max(what)
-    else:
-        xmax = vmax
-        xmin = vmin
-    if extent:
-         cax = ax_i.imshow(what,origin='lower',aspect='auto',cmap='seismic_r',interpolation='none',vmin=xmin,vmax=xmax,extent=extent)
-         for tick in ax_i.get_xticklabels():
-             tick.set_rotation(90)
-         
-    else:
-        cax = ax_i.imshow(what,origin='lower',aspect='auto',cmap='seismic_r',interpolation='none',vmin=xmin,vmax=xmax)
 
-        if xticklabels:
-            xticks = calculate_ticks(xticklabels,what.shape[1])
-            ax_i.set_xticks(xticks)
-            ax_i.set_xticklabels(xticklabels)
-        else:
-            ax_i.set_xticks([])
-        
-        if yticklabels:
 
-            yticks = calculate_ticks(yticklabels,what.shape[0])
-        
-            ax_i.set_yticks(yticks)
-            ax_i.set_yticklabels(yticklabels)
-        else:
-            ax_i.set_yticks([])
-    
-    if fig:
-        cbar = fig.colorbar(cax, ticks=[xmin, 0, xmax])
-        if sinksource:
-            cbar.ax.set_yticklabels(['source','0','sink'])
-    if title:
-        ax_i.set_title(title)
-    return cax
