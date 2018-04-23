@@ -10,9 +10,6 @@ Laboratory of Neuroinformatics,
 Nencki Institute of Exprimental Biology, Warsaw.
 '''
 import numpy as np
-# import matplotlib.pyplot as plt
-# import matplotlib.cm as cm
-# from matplotlib import gridspec
 from numpy import exp
 
 
@@ -35,9 +32,9 @@ def add_1d_gaussians(x, states):
     '''Function used for adding multiple 1D gaussians'''
     f = np.zeros(x.shape)
     for i in range(states.shape[0]):
-        gauss = states[i, 0]*np.exp(-((x-states[i, 1])**2)/(2.*states[i, 2]))*(2*np.pi*states[i, 2])**-0.5
+        gauss = states[i, 0]*np.exp(-((x - states[i, 1])**2)/(2.*states[i, 2])
+                                    )*(2*np.pi*states[i, 2])**-0.5
         f += gauss
-    #f *= np.hanning(gauss.size) #while this is cool in principle, its unpredictable 
     return f
 
 
@@ -52,9 +49,9 @@ def gauss_1d_dipole(x, seed=0):
     '''Random dipole source in 1D'''
     states, rstate = get_states_1D(seed, n=1)
     offset = rstate.random_sample(1) - 0.5
-    states = np.tile(states, (2,1))
-    states[1,0] *= -1. #A Sink
-    states[1,1] += offset
+    states = np.tile(states, (2, 1))
+    states[1, 0] *= -1.  # A Sink
+    states[1, 1] += offset
     f = add_1d_gaussians(x, states)
     return f
 
@@ -63,9 +60,9 @@ def get_states_2D(seed):
     """
     Used in the random seed generation for 2d sources
     """
-    rstate = np.random.RandomState(seed) 
+    rstate = np.random.RandomState(seed)
     states = rstate.random_sample(24)
-    states[0:12] = 2*states[0:12] -1.
+    states[0:12] = 2*states[0:12] - 1.
     return states
 
 
@@ -93,10 +90,10 @@ def gauss_2d_small(csd_at, seed=0):
 
     def gauss2d(x, y, p):
         """
-         p:     list of parameters of the Gauss-function
-                [XCEN,YCEN,SIGMAX,SIGMAY,AMP,ANGLE]
-                SIGMA = FWHM / (2*sqrt(2*log(2)))
-                ANGLE = rotation of the X,Y direction of the Gaussian in radians
+         p:    list of parameters of the Gauss-function
+               [XCEN,YCEN,SIGMAX,SIGMAY,AMP,ANGLE]
+               SIGMA = FWHM / (2*sqrt(2*log(2)))
+               ANGLE = rotation of the X,Y direction of the Gaussian in radians
         Returns
         -------
         the value of the Gaussian described by the parameters p
@@ -106,17 +103,17 @@ def gauss_2d_small(csd_at, seed=0):
         rcen_y = p[0] * np.sin(p[5]) + p[1] * np.cos(p[5])
         xp = x * np.cos(p[5]) - y * np.sin(p[5])
         yp = x * np.sin(p[5]) + y * np.cos(p[5])
-        g = p[4]*np.exp(-(((rcen_x-xp)/p[2])**2+
+        g = p[4]*np.exp(-(((rcen_x-xp)/p[2])**2 +
                           ((rcen_y-yp)/p[3])**2)/2.)
         return g
     states = get_states_2D(seed)
     angle = states[18]*180.
     x_amp = 0.038
     y_amp = 0.056
-    f1 = gauss2d(x,y,[states[12],states[14],x_amp,y_amp,0.5,angle])
-    f2 = gauss2d(x,y,[states[12],states[15],x_amp,y_amp,-0.5,angle])
-    f3 = gauss2d(x,y,[states[13],states[14],x_amp,y_amp,0.5,angle])
-    f4 = gauss2d(x,y,[states[13],states[15],x_amp,y_amp,-0.5,angle])
+    f1 = gauss2d(x, y, [states[12], states[14], x_amp, y_amp, 0.5, angle])
+    f2 = gauss2d(x, y, [states[12], states[15], x_amp, y_amp, -0.5, angle])
+    f3 = gauss2d(x, y, [states[13], states[14], x_amp, y_amp, 0.5, angle])
+    f4 = gauss2d(x, y, [states[13], states[15], x_amp, y_amp, -0.5, angle])
     f = f1+f2+f3+f4
     return f
 
@@ -141,16 +138,16 @@ def gauss_3d_small(csd_at, seed=0):
     sig_2 = states[6] / 75.
     p1, p2, p3 = (ii*0.5 for ii in states[8:11])
     A = (2*np.pi*sig_2)**-1
-    f1 = A*np.exp( (-(x-x0)**2 -(y-y0)**2 -(z-z0)**2) / (2*sig_2) )
-    f2 = -1*A*np.exp( (-(x-x1)**2 -(y-y1)**2 -(z-z1)**2) / (2*sig_2) )
+    f1 = A*np.exp((-(x-x0)**2 - (y-y0)**2 - (z-z0)**2) / (2*sig_2))
+    f2 = -1*A*np.exp((-(x-x1)**2 - (y-y1)**2 - (z-z1)**2) / (2*sig_2))
     x2 = np.modf(x0+p1)[0]
     y2 = np.modf(y0+p2)[0]
     z2 = np.modf(z0+p3)[0]
-    f3 = A*np.exp( (-(x-x2)**2 -(y-y2)**2 -(z-z2)**2) / (2*sig_2) )
+    f3 = A*np.exp((-(x-x2)**2 - (y-y2)**2 - (z-z2)**2) / (2*sig_2))
     x3 = np.modf(x1+p1)[0]
     y3 = np.modf(y1+p2)[0]
     z3 = np.modf(z1+p3)[0]
-    f4 = -1*A*np.exp( (-(x-x3)**2 -(y-y3)**2 -(z-z3)**2) / (2*sig_2) )
+    f4 = -1*A*np.exp((-(x-x3)**2 - (y-y3)**2 - (z-z3)**2) / (2*sig_2))
     f = f1+f2+f3+f4
     return f
 
@@ -165,10 +162,11 @@ def gauss_3d_large(csd_at, seed=0):
         states[1] *= 25
     sig_2 = states[1] * 5
     A = (2*np.pi*sig_2)**-1
-    f1 = A*np.exp( (-(x-x0)**2 -(y-y0)**2 -(z-z0)**2) / (2*sig_2) )
-    f2 = -1*A*np.exp( (-(x-x1)**2 -(y-y1)**2 -(z-z1)**2) / (2*sig_2) )
+    f1 = A*np.exp((-(x-x0)**2 - (y-y0)**2 - (z-z0)**2) / (2*sig_2))
+    f2 = -1*A*np.exp((-(x-x1)**2 - (y-y1)**2 - (z-z1)**2) / (2*sig_2))
     f = f1+f2
     return f
+
 
 def gauss_1d_dipole_f(x):
     """1D Gaussian dipole source is placed between 0 and 1
@@ -193,12 +191,13 @@ def gauss_1d_dipole_f(x):
 def gauss_2d_small_f(csd_at):
     '''Source from Jan 2012 kCSD  paper'''
     x, y = csd_at
+
     def gauss2d(x, y, p):
         """
-         p:     list of parameters of the Gauss-function
-                [XCEN,YCEN,SIGMAX,SIGMAY,AMP,ANGLE]
-                SIGMA = FWHM / (2*sqrt(2*log(2)))
-                ANGLE = rotation of the X,Y direction of the Gaussian in radians
+         p:    list of parameters of the Gauss-function
+               [XCEN,YCEN,SIGMAX,SIGMAY,AMP,ANGLE]
+               SIGMA = FWHM / (2*sqrt(2*log(2)))
+               ANGLE = rotation of the X,Y direction of the Gaussian in radians
         Returns
         -------
         the value of the Gaussian described by the parameters p
@@ -208,13 +207,13 @@ def gauss_2d_small_f(csd_at):
         rcen_y = p[0] * np.sin(p[5]) + p[1] * np.cos(p[5])
         xp = x * np.cos(p[5]) - y * np.sin(p[5])
         yp = x * np.sin(p[5]) + y * np.cos(p[5])
-        g = p[4]*np.exp(-(((rcen_x-xp)/p[2])**2+
+        g = p[4]*np.exp(-(((rcen_x-xp)/p[2])**2 +
                           ((rcen_y-yp)/p[3])**2)/2.)
         return g
-    f1 = gauss2d(x,y,[0.3,0.7,0.038,0.058,0.5,0.])
-    f2 = gauss2d(x,y,[0.3,0.6,0.038,0.058,-0.5,0.])
-    f3 = gauss2d(x,y,[0.45,0.7,0.038,0.058,0.5,0.])
-    f4 = gauss2d(x,y,[0.45,0.6,0.038,0.058,-0.5,0.])
+    f1 = gauss2d(x, y, [0.3, 0.7, 0.038, 0.058, 0.5, 0.])
+    f2 = gauss2d(x, y, [0.3, 0.6, 0.038, 0.058, -0.5, 0.])
+    f3 = gauss2d(x, y, [0.45, 0.7, 0.038, 0.058, 0.5, 0.])
+    f4 = gauss2d(x, y, [0.45, 0.6, 0.038, 0.058, -0.5, 0.])
     f = f1+f2+f3+f4
     return f
 
@@ -223,14 +222,15 @@ def gauss_2d_large_f(csd_at):
     '''Fixed 'large source' profile in 2012 paper'''
     x, y = csd_at
     z = 0
-    zz = [0.4, -0.3, -0.1, 0.6] 
-    zs = [0.2, 0.3, 0.4, 0.2] 
-    f1 = 0.5965*exp( (-1*(x-0.1350)**2 - (y-0.8628)**2) /0.4464)* exp(-(z-zz[0])**2 / zs[0]) /exp(-(zz[0])**2/zs[0])
-    f2 = -0.9269*exp( (-2*(x-0.1848)**2 - (y-0.0897)**2) /0.2046)* exp(-(z-zz[1])**2 / zs[1]) /exp(-(zz[1])**2/zs[1]);
-    f3 = 0.5910*exp( (-3*(x-1.3189)**2 - (y-0.3522)**2) /0.2129)* exp(-(z-zz[2])**2 / zs[2]) /exp(-(zz[2])**2/zs[2]);
-    f4 = -0.1963*exp( (-4*(x-1.3386)**2 - (y-0.5297)**2) /0.2507)* exp(-(z-zz[3])**2 / zs[3]) /exp(-(zz[3])**2/zs[3]);
+    zz = [0.4, -0.3, -0.1, 0.6]
+    zs = [0.2, 0.3, 0.4, 0.2]
+    f1 = 0.5965*exp((-1*(x-0.1350)**2 - (y-0.8628)**2) / 0.4464)*exp(-(z-zz[0])**2 / zs[0]) / exp(-(zz[0])**2/zs[0])
+    f2 = -0.9269*exp((-2*(x-0.1848)**2 - (y-0.0897)**2) / 0.2046)*exp(-(z-zz[1])**2 / zs[1]) / exp(-(zz[1])**2/zs[1])
+    f3 = 0.5910*exp((-3*(x-1.3189)**2 - (y-0.3522)**2) / 0.2129)*exp(-(z-zz[2])**2 / zs[2]) / exp(-(zz[2])**2/zs[2])
+    f4 = -0.1963*exp((-4*(x-1.3386)**2 - (y-0.5297)**2) / 0.2507)*exp(-(z-zz[3])**2 / zs[3]) / exp(-(zz[3])**2/zs[3])
     f = f1+f2+f3+f4
     return f
+
 
 def gauss_3d_dipole_f(csd_at):
     '''Fixed dipole in 3 dimensions of the volume'''
@@ -239,8 +239,8 @@ def gauss_3d_dipole_f(csd_at):
     x1, y1, z1 = 0.6, 0.5, 0.7
     sig_2 = 0.023
     A = (2*np.pi*sig_2)**-1
-    f1 = A*np.exp( (-(x-x0)**2 -(y-y0)**2 -(z-z0)**2) / (2*sig_2) )
-    f2 = -1*A*np.exp( (-(x-x1)**2 -(y-y1)**2 -(z-z1)**2) / (2*sig_2) )
+    f1 = A*np.exp((-(x-x0)**2 - (y-y0)**2 - (z-z0)**2) / (2*sig_2))
+    f2 = -1*A*np.exp((-(x-x1)**2 - (y-y1)**2 - (z-z1)**2) / (2*sig_2))
     f = f1+f2
     return f
 
@@ -251,7 +251,7 @@ def gauss_3d_mono1_f(csd_at):
     x0, y0, z0 = 0.5, 0.5, 0.5
     sig_2 = 0.023
     A = (2*np.pi*sig_2)**-1
-    f1 = A*np.exp( (-(x-x0)**2 -(y-y0)**2 -(z-z0)**2) / (2*sig_2) )
+    f1 = A*np.exp((-(x-x0)**2 - (y-y0)**2 - (z-z0)**2) / (2*sig_2))
     return f1
 
 
@@ -261,7 +261,7 @@ def gauss_3d_mono2_f(csd_at):
     x0, y0, z0 = 0.41, 0.41, 0.585
     sig_2 = 0.023
     A = (2*np.pi*sig_2)**-1
-    f1 = A*np.exp( (-(x-x0)**2 -(y-y0)**2 -(z-z0)**2) / (2*sig_2) )
+    f1 = A*np.exp((-(x-x0)**2 - (y-y0)**2 - (z-z0)**2) / (2*sig_2))
     return f1
 
 
@@ -288,8 +288,8 @@ def gauss_3d_mono3_f(csd_at):
 #     height_ratios.append(0.1)
 #     gs = gridspec.GridSpec(z_steps+1, 1, height_ratios=height_ratios)
 #     for ii, idx in enumerate(ind_interest):
-#         ax = plt.subplot(gs[ii,0])
-#         im = plt.contourf(chrg_x[:,:,idx], chrg_y[:,:,idx], t[:,:,idx], 
+#         ax = plt.subplot(gs[ii, 0])
+#         im = plt.contourf(chrg_x[:, :, idx], chrg_y[:, :, idx], t[:, :, idx],
 #                           levels=levels, cmap=cmap)
 #         ax.get_xaxis().set_visible(False)
 #         ax.get_yaxis().set_visible(False)
@@ -300,17 +300,16 @@ def gauss_3d_mono3_f(csd_at):
 #     cbar = plt.colorbar(im, cax=cax, orientation='horizontal')
 #     cbar.set_ticks(levels[::2])
 #     cbar.set_ticklabels(np.around(levels[::2], decimals=2))
-#     gs.tight_layout(fig, rect=[0, 0.03, 1, 0.95])  
+#     gs.tight_layout(fig, rect=[0, 0.03, 1, 0.95])
 #     #plt.tight_layout()
 
 
-csd_available_dict = {1 : [gauss_1d_mono, gauss_1d_dipole],
-                      2 : [gauss_2d_large, gauss_2d_small],
-                      3 : [gauss_3d_large, gauss_3d_small]}
+csd_available_dict = {1: [gauss_1d_mono, gauss_1d_dipole],
+                      2: [gauss_2d_large, gauss_2d_small],
+                      3: [gauss_3d_large, gauss_3d_small]}
 
 
-
-if __name__=='__main__':
+if __name__ == '__main__':
     seed = 3
 
     # 1D CASE
@@ -322,9 +321,9 @@ if __name__=='__main__':
     # #2D CASE
     # csd_profile = gauss_2d_large
     # states[0:12] = 2*states[0:12] -1. #obtain values between -1 and 1
-    # chrg_x, chrg_y = np.mgrid[0.:1.:50j, 
+    # chrg_x, chrg_y = np.mgrid[0.:1.:50j,
     #                           0.:1.:50j]
-    # f = csd_profile(chrg_x, chrg_y, seed=seed) 
+    # f = csd_profile(chrg_x, chrg_y, seed=seed)
     # fig = plt.figure(1)
     # ax1 = plt.subplot(111, aspect='equal')
     # im = ax1.contourf(chrg_x, chrg_y, f, 15, cmap=cm.bwr_r)
@@ -333,7 +332,7 @@ if __name__=='__main__':
 
     # #3D CASE
     # csd_profile = gauss_3d_small
-    # chrg_x, chrg_y, chrg_z = np.mgrid[0.:1.:50j, 
+    # chrg_x, chrg_y, chrg_z = np.mgrid[0.:1.:50j,
     #                                   0.:1.:50j,
     #                                   0.:1.:50j]
     # f = csd_profile(chrg_x, chrg_y, chrg_z, seed=seed)
