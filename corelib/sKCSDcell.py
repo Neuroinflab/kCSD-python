@@ -380,7 +380,27 @@ class sKCSDcell(object):
                 result[x,y,z,:] += estimated[i,:]
 
         return result
+    def transform_to_segments(self, estimated):
+        """ 
+        Transform potential/csd/ground truth values in loop space 
+        to segment space.
 
+        Parameters
+        ----------
+        estimated : np.array
+           
+        Returns
+        -------
+        result : np.array
+        """
+        result = np.zeros((self.morphology.shape[0]-1,estimated.shape[1]))
+        for i, loop in enumerate(self.loops):
+            key = "%d_%d"%(loop[0],loop[1])
+            seg_no = self.segments[key]
+                
+            result[seg_no,:] += estimated[i,:]
+
+        return result
     def draw_cell2D(self,axis=2):
         """
         Cell morphology in 3D grid in projection of axis.

@@ -258,19 +258,12 @@ class sKCSD(KCSD1D):
             estimated quantity
         '''
         estimated = super(sKCSD,self).values(estimate=estimate)
+        
         if not transformation:
             return estimated
-        if transformation == 'segments':
-            result = np.zeros((self.cell.morphology.shape[0]-1,estimated.shape[1]))
-
-            for i, loop in enumerate(self.cell.loops):
-                key = "%d_%d"%(loop[0],loop[1])
-                seg_no = self.cell.segments[key]
-                
-                result[seg_no,:] += estimated[i,:]
-
-            return result
-        if transformation == '3D':
+        elif transformation == 'segments':
+            return self.cell.transform_to_segments(estimated)
+        elif transformation == '3D':
             return self.cell.transform_to_3D(estimated,what="loop")
 
         raise Exception("Unknown transformation %s of %s"%(transformation, estimate))
