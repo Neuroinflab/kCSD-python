@@ -2,7 +2,7 @@
 """
 Created on Mon Jun 26 15:11:07 2017
 
-@author: Jan Maka
+@author: Joanna Jędrzejewska-Szmek, Jan Maka
 """
 from __future__ import print_function, division, absolute_import
 import numpy as np
@@ -11,7 +11,7 @@ from matplotlib.widgets import Slider, Button, RadioButtons
 import matplotlib.gridspec as gridspec
 import os
 import sys
-
+import argparse
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import corelib.utility_functions as utils
@@ -19,6 +19,7 @@ import glob
 
 import corelib.loadData as ld
 sliders = []
+
 def skCSD_reconstruction_plot(pots,est_csd,est_pot,cell_obj,t_min=0,electrode=5):
     """Displays interactive skCSD reconstruction plot
             Parameters
@@ -33,8 +34,6 @@ def skCSD_reconstruction_plot(pots,est_csd,est_pot,cell_obj,t_min=0,electrode=5)
             -------
             None
     """
-    if not cell_obj.morph_points_dist:
-        cell_obj.distribute_srcs_3D_morph()
     
     image, extent = cell_obj.draw_cell2D(axis=2)
     
@@ -129,14 +128,9 @@ def skCSD_reconstruction_plot(pots,est_csd,est_pot,cell_obj,t_min=0,electrode=5)
     #radio.on_clicked(colorfunc)
 
     plt.show()
-    
 
-if __name__ == '__main__':
-    try:
-        data_dir = sys.argv[1]
-    except IndexError:
-        print('Please provide path to data')
-        
+def load_data(data_dir):
+
     data = ld.Data(data_dir)
     pots = data.LFP
     if sys.version_info < (3,0):
@@ -145,7 +139,122 @@ if __name__ == '__main__':
         path = os.path.join(data_dir, "preprocessed_data/Python_3")
 
     est_csd, est_pot, cell_obj = utils.load_sim(path)
-    print( est_csd.shape, est_pot.shape)
-    skCSD_reconstruction_plot(pots,est_csd,est_pot,cell_obj)
- 
+    return (pots, est_csd, est_pot, cell_obj)
+
+def make_transformation(est_csd,est_pot,cell_object,transformation):
+    if transformation == '3D':
+        new_csd = cell_object.transform_to_3D(est_csd)
+        new_pot = cell_object.transform_to_3D(est_pot)
+    elif transformation == 'segments':
+        new_csd = cell_object.transform_to_segments(est_csd)
+        new_pot = cell_object.transform_to_segments(est_pot)
+    elif transformation == 'loops':
+        new_csd = est_csd
+        new_pot = est_pot
+    else:
+        raise Exception("Unknown transformation %s"%transformation)
+
+    return new_csd, new_pot
+
+def calculate_ticks(ticklabels,length):
+    n = len(ticklabels)
+    step = length//n
+    if not step:
+        step = 1
+    
+    return [i for i in range(0, length,step)]
+
+def get_min_max(csd):
+    vmin,vmax = csd.min(),csd.max()
+    
+    if vmin*vmax < 0:
+        if abs(vmax) > abs(vmin):
+            vmin = -vmax
+        else:
+            vmax = -vmin
+            
+    return vmax,vmin
+
+def make_fig(est_csd,est_pot,transformation,tstop=None):
+    fig, ax = plt.subplots(1,2,figsize=(10, 8))
+    if tstop:
+        xlabel = 'Time [ms]'
+        extent = [0, tstop, 0, est_csd.shape[0]]
+    else:
+        xlabel = None
+        extent = None
+    if transformation == 'loops':
+        ylabel = '#Loop'
+    elif transformation == 'segments':
+        ylabel = '#segment'
+    plot(ax[0],est_pot,fig=fig,title='Potential',cmap=plt.cm.PRGn,xlabel=xlabel,ylabel=ylabel,extent=extent)
+    plot(ax[1],est_csd,fig=fig,title='CSD',xlabel=xlabel,extent=extent)
+    
+    
+    
+
+def plot(ax_i,what,xticklabels=None,yticklabels=None,fig=None,title=None,vmin=None,vmax=None,sinksource=True,extent=None,cmap=plt.cm.bwr_r,xlabel=None,ylabel=None):
+    if not vmin or not vmax:
+        xmax, xmin = get_min_max(what)
+    else:
+        xmax = vmax
+        xmin = vmin
+    if extent:
+         cax = ax_i.imshow(what,origin='lower',aspect='auto',interpolation='none',vmin=xmin,vmax=xmax,extent=extent,cmap=cmap)
+         for tick in ax_i.get_xticklabels():
+             tick.set_rotation(90)
+         
+    else:
+        cax = ax_i.imshow(what,origin='lower',aspect='auto',interpolation='none',vmin=xmin,vmax=xmax,cmap=cmap)
+
+        if xticklabels:
+            xticks = calculate_ticks(xticklabels,what.shape[1])
+            ax_i.set_xticks(xticks)
+            ax_i.set_xticklabels(xticklabels)
+        else:
+            ax_i.set_xticks([])
+        
+        if yticklabels:
+
+            yticks = calculate_ticks(yticklabels,what.shape[0])
+        
+            ax_i.set_yticks(yticks)
+            ax_i.set_yticklabels(yticklabels)
+        else:
+            ax_i.set_yticks([])
+    
+    if fig:
+        cbar = fig.colorbar(cax, ax=ax_i, ticks=[xmin, 0, xmax])
+        if sinksource:
+            cbar.ax.set_yticklabels(['source','0','sink'])
+    if title:
+        ax_i.set_title(title)
+    if xlabel:
+        ax_i.set_xlabel(xlabel)
+    if ylabel:
+        ax_i.set_ylabel(ylabel)
+    return cax
+
+
+if __name__ == '__main__':
+    
+    parser = argparse.ArgumentParser(description='Plot sKCSD current/potential estimation')
+    parser.add_argument('path', metavar='path', type=str, 
+                    help='Path to sKCSD results')
+    parser.add_argument('--transformation',choices=set(('3D','segments','loops')), default='3D',
+                    help='Space of CSD/current visualization: 3D, segments, loops')
+    parser.add_argument('--tstop',type=float, default=None,
+                    help='Length of the measurement/simulation')
+    args = parser.parse_args()
+    
+    data_dir = args.path
+    
+    pots, est_csd, est_pot, cell_obj = load_data(data_dir)
+    est_csd, est_pot = make_transformation(est_csd,est_pot,cell_obj,args.transformation)
+    
+    if args.transformation == '3D':
+        skCSD_reconstruction_plot(pots,est_csd,est_pot,cell_obj)
+    elif args.transformation == 'loops' or args.transformation == 'segments':
+        make_fig(est_csd,est_pot,args.transformation,tstop=args.tstop)
+        
     plt.show()
