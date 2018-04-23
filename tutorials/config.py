@@ -1,7 +1,7 @@
 from kcsd import csd_profile as csd
 from kcsd import MoIKCSD
 from kcsd import ValidateKCSD, ValidateKCSD1D, ValidateKCSD2D, ValidateKCSD3D, SpectralStructure
-from kcsd import ErrorMap1D, ErrorMap2D, ErrorMap3D
+from kcsd import VisibilityMap1D, VisibilityMap2D, VisibilityMap3D
 
 
 # Function to initialize default parameters
@@ -10,21 +10,21 @@ def initialize(value):
         dim = 1
         csd_profile = csd.gauss_1d_mono
         kCSD = ValidateKCSD1D
-        error_map = ErrorMap1D
+        visibility_map = VisibilityMap1D
     elif value == '2D':
         dim = 2
         csd_profile = csd.gauss_2d_small
         kCSD = ValidateKCSD2D
-        error_map = ErrorMap2D
+        visibility_map = VisibilityMap2D
     else:
         dim = 3
         csd_profile = csd.gauss_3d_small
         kCSD = ValidateKCSD3D
-        error_map = ErrorMap3D
-    return dim, csd_profile, kCSD, error_map
+        visibility_map = VisibilityMap3D
+    return dim, csd_profile, kCSD, visibility_map
 
 
-dim, csd_profile, kCSD, error_map = initialize('1D')
+dim, csd_profile, kCSD, visibility_map = initialize('1D')
 
 
 kcsd_options = {1: {'ValidateKCSD1D': ValidateKCSD1D},

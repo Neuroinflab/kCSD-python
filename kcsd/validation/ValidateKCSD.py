@@ -10,7 +10,6 @@ from __future__ import absolute_import
 import time
 
 from builtins import int, range
-from past.utils import old_div
 
 import numpy as np
 from numpy.linalg import LinAlgError
@@ -350,7 +349,7 @@ class ValidateKCSD(object):
                 pots[index] = self.integrate(csd_at, true_csd, ele_pos[index],
                                              h)
             # eq.: 26 from Potworowski (2012)
-            pots *= old_div(1, (2. * sigma))
+            pots *= 1 / (2. * sigma)
         elif self.dim == 2:
             xlin = csd_at[0, :, 0]
             ylin = csd_at[1, 0, :]

@@ -25,11 +25,11 @@ except ImportError:
     PARALLEL_AVAILABLE = False
 
 
-class ErrorMap1D(ValidateKCSD1D):
+class VisibilityMap1D(ValidateKCSD1D):
     """
     Class that produces error map for 1D CSD reconstruction.
     """
-    def __init__(self, csd_seed, **kwargs):
+    def __init__(self, **kwargs):
         """
         Initialize ErrorMap1D class.
 
@@ -46,7 +46,7 @@ class ErrorMap1D(ValidateKCSD1D):
         -------
         None
         """
-        super(ErrorMap1D, self).__init__(csd_seed, **kwargs)
+        super(VisibilityMap1D, self).__init__(1, **kwargs)
         return
 
     def calculate_error_map(self, csd_profile, total_ele, n=100, noise=None,
@@ -176,7 +176,7 @@ class ErrorMap1D(ValidateKCSD1D):
         mean_err = self.sigmoid_mean(point_error)
         plt.figure(figsize=(10, 6))
         plt.title('Sigmoidal mean point error for random sources')
-        plt.plot(np.linspace(ele_pos[0], ele_pos[-1], point_error.shape[0]),
+        plt.plot(np.linspace(ele_pos[0], ele_pos[-1], mean_err.shape[0]),
                  mean_err, 'b.', label='mean error')
         plt.plot(ele_pos, np.zeros(len(ele_pos)), 'o', color='black',
                  label='electrodes locations')
@@ -187,11 +187,11 @@ class ErrorMap1D(ValidateKCSD1D):
         return
 
 
-class ErrorMap2D(ValidateKCSD2D):
+class VisibilityMap2D(ValidateKCSD2D):
     """
     Class that produces error map for 2D CSD reconstruction.
     """
-    def __init__(self, csd_seed, **kwargs):
+    def __init__(self, **kwargs):
         """
         Initialize ErrorMap2D class.
 
@@ -208,7 +208,7 @@ class ErrorMap2D(ValidateKCSD2D):
         -------
         None
         """
-        super(ErrorMap2D, self).__init__(csd_seed, **kwargs)
+        super(VisibilityMap2D, self).__init__(1, **kwargs)
         return
 
     def make_reconstruction(self, csd_profile, csd_seed, total_ele, noise=None,
@@ -360,11 +360,11 @@ class ErrorMap2D(ValidateKCSD2D):
         return
 
 
-class ErrorMap3D(ValidateKCSD3D):
+class VisibilityMap3D(ValidateKCSD3D):
     """
     Class that produces error map for 3D CSD reconstruction.
     """
-    def __init__(self, csd_seed, **kwargs):
+    def __init__(self, **kwargs):
         """
         Initialize ErrorMap3D class.
 
@@ -381,7 +381,7 @@ class ErrorMap3D(ValidateKCSD3D):
         -------
         None
         """
-        super(ErrorMap3D, self).__init__(csd_seed, **kwargs)
+        super(VisibilityMap3D, self).__init__(1, **kwargs)
         return
 
     def make_reconstruction(self, csd_profile, csd_seed, total_ele, noise=None,
@@ -519,28 +519,23 @@ class ErrorMap3D(ValidateKCSD3D):
 
 
 if __name__ == '__main__':
-#    print('Checking 1D')
-#    CSD_PROFILE = CSD.gauss_1d_mono
-#    CSD_SEED = 2
-#    ELE_LIMS = [0.1, 0.9]  # range of electrodes space
-#    TRUE_CSD_XLIMS = [0., 1.]
-#    k = ErrorMap1D(CSD_SEED, h=0.25,
-#                   R_init=0.3, ele_lims=ELE_LIMS,
-#                   true_csd_xlims=TRUE_CSD_XLIMS, sigma=0.3, src_type='gauss',
-#                   n_src_init=100, ext_x=0.1)
-#    rms, point_error = k.calculate_error_map(CSD_PROFILE, total_ele=32,
-#                                             Rs=np.arange(0.2, 0.5, 0.1))
+    print('Checking 1D')
+    CSD_PROFILE = CSD.gauss_1d_mono
+    ELE_LIMS = [0.1, 0.9]  # range of electrodes space
+    TRUE_CSD_XLIMS = [0., 1.]
+    k = VisibilityMap1D(h=0.25, R_init=0.3, ele_lims=ELE_LIMS,
+                        true_csd_xlims=TRUE_CSD_XLIMS, sigma=0.3,
+                        src_type='gauss', n_src_init=100, ext_x=0.1)
+    rms, point_error = k.calculate_error_map(CSD_PROFILE, total_ele=32,
+                                             Rs=np.arange(0.2, 0.5, 0.1))
+    ele_pos = np.linspace(ELE_LIMS[0], ELE_LIMS[1], 32)
 
-#    print('Checking 2D')
-#    CSD_PROFILE = CSD.gauss_2d_small
-#    CSD_SEED = 10
-#    a = ErrorMap2D(CSD_SEED, h=50.,
-#                   sigma=1., n_src_init=400)
-#    rms, point_error = a.calculate_error_map(CSD_PROFILE, total_ele=36)
+    print('Checking 2D')
+    CSD_PROFILE = CSD.gauss_2d_small
+    a = VisibilityMap2D(h=50., sigma=1., n_src_init=400)
+    rms, point_error = a.calculate_error_map(CSD_PROFILE, total_ele=36)
 
     print('Checking 3D')
     CSD_PROFILE = CSD.gauss_3d_small
-    CSD_SEED = 10
-    a = ErrorMap3D(CSD_SEED, h=50.,
-                   sigma=1., n_src_init=729)
+    a = VisibilityMap3D(h=50., sigma=1., n_src_init=729)
     a.calculate_error_map(CSD_PROFILE, total_ele=27)

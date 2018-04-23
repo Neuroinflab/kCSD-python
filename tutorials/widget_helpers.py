@@ -4,13 +4,13 @@ import config
 
 def change_dim(value):
     if dim_select.value == '1D':
-        config.dim, config.csd_profile, config.kCSD, config.error_map = \
+        config.dim, config.csd_profile, config.kCSD, config.visibility_map = \
             config.initialize(dim_select.value)
     elif dim_select.value == '2D':
-        config.dim, config.csd_profile, config.kCSD, config.error_map = \
+        config.dim, config.csd_profile, config.kCSD, config.visibility_map = \
             config.initialize(dim_select.value)
     else:
-        config.dim, config.csd_profile, config.kCSD, config.error_map = \
+        config.dim, config.csd_profile, config.kCSD, config.visibility_map = \
             config.initialize(dim_select.value)
     update_csd_types()
     update_kcsd_types()
