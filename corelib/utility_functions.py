@@ -24,7 +24,7 @@ def load_swc(path):
     morphology = np.loadtxt(path)
     return morphology
 
-def save_sim(path,k,transformation):
+def save_sim(path,k):
     est_csd = k.values('CSD',transformation=None)
     est_pot = k.values("POT",transformation=None)
     np.save(os.path.join(path,"csd.npy"), est_csd)
