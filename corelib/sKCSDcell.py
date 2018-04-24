@@ -164,7 +164,7 @@ class sKCSDcell(object):
         -------
         tuple of length 3
         """
-        return interpolate.interp1d(self.est_pos[:,0],self.est_xyz, kind='slinear',axis=0)(x)
+        return interpolate.interp1d(self.est_pos[:,0],self.est_xyz, kind='linear',axis=0)(x)
     
     def calculate_total_distance(self):
         """
