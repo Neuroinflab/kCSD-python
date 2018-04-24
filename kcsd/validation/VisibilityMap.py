@@ -144,7 +144,7 @@ class VisibilityMap1D(ValidateKCSD1D):
         ele_pos, pots = self.electrode_config(csd_profile, csd_seed,
                                               total_ele, self.ele_lims, self.h,
                                               self.sigma,
-                                              noise=None, nr_broken_ele=None,
+                                              noise, nr_broken_ele,
                                               ele_seed=10)
 
         k = KCSD1D(ele_pos, pots, xmin=0., xmax=1., h=self.h,
@@ -249,7 +249,7 @@ class VisibilityMap2D(ValidateKCSD2D):
         ele_pos, pots = self.electrode_config(csd_profile, csd_seed,
                                               total_ele, self.ele_lims, self.h,
                                               self.sigma,
-                                              noise=None, nr_broken_ele=None,
+                                              noise, nr_broken_ele,
                                               ele_seed=10)
 
         k = KCSD2D(ele_pos, pots, xmin=0., xmax=1., ymin=0.,
@@ -421,9 +421,7 @@ class VisibilityMap3D(ValidateKCSD3D):
         """
         ele_pos, pots = self.electrode_config(csd_profile, csd_seed,
                                               total_ele, self.ele_lims, self.h,
-                                              self.sigma,
-                                              noise=None, nr_broken_ele=None,
-                                              ele_seed=10)
+                                              self.sigma, noise, nr_broken_ele)
         k = KCSD3D(ele_pos, pots, gdx=0.035, gdy=0.035, gdz=0.035,
                    h=self.h, sigma=self.sigma, xmax=1, xmin=0, ymax=1,
                    ymin=0, zmax=1, zmin=0, n_src_init=self.n_src_init)

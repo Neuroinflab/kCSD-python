@@ -317,8 +317,7 @@ class ValidateKCSD(object):
         csd_at, true_csd = self.generate_csd(csd_profile, csd_seed)
         ele_pos = self.generate_electrodes(total_ele, ele_lims,
                                            nr_broken_ele, ele_seed)
-        pots = self.calculate_potential(true_csd, csd_at, ele_pos, h,
-                                        sigma)
+        pots = self.calculate_potential(true_csd, csd_at, ele_pos, h, sigma)
         num_ele = ele_pos.shape[0]
         print('Number of electrodes:', num_ele)
         if noise == 'noise':
