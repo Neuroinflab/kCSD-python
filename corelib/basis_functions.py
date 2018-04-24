@@ -10,8 +10,7 @@ Michal Czerwinski, Chaitanya Chintaluri
 Laboratory of Neuroinformatics,
 Nencki Institute of Experimental Biology, Warsaw.
 """
-from __future__ import division
-
+from __future__ import division, print_function, absolute_import
 import numpy as np
 
 def gauss(d, stdev, dim):
@@ -66,7 +65,7 @@ def gauss_1D(d, three_stdev):
     -------
     Z : (three_std/3)*(1/2*pi)*(exp(-0.5)*stddev**(-2) *(d**2))
     """
-    stdev = three_stdev/3.0
+    stdev = three_stdev/3
     Z = gauss(d, stdev, 1)
     return Z
 
@@ -121,7 +120,7 @@ def gauss_2D(d, three_stdev):
     Z : function
         Normalized gaussian 2D function
     """
-    stdev = three_stdev/3.0
+    stdev = three_stdev/3
     Z = gauss(d, stdev, 2)
     return Z
 
@@ -158,7 +157,7 @@ def gauss_3D(d, three_stdev):
     Z : funtion
         Normalized gaussian 3D function
     """
-    stdev = three_stdev/3.0
+    stdev = three_stdev/3
     Z = gauss(d, stdev, 3)
     return Z
 

@@ -9,14 +9,18 @@ Nencki Institute of Exprimental Biology, Warsaw.
 KCSD1D[1][2], KCSD2D[1], KCSD3D[1], MoIKCSD[1]
 
 """
-from __future__ import division
+from __future__ import division, print_function, absolute_import
 
 import numpy as np
 from scipy import special, integrate, interpolate
 from scipy.spatial import distance
 from numpy.linalg import LinAlgError
-import utility_functions as utils
-import basis_functions as basis
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+import corelib.utility_functions as utils
+import corelib.basis_functions as basis
 
 # from . import utility_functions as utils
 # from . import basis_functions as basis
@@ -112,6 +116,7 @@ class KCSD(CSD):
         self.xmin = kwargs.pop('xmin', np.min(self.ele_pos[:, 0]))
         self.xmax = kwargs.pop('xmax', np.max(self.ele_pos[:, 0]))
         self.gdx = kwargs.pop('gdx', 0.01*(self.xmax - self.xmin))
+        self.dist_table_density = kwargs.pop('dist_table_density',20)
         if self.dim >= 2:
             self.ext_y = kwargs.pop('ext_y', 0.0)
             self.ymin = kwargs.pop('ymin', np.min(self.ele_pos[:, 1]))
@@ -139,7 +144,7 @@ class KCSD(CSD):
         self.update_b_src()                                 # update crskernel
         self.update_b_interp_pot()                          # update pot interp
 
-    def create_lookup(self, dist_table_density=20):
+    def create_lookup(self):
         """Creates a table for easy potential estimation from CSD.
         Updates and Returns the potentials due to a
         given basis source like a lookup
@@ -148,10 +153,10 @@ class KCSD(CSD):
         Parameters
         ----------
         dist_table_density : int
-            number of distance values at which potentials are computed.
+            number of distance points at which potentials are computed.
             Default 100
         """
-        xs = np.logspace(0., np.log10(self.dist_max+1.), dist_table_density)
+        xs = np.logspace(0., np.log10(self.dist_max+1.), self.dist_table_density)
         xs = xs - 1.0  # starting from 0
         dist_table = np.zeros(len(xs))
         for i, pos in enumerate(xs):
@@ -162,7 +167,6 @@ class KCSD(CSD):
                                                self.basis)
         self.interpolate_pot_at = interpolate.interp1d(xs, dist_table,
                                                        kind='cubic')
-
     def update_b_pot(self):
         """Updates the b_pot  - array is (#_basis_sources, #_electrodes)
         Updates the  k_pot - array is (#_electrodes, #_electrodes) K(x,x')
@@ -190,6 +194,7 @@ class KCSD(CSD):
         ----------
         None
         """
+        #Tu jest basis!
         self.b_src = self.basis(self.src_estm_dists, self.R).T
         self.k_interp_cross = np.dot(self.b_src, self.b_pot)  # K_t(x,y) Eq17
         self.k_interp_cross /= self.n_src
@@ -407,6 +412,9 @@ class KCSD1D(KCSD):
             lambd : float
                 regularization parameter for ridge regression
                 Defaults to 0.
+            dist_table_density : int
+                size of the potential interpolation table
+                Defaults to 20
 
         Raises
         ------

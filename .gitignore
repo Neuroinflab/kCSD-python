@@ -62,3 +62,16 @@ target/
 
 #Ipython Notebook
 .ipynb_checkpoints
+#testing files
+testing/
+
+#data
+examples/
+.idea/
+preprocessed_data/
+raw_data/
+*~
+/#*
+*png
+Data/gang_min/
+simulation
