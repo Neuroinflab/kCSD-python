@@ -11,19 +11,13 @@ KCSD1D[1][2], KCSD2D[1], KCSD3D[1], MoIKCSD[1]
 
 """
 from __future__ import division
-
 import numpy as np
 from scipy import special, integrate, interpolate
 from scipy.spatial import distance
-from numpy.linalg import LinAlgError,svd
-import pylab as plt
-import sys
-#import utility_functions as utils
-#import basis_functions as basis
+from numpy.linalg import LinAlgError, svd
 
-from . import utility_functions as utils
-from . import basis_functions as basis
-skmonaco_available = False
+from kcsd.corelib import utility_functions as utils
+from kcsd.corelib import basis_functions as basis
 
 
 class CSD(object):
@@ -39,7 +33,7 @@ class CSD(object):
 
     def validate(self, ele_pos, pots):
         """Basic checks to see if inputs are okay
-        
+
         Parameters
         ----------
         ele_pos : numpy array
@@ -99,6 +93,7 @@ class KCSD(CSD):
             Same as those passed to initialize the Class
         """
         self.src_type = kwargs.pop('src_type', 'gauss')
+        self.n_jobs = kwargs.pop('n_jobs', 4)
         self.sigma = kwargs.pop('sigma', 1.0)
         self.h = kwargs.pop('h', 1.0)
         self.n_src_init = kwargs.pop('n_src_init', 1000)
@@ -186,6 +181,7 @@ class KCSD(CSD):
         None
         """
         self.b_src = self.basis(self.src_estm_dists, self.R).T
+#        print('b_src',np.shape(self.b_src))
         self.k_interp_cross = np.dot(self.b_src, self.b_pot) #K_t(x,y) Eq17
         self.k_interp_cross /= self.n_src
         
@@ -228,6 +224,7 @@ class KCSD(CSD):
         estimation = np.zeros((self.n_estm, self.n_time))
         for t in range(self.n_time):
             beta = np.dot(k_inv, self.pots[:, t])
+#            print('K: ',np.shape(self.k_pot),'K_tilde: ', np.shape(estimation_table), 'beta: ', np.shape(beta))
             for i in range(self.n_ele):
                 estimation[:, t] += estimation_table[:, i] *beta[i] # C*(x) Eq 18
         return self.process_estimate(estimation)
@@ -273,10 +270,10 @@ class KCSD(CSD):
         lambd : float
         """
         self.lambd = lambd
-
-    def cross_validate(self, lambdas=None, Rs=None): 
+        
+    def cross_validate(self, lambdas=None, Rs=None):
         """Method defines the cross validation.
-        By default only cross_validates over lambda, 
+        By default only cross_validates over lambda,
         When no argument is passed, it takes
         lambdas = np.logspace(-2,-25,25,base=10.)
         and Rs = np.array(self.R).flatten()
@@ -292,7 +289,7 @@ class KCSD(CSD):
         R : post cross validation
         Lambda : post cross validation
         """
-        if lambdas is None:                           #when None
+        if lambdas is None: #when None
             print('No lambda given, using defaults')
             lambdas = np.logspace(-2,-25,25,base=10.) #Default multiple lambda
             lambdas = np.hstack((lambdas, np.array((0.0))))
@@ -354,54 +351,24 @@ class KCSD(CSD):
             except LinAlgError:
                 raise LinAlgError('Encoutered Singular Matrix Error: try changing ele_pos slightly')
         return err
-    
-    def plot_lcurve(self,residualseq,modelnormseq,imax,curveseq,lambdas,R):
-        '''Method for plotting L-curve and triangle areas 
-        Parameters
-        ----------
-        residualseq: from L_fit
-        modelnormseq: from L_fit
-        imax: point index for maximum triangle area
-        curveseq: from L_fit - triangle areas
-        Lambdas: lambda vector 
-        R: Radius of basis source
-        
-        Shows
-        ----------
-        Two Plots
-        ''' 
-        fig_L = plt.figure()
-        ax_L= fig_L.add_subplot(121)
-        plt.title('ind_max :' +str(lambdas(imax))+ ' R: ' + str(R))
-        plt.xscale('log')
-        plt.yscale('log')
-        plt.ylabel("Norm of Model")
-        plt.xlabel("Norm of Prediction Error")
-        ax_L.plot(residualseq,modelnormseq,marker=".",c="green")
-        ax_L.plot([residualseq[imax]],[modelnormseq[imax]],marker="o",c="red")
 
-        ax2_L = fig_L.add_subplot(122)
-        plt.xscale('log')
-        plt.ylabel("Curvature")
-        plt.xlabel("Norm of Prediction Error")
-        ax2_L.plot(residualseq,curveseq,marker=".",c="green")
-        ax2_L.plot([residualseq[imax]],[curveseq[imax]],marker="o",c="red")
-        
-    def triangle_area(self, x1, y1, x2, y2, x3, y3):
-        '''Method to estimate triangle area
+    def suggest_lambda(self):
+        """Computes the lambda parameter range for regularization,
+        Used in Cross validation and L-curve
         Parameters
         ----------
-        coordiantes of the vertex of the triangle x1,y1,...
-        
         Returns
-        ----------
-        Area of the triangle
-        ''' 
-        return (0.5*(x1*(y2-y3)+x2*(y3-y1)+x3*(y1-y2)))
-    
-    def L_fit(self,estimate='CSD',ploting = True,lambdy = None,Rs = None):
+        -------
+        Lambdas : list
+        """
+        u, s, v = svd(self.k_pot)
+        print('min lambda', 10**np.round(np.log10(s[-1]), decimals=0))
+        print('max lambda', str.format('{0:.4f}', np.std(np.diag(self.k_pot))))
+        return np.logspace(np.log10(s[-1]), np.std(np.diag(self.k_pot)), 20)
+
+    def L_curve(self, estimate='CSD', lambdas=None, Rs=None, ploting=False):
         """Method defines the L-curve.
-        By default calculates L-curve over lambda, 
+        By default calculates L-curve over lambda,
         When no argument is passed, it takes
         lambdas = np.logspace(-10,-1,100,base=10)
         and Rs = np.array(self.R).flatten()
@@ -412,63 +379,48 @@ class KCSD(CSD):
         L-curve plotting: default True
         lambdas : numpy array
         Rs : numpy array
-        
         Returns
         -------
-        Lambda : post cross validation
-        L-curve: list
-        residuals of the model: list
-        norm of the model: list
+        curve_surf : post cross validation
         """
-        if lambdy is None:                           #when None
+        if lambdas is None:
             print('No lambda given, using defaults')
-            lambdas = np.logspace(-10,1,100,base = 10)
-        else:                       #resize when one entry
-            lambdas = lambdy.flatten()
+            lambdas = self.suggest_lambda()
+        else:
+            lambdas = lambdas.flatten()
         if Rs is None:
             R = np.array((self.R)).flatten()
         else:
             R = np.array((Rs)).flatten()
-        self.update_R(R)
-        modelnormseq=np.zeros(len(lambdas))
-        residualseq=np.zeros(len(lambdas))
-        if estimate == 'CSD': #Maybe used for estimating the potentials also.
-            estimation_table = self.k_interp_cross 
-        elif estimate == 'POT':
-            estimation_table = self.k_interp_pot
-        print('calc_lcurve:')
-        for index,lamb in enumerate(lambdas):
-            
-            k_inv = np.linalg.inv(self.k_pot + lamb*
-                              np.identity(self.k_pot.shape[0]))
-            V_est = np.zeros((np.shape(self.k_pot)[0], self.n_time))
-            estimation = np.zeros((self.n_estm, self.n_time))
-            beta_new = np.dot(k_inv, self.pots)
-            
-            for ii in range(self.n_ele):
-                for tt in range(self.n_time):
-                    estimation[:, tt] += estimation_table[:, ii] *beta_new[ii,tt] # C*(x) Eq 18
-                    V_est[:, tt] += beta_new[ii,tt] * self.k_pot[:,ii]
-            sys.stdout.write("\r" + str(int(100/len(lambdas))*(index+1)) + " _%_done")
-            sys.stdout.flush()
-            residual = np.linalg.norm(V_est-self.pots)
-            modelnorm= np.linalg.norm(estimation)
-            modelnormseq[index] = modelnorm
-            residualseq[index] = residual
-            norm_log = np.log(modelnormseq+np.finfo(np.float64).eps)
-            res_log = np.log(residualseq+np.finfo(np.float64).eps)
-        curveseq = []
-        for i,lamb in enumerate(lambdas):
-            curv_lcurve = self.triangle_area(res_log[0], norm_log[0], res_log[i], norm_log[i],res_log[-1], norm_log[-1])
-            curveseq.append(curv_lcurve)
-        imax = np.argmax(curveseq)
-        L_lambda=lambdas[imax]
-        
-        print ("Best lambda=",L_lambda)
+        curve_list = []
+        self.curve_surf = np.zeros((len(Rs), len(lambdas)))
+        for R_idx, R in enumerate(Rs):
+            self.update_R(R)
+            self.suggest_lambda()
+            print('l-curve (all lambda): ', np.round(R, decimals=3))
+            modelnormseq, residualseq = utils.parallel_search(self.k_pot, self.pots, lambdas,
+                                                              n_jobs=self.n_jobs)
+            norm_log = np.log(modelnormseq + np.finfo(np.float64).eps)
+            res_log = np.log(residualseq + np.finfo(np.float64).eps)
+            curveseq = res_log[0] * (norm_log - norm_log[-1]) + res_log * (norm_log[-1] - norm_log[0]) \
+                + res_log[-1] * (norm_log[0] - norm_log)
+            self.curve_surf[R_idx] = curveseq
+            curve_list.append(np.max(curveseq))
+        self.update_R(Rs[np.argmax(curve_list)])
+
         if ploting:
-            self.plot_lcurve(residualseq,modelnormseq,imax,curveseq,lambdas,R)
-        self.update_lambda(L_lambda)
-        return L_lambda,curveseq,residualseq,modelnormseq
+            modelnormseq, residualseq = utils.parallel_search(self.k_pot, self.pots, lambdas,
+                                                              n_jobs = self.n_jobs)
+            norm_log = np.log(modelnormseq + np.finfo(np.float64).eps)
+            res_log = np.log(residualseq + np.finfo(np.float64).eps)
+            curveseq = res_log[0] * (norm_log - norm_log[-1]) + res_log * (norm_log[-1] - norm_log[0]) \
+                + res_log[-1] * (norm_log[0] - norm_log)
+
+            utils.plot_lcurve(residualseq, modelnormseq, np.argmax(curveseq), curveseq, lambdas, self.R)
+
+        self.update_lambda(lambdas[np.argmax(curveseq)])
+        print("Best lambda and R = ", self.lambd, ', ',
+              np.round(self.R, decimals=3))
 
 
 class KCSD1D(KCSD):
@@ -539,14 +491,14 @@ class KCSD1D(KCSD):
         None
         """
         nx = (self.xmax - self.xmin)/self.gdx
-        self.estm_x = np.mgrid[self.xmin:self.xmax:np.complex(0,nx)]
+        self.estm_x = np.mgrid[self.xmin:self.xmax:np.complex(0, nx)]
         self.n_estm = self.estm_x.size
         self.ngx = self.estm_x.shape[0]
 
     def place_basis(self):
         """Places basis sources of the defined type.
         Checks if a given source_type is defined, if so then defines it
-        self.basis, This function gives locations of the basis sources, 
+        self.basis, This function gives locations of the basis sources,
         Defines
         source_type : basis_fuctions.basis_1D.keys()
         self.R based on R_init
