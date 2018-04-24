@@ -10,17 +10,6 @@ import subprocess
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from corelib import sKCSD
-import corelib.utility_functions as utils
-import corelib.loadData as ld
-import corelib.plotting_functions as pl
-import functions as fun
-sKCSD.skmonaco_available = False
-
-n_src = 512
-lambd = 1e-2
-R = 64e-6/2**.5
-
 if find_executable('nrnivmodl') is not None:
     for path in ['x86_64', 'i686', 'powerpc']:
         if os.path.isdir(path):
@@ -31,7 +20,19 @@ else:
     print("nrnivmodl script not found in PATH, thus NEURON .mod files could" +
 "not be compiled, and LFPy.test() functions will fail")
 
+
+from corelib import sKCSD
+import corelib.utility_functions as utils
+import corelib.loadData as ld
+import corelib.plotting_functions as pl
+import functions as fun
+sKCSD.skmonaco_available = False
+
+n_src = 512
+lambd = 1e-2
+R = 64e-6/2**.5
 import run_LFP
+
 if __name__ == '__main__':
     fname_base = "Figure_2"
     fig_name = fun.make_fig_names(fname_base)
