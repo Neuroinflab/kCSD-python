@@ -10,13 +10,13 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 from corelib import sKCSD
 sKCSD.skmonaco_available = False
 import corelib.utility_functions as utils
-import corelib.loadData as ld
+import loadData as ld
 import corelib.plotting_functions as pl
 import functions as fun
 
 n_src = 512
-lambd = 1e-1
-R = 64e-6/2**.5
+lambd = 1
+R = 8e-6/2**.5
 
 if __name__ == '__main__':
     fname_base = "Figure_3"
@@ -40,39 +40,27 @@ if __name__ == '__main__':
     ground_truth = np.loadtxt(os.path.join(data_dir[0],'membcurr'))
     ground_truth = ground_truth/seglen[:,None]
     gvmax, gvmin = pl.get_min_max(ground_truth)
-    for R_init in R_inits:
-        for l in lambdas:
-            
-            
-            R = R_init/np.sqrt(2)/scaling_factor
-            lambd = l#*2*(2*np.pi)**3*R**2*n_src
-            print(R,lambd,l)
-            data_paths = []
-            fig = plt.figure()
-            ax = []
-            for i in range(6):
-                ax.append(fig.add_subplot(2,3,i+1))
     
-            cax = ax[0].imshow(ground_truth,extent=[0, tstop,1, 52,],origin='lower',aspect='auto',cmap='seismic_r',vmax=gvmax,vmin=gvmin)
-            #cbar = fig.colorbar(cax,ticks=[gvmin,gvmax])
-            #cbar.ax.set_yticklabels(['source','sink'])
-            new_fname = fname_base+'_R_'+str(R_init)+'_lambda_'+str(l)+'.png'
-            fig_name = fun.make_fig_names(new_fname)
-            print(fig_name)
-            for i, datd in enumerate(data_dir):
-                data = ld.Data(datd)
-                ele_pos = data.ele_pos/scaling_factor
-                pots = data.LFP/scaling_factor_LFP
-                morphology = data.morphology
-                morphology[:,2:6] = morphology[:,2:6]/scaling_factor
-                k = sKCSD.sKCSD(ele_pos,data.LFP,morphology, n_src_init=n_src, src_type='gauss',lambd=lambd,R_init=R)
-                csd = k.values(transformation='segments')
+    data_paths = []
+    fig, ax = plt.subplots(2,3)
+    cax = ax[0,0].imshow(ground_truth,extent=[0, tstop,1, 52,],origin='lower',aspect='auto',cmap='seismic_r',vmax=gvmax,vmin=gvmin)
+    new_fname = fname_base+'.png'
+    fig_name = fun.make_fig_names(new_fname)
+    
+    for i, datd in enumerate(data_dir):
+        data = ld.Data(datd)
+        ele_pos = data.ele_pos/scaling_factor
+        pots = data.LFP/scaling_factor_LFP
+        morphology = data.morphology
+        morphology[:,2:6] = morphology[:,2:6]/scaling_factor
+        k = sKCSD.sKCSD(ele_pos,data.LFP,morphology, n_src_init=n_src, src_type='gauss',lambd=lambd,R_init=R)
+        csd = k.values(transformation='segments')
                 
         
-                vmax, vmin = pl.get_min_max(csd)
-                cax = ax[i+3].imshow(csd,extent=[0, tstop,1, 52,],origin='lower',aspect='auto',cmap='seismic_r',vmax=vmax,vmin=vmin)
-                #cbar = fig.colorbar(cax,ticks=[vmin,vmax])
-                ax[i+3].set_title(electrode_number[i])
-                #cbar.ax.set_yticklabels(['source','sink'])
+        vmax, vmin = pl.get_min_max(csd)
+        cax = ax[1,i].imshow(csd,extent=[0, tstop,1, 52,],origin='lower',aspect='auto',cmap='seismic_r',vmax=vmax,vmin=vmin)
+        #cbar = fig.colorbar(cax,ticks=[vmin,vmax])
+        ax[1,i].set_title(electrode_number[i])
+        #cbar.ax.set_yticklabels(['source','sink'])
         
-            fig.savefig(fig_name, bbox_inches='tight', transparent=True, pad_inches=0.1)
+    fig.savefig(fig_name, bbox_inches='tight', transparent=True, pad_inches=0.1)

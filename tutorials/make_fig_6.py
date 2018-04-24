@@ -10,12 +10,13 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 from corelib import sKCSD, KCSD
 sKCSD.skmonaco_available = False
 import corelib.utility_functions as utils
-import corelib.loadData as ld
+import loadData as ld
 import corelib.plotting_functions as pl
 import functions as fun
 
 n_src = 512
-
+lambd = 1e-1
+R = 8e-6/2**.5
 if __name__ == '__main__':
 
     #fname_base = "Figure_6.png"
@@ -46,50 +47,53 @@ if __name__ == '__main__':
     atstart = t2
     atstop = int(15/dt)
 
-    R_inits = [2**i for i in range(3,9)]
-    lambdas = [10**(-i) for i in range(6)]
-    for R_init in R_inits:
-        for la in lambdas:
-            simulation_paths = []
-            data_paths = []
+    simulation_paths = []
+    data_paths = []
     
-            skcsd_grid = []
-            skcsd_random = []
+    skcsd_grid = []
+    skcsd_random = []
 
-            R = R_init/np.sqrt(2)/scaling_factor
-            lambd = la#*2*(2*np.pi)**3*R**2*n_src
-            fig = plt.figure()
-            fig, ax = plt.subplots(1,3)
-            fname = fname_base+'_R_%d_lambda_%f.png'%(R_init,la)
-            fig_name = fun.make_fig_names(fname)
+    fig, ax = plt.subplots(1,3)
+    fname = fname_base+'.png'
+    fig_name = fun.make_fig_names(fname)
 
-            pl.plot(ax[0],ground_truth[:,atstart:atstop],yticklabels=[x for x in range(0,86,15)],fig=fig,title="Ground truth",vmin=-0.05,vmax=0.05)
+    pl.plot(ax[0],ground_truth[:,atstart:atstop],yticklabels=[x for x in range(0,86,15)],fig=fig,title="Ground truth",vmin=-0.05,vmax=0.05,ylabel='#segment')
 
-            for i, datd in enumerate(data_dir):
-                data = ld.Data(datd)
-                ele_pos = data.ele_pos/scaling_factor
-                pots = data.LFP/scaling_factor_LFP
-                morphology = data.morphology
-                morphology[:,2:6] = morphology[:,2:6]/scaling_factor
-                k = sKCSD.sKCSD(ele_pos,data.LFP,morphology, n_src_init=n_src, src_type='gauss',lambd=lambd,R_init=R,dist_table_density=100)
+    for i, datd in enumerate(data_dir):
+        data = ld.Data(datd)
+        ele_pos = data.ele_pos/scaling_factor
+        pots = data.LFP/scaling_factor_LFP
+        morphology = data.morphology
+        morphology[:,2:6] = morphology[:,2:6]/scaling_factor
+        k = sKCSD.sKCSD(ele_pos,data.LFP,morphology, n_src_init=n_src, src_type='gauss',lambd=lambd,R_init=R,dist_table_density=100)
         
-                est_skcsd = k.values(estimate='CSD',transformation='segments')
+        est_skcsd = k.values(estimate='CSD',transformation='segments')
+        
+        est_skcsd /= seglen[:,None]
                 
-                est_skcsd /= seglen[:,None]
-                
-                if i%2:
-                    skcsd_random.append(est_skcsd)
-                else:
-                    print(i)
-                    skcsd_grid.append(est_skcsd)
-                    #skcsd_grid.append(est_skcsd)
-            skcsd_maps_grid = fun.merge_maps(skcsd_grid,tstart=atstart,tstop=atstop,merge=1)
-            pl.plot(ax[1],skcsd_maps_grid,xticklabels=['8','16','32','64'],title="Grid")
+        if i%2:
+            skcsd_random.append(est_skcsd)
+        else:
+            skcsd_grid.append(est_skcsd)
+        
+        if sys.version_info < (3,0):
+            path = os.path.join(datd, "preprocessed_data/Python_2")
+        else:
+            path = os.path.join(datd, "preprocessed_data/Python_3")
 
-            skcsd_maps_random = fun.merge_maps(skcsd_random,tstart=atstart,tstop=atstop,merge=1)
-            pl.plot(ax[2],skcsd_maps_random,xticklabels=['8','16','32','64'],title="Random")
+        if not os.path.exists(path):
+            print("Creating",path)
+            os.makedirs(path)
+            
+        utils.save_sim(path,k)
+        
+    skcsd_maps_grid = fun.merge_maps(skcsd_grid,tstart=atstart,tstop=atstop,merge=1)
+    pl.plot(ax[1],skcsd_maps_grid,xticklabels=['8','16','32','64'],title="Grid",xlabel='electrodes',vmin=-0.05,vmax=0.05)
+        
+    skcsd_maps_random = fun.merge_maps(skcsd_random,tstart=atstart,tstop=atstop,merge=1)
+    pl.plot(ax[2],skcsd_maps_random,xticklabels=['8','16','32','64'],title="Random",xlabel='electrodes',vmin=-0.05,vmax=0.05)
     
-            fig.savefig(fig_name, bbox_inches='tight', transparent=True, pad_inches=0.1)
+    fig.savefig(fig_name, bbox_inches='tight', transparent=True, pad_inches=0.1)
 
     
            
