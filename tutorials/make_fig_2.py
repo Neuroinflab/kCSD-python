@@ -1,5 +1,5 @@
 from __future__ import division, print_function
-import run_LFP
+
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
@@ -30,7 +30,8 @@ if find_executable('nrnivmodl') is not None:
 else:
     print("nrnivmodl script not found in PATH, thus NEURON .mod files could" +
 "not be compiled, and LFPy.test() functions will fail")
-    
+
+import run_LFP
 if __name__ == '__main__':
     fname_base = "Figure_2"
     fig_name = fun.make_fig_names(fname_base)
