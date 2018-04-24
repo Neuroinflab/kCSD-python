@@ -291,7 +291,7 @@ class CellModel():
     def cosine_current_injection(self,tstop=850):
         pre_syn_sptimes = self.stationary_poisson(nsyn=self.n_pre_syn, lambd=2, tstart=0, tstop=400)
         pre_syn_pick = np.random.permutation(np.arange(self.n_pre_syn))[0:self.n_synapses]
-        self.synapse_parameters['weight'] = 0.04
+        self.synapse_parameters['weight'] = 0.05
         pars = {}
         for i_syn in range(self.n_synapses):
             syn_idx = int(self.cell.get_rand_idx_area_norm())
@@ -308,7 +308,7 @@ class CellModel():
             
         self.point_process['dur'] = 1
         TimesStim = np.arange(tstop)
-        stim = np.array(3.6*np.sin(2.*3.141*6.5*TimesStim/1000.))/10
+        stim = np.array(3.6e-1*np.sin(2.*3.141*6.5*TimesStim/1000.))
         for istim in range(tstop):
             self.point_process['amp'] = stim[istim]#time_series[istim]
             self.point_process['delay'] = istim
