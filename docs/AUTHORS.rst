@@ -2,6 +2,8 @@ The following people have contributed code and/or ideas to the current version o
 
 Chaitanya Chintaluri[1]
 Michal Czerwinski[1]
+Marta Kowalska[1]
+
 Grzegorz Parka[2]*
 Daniel K. Wojcik[1]
 
