@@ -4,7 +4,7 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from corelib import sKCSD
-from corelib import loadData as ld
+from tutorials import loadData as ld
 from corelib import utility_functions as utils
 try:
     data_dir = sys.argv[1]
