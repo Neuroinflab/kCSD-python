@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # encoding: utf-8
-from __future__ import print_function, division
+from __future__ import print_function, division, absolute_import
 import sys
 import os
 import unittest
@@ -14,7 +14,7 @@ except NameError:
   basestring = str
 
 
-from corelib.loadData import Data
+from tutorials.loadData import Data
 
 class testData(unittest.TestCase):
     

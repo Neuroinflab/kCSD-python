@@ -330,34 +330,48 @@ class sKCSD(KCSD1D):
         xp = xyz[0]
         return self.int_pot_1D(xp, x, R, basis_func)
 if __name__ == '__main__':
-    import loadData as ld
-    path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    import argparse
+    uwd = os.path.abspath('..')
+    md = os.path.join(uwd,'tests/Data/ball_and_stick_8/morphology/Figure_2_rows_8.swc')
+    lfpd = os.path.join(uwd,'tests/Data/ball_and_stick_8/LFP/MyLFP')
+    eleposd = os.path.join(uwd,'tests/Data/ball_and_stick_8/electrode_positions/elcoord_x_y_x')
     
-    data_dir = os.path.join(path,"tutorials/Data/gang_7x7_200")
-    data = ld.Data(data_dir)
+    parser = argparse.ArgumentParser(description='Calculate current/potential estimation using sKCSD')
+    parser.add_argument('--morphology',type=str, metavar='morphology', default=md,
+                    help='path to neuron morphology in swc file format')
+    parser.add_argument('--LFP',type=str,metavar='LFP', default=lfpd,
+                    help='path to LFP measurements')
+    parser.add_argument('--electrode_positions',type=str,metavar='electrode_positions', default=eleposd,
+                    help='path to electrode positions')
+    parser.add_argument('--save_to',type=str,metavar='save_to', default=os.path.join(uwd,'tests/Data/ball_and_stick_8'),
+                    help='path to results')
+    parser.add_argument('--src_type',choices=set(('gauss', 'step', 'gauss_lim')), default='gauss', help='basis function type')
+    parser.add_argument('--R_init',type=float, default=23e-6, help='width of basis function')
+    parser.add_argument('--lambd',type=float, default=1e-1, help='regularization parameter for ridge regression')
+    parser.add_argument('--n_src',type=int, default=300, help='requested number of sources')
+    parser.add_argument('--sigma',type=float, default=1, help='space conductance of the tissue in S/m')
+    parser.add_argument('--dist_table_density',type=int, default=100, help='size of the potential interpolation table')
+    args = parser.parse_args()
+
+    morphology = utils.load_swc(args.morphology)
+    myLFP = np.loadtxt(args.LFP)
+    electrode_positions = utils.load_elpos(args.electrode_positions)
+   
     scaling_factor = 1000000
-    ele_pos = data.ele_pos/scaling_factor
-    pots = data.LFP[:,:200]
-    params = {}
-    morphology = data.morphology 
+    ele_pos = electrode_positions/scaling_factor
     morphology[:,2:6] = morphology[:,2:6]/scaling_factor
     R_init = 32/scaling_factor
    
-    k = sKCSD(ele_pos, pots,morphology,n_src_init=1000, src_type='gauss_lim', R_init=R_init)
-    #k.cross_validate()
-    
-    if sys.version_info >= (3, 0):
-        path = os.path.join(data_dir,"preprocessed_data/Python_3")
+    k = sKCSD(ele_pos, myLFP, morphology, n_src_init=args.n_src, src_type=args.src_type, R_init=args.R_init, lambd=args.lambd, sigma=args.sigma, dist_table_density=args.dist_table_density)
+    ker_dir = args.save_to
+    if sys.version_info < (3,0):
+        path = os.path.join(ker_dir, "preprocessed_data/Python_2")
     else:
-        path = os.path.join(data_dir,"preprocessed_data/Python_2")
+        path = os.path.join(ker_dir, "preprocessed_data/Python_3")
 
     if not os.path.exists(path):
         print("Creating",path)
         os.makedirs(path)
-        
     utils.save_sim(path,k)
-    #est_csd = k.values("CSD")
-    #est_pot = k.values("POT")
-    
     
     

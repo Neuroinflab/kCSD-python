@@ -9,7 +9,7 @@ from collections import Counter
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import corelib.utility_functions as utils
-import corelib.loadData as ld
+
 from  corelib.bresenhamline import bresenhamline
 
 #testing
@@ -457,7 +457,7 @@ class sKCSDcell(object):
    
 if __name__ == '__main__':
     path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-    
+    import tutorials.loadData as ld
     data_dir = os.path.join(path,"tutorials/Data/gang_7x7_200")
     data = ld.Data(data_dir)
     morphology = data.morphology

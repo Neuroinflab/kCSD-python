@@ -16,7 +16,7 @@ sys.path.insert(0,
 os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from corelib import utility_functions as utils
-from corelib.loadData import Data
+from tutorials.loadData import Data
 from corelib.sKCSDcell import sKCSDcell
 
 
