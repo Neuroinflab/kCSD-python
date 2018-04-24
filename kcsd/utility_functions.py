@@ -20,43 +20,17 @@ except ImportError:
     from sklearn.externals.joblib import Parallel, delayed
 
 def L_model_fast(k_pot, pots, lamb, i):
-    """Method for Fast L-curve computation
-
-    Parameters
-    ----------
-    k_pot : np.array
-    pots : list
-    lambd : list
-    i : int
-    Returns
-    -------
-    modelnorm : float
-    residual : float
-
-    """
-    k_inv = np.linalg.inv(k_pot + lamb*np.identity(k_pot.shape[0]))
+    k_inv = np.linalg.inv(k_pot + lamb*
+                      np.identity(k_pot.shape[0]))
     beta_new = np.dot(k_inv, pots)
     V_est = np.dot(k_pot, beta_new)
     modelnorm = np.einsum('ij,ji->i', beta_new.T, V_est)
-    residual = np.linalg.norm(V_est - pots)
-    modelnorm = np.max(modelnorm)
+    residual = np.linalg.norm(V_est- pots)
+    modelnorm= np.linalg.norm(modelnorm)
     return modelnorm, residual
 
-
 def parallel_search(k_pot, pots, lambdas, n_jobs=4):
-    """Method for Parallel L-curve computation
-
-    Parameters
-    ----------
-    k_pot : np.array
-    pots : list
-    lambdas : list
-    Returns
-    -------
-    modelnormseq : list
-    residualseq : list
-
-    """
+    
     jobs = (delayed(L_model_fast)(k_pot, pots, lamb, i)
             for i,lamb in enumerate(lambdas))
     
@@ -69,10 +43,10 @@ def plot_lcurve(residualseq,modelnormseq,imax,curveseq,lambdas,R):
     '''Method for plotting L-curve and triangle areas 
     Parameters
     ----------
-    residualseq: from L_curve
-    modelnormseq: from L_curve
+    residualseq: from L_fit
+    modelnormseq: from L_fit
     imax: point index for maximum triangle area
-    curveseq: from L_curve - triangle areas
+    curveseq: from L_fit - triangle areas
     Lambdas: lambda vector 
     R: Radius of basis source
     
@@ -94,13 +68,13 @@ def plot_lcurve(residualseq,modelnormseq,imax,curveseq,lambdas,R):
     y = [modelnormseq[0], modelnormseq[imax], modelnormseq[-1]]
     ax_L.fill(x,y,alpha = 0.2)
   
+
     ax2_L = fig_L.add_subplot(122)
     plt.xscale('log')
     plt.ylabel("Curvature",fontsize = 20)
     plt.xlabel("Norm of Prediction Error",fontsize = 20)
     ax2_L.plot(residualseq,curveseq,marker=".",c="green")
     ax2_L.plot([residualseq[imax]],[curveseq[imax]],marker="o",c="red")
-    plt.show()
     return 0
 
 
