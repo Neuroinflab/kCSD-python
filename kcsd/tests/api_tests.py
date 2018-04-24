@@ -31,9 +31,9 @@ class LFP_TestCase(unittest.TestCase):
             utils = ValidateKCSD3D(csd_seed=44)
         ele_pos = utils.generate_electrodes(total_ele=3)
         csd_at, csd = utils.generate_csd(csd_instance, csd_seed=2)
-        lfp = utils.calculate_potential(csd_at, csd, ele_pos, h=1, sigma=0.3)        
+        lfp = utils.calculate_potential(csd, csd_at, ele_pos, h=1, sigma=0.3)
         return ele_pos, lfp
-    
+
     def test_lfp1d_electrodes(self):
         ele_pos, lfp = self.default_setting(1, CSD.gauss_1d_dipole)
         self.assertEqual(ele_pos.shape[1], 1)
@@ -49,7 +49,7 @@ class LFP_TestCase(unittest.TestCase):
         self.assertEqual(ele_pos.shape[1], 3)
         self.assertEqual(ele_pos.shape[0], len(lfp))
 
-        
+
 # class CSD1D_TestCase(unittest.TestCase):
 #     def setUp(self):
 #         self.num_ele, self.ele_pos = utils.generate_electrodes(dim=1)
