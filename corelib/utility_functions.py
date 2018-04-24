@@ -24,7 +24,17 @@ def load_swc(path):
     morphology = np.loadtxt(path)
     return morphology
 
-def save_sim(path,k):
+def save_sim(ker_dir,k):
+
+    if sys.version_info < (3,0):
+        path = os.path.join(ker_dir, "preprocessed_data/Python_2")
+    else:
+        path = os.path.join(ker_dir, "preprocessed_data/Python_3")
+
+    if not os.path.exists(path):
+        print("Creating",path)
+        os.makedirs(path)
+
     est_csd = k.values('CSD',transformation=None)
     est_pot = k.values("POT",transformation=None)
     np.save(os.path.join(path,"csd.npy"), est_csd)
