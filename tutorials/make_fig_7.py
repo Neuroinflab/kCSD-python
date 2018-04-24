@@ -16,15 +16,15 @@ sKCSD.skmonaco_available = False
 
 if __name__ == '__main__':
     
-    fname_base = "Figure_7.png"
-    fig_name = fun.make_fig_names(fname_base)
+    fname_base = "Figure_7"
+    fig_name = fun.make_fig_names(fname_base+'.png')
     
     tstop = 70
     scale_factor = 1000**2
     scale_factor_LFP = 1
     
     R_inits = np.array([(2**(i-.5))/scale_factor for i in range(3,9)])
-    lambdas = np.array([(10**(-i))for i in range(8,2)])
+    lambdas = np.array([(10**(-i))for i in range(8,2,-1)])
     n_srcs = np.array([32,64,128,512,1024])
     x_ticklabels = [2**i for i in range(3,9)]
     y_ticklabels = [str(lambd) for lambd in lambdas]
