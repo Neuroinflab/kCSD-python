@@ -77,11 +77,41 @@ def load_elpos(path):
     """
     
     raw_ele_pos = np.loadtxt(path)
-    n_el = raw_ele_pos.shape[0]//3
-    ele_pos = np.zeros(shape=(n_el,3))
-    ele_pos[:,0] = raw_ele_pos[:n_el]
-    ele_pos[:,1] = raw_ele_pos[n_el:2*n_el]
-    ele_pos[:,2] = raw_ele_pos[2*n_el:]
+    if len(raw_ele_pos.shape) == 1:
+        if raw_ele_pos.shape[0]%3:
+            raise Exception('Unnkown electrode position file format. Load either one column file (or a one row file) with x positions, y positions, z positions, or a 3 column file with x and y and z positions')
+        else:
+            n_el = raw_ele_pos.shape[0]//3
+            ele_pos = np.zeros(shape=(n_el,3))
+            ele_pos[:,0] = raw_ele_pos[:n_el]
+            ele_pos[:,1] = raw_ele_pos[n_el:2*n_el]
+            ele_pos[:,2] = raw_ele_pos[2*n_el:]
+    elif len(raw_ele_pos.shape) == 2:
+        if raw_ele_pos.shape[1] == 1:
+            if raw_ele_pos.shape[0]%3:
+                raise Exception('Unnkown electrode position file format. Load either one column file (or a one row file) with x positions, y positions, z positions, or a 3 column file with x and y and z positions')
+            else:
+                n_el = raw_ele_pos.shape[0]/3
+                ele_pos = np.zeros(shape=(n_el,3))
+                ele_pos[:,0] = raw_ele_pos[:n_el]
+                ele_pos[:,1] = raw_ele_pos[n_el:2*n_el]
+                ele_pos[:,2] = raw_ele_pos[2*n_el:]
+        elif raw_ele_pos.shape[0] == 1:
+            if raw_ele_pos.shape[1]%3:
+                raise Exception('Unnkown electrode position file format. Load either one column file (or a one row file) with x positions, y positions, z positions, or a 3 column file with x and y and z positions')
+            else:
+                n_el = raw_ele_pos.shape[1]/3
+                ele_pos = np.zeros(shape=(n_el,3))
+                ele_pos[:,0] = raw_ele_pos[:n_el]
+                ele_pos[:,1] = raw_ele_pos[n_el:2*n_el]
+                ele_pos[:,2] = raw_ele_pos[2*n_el:]
+        elif raw_ele_pos.shape[1] == 3:
+            ele_pos = raw_ele_pos
+        else:
+            raise Exception('Unnkown electrode position file format. Load either one column file (or a one row file) with x positions, y positions, z positions, or a 3 column file with x and y and z positions')
+
+    else:
+        raise Exception('Unnkown electrode position file format. Load either one column file (or a one row file) with x positions, y positions, z positions, or a 3 column file with x and y and z positions')
     return ele_pos
 
 def check_for_duplicated_electrodes(elec_pos):
