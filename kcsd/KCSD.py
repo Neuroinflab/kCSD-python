@@ -12,7 +12,7 @@ KCSD1D[1][2], KCSD2D[1], KCSD3D[1], MoIKCSD[1]
 from __future__ import division
 
 import numpy as np
-from numpy.linalg import LinAlgError
+from numpy.linalg import LinAlgError, svd
 from scipy import special, integrate, interpolate
 from scipy.spatial import distance
 
@@ -372,6 +372,66 @@ class KCSD(CSD):
                 raise LinAlgError('Encoutered Singular Matrix Error:'
                                   'try changing ele_pos slightly')
         return err
+
+    def suggest_lambda(self):
+        """Computes the lambda parameter range for regularization,
+        Used in Cross validation and L-curve
+        Parameters
+        ----------
+        Returns
+        -------
+        Lambdas : list
+        """
+        u, s, v = svd(self.k_pot)
+        print('min lambda', 10**np.round(np.log10(s[-1]), decimals=0))
+        print('max lambda', str.format('{0:.4f}', np.std(np.diag(self.k_pot))))
+        return np.logspace(np.log10(s[-1]), np.std(np.diag(self.k_pot)), 20)
+
+    def L_curve(self, estimate='CSD', lambdas=None, Rs=None):
+        """Method defines the L-curve.
+        By default calculates L-curve over lambda,
+        When no argument is passed, it takes
+        lambdas = np.logspace(-10,-1,100,base=10)
+        and Rs = np.array(self.R).flatten()
+        otherwise pass necessary numpy arrays
+
+        Parameters
+        ----------
+        L-curve plotting: default True
+        lambdas : numpy array
+        Rs : numpy array
+        Returns
+        -------
+        curve_surf : post cross validation
+        """
+        if lambdas is None:
+            print('No lambda given, using defaults')
+            lambdas = self.suggest_lambda()
+        else:
+            lambdas = lambdas.flatten()
+        if Rs is None:
+            R = np.array((self.R)).flatten()
+        else:
+            R = np.array((Rs)).flatten()
+        curve_list = []
+        self.curve_surf = np.zeros((len(Rs), len(lambdas)))
+        for R_idx, R in enumerate(Rs):
+            self.update_R(R)
+            self.suggest_lambda()
+            print('l-curve (all lambda): ', np.round(R, decimals=3))
+            modelnormseq, residualseq = utils.parallel_search(self.k_pot, self.pots, lambdas,
+                                                              n_jobs=self.n_jobs)
+            norm_log = np.log(modelnormseq + np.finfo(np.float64).eps)
+            res_log = np.log(residualseq + np.finfo(np.float64).eps)
+            curveseq = res_log[0] * (norm_log - norm_log[-1]) + res_log * (norm_log[-1] - norm_log[0]) \
+                + res_log[-1] * (norm_log[0] - norm_log)
+            self.curve_surf[R_idx] = curveseq
+            curve_list.append(np.max(curveseq))
+        best_R_ind = np.argmax(curve_list)
+        self.update_R(Rs[best_R_ind])
+        self.update_lambda(lambdas[np.argmax(self.curve_surf, axis=1)[best_R_ind]])
+        print("Best lambda and R = ", self.lambd, ', ',
+              np.round(self.R, decimals=3))
 
 
 class KCSD1D(KCSD):

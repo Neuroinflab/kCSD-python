@@ -13,6 +13,10 @@ Nencki Institute of Experimental Biology, Warsaw.
 from __future__ import division
 
 import numpy as np
+try:
+    from joblib.parallel import Parallel, delayed
+except ImportError:
+    from sklearn.externals.joblib import Parallel, delayed
 
 
 def check_for_duplicated_electrodes(elec_pos):
@@ -207,3 +211,45 @@ def get_src_params_3D(Lx, Ly, Lz, n_src):
     return (nx, ny, nz, Lx_n, Ly_n, Lz_n, ds)
 
 
+def L_model_fast(k_pot, pots, lamb, i):
+    """Method for Fast L-curve computation
+    Parameters
+    ----------
+    k_pot : np.array
+    pots : list
+    lambd : list
+    i : int
+    Returns
+    -------
+    modelnorm : float
+    residual : float
+
+    """
+    k_inv = np.linalg.inv(k_pot + lamb*np.identity(k_pot.shape[0]))
+    beta_new = np.dot(k_inv, pots)
+    V_est = np.dot(k_pot, beta_new)
+    modelnorm = np.einsum('ij,ji->i', beta_new.T, V_est)
+    residual = np.linalg.norm(V_est - pots)
+    modelnorm = np.max(modelnorm)
+    return modelnorm, residual
+
+
+def parallel_search(k_pot, pots, lambdas, n_jobs=4):
+    """Method for Parallel L-curve computation
+
+    Parameters
+    ----------
+    k_pot : np.array
+    pots : list
+    lambdas : list
+    Returns
+    -------
+    modelnormseq : list
+    residualseq : list
+
+    """
+    jobs = (delayed(L_model_fast)(k_pot, pots, lamb, i)
+            for i, lamb in enumerate(lambdas))
+    modelvsres = Parallel(n_jobs=n_jobs, backend='threading')(jobs)
+    modelnormseq, residualseq = zip(*modelvsres)
+    return modelnormseq, residualseq
