@@ -406,7 +406,8 @@ class KCSD(CSD):
                 + res_log[-1] * (norm_log[0] - norm_log)
             self.curve_surf[R_idx] = curveseq
             curve_list.append(np.max(curveseq))
-        self.update_R(Rs[np.argmax(curve_list)])
+        best_R_ind = np.argmax(curve_list)
+        self.update_R(Rs[best_R_ind])
 
         if ploting:
             modelnormseq, residualseq = utils.parallel_search(self.k_pot, self.pots, lambdas,
@@ -415,10 +416,9 @@ class KCSD(CSD):
             res_log = np.log(residualseq + np.finfo(np.float64).eps)
             curveseq = res_log[0] * (norm_log - norm_log[-1]) + res_log * (norm_log[-1] - norm_log[0]) \
                 + res_log[-1] * (norm_log[0] - norm_log)
-
             utils.plot_lcurve(residualseq, modelnormseq, np.argmax(curveseq), curveseq, lambdas, self.R)
-
-        self.update_lambda(lambdas[np.argmax(curveseq)])
+            
+        self.update_lambda(lambdas[np.argmax(self.curve_surf, axis = 1)[best_R_ind]])
         print("Best lambda and R = ", self.lambd, ', ',
               np.round(self.R, decimals=3))
 
