@@ -4,21 +4,31 @@ kCSD method Jan et.al (2012).
 This was written by :
 [1]Chaitanya Chintaluri,
 [2]Michal Czerwinski,
+<<<<<<< HEAD:kcsd/KCSD.py
+[3]Wladek Sredniawa (l-curve method)
+=======
+>>>>>>> master:corelib/KCSD.py
 Laboratory of Neuroinformatics,
 Nencki Institute of Exprimental Biology, Warsaw.
 KCSD1D[1][2], KCSD2D[1], KCSD3D[1], MoIKCSD[1]
 
 """
 from __future__ import division
-
 import numpy as np
-from numpy.linalg import LinAlgError
 from scipy import special, integrate, interpolate
 from scipy.spatial import distance
+<<<<<<< HEAD:kcsd/KCSD.py
+from numpy.linalg import LinAlgError, svd
 
-from . import utility_functions as utils
-from . import basis_functions as basis
+from kcsd.corelib import utility_functions as utils
+from kcsd.corelib import basis_functions as basis
+=======
+from numpy.linalg import LinAlgError
+import utility_functions as utils
+import basis_functions as basis
 
+# from . import utility_functions as utils
+# from . import basis_functions as basis
 try:
     from skmonaco import mcmiser
     skmonaco_available = True
@@ -26,6 +36,7 @@ try:
     num_cores = multiprocessing.cpu_count()
 except ImportError:
     skmonaco_available = False
+>>>>>>> master:corelib/KCSD.py
 
 
 class CSD(object):
@@ -111,11 +122,12 @@ class KCSD(CSD):
             If invalid keyword arguments inserted into **kwargs.
         """
         self.src_type = kwargs.pop('src_type', 'gauss')
+        self.n_jobs = kwargs.pop('n_jobs', 4)
         self.sigma = kwargs.pop('sigma', 1.0)
         self.h = kwargs.pop('h', 1.0)
         self.n_src_init = kwargs.pop('n_src_init', 1000)
         self.lambd = kwargs.pop('lambd', 0.0)
-        self.R_init = kwargs.pop('R_init', 0.23)
+        self.R_init = kwargs.pop('R_init', 0.1)
         self.ext_x = kwargs.pop('ext_x', 0.0)
         self.xmin = kwargs.pop('xmin', np.min(self.ele_pos[:, 0]))
         self.xmax = kwargs.pop('xmax', np.max(self.ele_pos[:, 0]))
@@ -199,7 +211,12 @@ class KCSD(CSD):
         None
         """
         self.b_src = self.basis(self.src_estm_dists, self.R).T
+<<<<<<< HEAD:kcsd/KCSD.py
+#        print('b_src',np.shape(self.b_src))
+        self.k_interp_cross = np.dot(self.b_src, self.b_pot) #K_t(x,y) Eq17
+=======
         self.k_interp_cross = np.dot(self.b_src, self.b_pot)  # K_t(x,y) Eq17
+>>>>>>> master:corelib/KCSD.py
         self.k_interp_cross /= self.n_src
 
     def update_b_interp_pot(self):
@@ -220,7 +237,7 @@ class KCSD(CSD):
         """Computes the values of the quantity of interest
 
         Parameters
-        ----------
+        ----------o
         estimate : 'CSD' or 'POT'
             What quantity is to be estimated
             Defaults to 'CSD'
@@ -236,11 +253,12 @@ class KCSD(CSD):
             estimation_table = self.k_interp_pot
         else:
             print('Invalid quantity to be measured, pass either CSD or POT')
-        k_inv = np.linalg.inv(self.k_pot + self.lambd *
+        k_inv = np.linalg.inv(self.k_pot + self.lambd*
                               np.identity(self.k_pot.shape[0]))
         estimation = np.zeros((self.n_estm, self.n_time))
         for t in range(self.n_time):
             beta = np.dot(k_inv, self.pots[:, t])
+#            print('K: ',np.shape(self.k_pot),'K_tilde: ', np.shape(estimation_table), 'beta: ', np.shape(beta))
             for i in range(self.n_ele):
                 estimation[:, t] += estimation_table[:, i]*beta[i]  # C*(x) Eq 18
         return self.process_estimate(estimation)
@@ -286,7 +304,11 @@ class KCSD(CSD):
         lambd : float
         """
         self.lambd = lambd
+<<<<<<< HEAD:kcsd/KCSD.py
+        
+=======
 
+>>>>>>> master:corelib/KCSD.py
     def cross_validate(self, lambdas=None, Rs=None):
         """Method defines the cross validation.
         By default only cross_validates over lambda,
@@ -305,7 +327,11 @@ class KCSD(CSD):
         R : post cross validation
         Lambda : post cross validation
         """
+<<<<<<< HEAD:kcsd/KCSD.py
+        if lambdas is None: #when None
+=======
         if lambdas is None:                           # when None
+>>>>>>> master:corelib/KCSD.py
             print('No lambda given, using defaults')
             lambdas = np.logspace(-2,-25,25,base=10.) # Default multiple lambda
             lambdas = np.hstack((lambdas, np.array((0.0))))
@@ -362,6 +388,7 @@ class KCSD(CSD):
             B_new = np.matrix(B_train) + (lambd*I_matrix)
             try:
                 beta_new = np.dot(np.matrix(B_new).I, np.matrix(V_train))
+#                print('beta_cv:',np.shape(beta_new))
                 B_test = self.k_pot[np.ix_(idx_test, idx_train)]
                 V_est = np.zeros((len(idx_test), self.pots.shape[1]))
                 for ii in range(len(idx_train)):
@@ -373,6 +400,79 @@ class KCSD(CSD):
                                   'try changing ele_pos slightly')
         return err
 
+<<<<<<< HEAD:kcsd/KCSD.py
+    def suggest_lambda(self):
+        """Computes the lambda parameter range for regularization,
+        Used in Cross validation and L-curve
+        Parameters
+        ----------
+        Returns
+        -------
+        Lambdas : list
+        """
+        u, s, v = svd(self.k_pot)
+        print('min lambda', 10**np.round(np.log10(s[-1]), decimals=0))
+        print('max lambda', str.format('{0:.4f}', np.std(np.diag(self.k_pot))))
+        return np.logspace(np.log10(s[-1]), np.std(np.diag(self.k_pot)), 20)
+
+    def L_curve(self, estimate='CSD', lambdas=None, Rs=None, ploting=False):
+        """Method defines the L-curve.
+        By default calculates L-curve over lambda,
+        When no argument is passed, it takes
+        lambdas = np.logspace(-10,-1,100,base=10)
+        and Rs = np.array(self.R).flatten()
+        otherwise pass necessary numpy arrays
+
+        Parameters
+        ----------
+        L-curve plotting: default True
+        lambdas : numpy array
+        Rs : numpy array
+        Returns
+        -------
+        curve_surf : post cross validation
+        """
+        if lambdas is None:
+            print('No lambda given, using defaults')
+            lambdas = self.suggest_lambda()
+        else:
+            lambdas = lambdas.flatten()
+        if Rs is None:
+            R = np.array((self.R)).flatten()
+        else:
+            R = np.array((Rs)).flatten()
+        curve_list = []
+        self.curve_surf = np.zeros((len(Rs), len(lambdas)))
+        for R_idx, R in enumerate(Rs):
+            self.update_R(R)
+            self.suggest_lambda()
+            print('l-curve (all lambda): ', np.round(R, decimals=3))
+            modelnormseq, residualseq = utils.parallel_search(self.k_pot, self.pots, lambdas,
+                                                              n_jobs=self.n_jobs)
+            norm_log = np.log(modelnormseq + np.finfo(np.float64).eps)
+            res_log = np.log(residualseq + np.finfo(np.float64).eps)
+            curveseq = res_log[0] * (norm_log - norm_log[-1]) + res_log * (norm_log[-1] - norm_log[0]) \
+                + res_log[-1] * (norm_log[0] - norm_log)
+            self.curve_surf[R_idx] = curveseq
+            curve_list.append(np.max(curveseq))
+        best_R_ind = np.argmax(curve_list)
+        self.update_R(Rs[best_R_ind])
+
+        if ploting:
+            modelnormseq, residualseq = utils.parallel_search(self.k_pot, self.pots, lambdas,
+                                                              n_jobs = self.n_jobs)
+            norm_log = np.log(modelnormseq + np.finfo(np.float64).eps)
+            res_log = np.log(residualseq + np.finfo(np.float64).eps)
+            curveseq = res_log[0] * (norm_log - norm_log[-1]) + res_log * (norm_log[-1] - norm_log[0]) \
+                + res_log[-1] * (norm_log[0] - norm_log)
+            utils.plot_lcurve(residualseq, modelnormseq, np.argmax(curveseq), curveseq, lambdas, self.R)
+            
+        self.update_lambda(lambdas[np.argmax(self.curve_surf, axis = 1)[best_R_ind]])
+        print("Best lambda and R = ", self.lambd, ', ',
+              np.round(self.R, decimals=3))
+
+=======
+>>>>>>> master:corelib/KCSD.py
 
 class KCSD1D(KCSD):
     """KCSD1D - The 1D variant for the Kernel Current Source Density method.
@@ -445,8 +545,7 @@ class KCSD1D(KCSD):
         self.estm_x = np.mgrid[self.xmin:self.xmax:np.complex(0, nx)]
         self.n_estm = self.estm_x.size
         self.ngx = self.estm_x.shape[0]
-        self.estm_pos = self.estm_x.reshape(self.n_estm, 1)
-        
+
     def place_basis(self):
         """Places basis sources of the defined type.
         Checks if a given source_type is defined, if so then defines it
@@ -617,9 +716,8 @@ class KCSD2D(KCSD):
         """
         nx = (self.xmax - self.xmin)/self.gdx
         ny = (self.ymax - self.ymin)/self.gdy
-        self.estm_pos = np.mgrid[self.xmin:self.xmax:np.complex(0, nx), 
-                                 self.ymin:self.ymax:np.complex(0, ny)]
-        self.estm_x, self.estm_y = self.estm_pos
+        self.estm_x, self.estm_y = np.mgrid[self.xmin:self.xmax:np.complex(0, nx), 
+                                            self.ymin:self.ymax:np.complex(0, ny)]
         self.n_estm = self.estm_x.size
         self.ngx, self.ngy = self.estm_x.shape
 
@@ -926,10 +1024,9 @@ class KCSD3D(KCSD):
         nx = (self.xmax - self.xmin)/self.gdx
         ny = (self.ymax - self.ymin)/self.gdy
         nz = (self.zmax - self.zmin)/self.gdz
-        self.estm_pos = np.mgrid[self.xmin:self.xmax:np.complex(0, nx), 
-                                 self.ymin:self.ymax:np.complex(0, ny),
-                                 self.zmin:self.zmax:np.complex(0, nz)]
-        self.estm_x, self.estm_y, self.estm_z = self.estm_pos
+        self.estm_x, self.estm_y, self.estm_z = np.mgrid[self.xmin:self.xmax:np.complex(0, nx), 
+                                                         self.ymin:self.ymax:np.complex(0, ny),
+                                                         self.zmin:self.zmax:np.complex(0, nz)]
         self.n_estm = self.estm_x.size
         self.ngx, self.ngy, self.ngz = self.estm_x.shape
 
