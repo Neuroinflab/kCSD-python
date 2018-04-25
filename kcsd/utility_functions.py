@@ -18,6 +18,7 @@ try:
 except ImportError:
     from sklearn.externals.joblib import Parallel, delayed
 
+
 def check_for_duplicated_electrodes(elec_pos):
     """Checks for duplicate electrodes
     Parameters
