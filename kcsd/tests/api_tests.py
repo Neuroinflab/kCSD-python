@@ -10,7 +10,7 @@ Nencki Institute of Exprimental Biology, Warsaw.
 
 import unittest
 import numpy as np
-from kcsd import generate as utils
+from kcsd import ValidateKCSD1D, ValidateKCSD2D, ValidateKCSD3D
 from kcsd import csd_profile as CSD
 from kcsd import KCSD1D, KCSD2D, KCSD3D
 
@@ -23,9 +23,15 @@ kernel_methods = ['KCSD1D', 'KCSD2D', 'KCSD3D', 'MoIKCSD']
 
 class LFP_TestCase(unittest.TestCase):
     def default_setting(self, dim, csd_instance):
-        num_ele, ele_pos = utils.generate_electrodes(dim=dim)
-        csd_at, csd = utils.generate_csd(csd_instance, dim=dim)
-        lfp = utils.calculate_potential(csd_at, csd, ele_pos, h=1)        
+        if dim == 1:
+            utils = ValidateKCSD1D(csd_seed=42)
+        elif dim == 2:
+            utils = ValidateKCSD2D(csd_seed=43)
+        else:
+            utils = ValidateKCSD3D(csd_seed=44)
+        ele_pos = utils.generate_electrodes(total_ele=3)
+        csd_at, csd = utils.generate_csd(csd_instance, csd_seed=2)
+        lfp = utils.calculate_potential(csd_at, csd, ele_pos, h=1, sigma=0.3)        
         return ele_pos, lfp
     
     def test_lfp1d_electrodes(self):

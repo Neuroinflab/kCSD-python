@@ -24,6 +24,10 @@ ipynb_tests branch
 .. image:: https://mybinder.org/badge.svg
    :target: https://mybinder.org/v2/gh/Neuroinflab/kCSD-python/ipynb_tests?filepath=tutorials%2Ftutorial_kcsd.ipynb
 
+error_maps branch
+
+.. image:: https://mybinder.org/badge.svg
+   :target: https://mybinder.org/v2/gh/m-kowalska/kCSD-python/error_maps?filepath=tutorials%2Fkcsd_tutorial.ipynb
 	    
 Earlier Stable versions
 -----------------------

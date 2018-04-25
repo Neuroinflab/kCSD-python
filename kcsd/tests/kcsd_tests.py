@@ -10,7 +10,7 @@ Nencki Institute of Exprimental Biology, Warsaw.
 
 import unittest
 import numpy as np
-from kcsd import generate as utils
+from kcsd import ValidateKCSD1D, ValidateKCSD2D, ValidateKCSD3D
 from kcsd import csd_profile as CSD
 from kcsd import KCSD1D, KCSD2D, MoIKCSD, KCSD3D
 
@@ -18,10 +18,11 @@ from kcsd import KCSD1D, KCSD2D, MoIKCSD, KCSD3D
 class KCSD1D_TestCase(unittest.TestCase):
     def setUp(self):
         dim = 1
-        self.num_ele, self.ele_pos = utils.generate_electrodes(dim=dim)
+        utils = ValidateKCSD1D(csd_seed=42)
+        self.num_ele, self.ele_pos = utils.generate_electrodes(total_ele=10)
         self.csd_profile = CSD.gauss_1d_mono
-        self.csd_at, self.csd = utils.generate_csd(self.csd_profile, dim=dim)
-        pots = utils.calculate_potential(self.csd_at, self.csd, self.ele_pos, h=1.)
+        self.csd_at, self.csd = utils.generate_csd(self.csd_profile, csd_seed=42)
+        pots = utils.calculate_potential(self.csd_at, self.csd, self.ele_pos, h=1., sigma=0.3)
         self.pots = np.reshape(pots, (-1, 1))
         self.test_method = 'KCSD1D'
         self.test_params = {'h': 1., 'sigma':1.}
@@ -52,9 +53,10 @@ class KCSD1D_TestCase(unittest.TestCase):
 class KCSD2D_TestCase(unittest.TestCase):
     def setUp(self):
         dim = 2
-        self.num_ele, self.ele_pos = utils.generate_electrodes(ele_lim=[0.05, 0.95], ele_res=9, dim=dim)
+        utils = ValidateKCSD2D(csd_seed=43)
+        self.num_ele, self.ele_pos = utils.generate_electrodes(total_ele=25, ele_lims=[0.05, 0.95])
         self.csd_profile = CSD.gauss_2d_large
-        self.csd_at, self.csd = utils.generate_csd(self.csd_profile, dim=dim)
+        self.csd_at, self.csd = utils.generate_csd(self.csd_profile, csd_seed=43)
         pots = utils.calculate_potential(self.csd_at, self.csd, self.ele_pos, h=10., sigma=0.3)
         self.pots = np.reshape(pots, (-1, 1))
         self.test_method = 'KCSD2D'
@@ -101,9 +103,10 @@ class KCSD2D_TestCase(unittest.TestCase):
 class KCSD3D_TestCase(unittest.TestCase):
     def setUp(self):
         dim = 3
-        self.num_ele, self.ele_pos = utils.generate_electrodes(ele_lim=[0.15, 0.85], ele_res=5, dim=dim)
+        utils = ValidateKCSD3D(csd_seed=44)
+        self.num_ele, self.ele_pos = utils.generate_electrodes(total_ele=27, ele_lims=[0.15, 0.85])
         self.csd_profile = CSD.gauss_3d_large
-        self.csd_at, self.csd = utils.generate_csd(self.csd_profile, dim=dim)
+        self.csd_at, self.csd = utils.generate_csd(self.csd_profile, csd_seed=44)
         pots = utils.calculate_potential(self.csd_at, self.csd, self.ele_pos, h=1., sigma=0.3)
         self.pots = np.reshape(pots, (-1, 1))
         self.test_method = 'KCSD3D'
