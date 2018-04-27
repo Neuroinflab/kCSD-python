@@ -21,10 +21,10 @@ if __name__ == '__main__':
     
     tstop = 70
     scale_factor = 1000**2
-    scale_factor_LFP = 1
+    scale_factor_LFP = 1000
     
-    R_inits = np.array([(2**(i-.5))/scale_factor for i in range(3,9)])
-    lambdas = np.array([(10**(-i))for i in range(8,2,-1)])
+    R_inits = np.array([(2**(i-.5))/scale_factor for i in range(3,7)])
+    lambdas = np.array([(10**(-i))for i in range(10,0,-1)])
     n_srcs = np.array([32,64,128,512,1024])
     x_ticklabels = [2**i for i in range(3,9)]
     y_ticklabels = [str(lambd) for lambd in lambdas]
@@ -41,23 +41,22 @@ if __name__ == '__main__':
     
 
     ground_truth = np.loadtxt(os.path.join(c.return_paths_skCSD_python(),'membcurr'))
-    
+    seglen = np.loadtxt(os.path.join(c.return_paths_skCSD_python(),'seglength'))
+    ground_truth = ground_truth/seglen[:,None]*1e-3
     outs = np.zeros((len(n_srcs),len(lambdas),len(R_inits)))
 
     for i, n_src in enumerate(n_srcs):
         for j, l in enumerate(lambdas):
             for k, R in enumerate(R_inits):
-                lambd = l*2*(2*np.pi)**3*R**2*n_src
-                ker = sKCSD.sKCSD(ele_pos,data.LFP,morphology, n_src_init=n_src, src_type='gauss',lambd=lambd,R_init=R)
+                lambd = l#*2*(2*np.pi)**3*R**2*n_src
+                ker = sKCSD.sKCSD(ele_pos,pots,morphology, n_src_init=n_src, src_type='gauss_lim',lambd=lambd,R_init=R)
                 est_skcsd = ker.values(estimate='CSD',transformation='segments')
-                print(est_skcsd.max(),est_skcsd.min())
                 outs[i,j,k] = fun.L1_error(ground_truth, est_skcsd)
-                print(outs[i,j,k])
 
     fig, ax = plt.subplots(1, 4, sharey=True)
     vmax = outs.max()
     vmin = outs.min()
-    print(vmax,vmin)
+
     for i, ax_i in enumerate(ax):
         title = "M = %d"%n_srcs[i]
         if not i:

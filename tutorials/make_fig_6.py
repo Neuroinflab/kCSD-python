@@ -39,7 +39,7 @@ if __name__ == '__main__':
             
     seglen = np.loadtxt(os.path.join(data_dir[0],'seglength'))
     ground_truth = np.loadtxt(os.path.join(data_dir[0],'membcurr'))
-    ground_truth = ground_truth/seglen[:,None]
+    ground_truth = ground_truth/seglen[:,None]*1e-3
     dt = c.cell_parameters['dt']
     
     t1 = int(42/dt)
@@ -62,7 +62,7 @@ if __name__ == '__main__':
     for i, datd in enumerate(data_dir):
         data = ld.Data(datd)
         ele_pos = data.ele_pos/scaling_factor
-        pots = data.LFP/scaling_factor_LFP
+        data.LFP = data.LFP/scaling_factor_LFP
         morphology = data.morphology
         morphology[:,2:6] = morphology[:,2:6]/scaling_factor
         k = sKCSD.sKCSD(ele_pos,data.LFP,morphology, n_src_init=n_src, src_type='gauss',lambd=lambd,R_init=R,dist_table_density=100)

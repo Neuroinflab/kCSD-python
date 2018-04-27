@@ -27,35 +27,23 @@ if __name__ == '__main__':
     
     R_inits = np.array([(2**(i-.5))/scale_factor for i in range(1,9)])
     lambdas = np.array([(10**(-i))for i in range(5)])
-    #x_ticklabels = [2**i for i in range(1,7)]
-    #y_ticklabels = [str(lambd) for lambd in lambdas]
-
+ 
     colnb = 10
     rownb = 10
-    c = fun.simulate(fname_base,morphology=6,tstop=tstop,seed=1988,weight=0.04,n_syn=1000,simulate_what='oscillatory',electrode_distribution=1,electrode_orientation=3,xmin=-400,xmax=400,ymin=-400,ymax=400,colnb=colnb,rownb=rownb,dt=0.125)
+    c = fun.simulate(fname_base,morphology=6,tstop=tstop,seed=1988,weight=0.04,n_syn=1000,simulate_what='oscillatory',electrode_distribution=1,electrode_orientation=3,xmin=-400,xmax=400,ymin=-400,ymax=400,colnb=colnb,rownb=rownb,dt=0.5)
     data_dir = c.return_paths_skCSD_python()
     data = ld.Data(data_dir)
     ele_pos = data.ele_pos/scale_factor
-    pots = data.LFP/scale_factor_LFP
+    data.LFP = data.LFP/scale_factor_LFP
     morphology = data.morphology
     morphology[:,2:6] = morphology[:,2:6]/scale_factor
-    
-    ground_truth = np.loadtxt(os.path.join(data_dir,'membcurr'))
-    print(ground_truth.max(),ground_truth.min())
-    dt = run_LFP.CellModel.CELL_PARAMETERS['dt']
-    t0 = int(492.25/dt)
-    #for i in range(14):
-    fig = plt.figure()
-    ax = fig.add_subplot(1,1,1)
-    pl.plot(ax,ground_truth,fig=fig,sinksource=False)
-    fig = plt.figure()
-    ax = fig.add_subplot(1,1,1)
-    pl.plot(ax,pots,fig=fig,sinksource=False)
-    #plt.show()
+    seglen = np.loadtxt(os.path.join(data_dir,'seglength'))
+    ground_truth = np.loadtxt(os.path.join(data_dir,'membcurr'))/seglen[:,None]*1e-3
+
     for i,R in enumerate(R_inits):
         
         for j,l in enumerate(lambdas):
-            lambd = l
+            lambd = l*2*(2*np.pi)**3*R**2*n_src
             ker = sKCSD.sKCSD(ele_pos,data.LFP,morphology, n_src_init=n_src, src_type='gauss',lambd=lambd,R_init=R,dist_table_density=250)
             if not i and not j:
                
@@ -86,6 +74,6 @@ if __name__ == '__main__':
             pl.plot(ax[0],morpho,extent=extent)
             pl.plot(ax[0],ground_truth_3D[:,:,:,t0].sum(axis=(2)),extent=extent)
             
-            plt.show()
+    plt.show()
             
     

@@ -39,7 +39,7 @@ if __name__ == '__main__':
         
     seglen = np.loadtxt(os.path.join(data_dir[0],'seglength'))
     ground_truth = np.loadtxt(os.path.join(data_dir[0],'membcurr'))
-    ground_truth = ground_truth/seglen[:,None]
+    ground_truth = ground_truth/seglen[:,None]*1e-3
     ground_truth_grid = []
     ground_truth_t1 = None
     ground_truth_t2 = None
@@ -57,7 +57,7 @@ if __name__ == '__main__':
     for i, datd in enumerate(data_dir):
         data = ld.Data(datd)
         ele_pos = data.ele_pos/scaling_factor
-        pots = data.LFP/scaling_factor_LFP
+        data.LFP = data.LFP/scaling_factor_LFP
         morphology = data.morphology
         morphology[:,2:6] = morphology[:,2:6]/scaling_factor
         
