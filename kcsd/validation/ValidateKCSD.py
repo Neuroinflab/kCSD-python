@@ -317,8 +317,7 @@ class ValidateKCSD(object):
         csd_at, true_csd = self.generate_csd(csd_profile, csd_seed)
         ele_pos = self.generate_electrodes(total_ele, ele_lims,
                                            nr_broken_ele, ele_seed)
-        pots = self.calculate_potential(true_csd, csd_at, ele_pos, h,
-                                        sigma)
+        pots = self.calculate_potential(true_csd, csd_at, ele_pos, h, sigma)
         num_ele = ele_pos.shape[0]
         print('Number of electrodes:', num_ele)
         if noise == 'noise':
@@ -648,7 +647,8 @@ class ValidateKCSD1D(ValidateKCSD):
         self.csd_seed = csd_seed
         return
 
-    def recon(self, pots, ele_pos, method='CV', Rs=None, lambdas=None):
+    def recon(self, pots, ele_pos, method='cross-validation', Rs=None,
+              lambdas=None):
         """
         Calls KCSD1D class to reconstruct current source density.
 
@@ -673,10 +673,10 @@ class ValidateKCSD1D(ValidateKCSD):
                    h=self.h, n_src_init=self.n_src_init, ext_x=self.ext_x,
                    gdx=self.est_xres, xmin=np.min(self.kcsd_xlims),
                    xmax=np.max(self.kcsd_xlims))
-        if method == 'CV':
+        if method == 'cross-validation':
             k.cross_validate(Rs=Rs, lambdas=lambdas)
-        elif method == 'Lcurve':
-            k.cross_validate(Rs=Rs, lambdas=lambdas)  # just for now!!!
+        elif method == 'L-curve':
+            k.L_curve(Rs=Rs, lambdas=lambdas)  # just for now!!!
         else:
             raise ValueError('Invalid value of reconstruction method,'
                              'pass either CV or Lcurve')
