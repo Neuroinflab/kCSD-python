@@ -9,10 +9,10 @@ Nencki Institute of Exprimental Biology, Warsaw.
 KCSD1D[1][2], KCSD2D[1], KCSD3D[1], MoIKCSD[1]
 
 """
-from __future__ import division
+from __future__ import division, print_function, absolute_import
 
 import numpy as np
-from numpy.linalg import LinAlgError
+from numpy.linalg import LinAlgError, svd
 from scipy import special, integrate, interpolate
 from scipy.spatial import distance
 
@@ -120,6 +120,7 @@ class KCSD(CSD):
         self.xmin = kwargs.pop('xmin', np.min(self.ele_pos[:, 0]))
         self.xmax = kwargs.pop('xmax', np.max(self.ele_pos[:, 0]))
         self.gdx = kwargs.pop('gdx', 0.01*(self.xmax - self.xmin))
+        self.dist_table_density = kwargs.pop('dist_table_density',20)
         if self.dim >= 2:
             self.ext_y = kwargs.pop('ext_y', 0.0)
             self.ymin = kwargs.pop('ymin', np.min(self.ele_pos[:, 1]))
@@ -147,7 +148,7 @@ class KCSD(CSD):
         self.update_b_src()                                 # update crskernel
         self.update_b_interp_pot()                          # update pot interp
 
-    def create_lookup(self, dist_table_density=20):
+    def create_lookup(self):
         """Creates a table for easy potential estimation from CSD.
         Updates and Returns the potentials due to a
         given basis source like a lookup
@@ -156,10 +157,10 @@ class KCSD(CSD):
         Parameters
         ----------
         dist_table_density : int
-            number of distance values at which potentials are computed.
+            number of distance points at which potentials are computed.
             Default 100
         """
-        xs = np.logspace(0., np.log10(self.dist_max+1.), dist_table_density)
+        xs = np.logspace(0., np.log10(self.dist_max+1.), self.dist_table_density)
         xs = xs - 1.0  # starting from 0
         dist_table = np.zeros(len(xs))
         for i, pos in enumerate(xs):
@@ -198,6 +199,7 @@ class KCSD(CSD):
         ----------
         None
         """
+        #Tu jest basis!
         self.b_src = self.basis(self.src_estm_dists, self.R).T
         self.k_interp_cross = np.dot(self.b_src, self.b_pot)  # K_t(x,y) Eq17
         self.k_interp_cross /= self.n_src
@@ -373,6 +375,66 @@ class KCSD(CSD):
                                   'try changing ele_pos slightly')
         return err
 
+    def suggest_lambda(self):
+        """Computes the lambda parameter range for regularization,
+        Used in Cross validation and L-curve
+        Parameters
+        ----------
+        Returns
+        -------
+        Lambdas : list
+        """
+        u, s, v = svd(self.k_pot)
+        print('min lambda', 10**np.round(np.log10(s[-1]), decimals=0))
+        print('max lambda', str.format('{0:.4f}', np.std(np.diag(self.k_pot))))
+        return np.logspace(np.log10(s[-1]), np.std(np.diag(self.k_pot)), 20)
+
+    def L_curve(self, estimate='CSD', lambdas=None, Rs=None):
+        """Method defines the L-curve.
+        By default calculates L-curve over lambda,
+        When no argument is passed, it takes
+        lambdas = np.logspace(-10,-1,100,base=10)
+        and Rs = np.array(self.R).flatten()
+        otherwise pass necessary numpy arrays
+
+        Parameters
+        ----------
+        L-curve plotting: default True
+        lambdas : numpy array
+        Rs : numpy array
+        Returns
+        -------
+        curve_surf : post cross validation
+        """
+        if lambdas is None:
+            print('No lambda given, using defaults')
+            lambdas = self.suggest_lambda()
+        else:
+            lambdas = lambdas.flatten()
+        if Rs is None:
+            R = np.array((self.R)).flatten()
+        else:
+            R = np.array((Rs)).flatten()
+        curve_list = []
+        self.curve_surf = np.zeros((len(Rs), len(lambdas)))
+        for R_idx, R in enumerate(Rs):
+            self.update_R(R)
+            self.suggest_lambda()
+            print('l-curve (all lambda): ', np.round(R, decimals=3))
+            modelnormseq, residualseq = utils.parallel_search(self.k_pot, self.pots, lambdas,
+                                                              n_jobs=self.n_jobs)
+            norm_log = np.log(modelnormseq + np.finfo(np.float64).eps)
+            res_log = np.log(residualseq + np.finfo(np.float64).eps)
+            curveseq = res_log[0] * (norm_log - norm_log[-1]) + res_log * (norm_log[-1] - norm_log[0]) \
+                + res_log[-1] * (norm_log[0] - norm_log)
+            self.curve_surf[R_idx] = curveseq
+            curve_list.append(np.max(curveseq))
+        best_R_ind = np.argmax(curve_list)
+        self.update_R(Rs[best_R_ind])
+        self.update_lambda(lambdas[np.argmax(self.curve_surf, axis=1)[best_R_ind]])
+        print("Best lambda and R = ", self.lambd, ', ',
+              np.round(self.R, decimals=3))
+
 
 class KCSD1D(KCSD):
     """KCSD1D - The 1D variant for the Kernel Current Source Density method.
@@ -420,6 +482,9 @@ class KCSD1D(KCSD):
             lambd : float
                 regularization parameter for ridge regression
                 Defaults to 0.
+            dist_table_density : int
+                size of the potential interpolation table
+                Defaults to 20
 
         Raises
         ------
