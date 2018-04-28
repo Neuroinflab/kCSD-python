@@ -370,7 +370,7 @@ class ValidateKCSD(object):
                 for ii in range(ele_pos.shape[0]):
                     pots[ii] = self.integrate(csd_at, true_csd,
                                               [ele_pos[ii][0], ele_pos[ii][1],
-                                               ele_pos[ii][2]], h
+                                               ele_pos[ii][2]], h,
                                               [xlin, ylin, zlin])
             pots /= 4*np.pi*sigma
         return pots

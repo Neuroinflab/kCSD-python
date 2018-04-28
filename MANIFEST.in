@@ -1,5 +1,7 @@
 include LICENSE.txt
 include README.rst
+graft data
+graft figures
 graft doc
 graft tests
 graft validation

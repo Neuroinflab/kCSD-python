@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 # encoding: utf-8
 from __future__ import print_function, division, absolute_import
-import sys
 import os
 import unittest
-
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import numpy as np
+
+from kcsd import sample_data_path
+from kcsd.utility_functions import LoadData
 
 try:
   basestring
@@ -14,12 +14,10 @@ except NameError:
   basestring = str
 
 
-from tutorials.loadData import Data
-
 class testData(unittest.TestCase):
     
     def setUp(self):
-        self.data = Data("Data/gang_7x7_200")
+        self.data = LoadData(os.path.join(sample_data_path, "gang_7x7_200"))
     
     def test_path_expansion_morphology(self):
         self.assertEqual(1,'Data/gang_7x7_200/morphology' in self.data.sub_dir_path(self.data.path))
