@@ -11,14 +11,15 @@ Laboratory of Neuroinformatics,
 Nencki Institute of Experimental Biology, Warsaw.
 """
 from __future__ import print_function, division, absolute_import
-import numpy as np
 import os
 import json
+import numpy as np
 
 try:
     from joblib.parallel import Parallel, delayed
+    PARALLEL_AVAILABLE = True
 except ImportError:
-    from sklearn.externals.joblib import Parallel, delayed
+    PARALLEL_AVAILABLE = False
 
 
 def load_swc(path):
@@ -332,9 +333,15 @@ def parallel_search(k_pot, pots, lambdas, n_jobs=4):
     residualseq : list
 
     """
-    jobs = (delayed(L_model_fast)(k_pot, pots, lamb, i)
-            for i, lamb in enumerate(lambdas))
-    modelvsres = Parallel(n_jobs=n_jobs, backend='threading')(jobs)
+    if PARALLEL_AVAILABLE:
+        jobs = (delayed(L_model_fast)(k_pot, pots, lamb, i)
+                for i, lamb in enumerate(lambdas))
+        modelvsres = Parallel(n_jobs=n_jobs, backend='threading')(jobs)
+    else:
+        # Please verify this!
+        modelvsres = []
+        for i, lamb in enumerate(lambdas):
+            modelvsres.append(L_model_fast(k_pot, pots, lamb, i))
     modelnormseq, residualseq = zip(*modelvsres)
     return modelnormseq, residualseq
 
