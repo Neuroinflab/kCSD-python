@@ -17,7 +17,7 @@ os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from corelib import utility_functions as utils
 from tutorials.loadData import Data
-from corelib.sKCSDcell import sKCSDcell
+from corelib.sKCSD import sKCSDcell
 
 
 def in_between(a,b):
