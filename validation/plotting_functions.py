@@ -17,7 +17,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 import corelib.utility_functions as utils
 import glob
 
-import tutorials.loadData as ld
+import sKCSD_paper.loadData as ld
 
 def skCSD_reconstruction_plot_z(pots,est_csd,est_pot,cell_obj,t_min=0,electrode=5):
     """Displays interactive skCSD reconstruction plot

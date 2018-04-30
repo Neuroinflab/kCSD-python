@@ -14,7 +14,7 @@ except NameError:
   basestring = str
 
 
-from tutorials.loadData import Data
+from sKCSD_paper.loadData import Data
 
 class testData(unittest.TestCase):
     
