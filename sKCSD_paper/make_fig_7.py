@@ -10,14 +10,14 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 from corelib import sKCSD, KCSD
 import corelib.utility_functions as utils
 import loadData as ld
-import corelib.plotting_functions as pl
-import functions as fun
+import validation.plotting_functions as pl
+import sKCSD_utils
 sKCSD.skmonaco_available = False
 
 if __name__ == '__main__':
     
     fname_base = "Figure_7"
-    fig_name = fun.make_fig_names(fname_base+'.png')
+    fig_name = sKCSD_utils.make_fig_names(fname_base+'.png')
     
     tstop = 70
     scale_factor = 1000**2
@@ -31,7 +31,7 @@ if __name__ == '__main__':
 
     colnb = 4
     rownb = 4
-    c = fun.simulate(fname_base,morphology=2,colnb=colnb,rownb=rownb,xmin=-200,xmax=600,ymin=-200,ymax=200,tstop=tstop,seed=1988,weight=0.04,n_syn=100,simulate_what='symmetric')
+    c = sKCSD_utils.simulate(fname_base,morphology=2,colnb=colnb,rownb=rownb,xmin=-200,xmax=600,ymin=-200,ymax=200,tstop=tstop,seed=1988,weight=0.04,n_syn=100,simulate_what='symmetric')
     
     data = ld.Data(c.return_paths_skCSD_python())
     ele_pos = data.ele_pos/scale_factor
@@ -51,7 +51,7 @@ if __name__ == '__main__':
                 lambd = l#*2*(2*np.pi)**3*R**2*n_src
                 ker = sKCSD.sKCSD(ele_pos,pots,morphology, n_src_init=n_src, src_type='gauss_lim',lambd=lambd,R_init=R)
                 est_skcsd = ker.values(estimate='CSD',transformation='segments')
-                outs[i,j,k] = fun.L1_error(ground_truth, est_skcsd)
+                outs[i,j,k] = sKCSD_utils.L1_error(ground_truth, est_skcsd)
 
     fig, ax = plt.subplots(1, 4, sharey=True)
     vmax = outs.max()

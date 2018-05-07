@@ -11,8 +11,8 @@ from corelib import sKCSD, KCSD
 sKCSD.skmonaco_available = False
 import corelib.utility_functions as utils
 import loadData as ld
-import corelib.plotting_functions as pl
-import functions as fun
+import validation.plotting_functions as pl
+import sKCSD_utils
 
 n_src = 512
 R = 8e-6/2**.5
@@ -20,7 +20,7 @@ lambd = 1
 
 if __name__ == '__main__':
     fname_base = "Figure_5"
-    fig_name = fun.make_fig_names(fname_base)
+    fig_name = sKCSD_utils.make_fig_names(fname_base)
     tstop = 70
     scaling_factor = 1000**2
     scaling_factor_LFP = 1000
@@ -33,7 +33,7 @@ if __name__ == '__main__':
     xmin = [50,-200]
     for i, rownb in enumerate(electrode_number):
         fname = fname_base
-        c = fun.simulate(fname,morphology=2,colnb=colnb,rownb=rownb,xmin=-200,xmax=600,ymin=xmin[i],ymax=200,tstop=tstop,seed=1988,weight=0.01,n_syn=100,simulate_what="symmetric",dt=.2)
+        c = sKCSD_utils.simulate(fname,morphology=2,colnb=colnb,rownb=rownb,xmin=-200,xmax=600,ymin=xmin[i],ymax=200,tstop=tstop,seed=1988,weight=0.01,n_syn=100,simulate_what="symmetric",dt=.2)
       
         data_dir.append(c.return_paths_skCSD_python())
         
@@ -51,7 +51,7 @@ if __name__ == '__main__':
     lambdas = [10**(-i) for i in range(6)]
     n = 100
     fname = fname_base+'.png'
-    fig_name = fun.make_fig_names(fname)
+    fig_name = sKCSD_utils.make_fig_names(fname)
     fig, ax = plt.subplots(3,4)
                 
     for i, datd in enumerate(data_dir):

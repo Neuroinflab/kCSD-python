@@ -10,8 +10,8 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 from corelib import sKCSD, KCSD
 import corelib.utility_functions as utils
 import loadData as ld
-import corelib.plotting_functions as pl
-import functions as fun
+import validation.plotting_functions as pl
+import sKCSD_utils
 import run_LFP
 n_src = 512
 sKCSD.skmonaco_available = False
@@ -20,7 +20,7 @@ if __name__ == '__main__':
     
     fname_base = "Figure_8"
     fig_dir = 'Figures'
-    fig_name = fun.make_fig_names(fname_base)
+    fig_name = sKCSD_utils.make_fig_names(fname_base)
     tstop = 850
     scale_factor = 1000**2
     scale_factor_LFP = 1000
@@ -30,7 +30,7 @@ if __name__ == '__main__':
  
     colnb = 10
     rownb = 10
-    c = fun.simulate(fname_base,morphology=6,tstop=tstop,seed=1988,weight=0.04,n_syn=1000,simulate_what='oscillatory',electrode_distribution=1,electrode_orientation=3,xmin=-400,xmax=400,ymin=-400,ymax=400,colnb=colnb,rownb=rownb,dt=0.5)
+    c = sKCSD_utils.simulate(fname_base,morphology=6,tstop=tstop,seed=1988,weight=0.04,n_syn=1000,simulate_what='oscillatory',electrode_distribution=1,electrode_orientation=3,xmin=-400,xmax=400,ymin=-400,ymax=400,colnb=colnb,rownb=rownb,dt=0.5)
     data_dir = c.return_paths_skCSD_python()
     data = ld.Data(data_dir)
     ele_pos = data.ele_pos/scale_factor
@@ -39,7 +39,8 @@ if __name__ == '__main__':
     morphology[:,2:6] = morphology[:,2:6]/scale_factor
     seglen = np.loadtxt(os.path.join(data_dir,'seglength'))
     ground_truth = np.loadtxt(os.path.join(data_dir,'membcurr'))/seglen[:,None]*1e-3
-
+    dt = c.cell_parameters['dt']
+    t0 = 500/dt
     for i,R in enumerate(R_inits):
         
         for j,l in enumerate(lambdas):
@@ -67,7 +68,7 @@ if __name__ == '__main__':
                 os.makedirs(path)
             utils.save_sim(path,ker)
             
-            print(R,l,lambd,est_skcsd.max(),est_skcsd.min(),ground_truth.max(),ground_truth.min(),fun.L1_error(ground_truth_3D,est_skcsd))
+            print(R,l,lambd,est_skcsd.max(),est_skcsd.min(),ground_truth.max(),ground_truth.min(),sKCSD_utils.L1_error(ground_truth_3D,est_skcsd))
   
             pl.plot(ax[1],morpho,extent=extent)
             pl.plot(ax[1],est_skcsd[:,:,:,t0].sum(axis=(2)),extent=extent,vmin=vmin,vmax=vmax)

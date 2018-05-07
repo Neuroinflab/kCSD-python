@@ -11,8 +11,8 @@ from corelib import sKCSD, KCSD
 sKCSD.skmonaco_available = False
 import corelib.utility_functions as utils
 import loadData as ld
-import corelib.plotting_functions as pl
-import functions as fun
+import validation.plotting_functions as pl
+import sKCSD_utils
 
 n_src = 512
 lambd = 1e-1
@@ -20,7 +20,7 @@ R = 8e-6/2**.5
 if __name__ == '__main__':
 
     #fname_base = "Figure_6.png"
-    #fig_name = fun.make_fig_names(fname_base)
+    #fig_name = sKCSD_utils.make_fig_names(fname_base)
     fname_base = "Figure_6"
     tstop = 70
     scaling_factor = 1000**2
@@ -34,18 +34,18 @@ if __name__ == '__main__':
     for i, rownb in enumerate(rows):
         for orientation in [1,2]:
             fname = "Figure_6_"+sim_type[str(orientation)]
-            c = fun.simulate(fname,morphology=2,simulate_what="symmetric",colnb=colnb,rownb=rownb,xmin=xmin,xmax=xmax,ymin=ymin,ymax=ymax,tstop=tstop,seed=1988,weight=0.04,n_syn=100,electrode_distribution=orientation,dt=2**(-2))
+            c = sKCSD_utils.simulate(fname,morphology=2,simulate_what="symmetric",colnb=colnb,rownb=rownb,xmin=xmin,xmax=xmax,ymin=ymin,ymax=ymax,tstop=tstop,seed=1988,weight=0.04,n_syn=100,electrode_distribution=orientation,dt=2**(-3))
             data_dir.append(c.return_paths_skCSD_python())
             
     seglen = np.loadtxt(os.path.join(data_dir[0],'seglength'))
     ground_truth = np.loadtxt(os.path.join(data_dir[0],'membcurr'))
     ground_truth = ground_truth/seglen[:,None]*1e-3
     dt = c.cell_parameters['dt']
-    
+    print(dt)
     t1 = int(42/dt)
     t2 = int(5/dt)
     atstart = t2
-    atstop = int(15/dt)
+    atstop = t2+int(20/dt)
 
     simulation_paths = []
     data_paths = []
@@ -55,9 +55,9 @@ if __name__ == '__main__':
 
     fig, ax = plt.subplots(1,3)
     fname = fname_base+'.png'
-    fig_name = fun.make_fig_names(fname)
-
-    pl.plot(ax[0],ground_truth[:,atstart:atstop],yticklabels=[x for x in range(0,86,15)],fig=fig,title="Ground truth",vmin=-0.05,vmax=0.05,ylabel='#segment')
+    fig_name = sKCSD_utils.make_fig_names(fname)
+    vmax, vmin = pl.get_min_max(ground_truth[:,atstart:atstop])
+    pl.plot(ax[0],ground_truth[:,atstart:atstop],yticklabels=[x for x in range(0,86,15)],fig=fig,title="Ground truth",ylabel='#segment')
 
     for i, datd in enumerate(data_dir):
         data = ld.Data(datd)
@@ -87,11 +87,11 @@ if __name__ == '__main__':
             
         utils.save_sim(path,k)
         
-    skcsd_maps_grid = fun.merge_maps(skcsd_grid,tstart=atstart,tstop=atstop,merge=1)
-    pl.plot(ax[1],skcsd_maps_grid,xticklabels=['8','16','32','64'],title="Grid",xlabel='electrodes',vmin=-0.05,vmax=0.05)
+    skcsd_maps_grid = sKCSD_utils.merge_maps(skcsd_grid,tstart=atstart,tstop=atstop,merge=2)
+    pl.plot(ax[1],skcsd_maps_grid,xticklabels=['8','16','32','64'],title="Grid",xlabel='electrodes',vmin=vmin,vmax=vmax)
         
-    skcsd_maps_random = fun.merge_maps(skcsd_random,tstart=atstart,tstop=atstop,merge=1)
-    pl.plot(ax[2],skcsd_maps_random,xticklabels=['8','16','32','64'],title="Random",xlabel='electrodes',vmin=-0.05,vmax=0.05)
+    skcsd_maps_random = sKCSD_utils.merge_maps(skcsd_random,tstart=atstart,tstop=atstop,merge=2)
+    pl.plot(ax[2],skcsd_maps_random,xticklabels=['8','16','32','64'],title="Random",xlabel='electrodes',vmin=vmin,vmax=vmax)
     
     fig.savefig(fig_name, bbox_inches='tight', transparent=True, pad_inches=0.1)
 

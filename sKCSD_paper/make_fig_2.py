@@ -24,8 +24,8 @@ else:
 from corelib import sKCSD
 import corelib.utility_functions as utils
 import loadData as ld
-import corelib.plotting_functions as pl
-import functions as fun
+import validation.plotting_functions as pl
+import sKCSD_utils
 sKCSD.skmonaco_available = False
 
 n_src = 512
@@ -35,7 +35,7 @@ import run_LFP
 
 if __name__ == '__main__':
     fname_base = "Figure_2"
-    fig_name = fun.make_fig_names(fname_base)
+    fig_name = sKCSD_utils.make_fig_names(fname_base)
     tstop = 850
     scaling_factor = 1000**2
     scaling_factor_LFP = 1000
@@ -46,7 +46,7 @@ if __name__ == '__main__':
     orientation = 1
     for rownb in electrode_number:
         fname = "Figure_2"
-        c = fun.simulate(fname,morphology=1,simulate_what="sine",colnb=1,rownb=rownb,xmin=xmin,xmax=xmax,ymin=ymin,ymax=ymax,tstop=tstop,seed=1988,weight=0.1,n_syn=100)
+        c = sKCSD_utils.simulate(fname,morphology=1,simulate_what="sine",colnb=1,rownb=rownb,xmin=xmin,xmax=xmax,ymin=ymin,ymax=ymax,tstop=tstop,seed=1988,weight=0.1,n_syn=100)
         
         data_dir.append(c.return_paths_skCSD_python())
         
@@ -55,7 +55,7 @@ if __name__ == '__main__':
     ground_truth = ground_truth/seglen[:,None]*1e-3
     gvmin, gvmax = pl.get_min_max(ground_truth)
     fname = fname_base+'.png'
-    fig_name = fun.make_fig_names(fname)
+    fig_name = sKCSD_utils.make_fig_names(fname)
     data_paths = []
     fig, ax = plt.subplots(4,1)
     xticklabels = list(np.linspace(0,800,5))

@@ -11,8 +11,8 @@ from corelib import sKCSD
 sKCSD.skmonaco_available = False
 import corelib.utility_functions as utils
 import loadData as ld
-import corelib.plotting_functions as pl
-import functions as fun
+import validation.plotting_functions as pl
+import sKCSD_utils
 
 n_src = 512
 lambd = 1
@@ -33,7 +33,7 @@ if __name__ == '__main__':
     orientation = 1
     for rownb in electrode_number:
         fname = "Figure_3"
-        c = fun.simulate(fname,morphology=1,simulate_what="random",colnb=1,rownb=rownb,xmin=xmin,xmax=xmax,ymin=ymin,ymax=ymax,tstop=tstop,seed=1988,weight=0.1,n_syn=100)
+        c = sKCSD_utils.simulate(fname,morphology=1,simulate_what="random",colnb=1,rownb=rownb,xmin=xmin,xmax=xmax,ymin=ymin,ymax=ymax,tstop=tstop,seed=1988,weight=0.1,n_syn=100)
         data_dir.append(c.return_paths_skCSD_python())
         
     seglen = np.loadtxt(os.path.join(data_dir[0],'seglength'))#/scaling_factor
@@ -45,7 +45,7 @@ if __name__ == '__main__':
     fig, ax = plt.subplots(2,3)
     cax = ax[0,0].imshow(ground_truth,extent=[0, tstop,1, 52,],origin='lower',aspect='auto',cmap='seismic_r',vmax=gvmax,vmin=gvmin)
     new_fname = fname_base+'.png'
-    fig_name = fun.make_fig_names(new_fname)
+    fig_name = sKCSD_utils.make_fig_names(new_fname)
     
     for i, datd in enumerate(data_dir):
         data = ld.Data(datd)
