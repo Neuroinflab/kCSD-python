@@ -1,23 +1,18 @@
 #!/usr/bin/env python
 # encoding: utf-8
 from __future__ import print_function, division, absolute_import
-import sys
 import os
 import unittest
-
 import numpy as np
+
+from kcsd import sKCSDcell, sample_data_path
+from kcsd import utility_functions as utils
+from kcsd.utility_functions import LoadData
 
 try:
   basestring
 except NameError:
   basestring = str
-  
-sys.path.insert(0,
-os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-from corelib import utility_functions as utils
-from tutorials.loadData import Data
-from corelib.sKCSDcell import sKCSDcell
 
 
 def in_between(a,b):
@@ -29,7 +24,7 @@ class testsKCDcell(unittest.TestCase):
   def setUpClass(cls):
     sc = 1e6
     #Very branchy neuron (for testing morphology loop)
-    cls.data = Data("Data/gang_7x7_200")
+    cls.data = LoadData(os.path.join(sample_data_path, "gang_7x7_200"))
     cls.data.morphology[:,2:6] = cls.data.morphology[:,2:6]/sc
     n_src = 1000
     cls.cell = sKCSDcell(cls.data.morphology,cls.data.ele_pos/sc,n_src)
@@ -43,7 +38,7 @@ class testsKCDcell(unittest.TestCase):
     cls.coor3D, cls.zero = cls.cell.point_coordinates(cls.morpho)
 
     #ball and stick neuron
-    data = Data("Data/ball_and_stick_8")
+    data = LoadData(os.path.join(sample_data_path, "ball_and_stick_8"))
     data.morphology[:,2:6] = data.morphology[:,2:6]/sc
     cls.cell_small = sKCSDcell(data.morphology,data.ele_pos/sc,10)
     cls.cell_small.distribute_srcs_3D_morph()
@@ -57,7 +52,7 @@ class testsKCDcell(unittest.TestCase):
     cls.cell_small_segment_coordinates = cls.cell_small.coordinates_3D_segments()
 
     #Y-shaped neuron
-    data = Data("Data/Y_shaped_neuron")
+    data = LoadData(os.path.join(sample_data_path, "Y_shaped_neuron"))
     data.morphology[:,2:6] = data.morphology[:,2:6]/sc
     cls.cell_y = sKCSDcell(data.morphology,data.ele_pos/sc,10)
     cls.cell_y.distribute_srcs_3D_morph()

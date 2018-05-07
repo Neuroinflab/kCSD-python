@@ -1,22 +1,17 @@
 #!/usr/bin/env python
 # encoding: utf-8
 from __future__ import print_function, division, absolute_import
-import sys
 import os
 import unittest
 
-import numpy as np
+from kcsd import sKCSD, sample_data_path
+from kcsd.utility_functions import LoadData
 
 try:
   basestring
 except NameError:
   basestring = str
-  
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from corelib import utility_functions as utils
-from tutorials.loadData import Data
-from corelib.sKCSD import sKCSD
 
 n_src = 1000
 
@@ -25,7 +20,7 @@ class testsKCD(unittest.TestCase):
   def setUpClass(cls,n_src=1000):
     sc = 1e6
     sKCSD.skmonaco_available = False
-    cls.data = Data("Data/ball_and_stick_8")
+    cls.data = LoadData(os.path.join(sample_data_path, "ball_and_stick_8"))
     cls.data.morphology[:,2:6] = cls.data.morphology[:,2:6]/sc
     cls.reco = sKCSD(cls.data.ele_pos/sc,cls.data.LFP,cls.data.morphology,n_src_init=n_src)
     cls.segments = cls.reco.values(transformation='segments')
@@ -47,6 +42,5 @@ class testsKCD(unittest.TestCase):
   def test_values_cartesian_shape(self): 
     self.assertTrue(len(self.cartesian.shape) == 4)
    
-            
 if __name__ == '__main__':
   unittest.main()
