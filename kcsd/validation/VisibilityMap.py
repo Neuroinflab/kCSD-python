@@ -176,8 +176,11 @@ class VisibilityMap1D(ValidateKCSD1D):
         mean_err = self.sigmoid_mean(point_error)
         plt.figure(figsize=(10, 6))
         plt.title('Sigmoidal mean point error for random sources')
-        plt.plot(np.linspace(ele_pos[0], ele_pos[-1], mean_err.shape[0]),
-                 mean_err, 'b.', label='mean error')
+#        plt.plot(np.linspace(ele_pos[0], ele_pos[-1], mean_err.shape[0]),  # it fails for broken ele!!!
+#                 mean_err, 'b.', label='mean error')
+        plt.plot(np.linspace(self.kcsd_xlims[0], self.kcsd_xlims[-1],
+                             mean_err.shape[0]), mean_err, 'b.',
+                             label='mean error')
         plt.plot(ele_pos, np.zeros(len(ele_pos)), 'o', color='black',
                  label='electrodes locations')
         plt.xlabel('Depth [mm]')

@@ -30,7 +30,7 @@ def show_csd(csd_at, csd, show_ele=None, show_kcsd=False):
         ax = plt.subplot(111, aspect='equal')
         t_max = np.max(np.abs(csd))
         levels = np.linspace(-1*t_max, t_max, 12)
-        im = ax.contourf(csd_at[0], csd_at[1], csd, levels=levels, cmap=cm.bwr_r)
+        im = ax.contourf(csd_at[0], csd_at[1], csd[:, :, 0], levels=levels, cmap=cm.bwr_r)
         if show_kcsd is False:
             ax.set_title('TrueCSD')
         else:
