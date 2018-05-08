@@ -17,13 +17,12 @@ from scipy.spatial import distance
 from numpy.linalg import LinAlgError
 import sys
 import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                                '..')))
 import corelib.utility_functions as utils
 import corelib.basis_functions as basis
 
-# from . import utility_functions as utils
-# from . import basis_functions as basis
 try:
     from skmonaco import mcmiser
     skmonaco_available = True
@@ -116,7 +115,7 @@ class KCSD(CSD):
         self.xmin = kwargs.pop('xmin', np.min(self.ele_pos[:, 0]))
         self.xmax = kwargs.pop('xmax', np.max(self.ele_pos[:, 0]))
         self.gdx = kwargs.pop('gdx', 0.01*(self.xmax - self.xmin))
-        self.dist_table_density = kwargs.pop('dist_table_density',20)
+        self.dist_table_density = kwargs.pop('dist_table_density', 20)
         if self.dim >= 2:
             self.ext_y = kwargs.pop('ext_y', 0.0)
             self.ymin = kwargs.pop('ymin', np.min(self.ele_pos[:, 1]))
@@ -156,7 +155,8 @@ class KCSD(CSD):
             number of distance points at which potentials are computed.
             Default 100
         """
-        xs = np.logspace(0., np.log10(self.dist_max+1.), self.dist_table_density)
+        xs = np.logspace(0., np.log10(self.dist_max+1.),
+                         self.dist_table_density)
         xs = xs - 1.0  # starting from 0
         dist_table = np.zeros(len(xs))
         for i, pos in enumerate(xs):
@@ -167,6 +167,7 @@ class KCSD(CSD):
                                                self.basis)
         self.interpolate_pot_at = interpolate.interp1d(xs, dist_table,
                                                        kind='cubic')
+
     def update_b_pot(self):
         """Updates the b_pot  - array is (#_basis_sources, #_electrodes)
         Updates the  k_pot - array is (#_electrodes, #_electrodes) K(x,x')
@@ -194,7 +195,6 @@ class KCSD(CSD):
         ----------
         None
         """
-        #Tu jest basis!
         self.b_src = self.basis(self.src_estm_dists, self.R).T
         self.k_interp_cross = np.dot(self.b_src, self.b_pot)  # K_t(x,y) Eq17
         self.k_interp_cross /= self.n_src
@@ -239,7 +239,7 @@ class KCSD(CSD):
         for t in range(self.n_time):
             beta = np.dot(k_inv, self.pots[:, t])
             for i in range(self.n_ele):
-                estimation[:, t] += estimation_table[:, i]*beta[i]  # C*(x) Eq 18
+                estimation[:, t] += estimation_table[:, i]*beta[i]  # C*(x)Eq18
         return self.process_estimate(estimation)
 
     def process_estimate(self, estimation):
@@ -260,7 +260,8 @@ class KCSD(CSD):
         elif self.dim == 2:
             estimation = estimation.reshape(self.ngx, self.ngy, self.n_time)
         elif self.dim == 3:
-            estimation = estimation.reshape(self.ngx, self.ngy, self.ngz, self.n_time)
+            estimation = estimation.reshape(self.ngx, self.ngy, self.ngz,
+                                            self.n_time)
         return estimation
 
     def update_R(self, R):
@@ -304,20 +305,20 @@ class KCSD(CSD):
         """
         if lambdas is None:                           # when None
             print('No lambda given, using defaults')
-            lambdas = np.logspace(-2,-25,25,base=10.) # Default multiple lambda
+            lambdas = np.logspace(-2, -25, 25, base=10.)  # Default multiple lambda
             lambdas = np.hstack((lambdas, np.array((0.0))))
-        elif lambdas.size == 1:                       # resize when one entry
+        elif lambdas.size == 1:                      # resize when one entry
             lambdas = lambdas.flatten()
-        if Rs is None:                                # when None
-            Rs = np.array((self.R)).flatten()         # Default over one R value
+        if Rs is None:                               # when None
+            Rs = np.array((self.R)).flatten()        # Default over one R value
         errs = np.zeros((Rs.size, lambdas.size))
         index_generator = []
         for ii in range(self.n_ele):
             idx_test = [ii]
             idx_train = list(range(self.n_ele))
-            idx_train.remove(ii)                      # Leave one out
+            idx_train.remove(ii)                     # Leave one out
             index_generator.append((idx_train, idx_test))
-        for R_idx, R in enumerate(Rs):                # Iterate over R
+        for R_idx, R in enumerate(Rs):               # Iterate over R
             self.update_R(R)
             print('Cross validating R (all lambda) :', R)
             for lambd_idx, lambd in enumerate(lambdas):  # Iterate over lambdas
@@ -611,7 +612,7 @@ class KCSD2D(KCSD):
         """
         nx = (self.xmax - self.xmin)/self.gdx
         ny = (self.ymax - self.ymin)/self.gdy
-        self.estm_x, self.estm_y = np.mgrid[self.xmin:self.xmax:np.complex(0, nx), 
+        self.estm_x, self.estm_y = np.mgrid[self.xmin:self.xmax:np.complex(0, nx),
                                             self.ymin:self.ymax:np.complex(0, ny)]
         self.n_estm = self.estm_x.size
         self.ngx, self.ngy = self.estm_x.shape
@@ -642,7 +643,7 @@ class KCSD2D(KCSD):
                                                                     self.n_src_init,
                                                                     self.ext_x,
                                                                     self.ext_y,
-                                                                    self.R_init) 
+                                                                    self.R_init)
         self.n_src = self.src_x.size
         self.nsx, self.nsy = self.src_x.shape
 
@@ -919,7 +920,7 @@ class KCSD3D(KCSD):
         nx = (self.xmax - self.xmin)/self.gdx
         ny = (self.ymax - self.ymin)/self.gdy
         nz = (self.zmax - self.zmin)/self.gdz
-        self.estm_x, self.estm_y, self.estm_z = np.mgrid[self.xmin:self.xmax:np.complex(0, nx), 
+        self.estm_x, self.estm_y, self.estm_z = np.mgrid[self.xmin:self.xmax:np.complex(0, nx),
                                                          self.ymin:self.ymax:np.complex(0, ny),
                                                          self.zmin:self.zmax:np.complex(0, nz)]
         self.n_estm = self.estm_x.size
