@@ -622,6 +622,7 @@ class ValidateKCSD(object):
         zi = griddata(x, y, z, xi, yi, interp='linear')
         return xi, yi, zi
 
+
 class ValidateKCSD1D(ValidateKCSD):
     """
     ValidationClassKCSD1D - The 1D variant of validation tests for kCSD method.
@@ -676,10 +677,10 @@ class ValidateKCSD1D(ValidateKCSD):
         if method == 'cross-validation':
             k.cross_validate(Rs=Rs, lambdas=lambdas)
         elif method == 'L-curve':
-            k.L_curve(Rs=Rs, lambdas=lambdas)  # just for now!!!
+            k.L_curve(Rs=Rs, lambdas=lambdas)
         else:
             raise ValueError('Invalid value of reconstruction method,'
-                             'pass either CV or Lcurve')
+                             'pass either cross-validation or L-curve')
         est_csd = k.values('CSD')
         return k, est_csd
 
@@ -814,7 +815,8 @@ class ValidateKCSD2D(ValidateKCSD):
         self.csd_seed = csd_seed
         return
 
-    def recon(self, pots, ele_pos, method='CV', Rs=None, lambdas=None):
+    def recon(self, pots, ele_pos, method='cross-validation', Rs=None,
+              lambdas=None):
         """
         Calls KCSD2D class to reconstruct current source density.
 
@@ -843,13 +845,13 @@ class ValidateKCSD2D(ValidateKCSD):
                    n_src_init=self.n_src_init, src_type=self.src_type,
                    ext_x=self.ext_x, ext_y=self.ext_y,
                    gdx=self.est_xres, gdy=self.est_yres)
-        if method == 'CV':
+        if method == 'cross-validation':
             k.cross_validate(Rs=Rs, lambdas=lambdas)
-        elif method == 'Lcurve':
-            k.cross_validate(Rs=Rs, lambdas=lambdas)  # just for now!!!
+        elif method == 'L-curve':
+            k.L_curve(Rs=Rs, lambdas=lambdas)
         else:
             raise ValueError('Invalid value of reconstruction method,'
-                             'pass either CV or Lcurve')
+                             'pass either cross-validation or L-curve')
         est_csd = k.values('CSD')
         return k, est_csd
 
@@ -863,6 +865,8 @@ class ValidateKCSD2D(ValidateKCSD):
         ----------
         csd_profile: function
             Function to produce csd profile.
+        csd_seed: int
+            Seed for random generator to choose random CSD profile.
         noise: string
             Determines if we want to generate data with noise.
             Default: None.
@@ -1035,7 +1039,8 @@ class ValidateKCSD3D(ValidateKCSD):
         self.csd_seed = csd_seed
         return
 
-    def recon(self, pots, ele_pos, method='CV', Rs=None, lambdas=None):
+    def recon(self, pots, ele_pos, method='cross-validation', Rs=None,
+              lambdas=None):
         """
         Calls KCSD3D class to reconstruct current source density.
 
@@ -1066,13 +1071,13 @@ class ValidateKCSD3D(ValidateKCSD):
                    n_src_init=self.n_src_init, src_type=self.src_type,
                    ext_x=self.ext_x, ext_y=self.ext_y, ext_z=self.ext_z,
                    gdx=self.est_xres, gdy=self.est_yres, gdz=self.est_zres)
-        if method == 'CV':
+        if method == 'cross-validation':
             k.cross_validate(Rs=Rs, lambdas=lambdas)
-        elif method == 'Lcurve':
-            k.cross_validate(Rs=Rs, lambdas=lambdas)  # just for now!!!
+        elif method == 'L-curve':
+            k.L_curve(Rs=Rs, lambdas=lambdas)
         else:
             raise ValueError('Invalid value of reconstruction method,'
-                             'pass either CV or Lcurve')
+                             'pass either cross-validation or L-curve')
         est_csd = k.values('CSD')
         return k, est_csd
 
@@ -1241,7 +1246,6 @@ class ValidateKCSD3D(ValidateKCSD):
         fig.suptitle(fig_title)
         plt.show()
         return
-
 
 
 class SpectralStructure(object):
@@ -1617,4 +1621,3 @@ if __name__ == '__main__':
                            Rs=np.arange(0.2, 0.5, 0.1))
     TOC = time.time() - TIC
     print('time', TOC)
-
