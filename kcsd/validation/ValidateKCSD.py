@@ -285,7 +285,7 @@ class ValidateKCSD(object):
             ele_pos = np.vstack((ele_x.flatten(), ele_y.flatten(),
                                  ele_z.flatten())).T
         if nr_broken_ele is not None:
-            ele_pos = self.broken_electrodes(ele_pos, nr_broken_ele,
+            ele_pos = self.broken_electrodes(total_ele, ele_pos, nr_broken_ele,
                                              ele_seed)
         return ele_pos
 
