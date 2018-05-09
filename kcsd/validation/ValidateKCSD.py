@@ -17,7 +17,8 @@ from scipy.linalg import inv
 from scipy.integrate import simps
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
-from matplotlib.mlab import griddata
+#from matplotlib.mlab import griddata
+from scipy.interpolate import griddata
 from matplotlib import colors, gridspec
 from kcsd import csd_profile as CSD
 from kcsd import KCSD1D, KCSD2D, KCSD3D
@@ -617,9 +618,11 @@ class ValidateKCSD(object):
         x = x.flatten()
         y = y.flatten()
         z = z.flatten()
-        xi = np.linspace(min(x), max(x), resX)
-        yi = np.linspace(min(y), max(y), resY)
-        zi = griddata(x, y, z, xi, yi, interp='linear')
+#        xi = np.linspace(min(x), max(x), resX)
+#        yi = np.linspace(min(y), max(y), resY)
+        xi, yi = np.mgrid[min(x):max(x):np.complex(0, resX),
+                          min(y):max(y):np.complex(0, resY)]
+        zi = griddata((x, y), z, (xi, yi), method='linear')
         return xi, yi, zi
 
 
