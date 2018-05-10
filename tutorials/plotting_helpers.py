@@ -1,7 +1,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.mlab import griddata
+from scipy.interpolate import griddata
 from matplotlib import gridspec
 import matplotlib.cm as cm
 import config
@@ -9,7 +9,7 @@ import config
 
 def show_csd(csd_at, csd, show_ele=None, show_kcsd=False):
     if config.dim == 1:
-        fig = plt.figure(figsize=(5, 5))
+        fig = plt.figure(figsize=(6, 6))
         ax = plt.subplot(111)
         if show_kcsd is False:
             ax.plot(csd_at, csd, 'g', label='CSD', linestyle='-', linewidth=3)
@@ -26,14 +26,15 @@ def show_csd(csd_at, csd, show_ele=None, show_kcsd=False):
         #ax.set_ylim([0., 1.])
         plt.legend()
     elif config.dim == 2:
-        fig = plt.figure(figsize=(5, 5))
+        fig = plt.figure(figsize=(6, 6))
         ax = plt.subplot(111, aspect='equal')
         t_max = np.max(np.abs(csd))
         levels = np.linspace(-1*t_max, t_max, 12)
-        im = ax.contourf(csd_at[0], csd_at[1], csd[:, :, 0], levels=levels, cmap=cm.bwr_r)
         if show_kcsd is False:
+            im = ax.contourf(csd_at[0], csd_at[1], csd, levels=levels, cmap=cm.bwr_r)
             ax.set_title('TrueCSD')
         else:
+            im = ax.contourf(csd_at[0], csd_at[1], csd[:, :, 0], levels=levels, cmap=cm.bwr_r)
             ax.set_title('kCSD')
         ax.set_xlabel('Position mm')
         ax.set_ylabel('Position mm')
@@ -45,7 +46,7 @@ def show_csd(csd_at, csd, show_ele=None, show_kcsd=False):
         ax.set_xlim([0., 1.])
         ax.set_ylim([0., 1.])
     else:
-        fig = plt.figure(figsize=(15, 5))
+        fig = plt.figure(figsize=(7, 9))
         z_steps = 5
         height_ratios = [1 for i in range(z_steps)]
         # height_ratios.append(0.1)
@@ -57,8 +58,12 @@ def show_csd(csd_at, csd, show_ele=None, show_kcsd=False):
         ind_interest = np.array(ind_interest, dtype=np.int)[1:-1]
         for ii, idx in enumerate(ind_interest):
             ax = plt.subplot(gs[ii, 0])
-            im = plt.contourf(csd_at[0][:, :, idx], csd_at[1][:, :, idx],
-                              csd[:, :, idx], levels=levels, cmap=cm.bwr_r)
+            if show_kcsd is False:
+                im = plt.contourf(csd_at[0][:, :, idx], csd_at[1][:, :, idx],
+                                  csd[:, :, idx], levels=levels, cmap=cm.bwr_r)
+            else:
+                im = plt.contourf(csd_at[0][:, :, idx], csd_at[1][:, :, idx],
+                                  csd[:, :, idx, 0], levels=levels, cmap=cm.bwr_r)
             if show_ele is not None:
                 plt.scatter(show_ele[:, 0], show_ele[:, 1], 5, 'k')  # needs fix
             ax.get_xaxis().set_visible(False)
@@ -77,7 +82,7 @@ def show_csd(csd_at, csd, show_ele=None, show_kcsd=False):
 
 def show_pot(ele_pos, pot, no_ele=False):
     if config.dim == 1:
-        fig = plt.figure(figsize=(5, 5))
+        fig = plt.figure(figsize=(6, 6))
         ax = plt.subplot(111, aspect='equal')
         ax.plot(ele_pos, pot, 'orange', label='Potential', linestyle='-', linewidth=3)
         if not no_ele:
@@ -89,7 +94,7 @@ def show_pot(ele_pos, pot, no_ele=False):
         ax.set_ylabel('Potential mV')
         plt.legend()
     elif config.dim == 2:
-        fig = plt.figure(figsize=(5, 5))
+        fig = plt.figure(figsize=(6, 6))
         ax = plt.subplot(111, aspect='equal')
         ele_x = ele_pos[:, 0]
         scale_x = max(ele_x) - min(ele_x)
@@ -108,7 +113,7 @@ def show_pot(ele_pos, pot, no_ele=False):
         if not no_ele:
             im2 = plt.scatter(ele_x, ele_y, 5, c='k')
     else:
-        fig = plt.figure(figsize=(15, 5))
+        fig = plt.figure(figsize=(7, 9))
         z_steps = 5
         height_ratios = [1 for i in range(z_steps)]
         # height_ratios.append(0.1)
@@ -130,7 +135,7 @@ def show_pot(ele_pos, pot, no_ele=False):
                            pot[:, :, idx])
             ax = plt.subplot(gs[idx, 0])
             im = plt.contourf(X, Y, Z, levels=levels_pot, cmap=cm.PRGn)
-            plt.scatter(ele_x[:, :, idx], ele_y[:, :, idx], 5)
+            plt.scatter(ele_x[:, :, idx], ele_y[:, :, idx], 5, 'k')
             ax.get_xaxis().set_visible(False)
             ax.get_yaxis().set_visible(False)
             title = str(ele_z[:, :, idx][0][0])[:4]
@@ -150,7 +155,7 @@ def grid(x, y, z, resX=100, resY=100):
     Convert 3 column data to matplotlib grid
     """
     z = z.flatten()
-    xx = np.linspace(min(x), max(x), resX)
-    yy = np.linspace(min(y), max(y), resY)
-    zz = griddata(x, y, z, xx, yy, interp='linear')
+    xx, yy = np.mgrid[min(x):max(x):np.complex(0, resX),
+                      min(y):max(y):np.complex(0, resY)]
+    zz = griddata((x, y), z, (xx, yy), method='linear')
     return xx, yy, zz

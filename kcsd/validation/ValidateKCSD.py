@@ -17,7 +17,6 @@ from scipy.linalg import inv
 from scipy.integrate import simps
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
-#from matplotlib.mlab import griddata
 from scipy.interpolate import griddata
 from matplotlib import colors, gridspec
 from kcsd import csd_profile as CSD
@@ -122,18 +121,18 @@ class ValidateKCSD(object):
         self.est_xres = kwargs.pop('est_xres', 0.01)
         self.true_csd_xlims = kwargs.pop('true_csd_xlims', [0., 1.])
         self.ele_lims = kwargs.pop('ele_lims', [0.1, 0.9])
-        self.kcsd_xlims = kwargs.pop('kcsd_xlims', self.ele_lims)
+        self.kcsd_xlims = kwargs.pop('kcsd_xlims', self.true_csd_xlims)
         self.csd_xres = kwargs.pop('csd_xres', 100)
         if self.dim >= 2:
             self.ext_y = kwargs.pop('ext_y', 0.0)
-            self.kcsd_ylims = kwargs.pop('kcsd_ylims', self.ele_lims)
             self.true_csd_ylims = kwargs.pop('true_csd_ylims', [0., 1.])
+            self.kcsd_ylims = kwargs.pop('kcsd_ylims', self.true_csd_ylims)
             self.est_yres = kwargs.pop('est_yres', 0.01)
             self.csd_yres = kwargs.pop('csd_yres', 100)
         if self.dim == 3:
             self.ext_z = kwargs.pop('ext_z', 0.0)
-            self.kcsd_zlims = kwargs.pop('kcsd_zlims', self.ele_lims)
             self.true_csd_zlims = kwargs.pop('true_csd_zlims', [0., 1.])
+            self.kcsd_zlims = kwargs.pop('kcsd_zlims', self.true_csd_zlims)
             self.est_zres = kwargs.pop('est_zres', 0.01)
             self.csd_zres = kwargs.pop('csd_zres', 100)
         if kwargs:
@@ -618,8 +617,6 @@ class ValidateKCSD(object):
         x = x.flatten()
         y = y.flatten()
         z = z.flatten()
-#        xi = np.linspace(min(x), max(x), resX)
-#        yi = np.linspace(min(y), max(y), resY)
         xi, yi = np.mgrid[min(x):max(x):np.complex(0, resX),
                           min(y):max(y):np.complex(0, resY)]
         zi = griddata((x, y), z, (xi, yi), method='linear')

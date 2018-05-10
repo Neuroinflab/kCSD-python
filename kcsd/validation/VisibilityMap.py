@@ -11,6 +11,8 @@ from builtins import range
 import time
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib import gridspec
+import matplotlib.cm as cm
 
 from kcsd import ValidateKCSD1D, ValidateKCSD2D, ValidateKCSD3D
 from kcsd import csd_profile as CSD
@@ -176,18 +178,16 @@ class VisibilityMap1D(ValidateKCSD1D):
         mean_err = self.sigmoid_mean(point_error)
         plt.figure(figsize=(10, 6))
         plt.title('Sigmoidal mean point error for random sources')
-#        plt.plot(np.linspace(ele_pos[0], ele_pos[-1], mean_err.shape[0]),  # it fails for broken ele!!!
-#                 mean_err, 'b.', label='mean error')
         plt.plot(np.linspace(self.kcsd_xlims[0], self.kcsd_xlims[-1],
                              mean_err.shape[0]), mean_err, 'b.',
-                             label='mean error')
+                 label='mean error')
         plt.plot(ele_pos, np.zeros(len(ele_pos)), 'o', color='black',
                  label='electrodes locations')
         plt.xlabel('Depth [mm]')
         plt.ylabel('RMS Error')
         plt.legend()
         plt.show()
-        return
+        return mean_err
 
 
 class VisibilityMap2D(ValidateKCSD2D):
@@ -341,13 +341,9 @@ class VisibilityMap2D(ValidateKCSD2D):
         None
         """
         ele_x, ele_y = ele_pos[:, 0], ele_pos[:, 1]
-#        x, y = np.mgrid[np.min(ele_x):np.max(ele_x):
-#                        np.complex(0, self.est_xres),
-#                        np.min(ele_y):np.max(ele_y):
-#                        np.complex(0, self.est_yres)]
-        x, y = np.mgrid[0:1:
+        x, y = np.mgrid[self.kcsd_xlims[0]:self.kcsd_xlims[1]:
                         np.complex(0, point_error.shape[1]),
-                        0:1:
+                        self.kcsd_ylims[0]:self.kcsd_ylims[1]:
                         np.complex(0, point_error.shape[2])]
         mean_error = self.sigmoid_mean(point_error)
         plt.figure(figsize=(12, 7))
@@ -426,8 +422,10 @@ class VisibilityMap3D(ValidateKCSD3D):
                                               total_ele, self.ele_lims, self.h,
                                               self.sigma, noise, nr_broken_ele)
         k = KCSD3D(ele_pos, pots, gdx=0.035, gdy=0.035, gdz=0.035,
-                   h=self.h, sigma=self.sigma, xmax=1, xmin=0, ymax=1,
-                   ymin=0, zmax=1, zmin=0, n_src_init=self.n_src_init)
+                   h=self.h, sigma=self.sigma, n_src_init=self.n_src_init,
+                   xmax=self.true_csd_xlims[1], xmin=self.true_csd_xlims[0],
+                   ymax=self.true_csd_ylims[1], ymin=self.true_csd_ylims[0],
+                   zmax=self.true_csd_zlims[1], zmin=self.true_csd_zlims[0])
         k.cross_validate(Rs=Rs, lambdas=lambdas)
         est_csd = k.values('CSD')
         test_csd = csd_profile([k.estm_x, k.estm_y, k.estm_z], csd_seed)
@@ -510,12 +508,47 @@ class VisibilityMap3D(ValidateKCSD3D):
         -------
         None
         """
-        ele_x, ele_y = ele_pos[0], ele_pos[1]
-        error_mean = self.sigmoid_mean(point_error)
-        plt.figure()
-        plt.contourf(error_mean[:, :, 0])
-        plt.scatter(ele_x, ele_y)
-        plt.axis('equal')
+        ele_x, ele_y, ele_z = ele_pos[0], ele_pos[1], ele_pos[2]
+        x, y, z = np.mgrid[self.kcsd_xlims[0]:self.kcsd_xlims[1]:
+                           np.complex(0, point_error.shape[1]),
+                           self.kcsd_ylims[0]:self.kcsd_ylims[1]:
+                           np.complex(0, point_error.shape[2]),
+                           self.kcsd_zlims[0]:self.kcsd_zlims[1]:
+                           np.complex(0, point_error.shape[3])]
+        mean_error = self.sigmoid_mean(point_error)
+#        plt.figure(figsize=(12, 7))
+#        ax1 = plt.subplot(111, aspect='equal')
+#        levels = np.linspace(0, 1., 15)
+#        im = ax1.contourf(x, y, mean_error, levels=levels, cmap='Greys')
+#        plt.colorbar(im, fraction=0.046, pad=0.06)
+#        plt.scatter(ele_x, ele_y)
+#        ax1.set_xlabel('Depth x [mm]')
+#        ax1.set_ylabel('Depth y [mm]')
+#        ax1.set_title('Sigmoidal mean point error')
+#        plt.show()
+        plt.figure(figsize=(5, 9))
+        z_steps = 5
+        height_ratios = [1 for i in range(z_steps)]
+        width_ratios = [1, 0.05]
+        gs = gridspec.GridSpec(z_steps, 2, height_ratios=height_ratios,
+                               width_ratios=width_ratios)
+        levels = np.linspace(0, 1., 15)
+        ind_interest = np.mgrid[0:z.shape[2]:np.complex(0, z_steps+2)]
+        ind_interest = np.array(ind_interest, dtype=np.int)[1:-1]
+        for ii, idx in enumerate(ind_interest):
+            ax = plt.subplot(gs[ii, 0])
+            im = plt.contourf(x[:, :, idx], y[:, :, idx],
+                              mean_error[:, :, idx], levels=levels,
+                              cmap='Greys')
+            ax.get_xaxis().set_visible(False)
+            ax.get_yaxis().set_visible(False)
+            title = str(z[:, :, idx][0][0])[:4]
+            ax.set_title(label=title, fontdict={'x': 0.8, 'y': 0.8})
+            ax.set_aspect('equal')
+        cax = plt.subplot(gs[:, -1])
+        cbar = plt.colorbar(im, cax=cax, orientation='vertical')
+        cbar.set_ticks(levels[::2])
+        cbar.set_ticklabels(np.around(levels[::2], decimals=2))
         return
 
 
