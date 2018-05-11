@@ -60,9 +60,6 @@ class ValidateKCSD(object):
             nr_basis: int
                 Number of basis sources.
                 Default: 300.
-            total_ele: int
-                Number of electrodes.
-                Default: 10.
             ext_x : float
                 Length of space extension: x_min-ext_x ... x_max+ext_x.
                 Default: 0.
@@ -138,7 +135,7 @@ class ValidateKCSD(object):
         if kwargs:
             raise TypeError('Invalid keyword arguments:', kwargs.keys())
 
-    def generate_csd(self, csd_profile, csd_seed, csd_at=None):
+    def generate_csd(self, csd_profile, csd_seed=5, csd_at=None):
         """
         Gives CSD profile at the requested spatial location,
         at 'res' resolution.
@@ -147,6 +144,12 @@ class ValidateKCSD(object):
         ----------
         csd_profile: function
             Function to produce csd profile.
+        csd_seed: int
+            Seed for random generator to choose random CSD profile.
+            Default: 5.
+        csd_at: numpy array
+            Where to generate CSD.
+            Default: None.
 
         Returns
         -------
@@ -191,6 +194,8 @@ class ValidateKCSD(object):
 
         Parameters
         ----------
+        total_ele: int
+            Number of electrodes.
         ele_grid: numpy array
             Positions of electrodes for the complete setup.
         n: int
@@ -233,6 +238,11 @@ class ValidateKCSD(object):
 
         Parameters
         ----------
+        total_ele: int
+            Number of electrodes.
+        ele_lims: list
+            Electrodes limits.
+            Default: None.
         nr_broken_ele: int, optional
             Determines how many electrodes are broken.
             Default: None.
@@ -242,9 +252,8 @@ class ValidateKCSD(object):
 
         Returns
         -------
-        Linearly placed electrodes positions.
-        (for 1D case: ele_x, 2D case: ele_x, ele_y, and
-        3D case: ele_x, ele_y, ele_z)
+        ele_pos: numpy array
+            Linearly placed electrodes positions.
         """
         if self.dim == 1:
             if ele_lims is None:
@@ -299,13 +308,27 @@ class ValidateKCSD(object):
         ----------
         csd_profile: function
             Function to produce ground truth csd profile.
-        noise: str, optional
-            Determines if data contains noise. For noise='noise' white Gaussian
-            noise is added to potentials.
-            Default: None
+        csd_seed: int
+            Seed for random generator to choose random CSD profile.
+            Default: 5.
+        total_ele: int
+            Number of electrodes.
+        ele_lims: list
+            Electrodes limits.
+            Default: None.
+        h : float
+            Thickness of analyzed cylindrical slice.
+        sigma : float
+                Space conductance of the medium.
+        noise: float
+            Determines the level of noise in the data.
+            Default: 0.
         nr_broken_ele: int, optional
             Determines how many electrodes are broken.
             Default: None.
+        ele_seed: int
+            Internal state of the random number generator.
+            Default: 10.
 
         Returns
         -------
@@ -330,12 +353,16 @@ class ValidateKCSD(object):
 
         Parameters
         ----------
-        ele_pos: numpy array
-            Locations of electrodes.
         true_csd: numpy array
             Values of generated CSD.
         csd_at: numpy array
             Positions (coordinates) at which CSD is generated.
+        ele_pos: numpy array
+            Locations of electrodes.
+        h : float
+            Thickness of analyzed cylindrical slice.
+        sigma : float
+                Space conductance of the medium.
 
         Returns
         -------
@@ -384,14 +411,12 @@ class ValidateKCSD(object):
         ----------
         true_csd: numpy array
             Values of ground truth data (true_csd).
-        ele_xx: numpy array
-            xx coordinates of electrodes.
-        ele_yy: numpy array
-            yy coordinates of electrodes.
-        ele_zz: numpy array
-            zz coordinates of electrodes.
         csd_at: numpy array
             Coordinates of ground truth data.
+        ele_pos: numpy array
+            Locations of electrodes.
+        h : float
+            Thickness of analyzed cylindrical slice.
 
         Returns
         -------
@@ -419,10 +444,14 @@ class ValidateKCSD(object):
         ----------
         csd_at: numpy array
             Positions (coordinates) at which CSD is generated.
-        csd: numpy array
+        true_csd: numpy array
             Values of csd (ground truth) at csd_at positions.
-        x0: float
+        ele_loc: float (1D) or list (2D and 3D)
             Single electrode location/position.
+        h : float
+            Thickness of analyzed cylindrical slice.
+        csd_lims: list
+            Limits of true source space
 
         Returns
         -------
@@ -584,8 +613,12 @@ class ValidateKCSD(object):
         ----------
         pots: numpy array
             Potentials at measurement points.
+        seed: int
+            Random seed generator.
+            Default: 0.
         level: float, optional
-            Noise level. Default: 0.001.
+            Noise level in percentage.
+            Default: 10.
 
         Returns
         -------
@@ -625,16 +658,14 @@ class ValidateKCSD(object):
 
 class ValidateKCSD1D(ValidateKCSD):
     """
-    ValidationClassKCSD1D - The 1D variant of validation tests for kCSD method.
+    ValidateKCSD1D - The 1D variant of validation tests for kCSD method.
     """
     def __init__(self, csd_seed, **kwargs):
         """
-        Initialize ValidationClassKCSD1D class.
+        Initialize ValidateKCSD1D class.
 
         Parameters
         ----------
-        csd_profile: function
-            Function to produce csd profile.
         csd_seed: int
             Seed for random generator to choose random CSD profile.
         **kwargs
@@ -646,7 +677,6 @@ class ValidateKCSD1D(ValidateKCSD):
         """
         super(ValidateKCSD1D, self).__init__(dim=1, **kwargs)
         self.csd_seed = csd_seed
-        return
 
     def recon(self, pots, ele_pos, method='cross-validation', Rs=None,
               lambdas=None):
@@ -659,6 +689,15 @@ class ValidateKCSD1D(ValidateKCSD):
             Values of potentials at ele_pos.
         ele_pos: numpy array
             Electrodes positions.
+        method: string
+            Determines the method of regularization.
+            Default: cross-validation.
+        Rs: numpy 1D array
+            Basis source parameter for crossvalidation.
+            Default: None.
+        lambdas: numpy 1D array
+            Regularization parameter for crossvalidation.
+            Default: None.
 
         Returns
         -------
@@ -666,8 +705,6 @@ class ValidateKCSD1D(ValidateKCSD):
             Instance of class KCSD1D.
         est_csd: numpy array
             Estimated csd (with kCSD method).
-        est_pot: numpy array
-            Estimated potentials.
         """
         pots = pots.reshape((len(ele_pos), 1))
         k = KCSD1D(ele_pos, pots, src_type=self.src_type, sigma=self.sigma,
@@ -694,9 +731,16 @@ class ValidateKCSD1D(ValidateKCSD):
         ----------
         csd_profile: function
             Function to produce csd profile.
-        noise: string
-            Determines if we want to generate data with noise.
+        csd_seed: int
+            Seed for random generator to choose random CSD profile.
+        total_ele: int
+            Number of electrodes.
+        ele_lims: list
+            Electrodes limits.
             Default: None.
+        noise: float
+            Determines the level of noise in the data.
+            Default: 0.
         nr_broken_ele: int
             How many electrodes are broken (excluded from analysis)
             Default: None.
@@ -745,21 +789,19 @@ class ValidateKCSD1D(ValidateKCSD):
 
         Parameters
         ----------
-        k: object of the class
         csd_at: numpy array
             Coordinates of ground truth (true_csd).
         true_csd: numpy array
             Values of generated CSD.
+        kcsd: object of the class
+        est_csd: numpy array
+            Reconstructed csd.
         ele_pos: numpy array
             Positions of electrodes.
         pots: numpy array
             Potentials measured on electrodes.
-        est_csd: numpy array
-            Reconstructed csd.
-        est_pot: numpy array
-            Reconstructed potentials.
-        title: string
-            title of the plot
+        fig_title: string
+            Title of the plot.
 
         Returns
         -------
@@ -787,21 +829,18 @@ class ValidateKCSD1D(ValidateKCSD):
         ax2.legend()
         fig.suptitle(fig_title)
         plt.show()
-        return
 
 
 class ValidateKCSD2D(ValidateKCSD):
     """
-    ValidationClassKCSD2D - The 2D variant of validation tests for kCSD method.
+    ValidateKCSD2D - The 2D variant of validation tests for kCSD method.
     """
     def __init__(self, csd_seed, **kwargs):
         """
-        Initialize ValidationClassKCSD2D class.
+        Initialize ValidateKCSD2D class.
 
         Parameters
         ----------
-        csd_profile: function
-            Function to produce csd profile.
         csd_seed: int
             Seed for random generator to choose random CSD profile.
         **kwargs
@@ -813,7 +852,6 @@ class ValidateKCSD2D(ValidateKCSD):
         """
         super(ValidateKCSD2D, self).__init__(dim=2, **kwargs)
         self.csd_seed = csd_seed
-        return
 
     def recon(self, pots, ele_pos, method='cross-validation', Rs=None,
               lambdas=None):
@@ -826,15 +864,22 @@ class ValidateKCSD2D(ValidateKCSD):
             Values of potentials at ele_pos.
         ele_pos: numpy array
             Electrodes positions.
+        method: string
+            Determines the method of regularization.
+            Default: cross-validation.
+        Rs: numpy 1D array
+            Basis source parameter for crossvalidation.
+            Default: None.
+        lambdas: numpy 1D array
+            Regularization parameter for crossvalidation.
+            Default: None.
 
         Returns
         -------
-        kcsd: instance of the class
+        k: instance of the class
             Instance of class KCSD1D.
         est_csd: numpy array
             Estimated csd (with kCSD method).
-        est_pot: numpy array
-            Estimated potentials.
         """
         pots = pots.reshape((len(ele_pos), 1))
         k = KCSD2D(ele_pos, pots, h=self.h, sigma=self.sigma,
@@ -867,9 +912,14 @@ class ValidateKCSD2D(ValidateKCSD):
             Function to produce csd profile.
         csd_seed: int
             Seed for random generator to choose random CSD profile.
-        noise: string
-            Determines if we want to generate data with noise.
+        total_ele: int
+            Number of electrodes.
+        ele_lims: list
+            Electrodes limits.
             Default: None.
+        noise: float
+            Determines the level of noise in the data.
+            Default: 0.
         nr_broken_ele: int
             How many electrodes are broken (excluded from analysis)
             Default: None.
@@ -926,17 +976,14 @@ class ValidateKCSD2D(ValidateKCSD):
         csd_at: numpy array
             Coordinates of ground truth (true_csd).
         true_csd: numpy array
-            Values of ground truth data.
+            Values of generated CSD.
         kcsd: object of the class
-            Object of KCSD2D class.
         est_csd: numpy array
             Reconstructed csd.
         ele_pos: numpy array
             Positions of electrodes.
         pots: numpy array
             Potentials measured on electrodes.
-        rms: float
-            Error of reconstruction.
         fig_title: string
             Title of the plot.
 
@@ -1011,7 +1058,6 @@ class ValidateKCSD2D(ValidateKCSD):
         v = np.linspace(0, np.max(difference), 7, endpoint=True)
         plt.colorbar(im4, orientation='horizontal', format='%.2f', ticks=v)
         plt.show()
-        return
 
 
 class ValidateMoIKCSD(ValidateKCSD):
@@ -1047,6 +1093,15 @@ class ValidateMoIKCSD(ValidateKCSD):
             Values of potentials at ele_pos.
         ele_pos: numpy array
             Electrodes positions.
+        method: string
+            Determines the method of regularization.
+            Default: cross-validation.
+        Rs: numpy 1D array
+            Basis source parameter for crossvalidation.
+            Default: None.
+        lambdas: numpy 1D array
+            Regularization parameter for crossvalidation.
+            Default: None.
 
         Returns
         -------
@@ -1054,8 +1109,6 @@ class ValidateMoIKCSD(ValidateKCSD):
             Instance of class KCSD1D.
         est_csd: numpy array
             Estimated csd (with kCSD method).
-        est_pot: numpy array
-            Estimated potentials.
         """
         pots = pots.reshape((len(ele_pos), 1))
         k = MoIKCSD(ele_pos, pots, **params)
@@ -1080,8 +1133,6 @@ class ValidateKCSD3D(ValidateKCSD):
 
         Parameters
         ----------
-        csd_profile: function
-            Function to produce csd profile.
         csd_seed: int
             Seed for random generator to choose random CSD profile.
         **kwargs
@@ -1105,6 +1156,15 @@ class ValidateKCSD3D(ValidateKCSD):
             Values of potentials at ele_pos.
         ele_pos: numpy array
             Electrodes positions.
+        method: string
+            Determines the method of regularization.
+            Default: cross-validation.
+        Rs: numpy 1D array
+            Basis source parameter for crossvalidation.
+            Default: None.
+        lambdas: numpy 1D array
+            Regularization parameter for crossvalidation.
+            Default: None.
 
         Returns
         -------
@@ -1112,8 +1172,6 @@ class ValidateKCSD3D(ValidateKCSD):
             Instance of class KCSD1D.
         est_csd: numpy array
             Estimated csd (with kCSD method).
-        est_pot: numpy array
-            Estimated potentials.
         """
         pots = pots.reshape((len(ele_pos), 1))
         k = KCSD3D(ele_pos, pots, h=self.h, sigma=self.sigma,
@@ -1146,9 +1204,16 @@ class ValidateKCSD3D(ValidateKCSD):
         ----------
         csd_profile: function
             Function to produce csd profile.
-        noise: string
-            Determines if we want to generate data with noise.
+        csd_seed: int
+            Seed for random generator to choose random CSD profile.
+        total_ele: int
+            Number of electrodes.
+        ele_lims: list
+            Electrodes limits.
             Default: None.
+        noise: float
+            Determines the level of noise in the data.
+            Default: 0.
         nr_broken_ele: int
             How many electrodes are broken (excluded from analysis)
             Default: None.
@@ -1210,9 +1275,8 @@ class ValidateKCSD3D(ValidateKCSD):
         csd_at: numpy array
             Coordinates of ground truth (true_csd).
         true_csd: numpy array
-            Values of ground truth data.
+            Values of generated CSD.
         kcsd: object of the class
-            Object of KCSD3D class.
         est_csd: numpy array
             Reconstructed csd.
         ele_pos: numpy array
@@ -1300,7 +1364,6 @@ class ValidateKCSD3D(ValidateKCSD):
         cbar3.set_ticklabels(np.around(levels[::3], decimals=2))
         fig.suptitle(fig_title)
         plt.show()
-        return
 
 
 class SpectralStructure(object):
@@ -1483,7 +1546,7 @@ class SpectralStructure(object):
 
         Parameters
         ----------
-        k: instance of class (TestKCSD1D, TestKCSD2D or TestKCSD3D)
+        None
 
         Returns
         -------

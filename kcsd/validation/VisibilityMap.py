@@ -30,16 +30,14 @@ class VisibilityMap1D(ValidateKCSD1D):
     """
     Class that produces error map for 1D CSD reconstruction.
     """
-    def __init__(self, **kwargs):
+    def __init__(self, total_ele, **kwargs):
         """
         Initialize ErrorMap1D class.
 
         Parameters
         ----------
-        csd_profile: function
-            Function to produce csd profile.
-        csd_seed: int
-            Seed for random generator to choose random CSD profile.
+        total_ele: int
+            Number of electrodes.
         **kwargs
             Configuration parameters.
 
@@ -48,9 +46,9 @@ class VisibilityMap1D(ValidateKCSD1D):
         None
         """
         super(VisibilityMap1D, self).__init__(1, **kwargs)
-        return
+        self.total_ele = total_ele
 
-    def calculate_error_map(self, csd_profile, total_ele, n=100, noise=0,
+    def calculate_error_map(self, csd_profile, n=100, noise=0,
                             nr_broken_ele=None, Rs=None, lambdas=None,
                             method='cross-validation'):
         """
@@ -64,9 +62,9 @@ class VisibilityMap1D(ValidateKCSD1D):
         n: int
             Number of simulations included in error map calculations.
             Default: 100.
-        noise: string
-            Determines if we want to generate data with noise.
-            Default: None.
+        noise: float
+            Determines the level of noise in the data.
+            Default: 0.
         nr_broken_ele: int
             How many electrodes are broken (excluded from analysis)
             Default: None.
@@ -76,6 +74,9 @@ class VisibilityMap1D(ValidateKCSD1D):
         lambdas: numpy 1D array
             Regularization parameter for crossvalidation.
             Default: None.
+        method: string
+            Determines the method of regularization.
+            Default: cross-validation.
 
         Returns
         -------
@@ -88,7 +89,7 @@ class VisibilityMap1D(ValidateKCSD1D):
         if PARALLEL_AVAILABLE:
             err = Parallel(n_jobs=NUM_CORES)(delayed
                                              (self.make_reconstruction)
-                                             (csd_profile, i, total_ele,
+                                             (csd_profile, i,
                                               noise=noise,
                                               nr_broken_ele=nr_broken_ele,
                                               Rs=Rs, lambdas=lambdas,
@@ -101,7 +102,7 @@ class VisibilityMap1D(ValidateKCSD1D):
             point_error = []
             for i in range(n):
                 data, error = self.make_reconstruction(csd_profile, i,
-                                                       total_ele, noise,
+                                                       noise,
                                                        nr_broken_ele, Rs=Rs,
                                                        lambdas=lambdas,
                                                        method=method)
@@ -110,7 +111,7 @@ class VisibilityMap1D(ValidateKCSD1D):
         point_error = np.array(point_error)
         return rms, point_error
 
-    def make_reconstruction(self, csd_profile, csd_seed, total_ele, noise=0,
+    def make_reconstruction(self, csd_profile, csd_seed, noise=0,
                             nr_broken_ele=None, Rs=None, lambdas=None,
                             method='cross-validation'):
         """
@@ -122,9 +123,9 @@ class VisibilityMap1D(ValidateKCSD1D):
             function to produce csd profile
         csd_seed: int
             Seed for random generator to choose random CSD profile.
-        noise: string
-            Determines if we want to generate data with noise.
-            Default: None.
+        noise: float
+            Determines the level of noise in the data.
+            Default: 0.
         nr_broken_ele: int
             How many electrodes are broken (excluded from analysis)
             Default: None.
@@ -134,23 +135,22 @@ class VisibilityMap1D(ValidateKCSD1D):
         lambdas: numpy 1D array
             Regularization parameter for crossvalidation.
             Default: None.
+        method: string
+            Determines the method of regularization.
+            Default: cross-validation.
 
         Returns
         -------
-        List of [rms, kcsd] and point_error
         rms: float
             Error of reconstruction.
-        kcsd: object of a class
-            Object of a class.
         point_error: numpy array
             Error of reconstruction calculated at every point of reconstruction
             space.
         """
         ele_pos, pots = self.electrode_config(csd_profile, csd_seed,
-                                              total_ele, self.ele_lims, self.h,
-                                              self.sigma,
-                                              noise, nr_broken_ele,
-                                              ele_seed=10)
+                                              self.total_ele, self.ele_lims,
+                                              self.h, self.sigma,
+                                              noise, nr_broken_ele)
 
         k = KCSD1D(ele_pos, pots, h=self.h, gdx=self.est_xres,
                    xmax=np.max(self.kcsd_xlims), xmin=np.min(self.kcsd_xlims),
@@ -204,16 +204,14 @@ class VisibilityMap2D(ValidateKCSD2D):
     """
     Class that produces error map for 2D CSD reconstruction.
     """
-    def __init__(self, **kwargs):
+    def __init__(self, total_ele, **kwargs):
         """
         Initialize ErrorMap2D class.
 
         Parameters
         ----------
-        csd_profile: function
-            Function to produce csd profile.
-        csd_seed: int
-            Seed for random generator to choose random CSD profile.
+        total_ele: int
+            Number of electrodes.
         **kwargs
             Configuration parameters.
 
@@ -222,9 +220,9 @@ class VisibilityMap2D(ValidateKCSD2D):
         None
         """
         super(VisibilityMap2D, self).__init__(1, **kwargs)
-        return
+        self.total_ele = total_ele
 
-    def make_reconstruction(self, csd_profile, csd_seed, total_ele, noise=0,
+    def make_reconstruction(self, csd_profile, csd_seed, noise=0,
                             nr_broken_ele=None, Rs=None, lambdas=None,
                             method='cross-validation'):
         """
@@ -236,9 +234,9 @@ class VisibilityMap2D(ValidateKCSD2D):
             function to produce csd profile
         csd_seed: int
             Seed for random generator to choose random CSD profile.
-        noise: string
-            Determines if we want to generate data with noise.
-            Default: None.
+        noise: float
+            Determines the level of noise in the data.
+            Default: 0.
         nr_broken_ele: int
             How many electrodes are broken (excluded from analysis)
             Default: None.
@@ -248,6 +246,9 @@ class VisibilityMap2D(ValidateKCSD2D):
         lambdas: numpy 1D array
             Regularization parameter for crossvalidation.
             Default: None.
+        method: string
+            Determines the method of regularization.
+            Default: cross-validation.
 
         Returns
         -------
@@ -261,10 +262,9 @@ class VisibilityMap2D(ValidateKCSD2D):
             space.
         """
         ele_pos, pots = self.electrode_config(csd_profile, csd_seed,
-                                              total_ele, self.ele_lims, self.h,
-                                              self.sigma,
-                                              noise, nr_broken_ele,
-                                              ele_seed=10)
+                                              self.total_ele, self.ele_lims,
+                                              self.h, self.sigma,
+                                              noise, nr_broken_ele)
 
         k = KCSD2D(ele_pos, pots, h=self.h, sigma=self.sigma,
                    xmax=np.max(self.kcsd_xlims), xmin=np.min(self.kcsd_xlims),
@@ -284,7 +284,7 @@ class VisibilityMap2D(ValidateKCSD2D):
         point_error = self.calculate_point_error(test_csd, est_csd[:, :, 0])
         return rms, point_error
 
-    def calculate_error_map(self, csd_profile, total_ele, n=100, noise=0,
+    def calculate_error_map(self, csd_profile, n=100, noise=0,
                             nr_broken_ele=None, Rs=None, lambdas=None,
                             method='cross-validation'):
         """
@@ -298,9 +298,9 @@ class VisibilityMap2D(ValidateKCSD2D):
         n: int
             Number of simulations included in error map calculations.
             Default: 100.
-        noise: string
-            Determines if we want to generate data with noise.
-            Default: None.
+        noise: float
+            Determines the level of noise in the data.
+            Default: 0.
         nr_broken_ele: int
             How many electrodes are broken (excluded from analysis)
             Default: None.
@@ -310,6 +310,9 @@ class VisibilityMap2D(ValidateKCSD2D):
         lambdas: numpy 1D array
             Regularization parameter for crossvalidation.
             Default: None.
+        method: string
+            Determines the method of regularization.
+            Default: cross-validation.
 
         Returns
         -------
@@ -323,7 +326,7 @@ class VisibilityMap2D(ValidateKCSD2D):
         if PARALLEL_AVAILABLE:
             err = Parallel(n_jobs=NUM_CORES)(delayed
                                              (self.make_reconstruction)
-                                             (csd_profile, i, total_ele, noise,
+                                             (csd_profile, i, noise,
                                               nr_broken_ele, Rs, lambdas,
                                               method=method)
                                              for i in range(n))
@@ -334,7 +337,7 @@ class VisibilityMap2D(ValidateKCSD2D):
             point_error = []
             for i in range(n):
                 data, error = self.make_reconstruction(csd_profile, i,
-                                                       total_ele, noise,
+                                                       noise,
                                                        nr_broken_ele, Rs,
                                                        lambdas, method=method)
                 rms[i] = data
@@ -359,7 +362,8 @@ class VisibilityMap2D(ValidateKCSD2D):
 
         Returns
         -------
-        None
+        mean_error: numpy array
+            Accuracy mask.
         """
         ele_x, ele_y = ele_pos[:, 0], ele_pos[:, 1]
         x, y = np.mgrid[self.kcsd_xlims[0]:self.kcsd_xlims[1]:
@@ -384,16 +388,14 @@ class VisibilityMap3D(ValidateKCSD3D):
     """
     Class that produces error map for 3D CSD reconstruction.
     """
-    def __init__(self, **kwargs):
+    def __init__(self, total_ele, **kwargs):
         """
         Initialize ErrorMap3D class.
 
         Parameters
         ----------
-        csd_profile: function
-            Function to produce csd profile.
-        csd_seed: int
-            Seed for random generator to choose random CSD profile.
+        total_ele: int
+            Number of electrodes.
         **kwargs
             Configuration parameters.
 
@@ -402,9 +404,9 @@ class VisibilityMap3D(ValidateKCSD3D):
         None
         """
         super(VisibilityMap3D, self).__init__(1, **kwargs)
-        return
+        self.total_ele = total_ele
 
-    def make_reconstruction(self, csd_profile, csd_seed, total_ele, noise=0,
+    def make_reconstruction(self, csd_profile, csd_seed, noise=0,
                             nr_broken_ele=None, Rs=None, lambdas=None,
                             method='cross-validation'):
         """
@@ -416,9 +418,9 @@ class VisibilityMap3D(ValidateKCSD3D):
             function to produce csd profile
         csd_seed: int
             Seed for random generator to choose random CSD profile.
-        noise: string
-            Determines if we want to generate data with noise.
-            Default: None.
+        noise: float
+            Determines the level of noise in the data.
+            Default: 0.
         nr_broken_ele: int
             How many electrodes are broken (excluded from analysis)
             Default: None.
@@ -428,21 +430,22 @@ class VisibilityMap3D(ValidateKCSD3D):
         lambdas: numpy 1D array
             Regularization parameter for crossvalidation.
             Default: None.
+        method: string
+            Determines the method of regularization.
+            Default: cross-validation.
 
         Returns
         -------
-        List of [rms, kcsd] and point_error
         rms: float
             Error of reconstruction.
-        kcsd: object of a class
-            Object of a class.
         point_error: numpy array
             Error of reconstruction calculated at every point of reconstruction
             space.
         """
         ele_pos, pots = self.electrode_config(csd_profile, csd_seed,
-                                              total_ele, self.ele_lims, self.h,
-                                              self.sigma, noise, nr_broken_ele)
+                                              self.total_ele, self.ele_lims,
+                                              self.h, self.sigma, noise,
+                                              nr_broken_ele)
         k = KCSD3D(ele_pos, pots, gdx=self.est_xres, gdy=self.est_yres,
                    gdz=self.est_zres,
                    h=self.h, sigma=self.sigma, n_src_init=self.n_src_init,
@@ -462,7 +465,7 @@ class VisibilityMap3D(ValidateKCSD3D):
         point_error = self.calculate_point_error(test_csd, est_csd[:, :, :, 0])
         return rms, point_error
 
-    def calculate_error_map(self, csd_profile, total_ele, n=5, noise=0,
+    def calculate_error_map(self, csd_profile, n=5, noise=0,
                             nr_broken_ele=None, Rs=None, lambdas=None,
                             method='cross-validation'):
         """
@@ -476,9 +479,9 @@ class VisibilityMap3D(ValidateKCSD3D):
         n: int
             Number of simulations included in error map calculations.
             Default: 5.
-        noise: string
-            Determines if we want to generate data with noise.
-            Default: None.
+        noise: float
+            Determines the level of noise in the data.
+            Default: 0.
         nr_broken_ele: int
             How many electrodes are broken (excluded from analysis)
             Default: None.
@@ -488,6 +491,9 @@ class VisibilityMap3D(ValidateKCSD3D):
         lambdas: numpy 1D array
             Regularization parameter for crossvalidation.
             Default: None.
+        method: string
+            Determines the method of regularization.
+            Default: cross-validation.
 
         Returns
         -------
@@ -501,7 +507,7 @@ class VisibilityMap3D(ValidateKCSD3D):
         if PARALLEL_AVAILABLE:
             err = Parallel(n_jobs=NUM_CORES)(delayed
                                              (self.make_reconstruction)
-                                             (csd_profile, i, total_ele, noise,
+                                             (csd_profile, i, noise,
                                               nr_broken_ele, Rs, lambdas,
                                               method=method)
                                              for i in range(n))
@@ -512,7 +518,7 @@ class VisibilityMap3D(ValidateKCSD3D):
             point_error = []
             for i in range(n):
                 data, error = self.make_reconstruction(csd_profile, i,
-                                                       total_ele, noise,
+                                                       noise,
                                                        nr_broken_ele, Rs,
                                                        lambdas, method=method)
                 rms[i] = data
@@ -537,7 +543,8 @@ class VisibilityMap3D(ValidateKCSD3D):
 
         Returns
         -------
-        None
+        mean_error: numpy array
+            Accuracy mask.
         """
 #        ele_x, ele_y, ele_z = ele_pos[0], ele_pos[1], ele_pos[2]
         x, y, z = np.mgrid[self.kcsd_xlims[0]:self.kcsd_xlims[1]:
@@ -578,19 +585,19 @@ if __name__ == '__main__':
     CSD_PROFILE = CSD.gauss_1d_mono
     ELE_LIMS = [0.1, 0.9]  # range of electrodes space
     TRUE_CSD_XLIMS = [0., 1.]
-    k = VisibilityMap1D(h=0.25, R_init=0.3, ele_lims=ELE_LIMS,
+    k = VisibilityMap1D(total_ele=10, h=0.25, R_init=0.3, ele_lims=ELE_LIMS,
                         true_csd_xlims=TRUE_CSD_XLIMS, sigma=0.3,
                         src_type='gauss', n_src_init=100, ext_x=0.1)
-    rms, point_error = k.calculate_error_map(CSD_PROFILE, total_ele=32,
+    rms, point_error = k.calculate_error_map(CSD_PROFILE,
                                              Rs=np.arange(0.2, 0.5, 0.1))
     ele_pos = np.linspace(ELE_LIMS[0], ELE_LIMS[1], 32)
 
     print('Checking 2D')
     CSD_PROFILE = CSD.gauss_2d_small
-    a = VisibilityMap2D(h=50., sigma=1., n_src_init=400)
-    rms, point_error = a.calculate_error_map(CSD_PROFILE, total_ele=36)
+    a = VisibilityMap2D(total_ele=25, h=50., sigma=1., n_src_init=400)
+    rms, point_error = a.calculate_error_map(CSD_PROFILE)
 
     print('Checking 3D')
     CSD_PROFILE = CSD.gauss_3d_small
-    a = VisibilityMap3D(h=50., sigma=1., n_src_init=729)
-    a.calculate_error_map(CSD_PROFILE, total_ele=27)
+    a = VisibilityMap3D(total_ele=64, h=50., sigma=1., n_src_init=729)
+    a.calculate_error_map(CSD_PROFILE)
