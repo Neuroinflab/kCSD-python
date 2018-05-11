@@ -12,7 +12,6 @@ import time
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
-import matplotlib.cm as cm
 
 from kcsd import ValidateKCSD1D, ValidateKCSD2D, ValidateKCSD3D
 from kcsd import csd_profile as CSD
@@ -52,7 +51,8 @@ class VisibilityMap1D(ValidateKCSD1D):
         return
 
     def calculate_error_map(self, csd_profile, total_ele, n=100, noise=None,
-                            nr_broken_ele=None, Rs=None, lambdas=None):
+                            nr_broken_ele=None, Rs=None, lambdas=None,
+                            method='cross-validation'):
         """
         Makes reconstructions for n random simulated ground truth profiles and
         returns errors of CSD estimation with kCSD method.
@@ -91,7 +91,8 @@ class VisibilityMap1D(ValidateKCSD1D):
                                              (csd_profile, i, total_ele,
                                               noise=noise,
                                               nr_broken_ele=nr_broken_ele,
-                                              Rs=Rs, lambdas=lambdas)
+                                              Rs=Rs, lambdas=lambdas,
+                                              method=method)
                                              for i in range(n))
             rms = np.array([item[0] for item in err])
             point_error = np.array([item[1] for item in err])
@@ -102,14 +103,16 @@ class VisibilityMap1D(ValidateKCSD1D):
                 data, error = self.make_reconstruction(csd_profile, i,
                                                        total_ele, noise,
                                                        nr_broken_ele, Rs=Rs,
-                                                       lambdas=lambdas)
+                                                       lambdas=lambdas,
+                                                       method=method)
                 rms[i] = data
                 point_error.append(error)
         point_error = np.array(point_error)
         return rms, point_error
 
     def make_reconstruction(self, csd_profile, csd_seed, total_ele, noise=None,
-                            nr_broken_ele=None, Rs=None, lambdas=None):
+                            nr_broken_ele=None, Rs=None, lambdas=None,
+                            method='cross-validation'):
         """
         Makes the whole kCSD reconstruction.
 
@@ -149,9 +152,16 @@ class VisibilityMap1D(ValidateKCSD1D):
                                               noise, nr_broken_ele,
                                               ele_seed=10)
 
-        k = KCSD1D(ele_pos, pots, xmin=0., xmax=1., h=self.h,
+        k = KCSD1D(ele_pos, pots, h=self.h, gdx=self.est_xres,
+                   xmax=np.max(self.kcsd_xlims), xmin=np.min(self.kcsd_xlims),
                    sigma=self.sigma, n_src_init=self.n_src_init)
-        k.cross_validate(Rs=Rs, lambdas=lambdas)
+        if method == 'cross-validation':
+            k.cross_validate(Rs=Rs, lambdas=lambdas)
+        elif method == 'L-curve':
+            k.L_curve(Rs=Rs, lambdas=lambdas)
+        else:
+            raise ValueError('Invalid value of reconstruction method,'
+                             'pass either cross-validation or L-curve')
         est_csd = k.values('CSD')
         test_csd = csd_profile(k.estm_x, csd_seed)
         rms = self.calculate_rms(test_csd, est_csd[:, 0])
@@ -215,7 +225,8 @@ class VisibilityMap2D(ValidateKCSD2D):
         return
 
     def make_reconstruction(self, csd_profile, csd_seed, total_ele, noise=None,
-                            nr_broken_ele=None, Rs=None, lambdas=None):
+                            nr_broken_ele=None, Rs=None, lambdas=None,
+                            method='cross-validation'):
         """
         Makes the whole kCSD reconstruction.
 
@@ -255,10 +266,18 @@ class VisibilityMap2D(ValidateKCSD2D):
                                               noise, nr_broken_ele,
                                               ele_seed=10)
 
-        k = KCSD2D(ele_pos, pots, xmin=0., xmax=1., ymin=0.,
-                   ymax=1., h=self.h, sigma=self.sigma,
-                   n_src_init=self.n_src_init)
-        k.cross_validate(Rs=Rs, lambdas=lambdas)
+        k = KCSD2D(ele_pos, pots, h=self.h, sigma=self.sigma,
+                   xmax=np.max(self.kcsd_xlims), xmin=np.min(self.kcsd_xlims),
+                   ymax=np.max(self.kcsd_ylims), ymin=np.min(self.kcsd_ylims),
+                   n_src_init=self.n_src_init, gdx=self.est_xres,
+                   gdy=self.est_yres)
+        if method == 'cross-validation':
+            k.cross_validate(Rs=Rs, lambdas=lambdas)
+        elif method == 'L-curve':
+            k.L_curve(Rs=Rs, lambdas=lambdas)
+        else:
+            raise ValueError('Invalid value of reconstruction method,'
+                             'pass either cross-validation or L-curve')
         est_csd = k.values('CSD')
         test_csd = csd_profile([k.estm_x, k.estm_y], csd_seed)
         rms = self.calculate_rms(test_csd, est_csd[:, :, 0])
@@ -266,7 +285,8 @@ class VisibilityMap2D(ValidateKCSD2D):
         return rms, point_error
 
     def calculate_error_map(self, csd_profile, total_ele, n=100, noise=None,
-                            nr_broken_ele=None, Rs=None, lambdas=None):
+                            nr_broken_ele=None, Rs=None, lambdas=None,
+                            method='cross-validation'):
         """
         Makes reconstructions for n random simulated ground truth profiles and
         returns errors of CSD estimation with kCSD method.
@@ -304,7 +324,8 @@ class VisibilityMap2D(ValidateKCSD2D):
             err = Parallel(n_jobs=NUM_CORES)(delayed
                                              (self.make_reconstruction)
                                              (csd_profile, i, total_ele, noise,
-                                              nr_broken_ele, Rs, lambdas)
+                                              nr_broken_ele, Rs, lambdas,
+                                              method=method)
                                              for i in range(n))
             rms = np.array([item[0] for item in err])
             point_error = np.array([item[1] for item in err])
@@ -315,7 +336,7 @@ class VisibilityMap2D(ValidateKCSD2D):
                 data, error = self.make_reconstruction(csd_profile, i,
                                                        total_ele, noise,
                                                        nr_broken_ele, Rs,
-                                                       lambdas)
+                                                       lambdas, method=method)
                 rms[i] = data
                 point_error.append(error)
         point_error = np.array(point_error)
@@ -356,7 +377,7 @@ class VisibilityMap2D(ValidateKCSD2D):
         ax1.set_ylabel('Depth y [mm]')
         ax1.set_title('Sigmoidal mean point error')
         plt.show()
-        return
+        return mean_error
 
 
 class VisibilityMap3D(ValidateKCSD3D):
@@ -384,7 +405,8 @@ class VisibilityMap3D(ValidateKCSD3D):
         return
 
     def make_reconstruction(self, csd_profile, csd_seed, total_ele, noise=None,
-                            nr_broken_ele=None, Rs=None, lambdas=None):
+                            nr_broken_ele=None, Rs=None, lambdas=None,
+                            method='cross-validation'):
         """
         Makes the whole kCSD reconstruction.
 
@@ -421,12 +443,19 @@ class VisibilityMap3D(ValidateKCSD3D):
         ele_pos, pots = self.electrode_config(csd_profile, csd_seed,
                                               total_ele, self.ele_lims, self.h,
                                               self.sigma, noise, nr_broken_ele)
-        k = KCSD3D(ele_pos, pots, gdx=0.035, gdy=0.035, gdz=0.035,
+        k = KCSD3D(ele_pos, pots, gdx=self.est_xres, gdy=self.est_yres,
+                   gdz=self.est_zres,
                    h=self.h, sigma=self.sigma, n_src_init=self.n_src_init,
-                   xmax=self.true_csd_xlims[1], xmin=self.true_csd_xlims[0],
-                   ymax=self.true_csd_ylims[1], ymin=self.true_csd_ylims[0],
-                   zmax=self.true_csd_zlims[1], zmin=self.true_csd_zlims[0])
-        k.cross_validate(Rs=Rs, lambdas=lambdas)
+                   xmax=np.max(self.kcsd_xlims), xmin=np.min(self.kcsd_xlims),
+                   ymax=np.max(self.kcsd_ylims), ymin=np.min(self.kcsd_ylims),
+                   zmax=np.max(self.kcsd_zlims), zmin=np.min(self.kcsd_zlims))
+        if method == 'cross-validation':
+            k.cross_validate(Rs=Rs, lambdas=lambdas)
+        elif method == 'L-curve':
+            k.L_curve(Rs=Rs, lambdas=lambdas)
+        else:
+            raise ValueError('Invalid value of reconstruction method,'
+                             'pass either cross-validation or L-curve')
         est_csd = k.values('CSD')
         test_csd = csd_profile([k.estm_x, k.estm_y, k.estm_z], csd_seed)
         rms = self.calculate_rms(test_csd, est_csd[:, :, :, 0])
@@ -434,7 +463,8 @@ class VisibilityMap3D(ValidateKCSD3D):
         return rms, point_error
 
     def calculate_error_map(self, csd_profile, total_ele, n=5, noise=None,
-                            nr_broken_ele=None, Rs=None, lambdas=None):
+                            nr_broken_ele=None, Rs=None, lambdas=None,
+                            method='cross-validation'):
         """
         Makes reconstructions for n random simulated ground truth profiles and
         returns errors of CSD estimation with kCSD method.
@@ -472,7 +502,8 @@ class VisibilityMap3D(ValidateKCSD3D):
             err = Parallel(n_jobs=NUM_CORES)(delayed
                                              (self.make_reconstruction)
                                              (csd_profile, i, total_ele, noise,
-                                              nr_broken_ele, Rs, lambdas)
+                                              nr_broken_ele, Rs, lambdas,
+                                              method=method)
                                              for i in range(n))
             rms = np.array([item[0] for item in err])
             point_error = np.array([item[1] for item in err])
@@ -483,7 +514,7 @@ class VisibilityMap3D(ValidateKCSD3D):
                 data, error = self.make_reconstruction(csd_profile, i,
                                                        total_ele, noise,
                                                        nr_broken_ele, Rs,
-                                                       lambdas)
+                                                       lambdas, method=method)
                 rms[i] = data
                 point_error.append(error)
         point_error = np.array(point_error)
@@ -508,7 +539,7 @@ class VisibilityMap3D(ValidateKCSD3D):
         -------
         None
         """
-        ele_x, ele_y, ele_z = ele_pos[0], ele_pos[1], ele_pos[2]
+#        ele_x, ele_y, ele_z = ele_pos[0], ele_pos[1], ele_pos[2]
         x, y, z = np.mgrid[self.kcsd_xlims[0]:self.kcsd_xlims[1]:
                            np.complex(0, point_error.shape[1]),
                            self.kcsd_ylims[0]:self.kcsd_ylims[1]:
@@ -516,17 +547,7 @@ class VisibilityMap3D(ValidateKCSD3D):
                            self.kcsd_zlims[0]:self.kcsd_zlims[1]:
                            np.complex(0, point_error.shape[3])]
         mean_error = self.sigmoid_mean(point_error)
-#        plt.figure(figsize=(12, 7))
-#        ax1 = plt.subplot(111, aspect='equal')
-#        levels = np.linspace(0, 1., 15)
-#        im = ax1.contourf(x, y, mean_error, levels=levels, cmap='Greys')
-#        plt.colorbar(im, fraction=0.046, pad=0.06)
-#        plt.scatter(ele_x, ele_y)
-#        ax1.set_xlabel('Depth x [mm]')
-#        ax1.set_ylabel('Depth y [mm]')
-#        ax1.set_title('Sigmoidal mean point error')
-#        plt.show()
-        plt.figure(figsize=(5, 9))
+        plt.figure(figsize=(7, 9))
         z_steps = 5
         height_ratios = [1 for i in range(z_steps)]
         width_ratios = [1, 0.05]
@@ -549,7 +570,7 @@ class VisibilityMap3D(ValidateKCSD3D):
         cbar = plt.colorbar(im, cax=cax, orientation='vertical')
         cbar.set_ticks(levels[::2])
         cbar.set_ticklabels(np.around(levels[::2], decimals=2))
-        return
+        return mean_error
 
 
 if __name__ == '__main__':

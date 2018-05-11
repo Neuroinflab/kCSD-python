@@ -7,7 +7,7 @@ import matplotlib.cm as cm
 import config
 
 
-def show_csd(csd_at, csd, show_ele=None, show_kcsd=False):
+def show_csd(csd_at, csd, show_ele=None, show_kcsd=False, show_mask=None):
     if config.dim == 1:
         fig = plt.figure(figsize=(6, 6))
         ax = plt.subplot(111)
@@ -15,6 +15,8 @@ def show_csd(csd_at, csd, show_ele=None, show_kcsd=False):
             ax.plot(csd_at, csd, 'g', label='CSD', linestyle='-', linewidth=3)
         else:
             ax.plot(csd_at, csd, 'g', label='kCSD', linestyle='--', linewidth=3)
+        if show_mask is not None:
+            ax.plot(csd_at, show_mask, 'k', label='Visibility Map', linewidth=1)
         if show_ele is not None:
             ax.plot(show_ele, np.zeros_like(show_ele), 'ko', label='Electrodes', markersize=2.)
         max_csd = max(np.abs(csd))
@@ -41,6 +43,15 @@ def show_csd(csd_at, csd, show_ele=None, show_kcsd=False):
         cbar = plt.colorbar(im, orientation='vertical')
         cbar.set_ticks(levels[::2])
         cbar.set_ticklabels(np.around(levels[::2], decimals=2))
+        cbar.set_label('CSD')
+        if show_mask is not None:
+            levels2 = np.linspace(0, 1, 10)
+            im2 = ax.contourf(csd_at[0], csd_at[1], show_mask, levels=levels2,
+                              alpha=0.3, cmap='Greys')
+            cbar2 = plt.colorbar(im2, orientation='vertical')
+            cbar2.set_ticks(levels2[::2])
+            cbar2.set_ticklabels(np.around(levels2[::2], decimals=2))
+            cbar2.set_label('Visibility Map')
         if show_ele is not None:
             plt.scatter(show_ele[:, 0], show_ele[:, 1], 5, 'k')
         ax.set_xlim([0., 1.])
@@ -63,7 +74,16 @@ def show_csd(csd_at, csd, show_ele=None, show_kcsd=False):
                                   csd[:, :, idx], levels=levels, cmap=cm.bwr_r)
             else:
                 im = plt.contourf(csd_at[0][:, :, idx], csd_at[1][:, :, idx],
-                                  csd[:, :, idx, 0], levels=levels, cmap=cm.bwr_r)
+                                  csd[:, :, idx, 0], levels=levels, cmap=cm.bwr_r, alpha=1.)
+            if show_mask is not None:
+                levels2 = np.linspace(0, 1, 10)
+                im2 = plt.contourf(csd_at[0][:, :, idx], csd_at[1][:, :, idx], show_mask[:, :, idx], levels=levels2,
+                                   alpha=0.3, cmap='Greys')
+                cax2 = fig.add_axes([1.05, 0.128, 0.03, 0.75])
+                cbar2 = plt.colorbar(im2, cax=cax2, orientation='vertical', shrink=1)
+                cbar2.set_ticks(levels2[::2])
+                cbar2.set_ticklabels(np.around(levels2[::2], decimals=2))
+                cbar2.set_label('Visibility Map')
             if show_ele is not None:
                 plt.scatter(show_ele[:, 0], show_ele[:, 1], 5, 'k')  # needs fix
             ax.get_xaxis().set_visible(False)
@@ -74,9 +94,10 @@ def show_csd(csd_at, csd, show_ele=None, show_kcsd=False):
             ax.set_xlim([0., 1.])
             ax.set_ylim([0., 1.])
         cax = plt.subplot(gs[:, -1])
-        cbar = plt.colorbar(im, cax=cax, orientation='vertical')
+        cbar = plt.colorbar(im, cax=cax, orientation='vertical', shrink=1)
         cbar.set_ticks(levels[::2])
         cbar.set_ticklabels(np.around(levels[::2], decimals=2))
+        cbar.set_label('CSD')
     return
 
 
