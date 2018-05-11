@@ -290,7 +290,7 @@ class ValidateKCSD(object):
         return ele_pos
 
     def electrode_config(self, csd_profile, csd_seed, total_ele, ele_lims, h,
-                         sigma, noise=None, nr_broken_ele=None, ele_seed=10):
+                         sigma, noise=0., nr_broken_ele=None, ele_seed=10):
         """
         Produces electrodes positions and calculates potentials measured at
         these points.
@@ -320,8 +320,8 @@ class ValidateKCSD(object):
         pots = self.calculate_potential(true_csd, csd_at, ele_pos, h, sigma)
         num_ele = ele_pos.shape[0]
         print('Number of electrodes:', num_ele)
-        if noise == 'noise':
-            pots = self.add_noise(pots, csd_seed)
+        if noise > 0:
+            pots = self.add_noise(pots, csd_seed, level=noise)
         return ele_pos, pots.reshape((len(ele_pos), 1))
 
     def calculate_potential(self, true_csd, csd_at, ele_pos, h, sigma):
@@ -574,10 +574,9 @@ class ValidateKCSD(object):
         '''
         sig_error = 2*(1./(1 + np.exp((-error))) - 1/2.)
         error_mean = np.mean(sig_error, axis=0)
-        print(error_mean.shape)
         return error_mean
 
-    def add_noise(self, pots, seed=0, level=0.1):
+    def add_noise(self, pots, seed=0, level=10):
         """
         Adds Gaussian noise to potentials.
 
@@ -594,7 +593,8 @@ class ValidateKCSD(object):
             Potentials with added random Gaussian noise.
         """
         rstate = np.random.RandomState(seed)
-        noise = level*rstate.normal(np.mean(pots), np.std(pots), len(pots))
+        noise = 0.01*level*rstate.normal(np.mean(pots), np.std(pots),
+                                         len(pots))
         pots_noise = pots + noise
         return pots_noise
 
@@ -685,7 +685,7 @@ class ValidateKCSD1D(ValidateKCSD):
         return k, est_csd
 
     def make_reconstruction(self, csd_profile, csd_seed, total_ele,
-                            ele_lims=None, noise=None, nr_broken_ele=None,
+                            ele_lims=None, noise=0, nr_broken_ele=None,
                             Rs=None, lambdas=None):
         """
         Main method, makes the whole kCSD reconstruction.
@@ -856,7 +856,7 @@ class ValidateKCSD2D(ValidateKCSD):
         return k, est_csd
 
     def make_reconstruction(self, csd_profile, csd_seed, total_ele,
-                            ele_lims=None, noise=None, nr_broken_ele=None,
+                            ele_lims=None, noise=0, nr_broken_ele=None,
                             Rs=None, lambdas=None):
         """
         Main method, makes the whole kCSD reconstruction.
@@ -1082,7 +1082,7 @@ class ValidateKCSD3D(ValidateKCSD):
         return k, est_csd
 
     def make_reconstruction(self, csd_profile, csd_seed, total_ele,
-                            ele_lims=None, noise=None, nr_broken_ele=None,
+                            ele_lims=None, noise=0, nr_broken_ele=None,
                             Rs=None, lambdas=None):
         """
         Main method, makes the whole kCSD reconstruction.
@@ -1601,7 +1601,7 @@ if __name__ == '__main__':
     KK = ValidateKCSD1D(CSD_SEED, n_src_init=N_SRC_INIT, h=0.25, R_init=0.23,
                         ele_lims=ELE_LIMS, true_csd_xlims=[0., 1.], sigma=0.3,
                         src_type='gauss')
-    KK.make_reconstruction(CSD_PROFILE, CSD_SEED, total_ele=64, noise=None,
+    KK.make_reconstruction(CSD_PROFILE, CSD_SEED, total_ele=64, noise=0,
                            Rs=np.arange(0.2, 0.5, 0.1))
 
     print('Checking 2D')
@@ -1609,7 +1609,7 @@ if __name__ == '__main__':
     CSD_SEED = 5
 
     KK = ValidateKCSD2D(CSD_SEED, h=50., sigma=1., n_src_init=400)
-    KK.make_reconstruction(CSD_PROFILE, CSD_SEED, total_ele=16, noise='noise',
+    KK.make_reconstruction(CSD_PROFILE, CSD_SEED, total_ele=16, noise=0,
                            Rs=np.arange(0.2, 0.5, 0.1))
 
     print('Checking 3D')
@@ -1617,7 +1617,7 @@ if __name__ == '__main__':
     CSD_SEED = 20  # 0-49 are small sources, 50-99 are large sources
     TIC = time.time()
     KK = ValidateKCSD3D(CSD_SEED, h=50, sigma=1)
-    KK.make_reconstruction(CSD_PROFILE, CSD_SEED, total_ele=125, noise='noise',
+    KK.make_reconstruction(CSD_PROFILE, CSD_SEED, total_ele=125, noise=0,
                            Rs=np.arange(0.2, 0.5, 0.1))
     TOC = time.time() - TIC
     print('time', TOC)

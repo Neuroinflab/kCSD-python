@@ -50,7 +50,7 @@ class VisibilityMap1D(ValidateKCSD1D):
         super(VisibilityMap1D, self).__init__(1, **kwargs)
         return
 
-    def calculate_error_map(self, csd_profile, total_ele, n=100, noise=None,
+    def calculate_error_map(self, csd_profile, total_ele, n=100, noise=0,
                             nr_broken_ele=None, Rs=None, lambdas=None,
                             method='cross-validation'):
         """
@@ -110,7 +110,7 @@ class VisibilityMap1D(ValidateKCSD1D):
         point_error = np.array(point_error)
         return rms, point_error
 
-    def make_reconstruction(self, csd_profile, csd_seed, total_ele, noise=None,
+    def make_reconstruction(self, csd_profile, csd_seed, total_ele, noise=0,
                             nr_broken_ele=None, Rs=None, lambdas=None,
                             method='cross-validation'):
         """
@@ -224,7 +224,7 @@ class VisibilityMap2D(ValidateKCSD2D):
         super(VisibilityMap2D, self).__init__(1, **kwargs)
         return
 
-    def make_reconstruction(self, csd_profile, csd_seed, total_ele, noise=None,
+    def make_reconstruction(self, csd_profile, csd_seed, total_ele, noise=0,
                             nr_broken_ele=None, Rs=None, lambdas=None,
                             method='cross-validation'):
         """
@@ -284,7 +284,7 @@ class VisibilityMap2D(ValidateKCSD2D):
         point_error = self.calculate_point_error(test_csd, est_csd[:, :, 0])
         return rms, point_error
 
-    def calculate_error_map(self, csd_profile, total_ele, n=100, noise=None,
+    def calculate_error_map(self, csd_profile, total_ele, n=100, noise=0,
                             nr_broken_ele=None, Rs=None, lambdas=None,
                             method='cross-validation'):
         """
@@ -404,7 +404,7 @@ class VisibilityMap3D(ValidateKCSD3D):
         super(VisibilityMap3D, self).__init__(1, **kwargs)
         return
 
-    def make_reconstruction(self, csd_profile, csd_seed, total_ele, noise=None,
+    def make_reconstruction(self, csd_profile, csd_seed, total_ele, noise=0,
                             nr_broken_ele=None, Rs=None, lambdas=None,
                             method='cross-validation'):
         """
@@ -462,7 +462,7 @@ class VisibilityMap3D(ValidateKCSD3D):
         point_error = self.calculate_point_error(test_csd, est_csd[:, :, :, 0])
         return rms, point_error
 
-    def calculate_error_map(self, csd_profile, total_ele, n=5, noise=None,
+    def calculate_error_map(self, csd_profile, total_ele, n=5, noise=0,
                             nr_broken_ele=None, Rs=None, lambdas=None,
                             method='cross-validation'):
         """
