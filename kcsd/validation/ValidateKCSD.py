@@ -20,7 +20,7 @@ import matplotlib.cm as cm
 from scipy.interpolate import griddata
 from matplotlib import colors, gridspec
 from kcsd import csd_profile as CSD
-from kcsd import KCSD1D, KCSD2D, KCSD3D
+from kcsd import KCSD1D, KCSD2D, KCSD3D, MoIKCSD
 
 
 try:
@@ -1014,13 +1014,69 @@ class ValidateKCSD2D(ValidateKCSD):
         return
 
 
-class ValidateKCSD3D(ValidateKCSD):
+class ValidateMoIKCSD(ValidateKCSD):
     """
-    ValidationClassKCSD3D - The 3D variant of validation class for kCSD method.
+    ValidateMoIKCSD - The 2D variant of validation class for kCSD method
+    (CSD while including the forward modeling effects of saline).
     """
     def __init__(self, csd_seed, **kwargs):
         """
-        Initialize ValidationClassKCSD3D class
+        Initialize ValidateMoIKCSD class
+
+        Parameters
+        ----------
+        csd_seed: int
+            Seed for random generator to choose random CSD profile.
+        **kwargs
+            Configuration parameters.
+
+        Returns
+        -------
+        None
+        """
+        super(ValidateMoIKCSD, self).__init__(dim=2)
+
+    def recon(self, pots, ele_pos, method='cross-validation', Rs=None,
+              lambdas=None, **params):
+        """
+        Calls MoIKCSD class to reconstruct current source density.
+
+        Parameters
+        ----------
+        pots: numpy array
+            Values of potentials at ele_pos.
+        ele_pos: numpy array
+            Electrodes positions.
+
+        Returns
+        -------
+        kcsd: instance of the class
+            Instance of class KCSD1D.
+        est_csd: numpy array
+            Estimated csd (with kCSD method).
+        est_pot: numpy array
+            Estimated potentials.
+        """
+        pots = pots.reshape((len(ele_pos), 1))
+        k = MoIKCSD(ele_pos, pots, **params)
+        if method == 'cross-validation':
+            k.cross_validate(Rs=Rs, lambdas=lambdas)
+        elif method == 'L-curve':
+            k.L_curve(Rs=Rs, lambdas=lambdas)
+        else:
+            raise ValueError('Invalid value of reconstruction method,'
+                             'pass either cross-validation or L-curve')
+        est_csd = k.values('CSD')
+        return k, est_csd
+
+
+class ValidateKCSD3D(ValidateKCSD):
+    """
+    ValidateKCSD3D - The 3D variant of validation class for kCSD method.
+    """
+    def __init__(self, csd_seed, **kwargs):
+        """
+        Initialize ValidateKCSD3D class
 
         Parameters
         ----------
@@ -1037,7 +1093,6 @@ class ValidateKCSD3D(ValidateKCSD):
         """
         super(ValidateKCSD3D, self).__init__(dim=3, **kwargs)
         self.csd_seed = csd_seed
-        return
 
     def recon(self, pots, ele_pos, method='cross-validation', Rs=None,
               lambdas=None):
@@ -1309,9 +1364,9 @@ class SpectralStructure(object):
             raise LinAlgError('Encoutered Singular Matrix Error:'
                               'try changing ele_pos slightly')
         self.plot_svd_sigma(sigma)
-        self.plot_svd_u(u_svd)
-        self.plot_svd_v(v_svd)
-        self.plot_svd_sigma_lambd(sigma)
+#        self.plot_svd_u(u_svd)
+#        self.plot_svd_v(v_svd)
+#        self.plot_svd_sigma_lambd(sigma)
         return u_svd, sigma, v_svd
 
     def picard_plot(self, b):
@@ -1454,7 +1509,7 @@ class SpectralStructure(object):
         eigenvalues = eigenvalues[idx]
         eigenvectors = eigenvectors[:, idx]
         self.plot_evd_sigma(eigenvalues)
-        self.plot_evd_sigma_lambd(eigenvalues)
+#        self.plot_evd_sigma_lambd(eigenvalues)
         return eigenvectors, eigenvalues
 
     def plot_svd_sigma(self, sigma):
