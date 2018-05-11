@@ -1,0 +1,18 @@
+
+create soma[1]
+create dend[1]
+
+soma[0] {
+    pt3dadd(0, 0, 0, 9.861)
+    pt3dadd(0, 0, 19.722,9.861)
+}
+
+dend[0] {
+    pt3dadd(0, 0, 19.722, 2.)
+    pt3dadd(0, 0, 510, 2.)
+}
+
+soma[0] insert hh
+
+connect dend[0](0), soma[0](1)
+
