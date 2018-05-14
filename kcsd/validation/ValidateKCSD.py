@@ -1365,7 +1365,6 @@ class ValidateKCSD3D(ValidateKCSD):
         fig.suptitle(fig_title)
         plt.show()
 
-
 class SpectralStructure(object):
     """
     Class that enables examination of spectral structure of CSD reconstruction
