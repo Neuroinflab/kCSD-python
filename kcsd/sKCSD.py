@@ -1,6 +1,6 @@
 """
 This script is used to generate Current Source Density Estimates,
-using the skCSD method Cserpan et.al (2017).
+using the skCSD method by Cserpan et.al (2017).
 
 These scripts are based on Grzegorz Parka's,
 Google Summer of Code 2014, INFC/pykCSD
@@ -237,6 +237,7 @@ class sKCSDcell(object):
         Parameters
         ----------
         None
+        
         Returns
         -------
         dxs: np.array of 3 floats
@@ -481,7 +482,8 @@ class sKCSDcell(object):
 
 
 class sKCSD(KCSD1D):
-    """KCSD3D - The 3D variant for the Kernel Current Source Density method.
+    """sKCSD - Kernel Current Source Density method
+    on a neuron morphology.
 
     This estimates the Current Source Density,
     using the skCSD method Cserpan et.al (2017).
@@ -560,6 +562,7 @@ class sKCSD(KCSD1D):
         This is done while construction of morphology loop in sKCSDcell
         Defines:
         self.n_estm = len(self.cell.estm_x)
+
         Parameters
         ----------
         None

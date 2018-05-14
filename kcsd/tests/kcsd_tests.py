@@ -19,14 +19,17 @@ class KCSD1D_TestCase(unittest.TestCase):
     def setUp(self):
         dim = 1
         utils = ValidateKCSD1D(csd_seed=42)
-        self.num_ele, self.ele_pos = utils.generate_electrodes(total_ele=10)
+        self.ele_pos = utils.generate_electrodes(total_ele=10,
+                                                 ele_lims=[0.1, 0.9])
         self.csd_profile = CSD.gauss_1d_mono
-        self.csd_at, self.csd = utils.generate_csd(self.csd_profile, csd_seed=42)
-        pots = utils.calculate_potential(self.csd_at, self.csd, self.ele_pos, h=1., sigma=0.3)
+        self.csd_at, self.csd = utils.generate_csd(self.csd_profile,
+                                                   csd_seed=42)
+        pots = utils.calculate_potential(self.csd, self.csd_at, self.ele_pos,
+                                         h=1., sigma=0.3)
         self.pots = np.reshape(pots, (-1, 1))
         self.test_method = 'KCSD1D'
-        self.test_params = {'h': 1., 'sigma':1.}
-
+        self.test_params = {'h': 1., 'sigma': 0.3, 'R_init': 0.2,
+                            'n_src_init': 1000, 'xmin': 0., 'xmax': 1.,}
 
     def test_kcsd1d_estimate(self, cv_params={}):
         self.test_params.update(cv_params)
@@ -34,8 +37,8 @@ class KCSD1D_TestCase(unittest.TestCase):
                         **self.test_params)
         result.cross_validate()
         vals = result.values()
-        true_csd = self.csd_profile(result.estm_x)
-        rms = np.linalg.norm(np.array(vals[0, :]) - true_csd)
+        true_csd = self.csd_profile(result.estm_x, 42)
+        rms = np.linalg.norm(np.array(vals[:, 0]) - true_csd)
         rms /= np.linalg.norm(true_csd)
         self.assertLess(rms, 0.5, msg='RMS between trueCSD and estimate > 0.5')
 
@@ -54,16 +57,18 @@ class KCSD2D_TestCase(unittest.TestCase):
     def setUp(self):
         dim = 2
         utils = ValidateKCSD2D(csd_seed=43)
-        self.num_ele, self.ele_pos = utils.generate_electrodes(total_ele=25, ele_lims=[0.05, 0.95])
+        self.ele_pos = utils.generate_electrodes(total_ele=49,
+                                                 ele_lims=[0.1, 0.9])
         self.csd_profile = CSD.gauss_2d_large
-        self.csd_at, self.csd = utils.generate_csd(self.csd_profile, csd_seed=43)
-        pots = utils.calculate_potential(self.csd_at, self.csd, self.ele_pos, h=10., sigma=0.3)
+        self.csd_at, self.csd = utils.generate_csd(self.csd_profile,
+                                                   csd_seed=43)
+        pots = utils.calculate_potential(self.csd, self.csd_at, self.ele_pos,
+                                         h=10., sigma=0.3)
         self.pots = np.reshape(pots, (-1, 1))
         self.test_method = 'KCSD2D'
-        self.test_params = {'gdx': 0.25, 'gdy': 0.25, 'R_init': 0.08,
+        self.test_params = {'gdx': 0.25, 'gdy': 0.25, 'R_init': 0.3,
                             'h': 10., 'xmin': 0., 'xmax': 1.,
-                            'ymin': 0., 'ymax': 1., 'sigma':0.3}
-
+                            'ymin': 0., 'ymax': 1., 'sigma': 0.3}
 
     def test_kcsd2d_estimate(self, cv_params={}):
         self.test_params.update(cv_params)
@@ -71,8 +76,8 @@ class KCSD2D_TestCase(unittest.TestCase):
                         **self.test_params)
         result.cross_validate()
         vals = result.values()
-        true_csd = self.csd_profile(result.estm_pos)
-        print(true_csd.shape, vals.shape) # Meh here!
+        true_csd = self.csd_profile(result.estm_pos, 43)
+#        print(true_csd.shape, vals.shape)  # Meh here!
         rms = np.linalg.norm(np.array(vals[:, :, 0]) - true_csd)
         rms /= np.linalg.norm(true_csd)
         self.assertLess(rms, 0.5, msg='RMS ' + str(rms) +
@@ -104,17 +109,20 @@ class KCSD3D_TestCase(unittest.TestCase):
     def setUp(self):
         dim = 3
         utils = ValidateKCSD3D(csd_seed=44)
-        self.num_ele, self.ele_pos = utils.generate_electrodes(total_ele=27, ele_lims=[0.15, 0.85])
+        self.ele_pos = utils.generate_electrodes(total_ele=64,
+                                                 ele_lims=[0.1, 0.9])
         self.csd_profile = CSD.gauss_3d_large
-        self.csd_at, self.csd = utils.generate_csd(self.csd_profile, csd_seed=44)
-        pots = utils.calculate_potential(self.csd_at, self.csd, self.ele_pos, h=1., sigma=0.3)
+        self.csd_at, self.csd = utils.generate_csd(self.csd_profile,
+                                                   csd_seed=44)
+        pots = utils.calculate_potential(self.csd, self.csd_at, self.ele_pos,
+                                         h=50., sigma=1.)
         self.pots = np.reshape(pots, (-1, 1))
         self.test_method = 'KCSD3D'
         self.test_params = {'gdx': 0.05, 'gdy': 0.05, 'gdz': 0.05,
-                            'lambd': 5.10896977451e-19, 'src_type': 'step',
+                            'src_type': 'gauss',
                             'R_init': 0.31, 'xmin': 0., 'xmax': 1., 'ymin': 0.,
-                            'ymax': 1., 'zmin': 0., 'zmax': 1.}
-
+                            'ymax': 1., 'zmin': 0., 'zmax': 1.,
+                            'n_src_init': 3000}
 
     def test_kcsd3d_estimate(self, cv_params={}):
         self.test_params.update(cv_params)
@@ -122,8 +130,8 @@ class KCSD3D_TestCase(unittest.TestCase):
                         **self.test_params)
         result.cross_validate()
         vals = result.values()
-        true_csd = self.csd_profile(result.estm_pos)
-        print(true_csd.shape, vals.shape) # Meh here!
+        true_csd = self.csd_profile(result.estm_pos, 44)
+        print(true_csd.shape, vals.shape)  # Meh here!
         rms = np.linalg.norm(np.array(vals[:, :, :, 0]) - true_csd)
         rms /= np.linalg.norm(true_csd)
         self.assertLess(rms, 0.5, msg='RMS ' + str(rms) +
@@ -137,6 +145,7 @@ class KCSD3D_TestCase(unittest.TestCase):
         self.assertRaises(TypeError, self.test_kcsd3d_estimate)
         cv_params = {'InvalidCVArg': np.array((0.1, 0.25, 0.5))}
         self.assertRaises(TypeError, self.test_kcsd3d_estimate, cv_params)
+
 
 if __name__ == '__main__':
     unittest.main()

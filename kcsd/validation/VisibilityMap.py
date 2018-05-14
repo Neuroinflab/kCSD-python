@@ -144,7 +144,7 @@ class VisibilityMap1D(ValidateKCSD1D):
         ele_pos, pots = self.electrode_config(csd_profile, csd_seed,
                                               total_ele, self.ele_lims, self.h,
                                               self.sigma,
-                                              noise=None, nr_broken_ele=None,
+                                              noise, nr_broken_ele,
                                               ele_seed=10)
 
         k = KCSD1D(ele_pos, pots, xmin=0., xmax=1., h=self.h,
@@ -176,8 +176,11 @@ class VisibilityMap1D(ValidateKCSD1D):
         mean_err = self.sigmoid_mean(point_error)
         plt.figure(figsize=(10, 6))
         plt.title('Sigmoidal mean point error for random sources')
-        plt.plot(np.linspace(ele_pos[0], ele_pos[-1], mean_err.shape[0]),
-                 mean_err, 'b.', label='mean error')
+#        plt.plot(np.linspace(ele_pos[0], ele_pos[-1], mean_err.shape[0]),  # it fails for broken ele!!!
+#                 mean_err, 'b.', label='mean error')
+        plt.plot(np.linspace(self.kcsd_xlims[0], self.kcsd_xlims[-1],
+                             mean_err.shape[0]), mean_err, 'b.',
+                             label='mean error')
         plt.plot(ele_pos, np.zeros(len(ele_pos)), 'o', color='black',
                  label='electrodes locations')
         plt.xlabel('Depth [mm]')
@@ -249,7 +252,7 @@ class VisibilityMap2D(ValidateKCSD2D):
         ele_pos, pots = self.electrode_config(csd_profile, csd_seed,
                                               total_ele, self.ele_lims, self.h,
                                               self.sigma,
-                                              noise=None, nr_broken_ele=None,
+                                              noise, nr_broken_ele,
                                               ele_seed=10)
 
         k = KCSD2D(ele_pos, pots, xmin=0., xmax=1., ymin=0.,
@@ -421,9 +424,7 @@ class VisibilityMap3D(ValidateKCSD3D):
         """
         ele_pos, pots = self.electrode_config(csd_profile, csd_seed,
                                               total_ele, self.ele_lims, self.h,
-                                              self.sigma,
-                                              noise=None, nr_broken_ele=None,
-                                              ele_seed=10)
+                                              self.sigma, noise, nr_broken_ele)
         k = KCSD3D(ele_pos, pots, gdx=0.035, gdy=0.035, gdz=0.035,
                    h=self.h, sigma=self.sigma, xmax=1, xmin=0, ymax=1,
                    ymin=0, zmax=1, zmin=0, n_src_init=self.n_src_init)
