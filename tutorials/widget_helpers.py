@@ -63,11 +63,16 @@ nr_broken_ele = widgets.BoundedIntText(value=5,
                                        description='Select number of broken electrodes:',
                                        disabled=False)
 
-
-noise_select = widgets.Select(options=[None, 'noise'],
-                                       value=None,
-                                       description='Noise:',
-                                       disabled=False)
+noise_select = widgets.FloatSlider(value=0.,
+                                   min=0,
+                                   max=100,
+                                   step=0.1,
+                                   description='Noise level [%]:',
+                                   disabled=False,
+                                   continuous_update=False,
+                                   orientation='horizontal',
+                                   readout=True,
+                                   readout_format='.1f')
 
 regularization_select = widgets.Select(options=['cross-validation', 'L-curve'],
                                        value='cross-validation',

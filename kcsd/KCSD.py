@@ -120,7 +120,7 @@ class KCSD(CSD):
         self.xmin = kwargs.pop('xmin', np.min(self.ele_pos[:, 0]))
         self.xmax = kwargs.pop('xmax', np.max(self.ele_pos[:, 0]))
         self.gdx = kwargs.pop('gdx', 0.01*(self.xmax - self.xmin))
-        self.dist_table_density = kwargs.pop('dist_table_density',20)
+        self.dist_table_density = kwargs.pop('dist_table_density', 20)
         if self.dim >= 2:
             self.ext_y = kwargs.pop('ext_y', 0.0)
             self.ymin = kwargs.pop('ymin', np.min(self.ele_pos[:, 1]))
@@ -199,7 +199,6 @@ class KCSD(CSD):
         ----------
         None
         """
-        #Tu jest basis!
         self.b_src = self.basis(self.src_estm_dists, self.R).T
         self.k_interp_cross = np.dot(self.b_src, self.b_pot)  # K_t(x,y) Eq17
         self.k_interp_cross /= self.n_src
