@@ -198,7 +198,6 @@ class KCSD(CSD):
         ----------
         None
         """
-        #Tu jest basis!
         self.b_src = self.basis(self.src_estm_dists, self.R).T
         self.k_interp_cross = np.dot(self.b_src, self.b_pot)  # K_t(x,y) Eq17
         self.k_interp_cross /= self.n_src

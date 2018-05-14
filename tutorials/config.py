@@ -1,6 +1,6 @@
 from kcsd import csd_profile as csd
-from kcsd import MoIKCSD
-from kcsd import ValidateKCSD, ValidateKCSD1D, ValidateKCSD2D, ValidateKCSD3D, SpectralStructure
+#from kcsd import MoIKCSD
+from kcsd import ValidateKCSD, ValidateKCSD1D, ValidateKCSD2D, ValidateKCSD3D, SpectralStructure, ValidateMoIKCSD
 from kcsd import VisibilityMap1D, VisibilityMap2D, VisibilityMap3D
 
 
@@ -29,7 +29,7 @@ dim, csd_profile, kCSD, visibility_map = initialize('1D')
 
 kcsd_options = {1: {'ValidateKCSD1D': ValidateKCSD1D},
                 2: {'ValidateKCSD2D': ValidateKCSD2D,
-                    'MoIKCSD': MoIKCSD},
+                    'ValidateMoIKCSD': ValidateMoIKCSD},
                 3: {'ValidateKCSD3D': ValidateKCSD3D}}
 
 csd_options = {1: {'monopole gauss': csd.gauss_1d_mono,
@@ -53,7 +53,7 @@ defaults = {'ValidateKCSD1D': {'R_init': 0.23,
                                'ext_x': 0.0, 'ext_y': 0.0,
                                'sigma': 1.0,
                                'h': 1.0},
-            'MoIKCSD': {'R_init': 0.08,
+            'ValidateMoIKCSD': {'R_init': 0.08,
                         'n_src_init': 1000,
                         'gdx': 0.01, 'gdy': 0.01,
                         'xmin': 0.0, 'xmax': 1.0,
