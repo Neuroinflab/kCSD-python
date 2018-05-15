@@ -20,7 +20,6 @@ import sys
 from .KCSD import KCSD1D
 from . import utility_functions as utils
 from . import basis_functions as basis
-from .bresenhamline import bresenhamline
 try:
     from skmonaco import mcmiser
     skmonaco_available = True
@@ -223,7 +222,7 @@ class sKCSDcell(object):
         for i in range(3):
             new_p1[0, i] = p1[i]
             new_p0[0, i] = p0[i]
-        intermediate_points = bresenhamline(new_p0, new_p1, -1)
+        intermediate_points = utils.bresenhamline(new_p0, new_p1, -1)
         if last:
             return np.concatenate((new_p0, intermediate_points))
         else:
