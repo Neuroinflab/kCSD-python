@@ -603,8 +603,9 @@ class ValidateKCSD(object):
             error_mean -> 1    - very poor reconstruction
             error_mean -> 0    - perfect reconstruction
         '''
-        sig_error = 2*(1./(1 + np.exp((-error))) - 1/2.)
-        error_mean = np.mean(sig_error, axis=0)
+#        sig_error = 2*(1./(1 + np.exp((-error))) - 1/2.)
+#        error_mean = np.mean(sig_error, axis=0)
+        error_mean = np.mean(error, axis=0)
         return error_mean
 
     def add_noise(self, pots, seed=0, level=10):
