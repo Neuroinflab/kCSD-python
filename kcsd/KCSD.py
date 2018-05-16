@@ -15,7 +15,6 @@ import numpy as np
 from numpy.linalg import LinAlgError, svd
 from scipy import special, integrate, interpolate
 from scipy.spatial import distance
-
 from . import utility_functions as utils
 from . import basis_functions as basis
 
@@ -264,7 +263,8 @@ class KCSD(CSD):
         elif self.dim == 2:
             estimation = estimation.reshape(self.ngx, self.ngy, self.n_time)
         elif self.dim == 3:
-            estimation = estimation.reshape(self.ngx, self.ngy, self.ngz, self.n_time)
+            estimation = estimation.reshape(self.ngx, self.ngy, self.ngz,
+                                            self.n_time)
         return estimation
 
     def update_R(self, R):
@@ -990,6 +990,7 @@ class KCSD3D(KCSD):
         nx = (self.xmax - self.xmin)/self.gdx
         ny = (self.ymax - self.ymin)/self.gdy
         nz = (self.zmax - self.zmin)/self.gdz
+
         self.estm_pos = np.mgrid[self.xmin:self.xmax:np.complex(0, nx), 
                                  self.ymin:self.ymax:np.complex(0, ny),
                                  self.zmin:self.zmax:np.complex(0, nz)]

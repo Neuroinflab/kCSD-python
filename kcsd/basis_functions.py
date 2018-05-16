@@ -11,8 +11,9 @@ Michal Czerwinski, Chaitanya Chintaluri
 Laboratory of Neuroinformatics,
 Nencki Institute of Experimental Biology, Warsaw.
 """
-from __future__ import division
+from __future__ import division, print_function, absolute_import
 import numpy as np
+
 
 def gauss(d, stdev, dim):
     """Gaussian function
@@ -29,8 +30,9 @@ def gauss(d, stdev, dim):
     Z : floats or np.arrays
         function evaluated
     """
-    Z = np.exp(-(d**2) / (2* stdev**2) ) / (np.sqrt(2*np.pi)*stdev)**dim
+    Z = np.exp(-(d**2) / (2*stdev**2)) / (np.sqrt(2*np.pi)*stdev)**dim
     return Z
+
 
 def step_1D(d, R):
     """Returns normalized 1D step function.
@@ -64,6 +66,7 @@ def gauss_1D(d, three_stdev):
     Z = gauss(d, stdev, 1)
     return Z
 
+
 def gauss_lim_1D(d, three_stdev):
     """Returns gausian 2D function cut off after 3 standard deviations.
     Parameters
@@ -80,6 +83,7 @@ def gauss_lim_1D(d, three_stdev):
     Z = gauss_1D(d, three_stdev)
     Z *= (d < three_stdev)
     return Z
+
 
 def step_2D(d, R):
     """Returns normalized 2D step function.
@@ -114,6 +118,7 @@ def gauss_2D(d, three_stdev):
     Z = gauss(d, stdev, 2)
     return Z
 
+
 def gauss_lim_2D(d, three_stdev):
     """Returns gausian 2D function cut off after 3 standard deviations.
     Parameters
@@ -129,6 +134,7 @@ def gauss_lim_2D(d, three_stdev):
     """
     Z = (d <= three_stdev)*gauss_2D(d, three_stdev)
     return Z
+
 
 def gauss_3D(d, three_stdev):
     """Returns normalized gaussian 3D scale function
@@ -147,6 +153,7 @@ def gauss_3D(d, three_stdev):
     Z = gauss(d, stdev, 3)
     return Z
 
+
 def gauss_lim_3D(d, three_stdev):
     """Returns normalized gaussian 3D scale function cut off after 3stdev
     Parameters
@@ -163,6 +170,7 @@ def gauss_lim_3D(d, three_stdev):
     Z = gauss_3D(d, three_stdev)
     Z = Z * (d < (three_stdev))
     return Z
+
 
 def step_3D(d, R):
     """Returns normalized 3D step function.

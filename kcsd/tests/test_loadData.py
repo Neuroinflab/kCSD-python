@@ -1,78 +1,101 @@
 #!/usr/bin/env python
 # encoding: utf-8
 from __future__ import print_function, division, absolute_import
+from kcsd import sample_data_path
+from kcsd.utility_functions import LoadData
 import os
 import unittest
 import numpy as np
-
-from kcsd import sample_data_path
-from kcsd.utility_functions import LoadData
-
 try:
-  basestring
+    basestring
 except NameError:
-  basestring = str
-
+    basestring = str
 
 class testData(unittest.TestCase):
-    
-    def setUp(self):
-        self.data = LoadData(os.path.join(sample_data_path, "gang_7x7_200"))
-    
-    def test_path_expansion_morphology(self):
-        self.assertEqual(1,'Data/gang_7x7_200/morphology' in self.data.sub_dir_path(self.data.path))
+    @classmethod
+    def setUpClass(cls):
+        cls.path = os.path.join(sample_data_path, "gang_7x7_200")
+        cls.data = LoadData(cls.path)
         
+    def test_path_expansion_morphology(self):
+        path = self.data.path
+        m_path = ''
+        for p in self.data.sub_dir_path(path):
+            if 'morphology' in p:
+                m_path = p
+        a = 'data/gang_7x7_200/morphology' in m_path
+        self.assertTrue(a)
+
     def test_get_fname_string(self):
-        self.assertTrue(isinstance(self.data.get_fname('Data/gang_7x7_200/LFP',['myLFP']),basestring))
+        path = self.data.get_fname('data/gang_7x7_200/LFP', ['myLFP'])
+        self.assertTrue(isinstance(path, basestring))
 
     def test_get_fname_list(self):
-        self.assertTrue(isinstance(self.data.get_fname('Data/gang_7x7_200/LFP',['myLFP','yourLFP']),list))
+        path = self.data.get_fname('data/gang_7x7_200/LFP',
+                                   ['myLFP', 'yourLFP'])
+        self.assertTrue(isinstance(path, list))
 
     def test_get_paths_LFP(self):
-        self.assertEqual('Data/gang_7x7_200/LFP/myLFP',self.data.path_LFP)
-        
+        print(self.data.path_LFP)
+        self.assertTrue('data/gang_7x7_200/LFP/myLFP' in self.data.path_LFP)
+
     def test_get_paths_morpho(self):
-        self.assertEqual('Data/gang_7x7_200/morphology/Badea2011Fig2Du.CNG.swc',self.data.path_morphology)
-        
+        path = os.path.join(self.path,'morphology/Badea2011Fig2Du.CNG.swc')
+        self.assertTrue(path in self.data.path_morphology)
+
     def test_get_paths_ele_pos(self):
-        self.assertEqual('Data/gang_7x7_200/electrode_positions/elcoord_x_y_z',self.data.path_ele_pos)
-        
+        path = os.path.join(self.path, 'electrode_positions/elcoord_x_y_z')
+        self.assertTrue(path in self.data.path_ele_pos)
+
     def test_load_morpho_correct(self):
-        self.assertTrue(isinstance(self.data.morphology,np.ndarray))
+        self.assertTrue(isinstance(self.data.morphology, np.ndarray))
+
     def test_load_ele_pos_correct(self):
-        self.assertTrue(isinstance(self.data.ele_pos,np.ndarray))
+        self.assertTrue(isinstance(self.data.ele_pos, np.ndarray))
+
     def test_load_LFP_correct(self):
-        self.assertTrue(isinstance(self.data.LFP,np.ndarray))
-        
+        self.assertTrue(isinstance(self.data.LFP, np.ndarray))
+
     def test_load_morpho_no_file(self):
-        self.data.load(path='gugu',what="morphology")
+        self.data.load(path='gugu', what="morphology")
         self.assertFalse(self.data.morphology)
+
     def test_load_morpho_no_array(self):
-        self.data.load(path='test_loadData.py',what="morphology")
+        self.data.load(path='test_loadData.py', what="morphology")
         self.assertFalse(self.data.morphology)
+
     def test_reload_morpho(self):
-        self.data.load(path='Data/gang_7x7_200/morphology/Badea2011Fig2Du.CNG.swc',what='morphology')
-        self.assertTrue(isinstance(self.data.morphology,np.ndarray))
-         
+        path = os.path.join(self.path, 'morphology/Badea2011Fig2Du.CNG.swc')
+        self.data.load(path=path, what='morphology')
+        self.assertTrue(isinstance(self.data.morphology, np.ndarray))
+
     def test_load_ele_pos_no_file(self):
-        self.data.load(path='gugu',what="electrode_positions")
+        self.data.load(path='gugu', what="electrode_positions")
         self.assertFalse(self.data.ele_pos)
+
     def test_load_ele_pos_no_array(self):
-        self.data.load(path='test_loadData.py',what="electrode_positions")
+        self.data.load(path='test_loadData.py',
+                       what="electrode_positions")
         self.assertFalse(self.data.ele_pos)
+
     def test_reload_ele_pos(self):
-        self.data.load(path='Data/gang_7x7_200/electrode_positions/elcoord_x_y_z',what="electrode_positions")
-        self.assertTrue(isinstance(self.data.ele_pos,np.ndarray))
-        
+        path = os.path.join(self.path, 'electrode_positions/elcoord_x_y_z')
+        self.data.load(path=path, what="electrode_positions")
+        self.assertTrue(isinstance(self.data.ele_pos, np.ndarray))
+
     def test_load_LFP_no_file(self):
-        self.data.load(path='gugu',what="LFP")
+        self.data.load(path='gugu', what="LFP")
         self.assertFalse(self.data.LFP)
+
     def test_load_LFP_no_array(self):
-        self.data.load(path='test_loadData.py',what="LFP")
+        self.data.load(path='test_loadData.py', what="LFP")
         self.assertFalse(self.data.LFP)
+
     def test_reload_LFP(self):
-        self.data.load(path='Data/gang_7x7_200/LFP/myLFP',what="LFP")
-        self.assertTrue(isinstance(self.data.LFP,np.ndarray)) 
-        
+        lfp_path = os.path.join(self.path,'LFP/myLFP')
+        self.data.load(path=lfp_path, what="LFP")
+        self.assertTrue(isinstance(self.data.LFP, np.ndarray))
+
+
 if __name__ == '__main__':
-  unittest.main()
+    unittest.main()
