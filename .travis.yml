@@ -25,10 +25,10 @@ env:
 
     # This environment tests minimal dependency versions
     - DISTRIB="conda_min" PYTHON_VERSION="2.7"
-      SIX_VERSION="1.10.0" NUMPY_VERSION="1.8.0" SCIPY_VERSION="0.14.0"
+      SIX_VERSION="1.10.0" NUMPY_VERSION="1.10.4" SCIPY_VERSION="0.16.1"
       COVERAGE="true"
     - DISTRIB="conda_min" PYTHON_VERSION="3.4"
-      SIX_VERSION="1.10.0" NUMPY_VERSION="1.8.0" SCIPY_VERSION="0.14.0"
+      SIX_VERSION="1.10.0" NUMPY_VERSION="1.10.4" SCIPY_VERSION="0.16.1"
       COVERAGE="true"
 
     # basic Ubuntu build environment
