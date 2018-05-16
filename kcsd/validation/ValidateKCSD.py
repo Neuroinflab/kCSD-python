@@ -508,8 +508,9 @@ class ValidateKCSD(object):
         rms: float
             Normalized error of reconstruction.
         """
-        rms = np.linalg.norm((true_csd - est_csd))
-        epsilon = 0.0000000001
+        rms = np.linalg.norm((true_csd/np.max(abs(true_csd)) -
+                              est_csd/np.max(abs(est_csd))))
+        epsilon = np.finfo(np.float64).eps
         rms /= np.linalg.norm(true_csd) + epsilon
         return rms
 
@@ -531,12 +532,13 @@ class ValidateKCSD(object):
             Normalized error of reconstruction calculated separetly at every
             point of estimation space.
         """
-        epsilon = 0.0000000001
-        point_error = np.linalg.norm(true_csd.reshape(true_csd.size, 1) -
-                                     est_csd.reshape(est_csd.size, 1),
-                                     axis=1)
-        point_error /= np.linalg.norm(true_csd.reshape(true_csd.size, 1),
-                                      axis=1) + epsilon
+#        epsilon = np.finfo(np.float64).eps
+        point_error = np.linalg.norm(true_csd.reshape(true_csd.size, 1) /
+                                     np.max(abs(true_csd)) -
+                                     est_csd.reshape(est_csd.size, 1) /
+                                     np.max(abs(true_csd)), axis=1)
+#        point_error /= np.linalg.norm(true_csd.reshape(true_csd.size, 1),
+#                                      axis=1) + epsilon
         if self.dim != 1:
             point_error = point_error.reshape(true_csd.shape)
         return point_error
@@ -558,7 +560,7 @@ class ValidateKCSD(object):
         rdm: float
             Relative difference measure.
         """
-        epsilon = 0.0000000001
+        epsilon = np.finfo(np.float64).eps
         rdm = np.linalg.norm(est_csd/(np.linalg.norm(est_csd) + epsilon) -
                              true_csd/(np.linalg.norm(true_csd) + epsilon))
         return rdm
@@ -580,7 +582,7 @@ class ValidateKCSD(object):
         mag: float
             Magnitude ratio.
         """
-        epsilon = 0.0000000001
+        epsilon = np.finfo(np.float64).eps
         mag = np.linalg.norm(est_csd/(true_csd + epsilon))
         return mag
 
@@ -1719,23 +1721,23 @@ if __name__ == '__main__':
     KK = ValidateKCSD1D(CSD_SEED, n_src_init=N_SRC_INIT, h=0.25, R_init=0.23,
                         ele_lims=ELE_LIMS, true_csd_xlims=[0., 1.], sigma=0.3,
                         src_type='gauss')
-    KK.make_reconstruction(CSD_PROFILE, CSD_SEED, total_ele=64, noise=0,
+    obj, rms, point_e = KK.make_reconstruction(CSD_PROFILE, CSD_SEED, total_ele=64, noise=0,
                            Rs=np.arange(0.2, 0.5, 0.1))
 
-    print('Checking 2D')
-    CSD_PROFILE = CSD.gauss_2d_small
-    CSD_SEED = 5
-
-    KK = ValidateKCSD2D(CSD_SEED, h=50., sigma=1., n_src_init=400)
-    KK.make_reconstruction(CSD_PROFILE, CSD_SEED, total_ele=16, noise=0,
-                           Rs=np.arange(0.2, 0.5, 0.1))
-
-    print('Checking 3D')
-    CSD_PROFILE = CSD.gauss_3d_small
-    CSD_SEED = 20  # 0-49 are small sources, 50-99 are large sources
-    TIC = time.time()
-    KK = ValidateKCSD3D(CSD_SEED, h=50, sigma=1)
-    KK.make_reconstruction(CSD_PROFILE, CSD_SEED, total_ele=125, noise=0,
-                           Rs=np.arange(0.2, 0.5, 0.1))
-    TOC = time.time() - TIC
-    print('time', TOC)
+#    print('Checking 2D')
+#    CSD_PROFILE = CSD.gauss_2d_small
+#    CSD_SEED = 5
+#
+#    KK = ValidateKCSD2D(CSD_SEED, h=50., sigma=1., n_src_init=400)
+#    KK.make_reconstruction(CSD_PROFILE, CSD_SEED, total_ele=16, noise=0,
+#                           Rs=np.arange(0.2, 0.5, 0.1))
+#
+#    print('Checking 3D')
+#    CSD_PROFILE = CSD.gauss_3d_small
+#    CSD_SEED = 20  # 0-49 are small sources, 50-99 are large sources
+#    TIC = time.time()
+#    KK = ValidateKCSD3D(CSD_SEED, h=50, sigma=1)
+#    KK.make_reconstruction(CSD_PROFILE, CSD_SEED, total_ele=125, noise=0,
+#                           Rs=np.arange(0.2, 0.5, 0.1))
+#    TOC = time.time() - TIC
+#    print('time', TOC)
