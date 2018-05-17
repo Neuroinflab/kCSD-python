@@ -7,10 +7,7 @@ import numpy as np
 from kcsd import sKCSD, sample_data_path
 from kcsd import utility_functions as utils
 
-try:
-    data_dir = sys.argv[1]
-except IndexError:
-    data_dir = os.path.join(sample_data_path, 'ball_and_stick_8')
+data_dir = os.path.join(sample_data_path, 'ball_and_stick_8')
 
 scaling_factor = 1000000
 data = utils.LoadData(data_dir)
