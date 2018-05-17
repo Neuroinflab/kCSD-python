@@ -14,8 +14,6 @@ import sys
 import argparse
 import kcsd.utility_functions as utils
 import glob
-import sKCSD_paper.loadData as ld
-
 
 def skCSD_reconstruction_plot_z(pots, est_csd, est_pot, cell_obj,
                                 t_min=0, electrode=5):
@@ -129,7 +127,7 @@ def skCSD_reconstruction_plot_z(pots, est_csd, est_pot, cell_obj,
 
 def load_data(data_dir):
     try:
-        data = ld.Data(data_dir)
+        data = utils.LoadData(data_dir)
     except KeyError:
         print('Could not load %s LFP from' % data_dir)
         data = None
