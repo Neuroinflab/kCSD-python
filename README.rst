@@ -22,12 +22,10 @@ ipynb_tests branch
    :target: https://coveralls.io/github/Neuroinflab/kCSD-python?branch=ipynb_tests
 
 .. image:: https://mybinder.org/badge.svg
-   :target: https://mybinder.org/v2/gh/Neuroinflab/kCSD-python/ipynb_tests?filepath=tutorials%2Ftutorial_kcsd.ipynb
+   :target: https://mybinder.org/v2/gh/Neuroinflab/kCSD-python.git/ipynb_tests?filepath=tutorials%2Fkcsd_tutorial.ipynb
 
-error_maps branch
-
-.. image:: https://mybinder.org/badge.svg
-   :target: https://mybinder.org/v2/gh/m-kowalska/kCSD-python/error_maps?filepath=tutorials%2Fkcsd_tutorial.ipynb
+.. .. image:: https://mybinder.org/badge.svg
+..   :target: https://mybinder.org/v2/gh/Neuroinflab/kCSD-python/ipynb_tests?filepath=tutorials%2Ftutorial_kcsd.ipynb
 	    
 Earlier Stable versions
 -----------------------
