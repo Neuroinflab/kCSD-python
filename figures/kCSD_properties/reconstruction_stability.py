@@ -3,10 +3,62 @@
 """
 import numpy as np
 import matplotlib.pyplot as plt
+import os
+import datetime
+import time
 
 from kcsd import csd_profile as CSD
 from kcsd import ValidateKCSD1D
 
+__abs_file__ = os.path.abspath(__file__)
+
+
+def makemydir(directory):
+    """
+    Creates a new folder if it doesn't exist
+
+    Parameters
+    ----------
+    directory: string
+        directory
+
+    Returns
+    -------
+    None
+    """
+    print('here')
+    try:
+        os.makedirs(directory)
+    except OSError:
+        pass
+    os.chdir(directory)
+    print('bye')
+
+
+def save_source_code(save_path, timestr):
+    """
+    Saves the source code.
+
+    Parameters
+    ----------
+    save_path: string
+        directory
+    timestr: float
+
+    Returns
+    -------
+    None
+    """
+    with open(save_path + '/source_code_' + str(timestr), 'w') as sf:
+        sf.write(open(__file__).read())
+
+
+DAY = datetime.datetime.now()
+DAY = DAY.strftime('%Y%m%d')
+SAVE_PATH = "/home/mkowalska/Marta/kCSD_results/" + DAY
+makemydir(SAVE_PATH)
+TIMESTR = time.strftime("%Y%m%d-%H%M%S")
+save_source_code(SAVE_PATH, TIMESTR)
 
 CSD_PROFILE = CSD.gauss_1d_mono
 CSD_SEED = 15
