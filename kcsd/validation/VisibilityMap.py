@@ -560,7 +560,7 @@ class VisibilityMap3D(ValidateKCSD3D):
         width_ratios = [1, 0.05]
         gs = gridspec.GridSpec(z_steps, 2, height_ratios=height_ratios,
                                width_ratios=width_ratios)
-        levels = np.linspace(0, 1., 15)
+        levels = np.linspace(0, 1., 25)
         ind_interest = np.mgrid[0:z.shape[2]:np.complex(0, z_steps+2)]
         ind_interest = np.array(ind_interest, dtype=np.int)[1:-1]
         for ii, idx in enumerate(ind_interest):

@@ -1,11 +1,12 @@
 """
 @author: mkowalska
 """
+import numpy as np
+import matplotlib.pyplot as plt
+
 from kcsd import csd_profile as CSD
 from kcsd import ValidateKCSD1D
 
-import numpy as np
-import matplotlib.pyplot as plt
 
 CSD_PROFILE = CSD.gauss_1d_mono
 CSD_SEED = 15
