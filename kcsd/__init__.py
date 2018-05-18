@@ -7,3 +7,4 @@ from .sKCSD import sKCSD, sKCSDcell
 from .validation import csd_profile
 from .validation.ValidateKCSD import ValidateKCSD, ValidateKCSD1D, ValidateKCSD2D, ValidateKCSD3D, SpectralStructure, ValidateMoIKCSD
 from .validation.VisibilityMap import VisibilityMap1D, VisibilityMap2D, VisibilityMap3D
+from .validation.plotting_functions import skCSD_reconstruction_plot_z, make_fig, plot, make_transformation, get_min_max
