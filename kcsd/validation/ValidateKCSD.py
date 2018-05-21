@@ -510,8 +510,8 @@ class ValidateKCSD(object):
         """
         rms = np.linalg.norm((true_csd/np.max(abs(true_csd)) -
                               est_csd/np.max(abs(est_csd))))
-        epsilon = np.finfo(np.float64).eps
-        rms /= np.linalg.norm(true_csd) + epsilon
+#        epsilon = np.finfo(np.float64).eps
+#        rms /= np.linalg.norm(true_csd) + epsilon
         return rms
 
     def calculate_point_error(self, true_csd, est_csd):
@@ -778,10 +778,8 @@ class ValidateKCSD1D(ValidateKCSD):
         rms = self.calculate_rms(test_csd, est_csd[:, 0])
         title = "Lambda: %0.2E; R: %0.2f; RMS_Error: %0.2E;" % (k.lambd, k.R,
                                                                 rms)
-        self.make_plot(csd_at, true_csd, k, est_csd, ele_pos, pots, title)
-        ss = SpectralStructure(k)
-#        ss.picard_plot(pots)
-        ss.evd()
+#        self.make_plot(csd_at, true_csd, k, est_csd, ele_pos, pots, title)
+
         point_error = self.calculate_point_error(test_csd, est_csd[:, 0])
         return k, rms, point_error
 
