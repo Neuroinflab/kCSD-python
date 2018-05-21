@@ -1,13 +1,37 @@
+2018_05_21
+1) Major updates (tagged v1.2)
+   
+ - ipython notebooks for basic and advanced tutorials
+ - L-curve for determining lambda
+ - validation and visibility maps (prev. called error maps)
+ - sKCSD implementation for Dori's paper
+
+2) infrastructure changes
+
+   - tests
+   - travis / coveralls / github integration
+   - binder
+   - pip install  - now a package! woohooo! (or is it?)
+   - folder reorganization
+   - figures for the skcsd paper and tests
+
+3) Further 
+
+   - to identify bugs, and suggest fixes untill the point of publication
+   - to add figures for the paper
+   - documentation
+   - tutorial for elephant package?
+
 
 2017_12_20
 1) Tagged the previous stable version as v1.0
 2) Tagged the version on elephant as v1.1
 3) Merged elephant version which is Py2/3 compatible into master
 4) Changed the folder structure a bit to accomodate for the new dev
-   -corelib has the KCSD.py file which includes all the necessary classes
+
+-corelib has the KCSD.py file which includes all the necessary classes
    -tests is where the unit tests will eventually go
-   -validation is where the tests from the previous edition go (poor naming choice by me, in retrospect)
-               these are being re-written in a saner 'class'y way now.
+   -validation is where the tests from the previous edition go (poor naming choice by me, in retrospect) these are being re-written in a saner 'class'y way now.
    -tutorials is where ther ipython notebooks will eventually supposed to go.
    
 
