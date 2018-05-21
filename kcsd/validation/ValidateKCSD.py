@@ -508,10 +508,11 @@ class ValidateKCSD(object):
         rms: float
             Normalized error of reconstruction.
         """
-        rms = np.linalg.norm((true_csd/np.max(abs(true_csd)) -
-                              est_csd/np.max(abs(est_csd))))
-#        epsilon = np.finfo(np.float64).eps
-#        rms /= np.linalg.norm(true_csd) + epsilon
+#        rms = np.linalg.norm((true_csd/np.max(abs(true_csd)) -
+#                              est_csd/np.max(abs(est_csd))))
+        rms = np.linalg.norm(true_csd - est_csd)
+        epsilon = np.finfo(np.float64).eps
+        rms /= np.linalg.norm(true_csd) + epsilon
         return rms
 
     def calculate_point_error(self, true_csd, est_csd):
@@ -830,6 +831,7 @@ class ValidateKCSD1D(ValidateKCSD):
         ax2.legend()
         fig.suptitle(fig_title)
         plt.show()
+        return fig
 
 
 class ValidateKCSD2D(ValidateKCSD):
