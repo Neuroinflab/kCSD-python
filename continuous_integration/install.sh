@@ -118,4 +118,3 @@ fi
 pip install .   # Installs kcsd-python 
 python -c "import numpy; import os; assert os.getenv('NUMPY_VERSION') == numpy.__version__"
 python -c "import scipy; import os; assert os.getenv('SCIPY_VERSION') == scipy.__version__"
-

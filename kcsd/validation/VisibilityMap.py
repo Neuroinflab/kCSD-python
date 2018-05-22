@@ -373,9 +373,9 @@ class VisibilityMap2D(ValidateKCSD2D):
         mean_error = self.sigmoid_mean(point_error)
         plt.figure(figsize=(12, 7))
         ax1 = plt.subplot(111, aspect='equal')
-        levels = np.linspace(0, 1., 15)
-        im = ax1.contourf(x, y, mean_error, levels=levels, cmap='Greys')
-        plt.colorbar(im, fraction=0.046, pad=0.06)
+        levels = np.linspace(0, 1., 25)
+        im = ax1.contourf(x, y, mean_error, cmap='Greys')
+        plt.colorbar(im)#im, fraction=0.046, pad=0.06)
         plt.scatter(ele_x, ele_y)
         ax1.set_xlabel('Depth x [mm]')
         ax1.set_ylabel('Depth y [mm]')
@@ -560,7 +560,7 @@ class VisibilityMap3D(ValidateKCSD3D):
         width_ratios = [1, 0.05]
         gs = gridspec.GridSpec(z_steps, 2, height_ratios=height_ratios,
                                width_ratios=width_ratios)
-        levels = np.linspace(0, 1., 15)
+        levels = np.linspace(0, 1., 25)
         ind_interest = np.mgrid[0:z.shape[2]:np.complex(0, z_steps+2)]
         ind_interest = np.array(ind_interest, dtype=np.int)[1:-1]
         for ii, idx in enumerate(ind_interest):

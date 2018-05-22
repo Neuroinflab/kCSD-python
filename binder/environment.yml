@@ -48,4 +48,3 @@ dependencies:
   - zlib=1.2.11=ha838bed_2
   - pip:
     - "git+https://github.com/Neuroinflab/kCSD-python.git"
-

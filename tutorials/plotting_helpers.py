@@ -45,7 +45,7 @@ def show_csd(csd_at, csd, show_ele=None, show_kcsd=False, show_mask=None):
         cbar.set_ticklabels(np.around(levels[::2], decimals=2))
         cbar.set_label('CSD')
         if show_mask is not None:
-            levels2 = np.linspace(0, 1, 10)
+            levels2 = np.linspace(0, 1, 25)
             im2 = ax.contourf(csd_at[0], csd_at[1], show_mask, levels=levels2,
                               alpha=0.3, cmap='Greys')
             cbar2 = plt.colorbar(im2, orientation='vertical')
@@ -76,7 +76,7 @@ def show_csd(csd_at, csd, show_ele=None, show_kcsd=False, show_mask=None):
                 im = plt.contourf(csd_at[0][:, :, idx], csd_at[1][:, :, idx],
                                   csd[:, :, idx, 0], levels=levels, cmap=cm.bwr_r, alpha=1.)
             if show_mask is not None:
-                levels2 = np.linspace(0, 1, 10)
+                levels2 = np.linspace(0, 1, 25)
                 im2 = plt.contourf(csd_at[0][:, :, idx], csd_at[1][:, :, idx], show_mask[:, :, idx], levels=levels2,
                                    alpha=0.3, cmap='Greys')
                 cax2 = fig.add_axes([1.05, 0.128, 0.03, 0.75])
