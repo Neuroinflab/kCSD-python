@@ -67,7 +67,7 @@ if __name__ == '__main__':
     for i, ax_i in enumerate(ax):
         title = "M = %d" % n_srcs[i]
         if not i:
-            pl.plot(ax_i,
+            pl.make_map_plot(ax_i,
                     outs[i],
                     yticklabels=y_ticklabels,
                     xticklabels=x_ticklabels,
@@ -76,7 +76,7 @@ if __name__ == '__main__':
                     title=title,
                     cmap='gray')
         elif i < 3:
-            pl.plot(ax_i,
+            pl.make_map_plot(ax_i,
                     outs[i],
                     xticklabels=x_ticklabels,
                     vmin=vmin,
@@ -84,7 +84,7 @@ if __name__ == '__main__':
                     title=title,
                     cmap='gray')
         else:
-            pl.plot(ax_i,
+            pl.make_map_plot(ax_i,
                     outs[i],
                     xticklabels=x_ticklabels,
                     fig=fig,

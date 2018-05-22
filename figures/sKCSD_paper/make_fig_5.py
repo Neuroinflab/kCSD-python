@@ -109,21 +109,21 @@ if __name__ == '__main__':
             est_kcsd = kcsd.values(estimate='CSD')
             est_kcsd_pot = kcsd.values(estimate='POT')
         if i == 0:
-            cax = pl.plot(ax[1, 2], ground_truth_t1)
-            cax = pl.plot(ax[2, 2], ground_truth_t2)
-            cax = pl.plot(ax[1, 3], est_skcsd_t1)
-            cax = pl.plot(ax[2, 3], est_skcsd_t2)
+            cax = pl.make_map_plot(ax[1, 2], ground_truth_t1)
+            cax = pl.make_map_plot(ax[2, 2], ground_truth_t2)
+            cax = pl.make_map_plot(ax[1, 3], est_skcsd_t1)
+            cax = pl.make_map_plot(ax[2, 3], est_skcsd_t2)
         else:
-            cax = pl.plot(ax[0, 0], est_kcsd_pot[:, :, :, t1].sum(axis=1))
-            cax = pl.plot(ax[0, 1], est_kcsd[:, :, :, t1].sum(axis=1))
-            cax = pl.plot(ax[0, 2], ground_truth_t1)
-            cax = pl.plot(ax[0, 3], est_skcsd_t1)
-            cax = pl.plot(ax[1, 0], est_kcsd_pot[:, :, :, t1].sum(axis=1))
-            cax = pl.plot(ax[1, 1], est_kcsd[:, :, :, t1].sum(axis=1))
-            cax = pl.plot(ax[2, 0],
+            cax = pl.make_map_plot(ax[0, 0], est_kcsd_pot[:, :, :, t1].sum(axis=1))
+            cax = pl.make_map_plot(ax[0, 1], est_kcsd[:, :, :, t1].sum(axis=1))
+            cax = pl.make_map_plot(ax[0, 2], ground_truth_t1)
+            cax = pl.make_map_plot(ax[0, 3], est_skcsd_t1)
+            cax = pl.make_map_plot(ax[1, 0], est_kcsd_pot[:, :, :, t1].sum(axis=1))
+            cax = pl.make_map_plot(ax[1, 1], est_kcsd[:, :, :, t1].sum(axis=1))
+            cax = pl.make_map_plot(ax[2, 0],
                           est_kcsd_pot[:, :, :, t2].sum(axis=1),
                           extent=[-200, 200, -200, 600])
-            cax = pl.plot(ax[2, 1], est_kcsd[:, :, :, t2].sum(axis=1))
+            cax = pl.make_map_plot(ax[2, 1], est_kcsd[:, :, :, t2].sum(axis=1))
     fig.savefig(fig_name,
                 bbox_inches='tight',
                 transparent=True,

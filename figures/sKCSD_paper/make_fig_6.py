@@ -59,7 +59,7 @@ if __name__ == '__main__':
     fname = fname_base + '.png'
     fig_name = sKCSD_utils.make_fig_names(fname)
     vmax, vmin = pl.get_min_max(ground_truth[:, atstart:atstop])
-    pl.plot(ax[0],
+    pl.make_map_plot(ax[0],
             ground_truth[:, atstart:atstop],
             yticklabels=[x for x in range(0, 86, 15)],
             fig=fig,
@@ -100,7 +100,7 @@ if __name__ == '__main__':
                                              tstart=atstart,
                                              tstop=atstop,
                                              merge=1)
-    pl.plot(ax[1],
+    pl.make_map_plot(ax[1],
             skcsd_maps_grid,
             xticklabels=['8', '16', '32', '64'],
             title="Grid",
@@ -109,7 +109,7 @@ if __name__ == '__main__':
                                                tstart=atstart,
                                                tstop=atstop,
                                                merge=1)
-    pl.plot(ax[2],
+    pl.make_map_plot(ax[2],
             skcsd_maps_random,
             xticklabels=['8', '16', '32', '64'],
             title="Random",

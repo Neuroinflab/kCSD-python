@@ -79,18 +79,18 @@ if __name__ == '__main__':
                 print("Creating", path)
                 os.makedirs(path)
             utils.save_sim(path, ker)
-            pl.plot(ax[1],
+            pl.make_map_plot(ax[1],
                     morpho,
                     extent=extent)
-            pl.plot(ax[1],
+            pl.make_map_plot(ax[1],
                     est_skcsd[:, :, :, t0].sum(axis=(2)),
                     extent=extent,
                     vmin=vmin,
                     vmax=vmax)
-            pl.plot(ax[0],
+            pl.make_map_plot(ax[0],
                     morpho,
                     extent=extent)
-            pl.plot(ax[0],
+            pl.make_map_plot(ax[0],
                     ground_truth_3D[:, :, :, t0].sum(axis=(2)),
                     extent=extent)
     plt.show()
