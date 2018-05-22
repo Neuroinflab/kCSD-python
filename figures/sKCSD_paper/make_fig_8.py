@@ -6,7 +6,6 @@ import sys
 import os
 from kcsd import sKCSD
 import kcsd.utility_functions as utils
-import loadData as ld
 import kcsd.validation.plotting_functions as pl
 import sKCSD_utils
 import run_LFP
@@ -39,7 +38,7 @@ if __name__ == '__main__':
                              rownb=rownb,
                              dt=0.5)
     data_dir = c.return_paths_skCSD_python()
-    data = ld.Data(data_dir)
+    data = utils.LoadData(data_dir)
     ele_pos = data.ele_pos/scale_factor
     data.LFP = data.LFP/scale_factor_LFP
     morphology = data.morphology

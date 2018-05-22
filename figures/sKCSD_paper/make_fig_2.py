@@ -17,7 +17,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from kcsd import sKCSD
 import kcsd.utility_functions as utils
-import loadData as ld
 import sKCSD_utils
 from kcsd.validation import plotting_functions as pl
 
@@ -66,7 +65,7 @@ if __name__ == '__main__':
     pl.plot(ax[0], ground_truth)
     for i, datd in enumerate(data_dir):
         l = 0
-        data = ld.Data(datd)
+        data = utils.LoadData(datd)
         ele_pos = data.ele_pos/scaling_factor
         data.LFP = data.LFP/scaling_factor_LFP
         morphology = data.morphology

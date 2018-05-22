@@ -6,7 +6,6 @@ import sys
 import os
 from kcsd import sKCSD
 import kcsd.utility_functions as utils
-import loadData as ld
 import kcsd.validation.plotting_functions as pl
 import sKCSD_utils
 n_src = 512
@@ -56,7 +55,7 @@ if __name__ == '__main__':
     new_fname = fname_base + '.png'
     fig_name = sKCSD_utils.make_fig_names(new_fname)
     for i, datd in enumerate(data_dir):
-        data = ld.Data(datd)
+        data = utils.LoadData(datd)
         ele_pos = data.ele_pos/scaling_factor
         data.LFP = data.LFP/scaling_factor_LFP
         morphology = data.morphology

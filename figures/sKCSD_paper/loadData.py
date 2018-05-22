@@ -81,7 +81,3 @@ class Data(object):
         self.load('morphology')
         self.load('electrode_positions')
         self.load('LFP')
-
-
-if __name__ == '__main__':
-    obj = Data("Data/gang_7x7_200")
