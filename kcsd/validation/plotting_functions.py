@@ -17,18 +17,18 @@ import glob
 
 def skCSD_reconstruction_plot_z(pots, est_csd, est_pot, cell_obj,
                                 t_min=0, electrode=5):
-    """Displays interactive skCSD reconstruction plot
-            Parameters
-            ----------
-            pots - potentials recorded with electrodes
-            est_csd - csd estimated with sKCSD class
-            est_pot - potentials estimated with sKCSD class
-            image - image of morphology constructed with sKCSDcell class
-            t_min - starting time of the simulation
-
-            Returns
-            -------
-            None
+    """Displays interactive skCSD reconstruction plot in z plane
+    Parameters
+    ----------
+    pots - potentials recorded with electrodes
+    est_csd - csd estimated with sKCSD class
+    est_pot - potentials estimated with sKCSD class
+    image - image of morphology constructed with sKCSDcell class
+    t_min - starting time of the simulation
+    
+    Returns
+    -------
+    None
     """
     cell_obj.distribute_srcs_3D_morph()
     axis = 2
@@ -126,6 +126,22 @@ def skCSD_reconstruction_plot_z(pots, est_csd, est_pot, cell_obj,
 
 
 def load_data(data_dir):
+    """
+    Load sKCSD estimation data and measured LFPs
+
+    pots are the measured LFPs
+
+    Parameters
+    ----------
+    data_dir : str
+
+    Returns
+    -------
+    pots : np.array
+    est_csd : np.array
+    est_pot : np.array
+    cell_obj : sKCSDcell object
+    """
     try:
         data = utils.LoadData(data_dir)
     except KeyError:
@@ -150,6 +166,23 @@ def load_data(data_dir):
 
 
 def make_transformation(est_csd, est_pot, cell_object, transformation):
+    """
+    Transform both estimated csd and potential from the loop space
+    to 3D or cell segments. Possible transformations 
+    (values of parameter transformation): 3D, segments, loops
+
+    Parameters
+    ----------
+    est_csd : np.array
+    est_pot : np.array
+    cell_object : sKCSDcell object
+    transformation : str
+        3D, segments, loops
+    Returns
+    -------
+    new_csd : np.array
+    new_pot : np.array
+    """
     if transformation == '3D':
         new_csd = cell_object.transform_to_3D(est_csd)
         new_pot = cell_object.transform_to_3D(est_pot)
@@ -166,6 +199,16 @@ def make_transformation(est_csd, est_pot, cell_object, transformation):
 
 
 def calculate_ticks(ticklabels, length):
+    """
+    Calculate ticklabel positions for make_map_plot
+    make_map_plot uses imshow from matplotlib.pyplot
+    Take list of labels and axis length
+
+    Parameters
+    ----------
+    ticklabels : list
+    length : int
+    """
     n = len(ticklabels)
     step = length//n
     if not step:
@@ -174,6 +217,20 @@ def calculate_ticks(ticklabels, length):
 
 
 def get_min_max(csd):
+    """
+    Return minimum and maximum value of a np.array. 
+    If min and max are of a different sign, make sure
+    that min = -max
+
+    Parameters
+    ----------
+    csd : np.array
+
+    Returns
+    -------
+    vmax : csd dtype instance
+    vmin : csd dtype instance
+    """
     vmin, vmax = csd.min(), csd.max()
     if vmin*vmax <= 0:
         if abs(vmax) > abs(vmin):
@@ -185,6 +242,22 @@ def get_min_max(csd):
 
 
 def make_fig(est_csd, est_pot, transformation, tstop=None):
+    """
+    2D figure of estimated csd and potential
+    evolution in time
+    in a chosen space: loops, segements
+
+    Parameters:
+    est_csd :  np.array
+    est_pot : np.array
+    transformation : str
+       loops or segments
+    tstop : double
+    
+    Returns
+    -------
+    None
+    """
     fig, ax = plt.subplots(1, 2, figsize=(10, 8))
     if tstop:
         xlabel = 'Time [ms]'
@@ -196,7 +269,7 @@ def make_fig(est_csd, est_pot, transformation, tstop=None):
         ylabel = '#Loop'
     elif transformation == 'segments':
         ylabel = '#segment'
-    plot(ax[0],
+    make_map_plot(ax[0],
          est_pot,
          fig=fig,
          title='Potential',
@@ -204,7 +277,7 @@ def make_fig(est_csd, est_pot, transformation, tstop=None):
          xlabel=xlabel,
          ylabel=ylabel,
          extent=extent)
-    plot(ax[1],
+    make_map_plot(ax[1],
          est_csd,
          fig=fig,
          title='CSD',
@@ -212,7 +285,29 @@ def make_fig(est_csd, est_pot, transformation, tstop=None):
          extent=extent)
 
 
-def plot(ax_i, what, **kwargs):
+def make_map_plot(ax_i, what, **kwargs):
+    """
+    Make a figure of a map using imshow
+
+    Parameters:
+    ax_i : matplotlib.axes
+    what : np.array
+    xticklabels : list_like, optional
+    yticklabels : list_like, optional
+    fig : matplotlib.figure, optional
+         fig allows to add a colorbar to axes
+    title : str, optional
+    vmax : double, optional
+    vmin : double, optional
+    sinksource: list_like, optional
+         Labels of the colorbar
+    extent: list_like, optional
+         Adds extent (xlim and ylim) to figure
+    cmap: plt.cm, optional
+         default set to plt.cm.bwr_r
+    xlabel: str, optional
+    ylabel: str, optional
+    """
     xticklabels = kwargs.pop('xticklabels', None)
     yticklabels = kwargs.pop('yticklabels', None)
     fig = kwargs.pop('fig', None)

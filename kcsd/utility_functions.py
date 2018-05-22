@@ -38,100 +38,7 @@ import pickle
 from scipy import interpolate
 import json
 import sys
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                                '..')))
-raise_errror = """Unknown electrode position file format.
-Load either one column file (or a one row file) with x positions,
-y positions, z positions, or a 3 column file with x and y and z positions.
-"""
-
-
-def load_swc(path):
-    """Load swc file"""
-    morphology = np.loadtxt(path)
-    return morphology
-
-
-def save_sim(path, k):
-
-    est_csd = k.values('CSD', transformation=None)
-    est_pot = k.values("POT", transformation=None)
-    np.save(os.path.join(path, "csd.npy"), est_csd)
-    print("Save csd, ", os.path.join(path, "csd.npy"))
-    np.save(os.path.join(path, "pot.npy"), est_pot)
-    print("Save pot, ", os.path.join(path, "pot.npy"))
-
-    cell_data = {
-        'morphology': k.cell.morphology.tolist(),
-        'ele_pos': k.cell.ele_pos.tolist(),
-        'n_src': k.cell.n_src
-    }
-    with open(os.path.join(path, "cell_data"), 'w') as handle:
-        json.dump(cell_data, handle)
-
-
-def load_sim(path):
-    est_csd = np.load(os.path.join(path, "csd.npy"))
-    est_pot = np.load(os.path.join(path, "pot.npy"))
-
-    try:
-        with open(os.path.join(path, "cell_data"), 'r') as handle:
-            cell_data = json.load(handle)
-    except Exception as error:
-        print('Could not load', os.path.join(path, "cell_data"))
-        return est_csd, est_pot, None
-
-    from . import sKCSDcell
-
-    morphology = np.array(cell_data['morphology'])
-    ele_pos = np.array(cell_data['ele_pos'])
-    cell_obj = sKCSDcell(morphology, ele_pos, cell_data['n_src'])
-    return est_csd, est_pot, cell_obj
-
-
-def load_elpos(path):
-    """Load electrode postions.
-
-    File format: text file, one column, x of all the electrodes, y of
-    all the electrodes, z of all the electrodes
-
-    """
-    raw_ele_pos = np.loadtxt(path)
-    if len(raw_ele_pos.shape) == 1:
-        if raw_ele_pos.shape[0] % 3:
-            raise Exception(raise_error)
-        else:
-            n_el = raw_ele_pos.shape[0]//3
-            ele_pos = np.zeros(shape=(n_el, 3))
-            ele_pos[:, 0] = raw_ele_pos[:n_el]
-            ele_pos[:, 1] = raw_ele_pos[n_el:2*n_el]
-            ele_pos[:, 2] = raw_ele_pos[2*n_el:]
-    elif len(raw_ele_pos.shape) == 2:
-        if raw_ele_pos.shape[1] == 1:
-            if raw_ele_pos.shape[0] % 3:
-                raise Exception(raise_error)
-            else:
-                n_el = raw_ele_pos.shape[0]/3
-                ele_pos = np.zeros(shape=(n_el, 3))
-                ele_pos[:, 0] = raw_ele_pos[:n_el]
-                ele_pos[:, 1] = raw_ele_pos[n_el:2*n_el]
-                ele_pos[:, 2] = raw_ele_pos[2*n_el:]
-        elif raw_ele_pos.shape[0] == 1:
-            if raw_ele_pos.shape[1] % 3:
-                raise Exception(raise_error)
-            else:
-                n_el = raw_ele_pos.shape[1]/3
-                ele_pos = np.zeros(shape=(n_el, 3))
-                ele_pos[:, 0] = raw_ele_pos[:n_el]
-                ele_pos[:, 1] = raw_ele_pos[n_el:2*n_el]
-                ele_pos[:, 2] = raw_ele_pos[2*n_el:]
-        elif raw_ele_pos.shape[1] == 3:
-            ele_pos = raw_ele_pos
-        else:
-            raise Exception(raise_error)
-    else:
-        raise Exception(raise_error)
-    return ele_pos
+import kcsd
 
 try:
     from joblib.parallel import Parallel, delayed
@@ -139,14 +46,41 @@ try:
 except ImportError:
     PARALLEL_AVAILABLE = False
 
+    
+raise_errror = """Unknown electrode position file format.
+Load either one column file (or a one row file) with x positions,
+y positions, z positions, or a 3 column file with x and y and z positions.
+"""
 
 def load_swc(path):
-    """Load swc file"""
+    """Load swc morphology from file
+
+    Used for sKCSD
+
+    Parameters
+    ----------
+    path : str
+
+    Returns
+    -------
+    morphology : np.array
+    """
     morphology = np.loadtxt(path)
     return morphology
 
 
 def save_sim(path,k):
+    """
+    Save estimated CSD, potential and cell morphology to file.
+    
+    Used for saving sKCSD results
+    
+    Parameters:
+    -----------
+    path : str
+    k : sKCSD object
+      
+    """
     est_csd = k.values('CSD', transformation=None)
     est_pot = k.values("POT", transformation=None)
     np.save(os.path.join(path, "csd.npy"), est_csd)
@@ -161,6 +95,19 @@ def save_sim(path,k):
 
 
 def load_sim(path):
+    """
+    Load sKCSD estimation results (CSD, potential and cell specifics).
+    
+    Parameters
+    ----------
+    path: str
+
+    Returns
+    -------
+    est_csd : np.array
+    est_pot : np.array
+    cell_obj : sKCSDcell object
+    """
     est_csd = np.load(os.path.join(path, "csd.npy"))
     est_pot = np.load(os.path.join(path, "pot.npy"))
     try:
@@ -169,10 +116,9 @@ def load_sim(path):
     except Exception as error:
         print('Could not load', os.path.join(path, "cell_data"))
         return est_csd, est_pot, None
-    import kcsd.sKCSDcell as sKCSDcell
     morphology = np.array(cell_data['morphology'])
     ele_pos = np.array(cell_data['ele_pos'])
-    cell_obj = sKCSDcell.sKCSDcell(morphology, ele_pos, cell_data['n_src'])
+    cell_obj = kcsd.sKCSDcell(morphology, ele_pos, cell_data['n_src'])
     return est_csd, est_pot, cell_obj
 
 
@@ -182,6 +128,12 @@ def load_elpos(path):
     File format: text file, one column, x of all the electrodes, y of
     all the electrodes, z of all the electrodes
 
+    Parameters
+    ----------
+    path : str
+    Returns
+    -------
+    ele_pos : np.array
     """
     raw_ele_pos = np.loadtxt(path)
     if len(raw_ele_pos.shape) == 1:
@@ -216,7 +168,6 @@ def load_elpos(path):
             ele_pos = raw_ele_pos
         else:
             raise Exception('Unknown electrode position file format.')
-
     else:
         raise Exception('Unknown electrode position file format.')
     return ele_pos
@@ -227,6 +178,7 @@ def check_for_duplicated_electrodes(elec_pos):
     Parameters
     ----------
     elec_pos : np.array
+
     Returns
     -------
     has_duplicated_elec : Boolean

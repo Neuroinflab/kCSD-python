@@ -6,7 +6,6 @@ import sys
 import os
 from kcsd import sKCSD
 import kcsd.utility_functions as utils
-import loadData as ld
 import kcsd.validation.plotting_functions as pl
 import sKCSD_utils
 if __name__ == '__main__':
@@ -35,7 +34,7 @@ if __name__ == '__main__':
                              weight=0.04,
                              n_syn=100,
                              simulate_what='symmetric')
-    data = ld.Data(c.return_paths_skCSD_python())
+    data = utils.LoadData(c.return_paths_skCSD_python())
     ele_pos = data.ele_pos/scale_factor
     pots = data.LFP/scale_factor_LFP
     morphology = data.morphology
@@ -68,7 +67,7 @@ if __name__ == '__main__':
     for i, ax_i in enumerate(ax):
         title = "M = %d" % n_srcs[i]
         if not i:
-            pl.plot(ax_i,
+            pl.make_map_plot(ax_i,
                     outs[i],
                     yticklabels=y_ticklabels,
                     xticklabels=x_ticklabels,
@@ -77,7 +76,7 @@ if __name__ == '__main__':
                     title=title,
                     cmap='gray')
         elif i < 3:
-            pl.plot(ax_i,
+            pl.make_map_plot(ax_i,
                     outs[i],
                     xticklabels=x_ticklabels,
                     vmin=vmin,
@@ -85,7 +84,7 @@ if __name__ == '__main__':
                     title=title,
                     cmap='gray')
         else:
-            pl.plot(ax_i,
+            pl.make_map_plot(ax_i,
                     outs[i],
                     xticklabels=x_ticklabels,
                     fig=fig,

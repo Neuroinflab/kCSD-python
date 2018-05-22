@@ -6,7 +6,6 @@ import sys
 import os
 from kcsd import sKCSD, KCSD3D
 import kcsd.utility_functions as utils
-import loadData as ld
 import kcsd.validation.plotting_functions as pl
 import sKCSD_utils
 n_src = 512
@@ -49,8 +48,8 @@ if __name__ == '__main__':
     ground_truth_t1 = None
     ground_truth_t2 = None
     dt = c.cell_parameters['dt']
-    t1 = int(45.5/dt)
-    t2 = int(5.5/dt)
+    t1 = 45.5//dt
+    t2 = 5.5//dt
     R_inits = [2**i for i in range(3, 8)]
     lambdas = [10**(-i) for i in range(6)]
     n = 100
@@ -58,7 +57,7 @@ if __name__ == '__main__':
     fig_name = sKCSD_utils.make_fig_names(fname)
     fig, ax = plt.subplots(3, 4)
     for i, datd in enumerate(data_dir):
-        data = ld.Data(datd)
+        data = utils.LoadData(datd)
         ele_pos = data.ele_pos/scaling_factor
         data.LFP = data.LFP/scaling_factor_LFP
         morphology = data.morphology
@@ -110,21 +109,21 @@ if __name__ == '__main__':
             est_kcsd = kcsd.values(estimate='CSD')
             est_kcsd_pot = kcsd.values(estimate='POT')
         if i == 0:
-            cax = pl.plot(ax[1, 2], ground_truth_t1)
-            cax = pl.plot(ax[2, 2], ground_truth_t2)
-            cax = pl.plot(ax[1, 3], est_skcsd_t1)
-            cax = pl.plot(ax[2, 3], est_skcsd_t2)
+            cax = pl.make_map_plot(ax[1, 2], ground_truth_t1)
+            cax = pl.make_map_plot(ax[2, 2], ground_truth_t2)
+            cax = pl.make_map_plot(ax[1, 3], est_skcsd_t1)
+            cax = pl.make_map_plot(ax[2, 3], est_skcsd_t2)
         else:
-            cax = pl.plot(ax[0, 0], est_kcsd_pot[:, :, :, t1].sum(axis=1))
-            cax = pl.plot(ax[0, 1], est_kcsd[:, :, :, t1].sum(axis=1))
-            cax = pl.plot(ax[0, 2], ground_truth_t1)
-            cax = pl.plot(ax[0, 3], est_skcsd_t1)
-            cax = pl.plot(ax[1, 0], est_kcsd_pot[:, :, :, t1].sum(axis=1))
-            cax = pl.plot(ax[1, 1], est_kcsd[:, :, :, t1].sum(axis=1))
-            cax = pl.plot(ax[2, 0],
+            cax = pl.make_map_plot(ax[0, 0], est_kcsd_pot[:, :, :, t1].sum(axis=1))
+            cax = pl.make_map_plot(ax[0, 1], est_kcsd[:, :, :, t1].sum(axis=1))
+            cax = pl.make_map_plot(ax[0, 2], ground_truth_t1)
+            cax = pl.make_map_plot(ax[0, 3], est_skcsd_t1)
+            cax = pl.make_map_plot(ax[1, 0], est_kcsd_pot[:, :, :, t1].sum(axis=1))
+            cax = pl.make_map_plot(ax[1, 1], est_kcsd[:, :, :, t1].sum(axis=1))
+            cax = pl.make_map_plot(ax[2, 0],
                           est_kcsd_pot[:, :, :, t2].sum(axis=1),
                           extent=[-200, 200, -200, 600])
-            cax = pl.plot(ax[2, 1], est_kcsd[:, :, :, t2].sum(axis=1))
+            cax = pl.make_map_plot(ax[2, 1], est_kcsd[:, :, :, t2].sum(axis=1))
     fig.savefig(fig_name,
                 bbox_inches='tight',
                 transparent=True,
