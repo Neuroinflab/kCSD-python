@@ -29,7 +29,7 @@ kcsd library basics (click to open in browser,  jupyter notebook)
 kcsd library advanced (click to open in browser,  jupyter notebook)
 
 .. image:: https://mybinder.org/badge.svg
-   :target: https://mybinder.org/v2/gh/Neuroinflab/kCSD-python/master?filepath=tutorials%2Ftutorial_advanced.ipynb
+   :target: https://mybinder.org/v2/gh/Neuroinflab/kCSD-python.git/master?filepath=tutorials%2Ftutorial_advanced.ipynb
 	    
 Earlier Stable versions
 -----------------------
