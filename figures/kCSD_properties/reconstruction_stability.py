@@ -2,6 +2,7 @@
 @author: mkowalska
 """
 import os
+from os.path import expanduser
 import numpy as np
 import matplotlib.pyplot as plt
 import datetime
@@ -51,10 +52,11 @@ def save_source_code(save_path, timestr):
         sf.write(open(__file__).read())
 
 
+home = expanduser('~')
 DAY = datetime.datetime.now()
 DAY = DAY.strftime('%Y%m%d')
 TIMESTR = time.strftime("%H%M%S")
-SAVE_PATH = "/home/mkowalska/Marta/kCSD_results/" + DAY + '/' + TIMESTR
+SAVE_PATH = home + "/kCSD_results/" + DAY + '/' + TIMESTR
 makemydir(SAVE_PATH)
 save_source_code(SAVE_PATH, time.strftime("%Y%m%d-%H%M%S"))
 
