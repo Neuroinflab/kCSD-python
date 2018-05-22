@@ -93,6 +93,11 @@ OBJ, RMS, POINT_ERROR, eigenval, eigenvec = stability_M(CSD_PROFILE, CSD_SEED,
                                                         N_SRC, ELE_LIMS,
                                                         TRUE_CSD_XLIMS,
                                                         TOTAL_ELE)
+k_pot_list = []
+k_interp_cross_list = []
+for i in range(len(OBJ)):
+    k_pot_list.append(OBJ[i].k_pot)
+    k_interp_cross_list.append(OBJ[i].k_interp_cross)
 
 
 def plot_M(n_src_init, rms, save_path):
@@ -143,6 +148,27 @@ def plot_eigenvectors(eigenvectors, save_path, n_src):
     plt.close()
 
 
-plot_M(N_SRC, RMS, SAVE_PATH)
-plot_eigenvalues(eigenval, SAVE_PATH, N_SRC)
-plot_eigenvectors(eigenvec, SAVE_PATH, N_SRC)
+def plot_k_interp_cross(k_icross, save_path, n_src):
+    fig = plt.figure(figsize=(15, 15))
+    plt.suptitle('Vectors of cross kernel matrix for different number '
+                 'of basis sources')
+    for i in range(k_icross[0].shape[1]):
+        plt.subplot(int(len(n_src)/2) + 1, 2, i + 1)
+        for idx, j in enumerate(n_src):
+            plt.plot(k_icross[idx][:, i], '--', marker='.',
+                     label='k='+str(i + 1))
+            plt.title('n_src = ' + str(j))
+        plt.ylabel('Cross kernel')
+    plt.legend()
+    plt.xlabel('Number of components')
+    plt.ylabel('Cross kernel')
+    plt.show()
+    save_as = (save_path + '/cross_kernel_for_different_M')
+    fig.savefig(os.path.join(save_path, save_as+'.png'))
+    plt.close()
+
+
+#plot_M(N_SRC, RMS, SAVE_PATH)
+#plot_eigenvalues(eigenval, SAVE_PATH, N_SRC)
+#plot_eigenvectors(eigenvec, SAVE_PATH, N_SRC)
+plot_k_interp_cross(k_interp_cross_list, SAVE_PATH, N_SRC)
