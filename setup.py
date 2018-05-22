@@ -13,7 +13,7 @@ def readme():
 
 
 setup(name='kcsd',
-      version='1.1.2',
+      version='1.2',
       description='kernel current source density methods',
       long_description=readme(),
       classifiers=[
@@ -28,7 +28,7 @@ setup(name='kcsd',
       ],
       keywords='Eletrophysiology CSD LFP MEA',
       url='https://github.com/Neuroinflab/kCSD-python',
-      author='Chaitanya Chintaluri',
+      author='Chaitanya Chintaluri et al',
       license='BSD',
       packages=find_packages(),
       # package_data={'tests': [

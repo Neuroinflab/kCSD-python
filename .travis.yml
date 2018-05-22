@@ -6,7 +6,7 @@ python:
 
 branches:
   only:
-  - ipynb_tests
+  - master
 
 env:
   matrix:

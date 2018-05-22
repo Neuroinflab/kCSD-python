@@ -1,7 +1,7 @@
 Kernel Current Source Density
 =============================
 
-This is 1.1+ version of kCSD inverse method proposed in
+This is v1.2 version of kCSD inverse method proposed in
 
 J. Potworowski, W. Jakuczun, S. Łęski, D. K. Wójcik
 "Kernel Current Source Density Method"
@@ -13,19 +13,23 @@ For citation policy see the end of this file.
 Code status
 -----------
 
-ipynb_tests branch
+master branch
 
-.. image:: https://travis-ci.org/Neuroinflab/kCSD-python.png?branch=ipynb_tests
+.. image:: https://travis-ci.org/Neuroinflab/kCSD-python.png?branch=master
    :target: https://travis-ci.org/Neuroinflab/kCSD-python
 
-.. image:: https://coveralls.io/repos/github/Neuroinflab/kCSD-python/badge.png?branch=ipynb_tests
-   :target: https://coveralls.io/github/Neuroinflab/kCSD-python?branch=ipynb_tests
+.. image:: https://coveralls.io/repos/github/Neuroinflab/kCSD-python/badge.png?branch=master
+   :target: https://coveralls.io/github/Neuroinflab/kCSD-python?branch=master
+
+kcsd library basics (click to open in browser,  jupyter notebook)
+	    
+.. image:: https://mybinder.org/badge.svg
+   :target: https://mybinder.org/v2/gh/Neuroinflab/kCSD-python/master?filepath=tutorials%2Ftutorial_basic.ipynb
+
+kcsd library advanced (click to open in browser,  jupyter notebook)
 
 .. image:: https://mybinder.org/badge.svg
-   :target: https://mybinder.org/v2/gh/Neuroinflab/kCSD-python.git/ipynb_tests?filepath=tutorials%2Fkcsd_tutorial.ipynb
-
-.. .. image:: https://mybinder.org/badge.svg
-..   :target: https://mybinder.org/v2/gh/Neuroinflab/kCSD-python/ipynb_tests?filepath=tutorials%2Ftutorial_kcsd.ipynb
+   :target: https://mybinder.org/v2/gh/Neuroinflab/kCSD-python.git/master?filepath=tutorials%2Ftutorial_advanced.ipynb
 	    
 Earlier Stable versions
 -----------------------
@@ -78,20 +82,22 @@ Additional Packages
 Status
 ------
 
-- KCSD1D (Beta)
-- KCSD2D (Beta)
-- KCSD3D (Beta)
-- MoIKCSD (Beta)
+- KCSD1D 
+- KCSD2D 
+- KCSD3D 
+- MoIKCSD
+- sKCSD
 
 
 Usage
 -----
 
-from kcsd import KCSD1D, KCSD2D, KCSD3D, MoIKCSD
+from kcsd import KCSD1D, KCSD2D, KCSD3D, MoIKCSD, sKCSD
 
-from kcsd import generate as utils
+from kcsd import utility_functions as utils
 
 from kcsd import csd_profile as CSD
+
 
 
 For data acquired from experiments, please use Elephant_ instead.
@@ -115,7 +121,8 @@ If you use this software in published research please cite the following work
 - KCSD2D - [1, 3]
 - KCSD3D - [1, 4]
 - MoIkCSD - [1, 3, 5]
-
+- sKCSD - [6]
+  
 1) Potworowski, J., Jakuczun, W., Łęski, S. & Wójcik, D. (2012) 'Kernel current source density method.' Neural Comput 24(2), 541-575.
 
 2) Pettersen, K. H., Devor, A., Ulbert, I., Dale, A. M. & Einevoll, G. T. (2006) 'Current-source density estimation based on inversion of electrostatic forward solution: effects of finite extent of neuronal activity and conductivity discontinuities.' J Neurosci Methods 154(1-2), 116-133.
@@ -127,6 +134,7 @@ If you use this software in published research please cite the following work
 5) Ness, T. V., Chintaluri, C., Potworowski, J., Łeski, S., Głabska, H., Wójcik, D. K. & Einevoll, G. T. (2015) 'Modelling and Analysis of Electrical Potentials Recorded in Microelectrode Arrays (MEAs).' Neuroinformatics 13(4), 403-426.
 
 
+6) D. Cserpan, D. Meszena, L. Wittner, K. Toth, I. Ulbert, Z. Somogyvari, D. K. Wójcik (2017) 'Revealing The Distribution Of Transmembrane Currents Along The Dendritic Tree Of A Neuron With Known Morphology From Extracellular Recordings.' eLife (2017) 6:e29384
 
 
 
