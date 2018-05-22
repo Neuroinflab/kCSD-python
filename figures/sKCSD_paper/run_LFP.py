@@ -4,7 +4,8 @@ import sys
 import os
 import random
 import LFPy
-
+from kcsd import sample_data_path
+morphology_directory = os.path.join(sample_data_path,'morphology')
 """Electrode grid is 2D. If z is the zero dimention x=x, y=y.
 If x is the zero dimension x=0, y=x, z=y.
 If y is the zero dimention, z=x & x=y"""
@@ -32,15 +33,15 @@ rm = 4
 
 class CellModel():
     MORPHOLOGY_FILES = {
-        1: "morphology/ballstick.hoc",
-        2: "morphology/villa.hoc",
-        3: "morphology/morpho1.swc",
-        4: "morphology/neuron_agasbogas.swc",
-        5: "morphology/Mainen_swcLike.swc",
-        6: "morphology/retina_ganglion.swc",
-        7: "morphology/Badea2011Fig2Du.CNG.swc",
-        8: "morphology/DomiCell.swc",
-        9: "morphology/Test.swc",
+        1: os.path.join(morphology_directory,"ballstick.hoc"),
+        2: os.path.join(morphology_directory,"villa.hoc"),
+        3: os.path.join(morphology_directory,"morpho1.swc"),
+        4: os.path.join(morphology_directory,"neuron_agasbogas.swc"),
+        5: os.path.join(morphology_directory,"Mainen_swcLike.swc"),
+        6: os.path.join(morphology_directory,"retina_ganglion.swc"),
+        7: os.path.join(morphology_directory,"Badea2011Fig2Du.CNG.swc"),
+        8: os.path.join(morphology_directory,"DomiCell.swc"),
+        9: os.path.join(morphology_directory,"Test.swc"),
     }
     CELL_PARAMETERS = {
         'Ra': 123,
@@ -157,7 +158,7 @@ class CellModel():
         self.cell_parameters['morphology'] = morphology
         if not morphology.endswith('.hoc'):
             if not self.cell_parameters['custom_code']:
-                path = 'morphology/active.hoc'
+                path = os.path.join(morphology_directory, 'active.hoc')
                 self.cell_parameters['custom_code'].append(path)
         for code in custom_code:
             self.cell_parameters['custom_code'].append(custom_code)
@@ -289,7 +290,7 @@ class CellModel():
             self.ele_coordinates[:, j] = Ycoord
             self.ele_coordinates[:, k] *= cellelectrodedist
         elif eldistribute == 4:
-            self.ele_coordinates = np.loadtxt('morphology/ElcoordsDomi14.txt')
+            self.ele_coordinates = np.loadtxt(os.path.join(sample_data_path, 'ElcoordsDomi14.txt'))
         if not os.path.exists(self.new_path):
             print("Creating", self.new_path)
             os.makedirs(self.new_path)
@@ -484,6 +485,7 @@ class CellModel():
 if __name__ == '__main__':
     c = CellModel(morphology=7,
                   cell_name='Gang_simple',
+                  electrode_distribution=4,
                   colnb=1,
                   rownb=8,
                   xmin=-500,
