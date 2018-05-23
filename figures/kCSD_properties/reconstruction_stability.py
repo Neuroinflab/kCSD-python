@@ -220,9 +220,32 @@ def plot_k_interp_cross_v(k_icross, eigenvectors, save_path, n_src):
     plt.close()
 
 
+def plot_k_pot(k_pot, save_path, n_src):
+    fig = plt.figure(figsize=(k_pot[0].shape[1] + 5,
+                              k_pot[0].shape[1] + 5))
+    plt.suptitle('Vectors of kernel matrix for different number '
+                 'of basis sources')
+    for i in range(k_pot[0].shape[1]):
+        plt.subplot(int(k_pot[0].shape[1]/2) + 1, 2, i + 1)
+        for idx, j in enumerate(n_src):
+            plt.plot(k_pot[idx][:, i], '--', marker='.',
+                     label='M='+str(j))
+            plt.title('k_pot_' + str(i + 1))
+        plt.ylabel('Kernel')
+    plt.legend(bbox_to_anchor=(1.04, 1), loc="upper left")
+    plt.xlabel('Number of components')
+    plt.show()
+    save_path = save_path + '/kernel'
+    makemydir(save_path)
+    save_as = (save_path + '/kernel_for_different_M')
+    fig.savefig(os.path.join(save_path, save_as+'.png'))
+    plt.close()
+
+
 plot_M(N_SRC, RMS, SAVE_PATH)
 plot_eigenvalues(eigenval, SAVE_PATH, N_SRC)
 plot_eigenvectors(eigenvec, SAVE_PATH, N_SRC)
 plot_k_interp_cross(k_interp_cross_list, SAVE_PATH, N_SRC)
 plot_k_interp_cross_v(k_interp_cross_list, eigenvec, SAVE_PATH, N_SRC)
 plot_eigenvalue_lambda(eigenval, lambd, SAVE_PATH, N_SRC)
+plot_k_pot(k_pot_list, SAVE_PATH, N_SRC)
