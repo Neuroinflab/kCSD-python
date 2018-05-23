@@ -97,9 +97,11 @@ OBJ, RMS, POINT_ERROR, eigenval, eigenvec = stability_M(CSD_PROFILE, CSD_SEED,
                                                         TOTAL_ELE)
 k_pot_list = []
 k_interp_cross_list = []
+lambd = []
 for i in range(len(OBJ)):
     k_pot_list.append(OBJ[i].k_pot)
     k_interp_cross_list.append(OBJ[i].k_interp_cross)
+    lambd.append(OBJ[i].lambd)
 
 
 def plot_M(n_src_init, rms, save_path):
@@ -168,11 +170,30 @@ def plot_k_interp_cross(k_icross, save_path, n_src):
             plt.title('k_cross_' + str(i + 1))
         plt.ylabel('Cross kernel')
     plt.legend(bbox_to_anchor=(1.04, 1), loc="upper left")
-    plt.xlabel('Number of components')
+    plt.xlabel('Number of estimation points')
     plt.show()
     save_path = save_path + '/cross_kernel'
     makemydir(save_path)
     save_as = (save_path + '/cross_kernel_for_different_M')
+    fig.savefig(os.path.join(save_path, save_as+'.png'))
+    plt.close()
+
+
+def plot_eigenvalue_lambda(eigenvalues, lambd, save_path, n_src):
+    fig = plt.figure(figsize=(7, 7))
+    x = np.arange(1, eigenvalues.shape[1] + 1)
+    for indx, i in enumerate(n_src):
+        plt.plot(x, 1/(eigenvalues[indx] + lambd[indx]), '--', marker='.',
+                 label='M='+str(i))
+    plt.legend()
+    plt.title(r'$\frac{1}{(\mu_j + \lambda)}$')
+    plt.xlabel('Components number j')
+    plt.ylabel(r'1/($\mu_j + \lambda)$')
+    plt.yscale('log')
+    plt.show()
+    save_path = save_path + '/cross_kernel'
+    makemydir(save_path)
+    save_as = (save_path + '/eigenvalues_coefficients_for_different_M')
     fig.savefig(os.path.join(save_path, save_as+'.png'))
     plt.close()
 
@@ -190,7 +211,7 @@ def plot_k_interp_cross_v(k_icross, eigenvectors, save_path, n_src):
             plt.title('K~v_' + str(i + 1))
         plt.ylabel('Product K~V')
     plt.legend(bbox_to_anchor=(1.04, 1), loc="upper left")
-    plt.xlabel('Number of components')
+    plt.xlabel('Number of estimation points')
     plt.show()
     save_path = save_path + '/cross_kernel'
     makemydir(save_path)
@@ -204,3 +225,4 @@ plot_eigenvalues(eigenval, SAVE_PATH, N_SRC)
 plot_eigenvectors(eigenvec, SAVE_PATH, N_SRC)
 plot_k_interp_cross(k_interp_cross_list, SAVE_PATH, N_SRC)
 plot_k_interp_cross_v(k_interp_cross_list, eigenvec, SAVE_PATH, N_SRC)
+plot_eigenvalue_lambda(eigenval, lambd, SAVE_PATH, N_SRC)
