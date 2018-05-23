@@ -125,7 +125,10 @@ def plot_eigenvalues(eigenvalues, save_path, n_src):
               'of basis sources')
     plt.xlabel('Number of components')
     plt.ylabel('Eigenvalues')
+    plt.yscale('log')
     plt.show()
+    save_path = save_path + '/eigenvalues'
+    makemydir(save_path)
     save_as = (save_path + '/eigenvalues_for_different_M')
     fig.savefig(os.path.join(save_path, save_as+'.png'))
     plt.close()
@@ -145,32 +148,59 @@ def plot_eigenvectors(eigenvectors, save_path, n_src):
     plt.legend(bbox_to_anchor=(1.04, 1), loc="upper left")
     plt.xlabel('Number of components')
     plt.show()
+    save_path = save_path + '/eigenvectors'
+    makemydir(save_path)
     save_as = (save_path + '/eigenvectors_for_different_M')
     fig.savefig(os.path.join(save_path, save_as+'.png'))
     plt.close()
 
 
 def plot_k_interp_cross(k_icross, save_path, n_src):
-    fig = plt.figure(figsize=(15, 15))
+    fig = plt.figure(figsize=(k_icross[0].shape[1] + 5,
+                              k_icross[0].shape[1] + 5))
     plt.suptitle('Vectors of cross kernel matrix for different number '
                  'of basis sources')
     for i in range(k_icross[0].shape[1]):
-        plt.subplot(int(len(n_src)/2) + 1, 2, i + 1)
+        plt.subplot(int(k_icross[0].shape[1]/2) + 1, 2, i + 1)
         for idx, j in enumerate(n_src):
             plt.plot(k_icross[idx][:, i], '--', marker='.',
-                     label='k='+str(i + 1))
-            plt.title('n_src = ' + str(j))
+                     label='M='+str(j))
+            plt.title('k_cross_' + str(i + 1))
         plt.ylabel('Cross kernel')
-    plt.legend()
+    plt.legend(bbox_to_anchor=(1.04, 1), loc="upper left")
     plt.xlabel('Number of components')
-    plt.ylabel('Cross kernel')
     plt.show()
+    save_path = save_path + '/cross_kernel'
+    makemydir(save_path)
     save_as = (save_path + '/cross_kernel_for_different_M')
     fig.savefig(os.path.join(save_path, save_as+'.png'))
     plt.close()
 
 
-#plot_M(N_SRC, RMS, SAVE_PATH)
-#plot_eigenvalues(eigenval, SAVE_PATH, N_SRC)
-#plot_eigenvectors(eigenvec, SAVE_PATH, N_SRC)
+def plot_k_interp_cross_v(k_icross, eigenvectors, save_path, n_src):
+    fig = plt.figure(figsize=(k_icross[0].shape[1] + 5,
+                              k_icross[0].shape[1] + 5))
+    plt.suptitle('Vectors of cross kernel and eigenvectors product for '
+                 'different number of basis sources')
+    for i in range(k_icross[0].shape[1]):
+        plt.subplot(int(k_icross[0].shape[1]/2) + 1, 2, i + 1)
+        for idx, j in enumerate(n_src):
+            plt.plot(np.dot(k_icross[idx], eigenvectors[idx, :, i]), '--',
+                     marker='.', label='M='+str(j))
+            plt.title('K~v_' + str(i + 1))
+        plt.ylabel('Product K~V')
+    plt.legend(bbox_to_anchor=(1.04, 1), loc="upper left")
+    plt.xlabel('Number of components')
+    plt.show()
+    save_path = save_path + '/cross_kernel'
+    makemydir(save_path)
+    save_as = (save_path + '/cross_kernel_eigenvector_product_for_different_M')
+    fig.savefig(os.path.join(save_path, save_as+'.png'))
+    plt.close()
+
+
+plot_M(N_SRC, RMS, SAVE_PATH)
+plot_eigenvalues(eigenval, SAVE_PATH, N_SRC)
+plot_eigenvectors(eigenvec, SAVE_PATH, N_SRC)
 plot_k_interp_cross(k_interp_cross_list, SAVE_PATH, N_SRC)
+plot_k_interp_cross_v(k_interp_cross_list, eigenvec, SAVE_PATH, N_SRC)
