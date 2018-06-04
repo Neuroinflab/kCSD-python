@@ -6,7 +6,6 @@ import sys
 import os
 from kcsd import sKCSD
 import kcsd.utility_functions as utils
-import loadData as ld
 import kcsd.validation.plotting_functions as pl
 import sKCSD_utils
 n_src = 512
@@ -48,10 +47,10 @@ if __name__ == '__main__':
                                            'membcurr'))
     ground_truth = ground_truth/seglen[:, None]*1e-3
     dt = c.cell_parameters['dt']
-    t1 = int(42/dt)
-    t2 = int(5/dt)
+    t1 = 42//dt
+    t2 = 5//dt
     atstart = t2
-    atstop = t2 + int(10/dt)
+    atstop = t2 + 10//dt
     simulation_paths = []
     data_paths = []
     skcsd_grid = []
@@ -60,7 +59,7 @@ if __name__ == '__main__':
     fname = fname_base + '.png'
     fig_name = sKCSD_utils.make_fig_names(fname)
     vmax, vmin = pl.get_min_max(ground_truth[:, atstart:atstop])
-    pl.plot(ax[0],
+    pl.make_map_plot(ax[0],
             ground_truth[:, atstart:atstop],
             yticklabels=[x for x in range(0, 86, 15)],
             fig=fig,
@@ -68,7 +67,7 @@ if __name__ == '__main__':
             ylabel='#segment',
             sinksource=True)
     for i, datd in enumerate(data_dir):
-        data = ld.Data(datd)
+        data = utils.LoadData(datd)
         ele_pos = data.ele_pos/scaling_factor
         data.LFP = data.LFP/scaling_factor_LFP
         morphology = data.morphology
@@ -101,7 +100,7 @@ if __name__ == '__main__':
                                              tstart=atstart,
                                              tstop=atstop,
                                              merge=1)
-    pl.plot(ax[1],
+    pl.make_map_plot(ax[1],
             skcsd_maps_grid,
             xticklabels=['8', '16', '32', '64'],
             title="Grid",
@@ -110,7 +109,7 @@ if __name__ == '__main__':
                                                tstart=atstart,
                                                tstop=atstop,
                                                merge=1)
-    pl.plot(ax[2],
+    pl.make_map_plot(ax[2],
             skcsd_maps_random,
             xticklabels=['8', '16', '32', '64'],
             title="Random",

@@ -1722,6 +1722,7 @@ if __name__ == '__main__':
     KK = ValidateKCSD1D(CSD_SEED, n_src_init=N_SRC_INIT, h=0.25, R_init=0.23,
                         ele_lims=ELE_LIMS, true_csd_xlims=[0., 1.], sigma=0.3,
                         src_type='gauss')
+
     obj, rms, point_e = KK.make_reconstruction(CSD_PROFILE, CSD_SEED, total_ele=64, noise=0,
                            Rs=np.arange(0.2, 0.5, 0.1))
 

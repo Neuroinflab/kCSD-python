@@ -127,10 +127,6 @@ def plot_eigenvalues(eigenvalues, save_path, n_src):
               'of basis sources')
     plt.xlabel('Number of components')
     plt.ylabel('Eigenvalues')
-    plt.yscale('log')
-    plt.show()
-    save_path = save_path + '/eigenvalues'
-    makemydir(save_path)
     save_as = (save_path + '/eigenvalues_for_different_M')
     fig.savefig(os.path.join(save_path, save_as+'.png'))
     plt.close()
@@ -150,8 +146,6 @@ def plot_eigenvectors(eigenvectors, save_path, n_src):
     plt.legend(bbox_to_anchor=(1.04, 1), loc="upper left")
     plt.xlabel('Number of components')
     plt.show()
-    save_path = save_path + '/eigenvectors'
-    makemydir(save_path)
     save_as = (save_path + '/eigenvectors_for_different_M')
     fig.savefig(os.path.join(save_path, save_as+'.png'))
     plt.close()

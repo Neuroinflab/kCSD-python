@@ -17,7 +17,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from kcsd import sKCSD
 import kcsd.utility_functions as utils
-import loadData as ld
 import sKCSD_utils
 from kcsd.validation import plotting_functions as pl
 
@@ -63,10 +62,10 @@ if __name__ == '__main__':
     fig, ax = plt.subplots(4, 1)
     xticklabels = list(np.linspace(0, 800, 5))
     yticklabels = list(np.linspace(0, 52, 5))
-    pl.plot(ax[0], ground_truth)
+    pl.make_map_plot(ax[0], ground_truth)
     for i, datd in enumerate(data_dir):
         l = 0
-        data = ld.Data(datd)
+        data = utils.LoadData(datd)
         ele_pos = data.ele_pos/scaling_factor
         data.LFP = data.LFP/scaling_factor_LFP
         morphology = data.morphology
@@ -82,14 +81,14 @@ if __name__ == '__main__':
                   skmonaco_available=False)
         est_csd = k.values(transformation='segments')/seglen[:, None]
         if i == 2:
-            pl.plot(ax[i+1],
+            pl.make_map_plot(ax[i+1],
                     est_csd,
                     xticklabels=xticklabels,
                     yticklabels=yticklabels,
                     xlabel='Time [ms]',
                     ylabel='#segment')
         else:
-            pl.plot(ax[i+1], est_csd)
+            pl.make_map_plot(ax[i+1], est_csd)
 
         if sys.version_info < (3, 0):
             path = os.path.join(datd, "preprocessed_data/Python_2")

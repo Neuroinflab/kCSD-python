@@ -6,7 +6,6 @@ import sys
 import os
 from kcsd import sKCSD
 import kcsd.utility_functions as utils
-import loadData as ld
 import kcsd.validation.plotting_functions as pl
 import sKCSD_utils
 import run_LFP
@@ -39,7 +38,7 @@ if __name__ == '__main__':
                              rownb=rownb,
                              dt=0.5)
     data_dir = c.return_paths_skCSD_python()
-    data = ld.Data(data_dir)
+    data = utils.LoadData(data_dir)
     ele_pos = data.ele_pos/scale_factor
     data.LFP = data.LFP/scale_factor_LFP
     morphology = data.morphology
@@ -49,7 +48,7 @@ if __name__ == '__main__':
     ground_truth = np.loadtxt(os.path.join(data_dir,
                                            'membcurr'))/seglen[:, None]*1e-3
     dt = c.cell_parameters['dt']
-    t0 = 500/dt
+    t0 = 500//dt
     for i, R in enumerate(R_inits):
         for j, l in enumerate(lambdas):
             lambd = l*2*(2*np.pi)**3*R**2*n_src
@@ -80,18 +79,18 @@ if __name__ == '__main__':
                 print("Creating", path)
                 os.makedirs(path)
             utils.save_sim(path, ker)
-            pl.plot(ax[1],
+            pl.make_map_plot(ax[1],
                     morpho,
                     extent=extent)
-            pl.plot(ax[1],
+            pl.make_map_plot(ax[1],
                     est_skcsd[:, :, :, t0].sum(axis=(2)),
                     extent=extent,
                     vmin=vmin,
                     vmax=vmax)
-            pl.plot(ax[0],
+            pl.make_map_plot(ax[0],
                     morpho,
                     extent=extent)
-            pl.plot(ax[0],
+            pl.make_map_plot(ax[0],
                     ground_truth_3D[:, :, :, t0].sum(axis=(2)),
                     extent=extent)
     plt.show()
