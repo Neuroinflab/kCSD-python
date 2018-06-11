@@ -163,11 +163,44 @@ def plot_eigenvalues(eigenvalues, save_path, n_src):
     for indx, i in enumerate(n_src):
         plt.plot(eigenvalues[indx], '--', marker='.', label='M='+str(i))
     plt.legend()
-    plt.title('Eigenvalue decomposition of kernel matrix for different number '
-              'of basis sources')
+#    plt.title('Eigenvalue decomposition of kernel matrix for different number '
+#              'of basis sources')
     plt.xlabel('Number of components')
     plt.ylabel('Eigenvalues')
+    plt.yscale('log')
     save_as = (save_path + '/eigenvalues_for_different_M')
+    fig.savefig(os.path.join(save_path, save_as+'.png'))
+    plt.close()
+
+
+def plot_max_eigenvalue_M(eigenvalues, save_path, n_src):
+    """
+    Creates plot of eigenvalues of kernel matrix (k_pot) for different number
+    of basis sources
+
+    Parameters
+    ----------
+    eigenvalues: numpy array
+        Eigenvalues of k_pot matrix.
+    save_path: string
+        Directory.
+    n_src: list
+        List of number of basis sources.
+
+    Returns
+    -------
+    None
+    """
+    fig = plt.figure(figsize=(8, 6))
+    plt.plot(n_src, eigenvalues[:, 0], '--', marker='.', label=r'$\mu_1$')
+    plt.legend()
+    plt.title('First eigenvalue in the function of different number of basis'
+              'sources')
+    plt.xlabel('Number of basis sources')
+    plt.xscale('log')
+    plt.ylabel('Eigenvalues')
+    plt.yscale('log')
+    save_as = (save_path + '/max_eigenvalue_different_M')
     fig.savefig(os.path.join(save_path, save_as+'.png'))
     plt.close()
 
@@ -395,6 +428,7 @@ if __name__ == '__main__':
 
     plot_M(N_SRC, RMS, SAVE_PATH)
     plot_eigenvalues(eigenval, SAVE_PATH, N_SRC)
+    plot_max_eigenvalue_M(eigenval, SAVE_PATH, N_SRC)
     plot_eigenvectors(eigenvec, SAVE_PATH, N_SRC)
     plot_k_interp_cross(k_interp_cross_list, SAVE_PATH, N_SRC)
     plot_k_interp_cross_v(k_interp_cross_list, eigenvec, SAVE_PATH, N_SRC)
