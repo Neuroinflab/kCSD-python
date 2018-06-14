@@ -508,11 +508,8 @@ class ValidateKCSD(object):
         rms: float
             Normalized error of reconstruction.
         """
-#        rms = np.linalg.norm((true_csd/np.max(abs(true_csd)) -
-#                              est_csd/np.max(abs(est_csd))))
-        rms = np.linalg.norm(true_csd - est_csd)
-        epsilon = np.finfo(np.float64).eps
-        rms /= np.linalg.norm(true_csd) + epsilon
+        rms = np.linalg.norm((true_csd/np.max(abs(true_csd)) -
+                              est_csd/np.max(abs(est_csd))))
         return rms
 
     def calculate_point_error(self, true_csd, est_csd):
@@ -533,13 +530,10 @@ class ValidateKCSD(object):
             Normalized error of reconstruction calculated separetly at every
             point of estimation space.
         """
-#        epsilon = np.finfo(np.float64).eps
         point_error = np.linalg.norm(true_csd.reshape(true_csd.size, 1) /
                                      np.max(abs(true_csd)) -
                                      est_csd.reshape(est_csd.size, 1) /
                                      np.max(abs(true_csd)), axis=1)
-#        point_error /= np.linalg.norm(true_csd.reshape(true_csd.size, 1),
-#                                      axis=1) + epsilon
         if self.dim != 1:
             point_error = point_error.reshape(true_csd.shape)
         return point_error
@@ -604,9 +598,8 @@ class ValidateKCSD(object):
             error_mean -> 1    - very poor reconstruction
             error_mean -> 0    - perfect reconstruction
         '''
-#        sig_error = 2*(1./(1 + np.exp((-error))) - 1/2.)
-#        error_mean = np.mean(sig_error, axis=0)
-        error_mean = np.mean(error, axis=0)
+        sig_error = 2*(1./(1 + np.exp((-error))) - 1/2.)
+        error_mean = np.mean(sig_error, axis=0)
         return error_mean
 
     def add_noise(self, pots, seed=0, level=10):
@@ -1723,23 +1716,23 @@ if __name__ == '__main__':
                         ele_lims=ELE_LIMS, true_csd_xlims=[0., 1.], sigma=0.3,
                         src_type='gauss')
 
-    obj, rms, point_e = KK.make_reconstruction(CSD_PROFILE, CSD_SEED, total_ele=64, noise=0,
+    KK.make_reconstruction(CSD_PROFILE, CSD_SEED, total_ele=16, noise=0,
                            Rs=np.arange(0.2, 0.5, 0.1))
 
-#    print('Checking 2D')
-#    CSD_PROFILE = CSD.gauss_2d_small
-#    CSD_SEED = 5
-#
-#    KK = ValidateKCSD2D(CSD_SEED, h=50., sigma=1., n_src_init=400)
-#    KK.make_reconstruction(CSD_PROFILE, CSD_SEED, total_ele=16, noise=0,
-#                           Rs=np.arange(0.2, 0.5, 0.1))
-#
-#    print('Checking 3D')
-#    CSD_PROFILE = CSD.gauss_3d_small
-#    CSD_SEED = 20  # 0-49 are small sources, 50-99 are large sources
-#    TIC = time.time()
-#    KK = ValidateKCSD3D(CSD_SEED, h=50, sigma=1)
-#    KK.make_reconstruction(CSD_PROFILE, CSD_SEED, total_ele=125, noise=0,
-#                           Rs=np.arange(0.2, 0.5, 0.1))
-#    TOC = time.time() - TIC
-#    print('time', TOC)
+    print('Checking 2D')
+    CSD_PROFILE = CSD.gauss_2d_small
+    CSD_SEED = 5
+
+    KK = ValidateKCSD2D(CSD_SEED, h=50., sigma=1., n_src_init=400)
+    KK.make_reconstruction(CSD_PROFILE, CSD_SEED, total_ele=16, noise=0,
+                           Rs=np.arange(0.2, 0.5, 0.1))
+
+    print('Checking 3D')
+    CSD_PROFILE = CSD.gauss_3d_small
+    CSD_SEED = 20  # 0-49 are small sources, 50-99 are large sources
+    TIC = time.time()
+    KK = ValidateKCSD3D(CSD_SEED, h=50, sigma=1)
+    KK.make_reconstruction(CSD_PROFILE, CSD_SEED, total_ele=125, noise=0,
+                           Rs=np.arange(0.2, 0.5, 0.1))
+    TOC = time.time() - TIC
+    print('time', TOC)
