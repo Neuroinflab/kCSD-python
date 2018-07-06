@@ -48,7 +48,7 @@ if __name__ == '__main__':
     ground_truth = np.loadtxt(os.path.join(data_dir,
                                            'membcurr'))/seglen[:, None]*1e-3
     dt = c.cell_parameters['dt']
-    t0 = 500//dt
+    t0 = int(500/dt)
     for i, R in enumerate(R_inits):
         for j, l in enumerate(lambdas):
             lambd = l*2*(2*np.pi)**3*R**2*n_src

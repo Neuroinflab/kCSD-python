@@ -47,10 +47,10 @@ if __name__ == '__main__':
                                            'membcurr'))
     ground_truth = ground_truth/seglen[:, None]*1e-3
     dt = c.cell_parameters['dt']
-    t1 = 42//dt
-    t2 = 5//dt
+    t1 = int(42/dt)
+    t2 = int(5/dt)
     atstart = t2
-    atstop = t2 + 10//dt
+    atstop = t2 + int(10/dt)
     simulation_paths = []
     data_paths = []
     skcsd_grid = []

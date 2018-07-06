@@ -48,8 +48,8 @@ if __name__ == '__main__':
     ground_truth_t1 = None
     ground_truth_t2 = None
     dt = c.cell_parameters['dt']
-    t1 = 45.5//dt
-    t2 = 5.5//dt
+    t1 = int(45.5/dt)
+    t2 = int(5.5/dt)
     R_inits = [2**i for i in range(3, 8)]
     lambdas = [10**(-i) for i in range(6)]
     n = 100
@@ -101,6 +101,7 @@ if __name__ == '__main__':
         if not len(ground_truth_grid):
             ground_truth_grid = k.cell.transform_to_3D(ground_truth,
                                                        what="morpho")
+            print(ground_truth_grid.shape, t1, t2)
             ground_truth_t1 = ground_truth_grid[:, :, :, t1].sum(axis=1).T
             ground_truth_t2 = ground_truth_grid[:, :, :, t2].sum(axis=1).T
             est_skcsd = k.values(estimate='CSD')
