@@ -105,6 +105,7 @@ if __name__ == '__main__':
         if not len(ground_truth_grid):
             ground_truth_grid = k.cell.transform_to_3D(ground_truth,
                                                        what="morpho")
+            print(ground_truth_grid.shape, t1, t2)
             ground_truth_t1 = ground_truth_grid[:, :, :, t1].sum(axis=1).T
             ground_truth_t2 = ground_truth_grid[:, :, :, t2].sum(axis=1).T
             est_skcsd = k.values(estimate='CSD')
