@@ -11,42 +11,40 @@ import sKCSD_utils
 import matplotlib.gridspec as gridspec
 
 
-n_src = 1024
-lambd = 10
+n_src = 512
+lambd = 0.01
 R = 16e-6/2**.5
 if __name__ == '__main__':
-    fname_base = "Figure_complex"
+    fname_base = "Figure_3"
     tstop = 75
     scaling_factor = 1000**2
     scaling_factor_LFP = 1000
-    R_inits = [2**(i-0.5)*1e-6 for i in range(3, 8)]
-    lambdas = [10**(-i) for i in range(-3, 6, 1)]
-    electrode_number = [10, 20, 30]
-    colnb = 20
+    R_inits = [2**i*1e-6/np.sqrt(2) for i in range(3,8)]
+    lambdas = [10**(-i) for i in range(-6, 6, 1)]
+    electrode_number = [8, 32 , 128]
     data_dir = []
+    xmin, xmax = -100, 600
+    ymin, ymax = 0, 200
+    orientation = 1
     for rownb in electrode_number:
-        fname = "Figure_3_complex"
-        c = sKCSD_utils.simulate(fname_base,
-                             morphology=6,
-                             tstop=tstop,
-                             seed=1988,
-                             weight=0.04,
-                             n_syn=1000,
-                             simulate_what='oscillatory',
-                             electrode_distribution=1,
-                             electrode_orientation=3,
-                             xmin=-400,
-                             xmax=400,
-                             ymin=-400,
-                             ymax=400,
-                             colnb=colnb,
-                             rownb=rownb,
-                             dt=0.125)
+        fname = "Figure_3"
+        c = sKCSD_utils.simulate(fname,
+                                 morphology=1,
+                                 simulate_what="random",
+                                 colnb=1,
+                                 rownb=rownb,
+                                 xmin=xmin,
+                                 xmax=xmax,
+                                 ymin=ymin,
+                                 ymax=ymax,
+                                 tstop=tstop,
+                                 seed=1988,
+                                 weight=0.05,
+                                 n_syn=1000,
+                                 dt=0.125)
         data_dir.append(c.return_paths_skCSD_python())
     seglen = np.loadtxt(os.path.join(data_dir[0], 'seglength'))
-    print(len(seglen))
     ground_truth = np.loadtxt(os.path.join(data_dir[0], 'membcurr'))
-    print(ground_truth.shape)
     ground_truth = ground_truth/seglen[:, None]*1e-3
     gvmax, gvmin = pl.get_min_max(ground_truth)
     data_paths = []
@@ -60,10 +58,8 @@ if __name__ == '__main__':
     for i in range(2):
         for j in range(2, 5):
             ax.append(plt.subplot(gs[i, j]))
-
-            
     cax = ax_gt.imshow(ground_truth,
-                          extent=[0, tstop, 1, ground_truth.shape[0]],
+                          extent=[0, tstop, 1, 52],
                           origin='lower',
                           aspect='auto',
                           cmap='seismic_r',
@@ -74,8 +70,9 @@ if __name__ == '__main__':
     ax_gt.set_ylabel('#segment')
     new_fname = fname_base + '.png'
     fig_name = sKCSD_utils.make_fig_names(new_fname)
+    vmax, vmin = pl.get_min_max(ground_truth)
     for i, datd in enumerate(data_dir):
-        print(datd)
+        
         data = utils.LoadData(datd)
         ele_pos = data.ele_pos/scaling_factor
         data.LFP = data.LFP/scaling_factor_LFP
@@ -87,27 +84,26 @@ if __name__ == '__main__':
                   n_src_init=n_src,
                   src_type='gauss',
                   lambd=lambd,
-                  dist_table_density=2*n_src,
                   R_init=R,
-                  skmonaco_available=False)
+                  skmonaco_available=False,
+                  dist_table_density=n_src//2)
         csd = k.values(transformation='segments')
-        print(csd.shape)
-        print(csd.max(), csd.min())
+        
         cax = ax[i].imshow(csd,
-                           extent=[0, tstop, 1, csd.shape[0]],
+                           extent=[0, tstop, 1, 52],
                            origin='lower',
                            aspect='auto',
                            cmap='seismic_r',
                            vmax=gvmax,
                            vmin=gvmin)
         ax[3+i].set_title(electrode_number[i])
-        k.L_curve(lambdas=np.array(lambdas), Rs=np.array(R_inits))
-        csd_Lcurve = k.values(transformation=None)
+        k.L_curve(  Rs=np.array(R_inits))
+        csd_Lcurve = k.values(transformation='segments')
         
-        # #Rcv, lambdacv = k.cross_validate(lambdas=np.array(lambdas), Rs=np.array(R_inits))
+        #Rcv, lambdacv = k.cross_validate(lambdas=np.array(lambdas), Rs=np.array(R_inits))
        
         cax = ax[3+i].imshow(csd_Lcurve,
-                              extent=[0, tstop, 1, csd_Lcurve.shape[0]],
+                              extent=[0, tstop, 1, 52],
                               origin='lower',
                               aspect='auto',
                               cmap='seismic_r',
