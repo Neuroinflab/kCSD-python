@@ -343,7 +343,7 @@ def plot_k_interp_cross_v(k_icross, eigenvectors, save_path, n_src):
     plt.suptitle('Vectors of cross kernel and eigenvectors product for '
                  'different number of basis sources')
     for i in range(k_icross[0].shape[1]):
-        plt.subplot(int(k_icross[0].shape[1]/2) + 1, 2, i + 1)
+        plt.subplot(int(k_icross[1].shape[1]/2) + 1, 2, i + 1)
         for idx, j in enumerate(n_src):
             plt.plot(np.dot(k_icross[idx], eigenvectors[idx, :, i]), '--',
                      marker='.', label='M='+str(j))

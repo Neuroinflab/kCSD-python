@@ -333,17 +333,55 @@ def modified_bases(k, pots, ele_pos, n_src, title, h=0.25, sigma=0.3,
     est_csd = obj_m.values('CSD')
     test_csd = csd_profile(obj_m.estm_x, [R, MU])
     rms = val.calculate_rms(test_csd, est_csd)
-    title = "Lambda: %0.2E; R: %0.2f; RMS_Error: %0.2E;" % (obj_m.lambd,
-                                                            obj_m.R, rms)
-    fig = k.make_plot(csd_at, true_csd, obj_m, est_csd, ele_pos, pots, title)
-    save_as = (SAVE_PATH + '/basis_on_[0_0_5]')
-    fig.savefig(os.path.join(SAVE_PATH, save_as+'.png'))
+    titl = "Lambda: %0.2E; R: %0.2f; RMS_Error: %0.2E;" % (obj_m.lambd,
+                                                           obj_m.R, rms)
+    fig = k.make_plot(csd_at, true_csd, obj_m, est_csd, ele_pos, pots, titl)
+    save_as = (SAVE_PATH)
+    fig.savefig(os.path.join(SAVE_PATH, save_as + '/' + title + '.png'))
     plt.close()
     ss = SpectralStructure(obj_m)
     eigenvectors, eigenvalues = ss.evd()
-    title = 'A_basis_lims_[0_0_5]'
     plot_eigenvalues(eigenvalues, SAVE_PATH, title)
     plot_eigenvectors(eigenvectors, SAVE_PATH, title)
+    plot_k_interp_cross_v(obj_m.k_interp_cross, eigenvectors, SAVE_PATH, title)
+
+
+def plot_k_interp_cross_v(k_icross, eigenvectors, save_path, title):
+    """
+    Creates plot of product of cross kernel vectors and eigenvectors for
+    different number of basis sources
+
+    Parameters
+    ----------
+    k_icross: numpy array
+        List of cross kernel matrixes for different number of basis sources.
+    eigenvectors: numpy array
+        Eigenvectors of k_pot matrix.
+    save_path: string
+        Directory.
+    n_src: list
+        List of number of basis sources.
+
+    Returns
+    -------
+    None
+    """
+    fig = plt.figure(figsize=(15, 15))
+    fig.suptitle('Vectors of cross kernel and eigenvectors product')
+    for i in range(eigenvectors.shape[0]):
+        plt.subplot(int(k_icross.shape[1]/2) + 1, 2, i + 1)
+        plt.plot(np.dot(k_icross, eigenvectors[:, i]), '--',
+                 marker='.')
+        plt.title('K~v_' + str(i + 1))
+        plt.ylabel('Product K~V')
+    plt.xlabel('Number of estimation points')
+    fig.tight_layout()
+    plt.show()
+    save_path = save_path + '/cross_kernel'
+    makemydir(save_path)
+    save_as = (save_path + '/cross_kernel_eigenvector_product' + title)
+    fig.savefig(os.path.join(save_path, save_as+'.png'))
+    plt.close()
 
 
 home = expanduser('~')
@@ -374,6 +412,7 @@ eigenvectors, eigenvalues = ss.evd()
 title = 'A_basis_lims_[0_1]'
 plot_eigenvalues(eigenvalues, SAVE_PATH, title)
 plot_eigenvectors(eigenvectors, SAVE_PATH, title)
+plot_k_interp_cross_v(obj.k_interp_cross, eigenvectors, SAVE_PATH, title)
 
 #  A.2
 title = 'A_basis_lims_[0_0_5]'
@@ -399,6 +438,7 @@ eigenvectors, eigenvalues = ss.evd()
 title = 'B_basis_lims_[0_1]'
 plot_eigenvalues(eigenvalues, SAVE_PATH, title)
 plot_eigenvectors(eigenvectors, SAVE_PATH, title)
+plot_k_interp_cross_v(obj.k_interp_cross, eigenvectors, SAVE_PATH, title)
 
 #  B.2
 title = 'B_basis_lims_[1_1_5]'
