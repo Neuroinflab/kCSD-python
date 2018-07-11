@@ -11,7 +11,7 @@ import sKCSD_utils
 import matplotlib.gridspec as gridspec
 
 
-n_src = 1024
+n_src = 512
 lambd = 10
 R = 16e-6/2**.5
 if __name__ == '__main__':
@@ -44,9 +44,8 @@ if __name__ == '__main__':
                              dt=0.125)
         data_dir.append(c.return_paths_skCSD_python())
     seglen = np.loadtxt(os.path.join(data_dir[0], 'seglength'))
-    print(len(seglen))
+    n_seg = len(seglen)
     ground_truth = np.loadtxt(os.path.join(data_dir[0], 'membcurr'))
-    print(ground_truth.shape)
     ground_truth = ground_truth/seglen[:, None]*1e-3
     gvmax, gvmin = pl.get_min_max(ground_truth)
     data_paths = []
@@ -87,7 +86,7 @@ if __name__ == '__main__':
                   n_src_init=n_src,
                   src_type='gauss',
                   lambd=lambd,
-                  dist_table_density=2*n_src,
+                  dist_table_density=n_src,
                   R_init=R,
                   skmonaco_available=False)
         csd = k.values(transformation='segments')
