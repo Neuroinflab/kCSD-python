@@ -76,7 +76,7 @@ def csd_profile(x, seed):
 
 
 def targeted_basis(val, csd_at, true_csd, ele_pos, pots, n_src, R, MU,
-                   true_csd_xlims, ele_lims, h=0.25, sigma=0.3,
+                   true_csd_xlims, ele_lims, title, h=0.25, sigma=0.3,
                    csd_res=100):
     '''
     Function investigating kCSD analysis for targeted bases.
@@ -125,11 +125,11 @@ def targeted_basis(val, csd_at, true_csd, ele_pos, pots, n_src, R, MU,
                            Rs=np.arange(0.2, 0.5, 0.1))
     test_csd = csd_profile(obj.estm_x, [R, MU])
     rms = val.calculate_rms(test_csd, est_csd)
-    title = "Lambda: %0.2E; R: %0.2f; RMS_Error: %0.2E;" % (obj.lambd, obj.R,
+    titl = "Lambda: %0.2E; R: %0.2f; RMS_Error: %0.2E;" % (obj.lambd, obj.R,
                                                             rms)
-    fig = k.make_plot(csd_at, true_csd, obj, est_csd, ele_pos, pots, title)
-    save_as = (SAVE_PATH + '/A_basis_on_[0_1]')
-    fig.savefig(os.path.join(SAVE_PATH, save_as+'.png'))
+    fig = k.make_plot(csd_at, true_csd, obj, est_csd, ele_pos, pots, titl)
+    save_as = (SAVE_PATH)
+    fig.savefig(os.path.join(SAVE_PATH, save_as + title + '.png'))
     plt.close()
     return obj, k
 
@@ -184,7 +184,7 @@ def simulate_data(csd_profile, true_csd_xlims, R, MU, total_ele, ele_lims,
 
 
 def structure_investigation(csd_profile, true_csd_xlims, n_src, R, MU,
-                            total_ele, ele_lims, h=0.25, sigma=0.3,
+                            total_ele, ele_lims, title, h=0.25, sigma=0.3,
                             csd_res=100):
     '''
     .
@@ -225,7 +225,7 @@ def structure_investigation(csd_profile, true_csd_xlims, n_src, R, MU,
                                                          total_ele, ele_lims,
                                                          h=h, sigma=sigma)
     obj, k = targeted_basis(val, csd_at, true_csd, ele_pos, pots, n_src, R, MU,
-                            true_csd_xlims, ele_lims, h=0.25,
+                            true_csd_xlims, ele_lims, title, h=0.25,
                             sigma=0.3, csd_res=100)
     return obj
 
@@ -282,7 +282,7 @@ def plot_eigenvectors(eigenvectors, save_path, title):
         plt.subplot(int(eigenvectors.shape[1]/2) + 1, 2, i + 1)
         plt.plot(eigenvectors[:, i].T, '--', marker='.')
         plt.ylabel('Eigenvectors')
-        plt.title('v_' + str(i + 1))
+        plt.title(r'$v_' + str(i + 1) + '$')
     plt.xlabel('Number of components')
     plt.tight_layout()
     plt.show()
@@ -367,13 +367,13 @@ def plot_k_interp_cross_v(k_icross, eigenvectors, save_path, title):
     None
     """
     fig = plt.figure(figsize=(15, 15))
-    fig.suptitle('Vectors of cross kernel and eigenvectors product')
+#    fig.suptitle('Vectors of cross kernel and eigenvectors product')
     for i in range(eigenvectors.shape[0]):
         plt.subplot(int(k_icross.shape[1]/2) + 1, 2, i + 1)
         plt.plot(np.dot(k_icross, eigenvectors[:, i]), '--',
                  marker='.')
-        plt.title('K~v_' + str(i + 1))
-        plt.ylabel('Product K~V')
+        plt.title(r'$\tilde{K}*v_' + str(i + 1) + '$')
+#        plt.ylabel('Product K~V')
     plt.xlabel('Number of estimation points')
     fig.tight_layout()
     plt.show()
@@ -405,11 +405,11 @@ MU = 0.25
 csd_at, true_csd, ele_pos, pots, val = simulate_data(csd_profile,
                                                      TRUE_CSD_XLIMS, R, MU,
                                                      TOTAL_ELE, ELE_LIMS)
+title = 'A_basis_lims_[0_1]'
 obj, k = targeted_basis(val, csd_at, true_csd, ele_pos, pots, N_SRC, R, MU,
-                        TRUE_CSD_XLIMS, ELE_LIMS)
+                        TRUE_CSD_XLIMS, ELE_LIMS, title)
 ss = SpectralStructure(obj)
 eigenvectors, eigenvalues = ss.evd()
-title = 'A_basis_lims_[0_1]'
 plot_eigenvalues(eigenvalues, SAVE_PATH, title)
 plot_eigenvectors(eigenvectors, SAVE_PATH, title)
 plot_k_interp_cross_v(obj.k_interp_cross, eigenvectors, SAVE_PATH, title)
@@ -431,11 +431,11 @@ MU = 1.25
 csd_at, true_csd, ele_pos, pots, val = simulate_data(csd_profile,
                                                      TRUE_CSD_XLIMS, R, MU,
                                                      TOTAL_ELE, ELE_LIMS)
+title = 'B_basis_lims_[0_1]'
 obj, k = targeted_basis(val, csd_at, true_csd, ele_pos, pots, N_SRC, R, MU,
-                        TRUE_CSD_XLIMS, ELE_LIMS)
+                        TRUE_CSD_XLIMS, ELE_LIMS, title)
 ss = SpectralStructure(obj)
 eigenvectors, eigenvalues = ss.evd()
-title = 'B_basis_lims_[0_1]'
 plot_eigenvalues(eigenvalues, SAVE_PATH, title)
 plot_eigenvectors(eigenvectors, SAVE_PATH, title)
 plot_k_interp_cross_v(obj.k_interp_cross, eigenvectors, SAVE_PATH, title)
