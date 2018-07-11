@@ -549,7 +549,7 @@ class sKCSD(KCSD1D):
         self.n_src_init = kwargs.pop('n_src_init', 1000)
         self.lambd = kwargs.pop('lambd', 1e-4)
         self.R_init = kwargs.pop('R_init', 2.3e-5)  # microns
-        self.dist_table_density = kwargs.pop('dist_table_density', 100)
+        self.dist_table_density = kwargs.pop('dist_table_density', self.n_src_init)
         self.dim = 'skCSD'
         self.tolerance = kwargs.pop('tolerance', 2e-06)
         self.skmonaco_available = kwargs.pop('skmonaco_available',skmonaco_available)
@@ -619,9 +619,59 @@ class sKCSD(KCSD1D):
         source_pos = self.src_x
         self.src_ele_dists = distance.cdist(src_loc, self.ele_pos, 'euclidean')
         self.src_estm_dists = distance.cdist(source_pos, est_pos,  'euclidean')
-        self.dist_max = max(np.max(self.src_ele_dists),
-                            np.max(self.src_estm_dists)) + self.R
+        self.dist_max_pot =  np.max(self.src_estm_dists) + self.R
+        self.dist_max_cur = np.max(self.src_ele_dists) + self.R
+    
+    def create_half_lookup(self, dist_max):
+        """Creates a table for easy potential/CSD estimation.
+        Updates and Returns the potentials due to a
+        given basis source like a lookup
+        table whose shape=(dist_table_density,)
 
+        Parameters
+        ----------
+        max_dist : float
+            maximum distance for estimation
+        what : function
+
+        """
+        xs_pot = np.logspace(0., np.log10(dist_max+1.), self.dist_table_density)
+        xs_pot = xs_pot - 1.0
+        dist_table_pot = np.zeros(len(xs_pot))
+        for i, pos in enumerate(xs_pot):
+            dist_table_pot[i] = self.forward_model(pos,
+                                                   self.R,
+                                                   self.h,
+                                                   self.sigma,
+                                                   self.basis)
+        return interpolate.interp1d(xs_pot, dist_table_pot,
+                                    kind='cubic')
+    def create_lookup(self):
+        """Create two lookup tables for easy potential and CSD estimation.
+        Because maximum source-electrode distance can be two orders
+        of maginutude lower than maximum source-estimation table (
+        source-estimation table lives on the morphology loop
+        and distance between the furthest source and segment (estimation point)
+        can be of an order of mm), we create two separate look-up tables
+        one for b_pot and one for b_interp_pot.
+        
+        """
+        self.interpolate_pot_at = self.create_half_lookup(self.dist_max_pot)
+        self.interpolate_cur_at = self.create_half_lookup(self.dist_max_cur)
+
+        
+    def update_R(self, R):
+        """Update the width of the basis fuction - Used in Cross validation
+
+        Parameters
+        ----------
+        R : float
+        """
+        self.R = R
+        self.dist_max_pot = np.max(self.src_estm_dists) + self.R
+        self.dist_max_cur = np.max(self.src_ele_dists) + self.R
+        self.method()
+        
     def forward_model(self, x, R, h, sigma, src_type):
         """FWD model functions
         Evaluates potential at point (x,0) by a basis source located at (0,0)
@@ -655,7 +705,24 @@ class sKCSD(KCSD1D):
                                       -2**1.5*R,
                                       2**1.5*R+self.cell.max_dist,
                                       args=(x, R, src_type))
+           
         return pot/(4.0*np.pi*sigma)
+
+    def update_b_pot(self):
+        """Updates the b_pot  - array is (#_basis_sources, #_electrodes)
+        Updates the  k_pot - array is (#_electrodes, #_electrodes) K(x,x')
+        Eq9,Jan2012
+        Calculates b_pot - matrix containing the values of all
+        the potential basis functions in all the electrode positions
+        (essential for calculating the cross_matrix).
+
+        Parameters
+        ----------
+        None
+        """
+        self.b_pot = self.interpolate_cur_at(self.src_ele_dists)
+        self.k_pot = np.dot(self.b_pot.T, self.b_pot)  # K(x,x') Eq9,Jan2012
+        self.k_pot /= self.n_src
 
     def potential_at_the_electrodes(self):
         """
@@ -738,8 +805,6 @@ class sKCSD(KCSD1D):
             xp = xp + self.cell.max_dist
         xp_coor = self.cell.get_xyz(xp)
         dist = ((x - xp_coor[0])**2 + xp_coor[1]**2 + xp_coor[2]**2)**0.5
-        if dist < 0.00001:
-            dist = 0.00001
         pot = basis_func(xp, R)/dist  # xp is the distance
         return pot
 
