@@ -20,7 +20,7 @@ if __name__ == '__main__':
     scaling_factor = 1000**2
     scaling_factor_LFP = 1000
     R_inits = [2**i*1e-6/np.sqrt(2) for i in range(3,8)]
-    lambdas = [10**(-i) for i in range(-6, 6, 1)]
+    lambdas = [10**(-i) for i in range(-3, 6, 1)]
     electrode_number = [8, 32 , 128]
     data_dir = []
     xmin, xmax = -100, 600
@@ -40,7 +40,7 @@ if __name__ == '__main__':
                                  tstop=tstop,
                                  seed=1988,
                                  weight=0.05,
-                                 n_syn=1000,
+                                 n_syn=100,
                                  dt=0.125)
         data_dir.append(c.return_paths_skCSD_python())
     seglen = np.loadtxt(os.path.join(data_dir[0], 'seglength'))
@@ -86,7 +86,7 @@ if __name__ == '__main__':
                   lambd=lambd,
                   R_init=R,
                   skmonaco_available=False,
-                  dist_table_density=n_src//2)
+                  dist_table_density=n_src)
         csd = k.values(transformation='segments')
         
         cax = ax[i].imshow(csd,
@@ -97,7 +97,7 @@ if __name__ == '__main__':
                            vmax=gvmax,
                            vmin=gvmin)
         ax[3+i].set_title(electrode_number[i])
-        k.L_curve(  Rs=np.array(R_inits))
+        k.L_curve(lambdas=np.array(lambdas), Rs=np.array(R_inits))
         csd_Lcurve = k.values(transformation='segments')
         
         #Rcv, lambdacv = k.cross_validate(lambdas=np.array(lambdas), Rs=np.array(R_inits))
