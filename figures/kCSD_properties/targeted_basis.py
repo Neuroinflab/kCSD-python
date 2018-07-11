@@ -126,10 +126,10 @@ def targeted_basis(val, csd_at, true_csd, ele_pos, pots, n_src, R, MU,
     test_csd = csd_profile(obj.estm_x, [R, MU])
     rms = val.calculate_rms(test_csd, est_csd)
     titl = "Lambda: %0.2E; R: %0.2f; RMS_Error: %0.2E;" % (obj.lambd, obj.R,
-                                                            rms)
+                                                           rms)
     fig = k.make_plot(csd_at, true_csd, obj, est_csd, ele_pos, pots, titl)
     save_as = (SAVE_PATH)
-    fig.savefig(os.path.join(SAVE_PATH, save_as + title + '.png'))
+    fig.savefig(os.path.join(SAVE_PATH, save_as + '/' + title + '.png'))
     plt.close()
     return obj, k
 
@@ -405,7 +405,7 @@ MU = 0.25
 csd_at, true_csd, ele_pos, pots, val = simulate_data(csd_profile,
                                                      TRUE_CSD_XLIMS, R, MU,
                                                      TOTAL_ELE, ELE_LIMS)
-title = 'A_basis_lims_[0_1]'
+title = 'A_basis_lims_0_1'
 obj, k = targeted_basis(val, csd_at, true_csd, ele_pos, pots, N_SRC, R, MU,
                         TRUE_CSD_XLIMS, ELE_LIMS, title)
 ss = SpectralStructure(obj)
@@ -415,12 +415,12 @@ plot_eigenvectors(eigenvectors, SAVE_PATH, title)
 plot_k_interp_cross_v(obj.k_interp_cross, eigenvectors, SAVE_PATH, title)
 
 #  A.2
-title = 'A_basis_lims_[0_0_5]'
+title = 'A_basis_lims_0_0_5'
 modified_bases(k, pots, ele_pos, N_SRC, title, h=0.25, sigma=0.3, gdx=0.035,
                ext_x=0, xmin=0, xmax=0.5)
 
 #  A.2.b
-title = 'A_basis_lims_[0_0_5]_less_sources'
+title = 'A_basis_lims_0_0_5_less_sources'
 modified_bases(k, pots, ele_pos, N_SRC/2, title, h=0.25, sigma=0.3, gdx=0.035,
                ext_x=0, xmin=0, xmax=0.5)
 
@@ -431,7 +431,7 @@ MU = 1.25
 csd_at, true_csd, ele_pos, pots, val = simulate_data(csd_profile,
                                                      TRUE_CSD_XLIMS, R, MU,
                                                      TOTAL_ELE, ELE_LIMS)
-title = 'B_basis_lims_[0_1]'
+title = 'B_basis_lims_0_1'
 obj, k = targeted_basis(val, csd_at, true_csd, ele_pos, pots, N_SRC, R, MU,
                         TRUE_CSD_XLIMS, ELE_LIMS, title)
 ss = SpectralStructure(obj)
@@ -441,16 +441,16 @@ plot_eigenvectors(eigenvectors, SAVE_PATH, title)
 plot_k_interp_cross_v(obj.k_interp_cross, eigenvectors, SAVE_PATH, title)
 
 #  B.2
-title = 'B_basis_lims_[1_1_5]'
+title = 'B_basis_lims_1_1_5'
 modified_bases(k, pots, ele_pos, N_SRC, title, h=0.25, sigma=0.3, gdx=0.035,
                ext_x=0, xmin=1, xmax=1.5)
 
 #  B.2.b
-title = 'B_basis_lims_[1_1_5]_less_sources'
+title = 'B_basis_lims_1_1_5_less_sources'
 modified_bases(k, pots, ele_pos, N_SRC/2, title, h=0.25, sigma=0.3, gdx=0.035,
                ext_x=0, xmin=1, xmax=1.5)
 
 #  B.3
-title = 'B_basis_lims_[0_1_5]'
+title = 'B_basis_lims_0_1_5'
 modified_bases(k, pots, ele_pos, N_SRC, title, h=0.25, sigma=0.3, gdx=0.035,
                ext_x=0, xmin=0, xmax=1.5)
