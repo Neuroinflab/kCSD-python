@@ -549,7 +549,7 @@ class sKCSD(KCSD1D):
         self.n_src_init = kwargs.pop('n_src_init', 1000)
         self.lambd = kwargs.pop('lambd', 1e-4)
         self.R_init = kwargs.pop('R_init', 2.3e-5)  # microns
-        self.dist_table_density = kwargs.pop('dist_table_density', 100)
+        self.dist_table_density = kwargs.pop('dist_table_density', self.n_src_init)
         self.dim = 'skCSD'
         self.tolerance = kwargs.pop('tolerance', 2e-06)
         self.skmonaco_available = kwargs.pop('skmonaco_available',skmonaco_available)
@@ -816,6 +816,21 @@ class sKCSD(KCSD1D):
         self.k_interp_pot = np.dot(self.b_interp_pot.T, self.b_pot)
         self.k_interp_pot /= self.n_src
 
+    def update_b_pot(self):
+        """Updates the b_pot  - array is (#_basis_sources, #_electrodes)
+        Updates the  k_pot - array is (#_electrodes, #_electrodes) K(x,x')
+        Eq9,Jan2012
+        Calculates b_pot - matrix containing the values of all
+        the potential basis functions in all the electrode positions
+        (essential for calculating the cross_matrix).
+
+        Parameters
+        ----------
+        None
+        """
+        self.b_pot = self.interpolate_cur_at(self.src_ele_dists)
+        self.k_pot = np.dot(self.b_pot.T, self.b_pot)  # K(x,x') Eq9,Jan2012
+        self.k_pot /= self.n_src
 
     def potential_at_the_electrodes(self):
         """
