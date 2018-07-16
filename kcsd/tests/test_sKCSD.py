@@ -22,7 +22,7 @@ class testsKCD(unittest.TestCase):
     sKCSD.skmonaco_available = False
     cls.data = LoadData(os.path.join(sample_data_path, "ball_and_stick_8"))
     cls.data.morphology[:,2:6] = cls.data.morphology[:,2:6]/sc
-    cls.reco = sKCSD(cls.data.ele_pos/sc,cls.data.LFP,cls.data.morphology,n_src_init=n_src)
+    cls.reco = sKCSD(cls.data.ele_pos/sc,cls.data.LFP[:100],cls.data.morphology,n_src_init=n_src)
     cls.segments = cls.reco.values(transformation='segments')
     cls.loops = cls.reco.values(transformation=None)
     cls.cartesian = cls.reco.values(transformation='3D')
