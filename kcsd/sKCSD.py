@@ -676,9 +676,7 @@ class sKCSD(KCSD1D):
                                                        self.h,
                                                        self.sigma,
                                                        self.basis)
-                self.interpolate_at_electrode.append(interpolate.BSpline(xs,
-                                                                          dist_table,
-                                                                          3))
+                self.interpolate_at_electrode.append(interpolate.interp1d(xs, dist_table, kind="cubic"))
                 
     def update_R(self, R):
         """Update the width of the basis fuction - Used in Cross validation
