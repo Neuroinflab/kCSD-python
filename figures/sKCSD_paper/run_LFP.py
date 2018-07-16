@@ -314,7 +314,7 @@ class CellModel():
         self.synapse_parameters['weight'] = 0.05
         pars = {}
         for i_syn in range(self.n_synapses):
-            syn_idx = int(self.cell.get_rand_idx_area_norm())
+            syn_idx = int(self.cell.get_rand_idx_area_norm(section="dend"))
             spike_times = pre_syn_sptimes[pre_syn_pick[i_syn]]
             if syn_idx in pars:
                 pars[syn_idx].extend(list(spike_times))

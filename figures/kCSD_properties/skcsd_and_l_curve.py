@@ -86,7 +86,7 @@ if __name__ == '__main__':
                   lambd=lambd,
                   R_init=R,
                   skmonaco_available=False,
-                  dist_table_density=n_src)
+                  dist_table_density=100)
         csd = k.values(transformation='segments')
         
         cax = ax[i].imshow(csd,

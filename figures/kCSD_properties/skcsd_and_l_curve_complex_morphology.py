@@ -49,7 +49,7 @@ if __name__ == '__main__':
     ground_truth = ground_truth/seglen[:, None]*1e-3
     gvmax, gvmin = pl.get_min_max(ground_truth)
     data_paths = []
-    
+    print(ground_truth.min(), ground_truth.max())
     fig =   plt.figure(figsize=(20, 6))
     
     gs = gridspec.GridSpec(2, 5, figure=fig)
@@ -86,7 +86,7 @@ if __name__ == '__main__':
                   n_src_init=n_src,
                   src_type='gauss',
                   lambd=lambd,
-                  dist_table_density=n_src,
+                  dist_table_density=50,
                   R_init=R,
                   skmonaco_available=False)
         csd = k.values(transformation='segments')
