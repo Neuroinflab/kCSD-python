@@ -605,7 +605,18 @@ class sKCSD(KCSD1D):
         self.n_src = self.cell.n_src
 
     def get_src_ele_dists(self):
-        
+        """
+        Construct source_positions x electrode_postions grid for explicit 
+        calculation of self.b_pot
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+        """
         if self.n_src > self.dist_table_density*2:
             return
 
@@ -639,13 +650,17 @@ class sKCSD(KCSD1D):
         
     def create_lookup(self):
         """Create two lookup tables for easy potential and CSD estimation.
-        Because maximum source-electrode distance can be two orders
-        of maginutude lower than maximum source-estimation table (
-        source-estimation table lives on the morphology loop
-        and distance between the furthest source and segment (estimation point)
-        can be of an order of mm), we create two separate look-up tables
-        one for b_pot and one for b_interp_pot.
-        
+        Create a 2D lookup table for self.b_interp_pot. If there is enough 
+        sources to make it worth to interpolate, construct a table 
+        of interpolation functions for each electrode.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
         """
         assert 2**1.5*self.R < self.cell.max_dist
         
@@ -691,7 +706,9 @@ class sKCSD(KCSD1D):
         
     def forward_model(self, src, dist, R, h, sigma, src_type):
         """FWD model functions
-        Evaluates potential at point (x,0) by a basis source located at (0,0)
+        Evaluates potential at point (dist) by a basis source located at (src).
+        dist can be a 1D point on the morphology loop or a 3D point 
+        in 3D space. src is a 1D point of the morphology loop.
         Utlizies sk monaco monte carlo method if available, otherwise defaults
         to scipy integrate
 
@@ -748,6 +765,11 @@ class sKCSD(KCSD1D):
         Calculates b_pot - matrix containing the values of all
         the potential basis functions in all the electrode positions
         (essential for calculating the cross_matrix).
+        
+        If source number is of the order or larger than dist_table_density
+        (number of interplation points) b_pot is calculated for every point 
+        in src x electrode positions spacs, otherwise interpolation tables
+        are used.
 
         Parameters
         ----------
