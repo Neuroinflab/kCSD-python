@@ -549,7 +549,7 @@ class sKCSD(KCSD1D):
         self.n_src_init = kwargs.pop('n_src_init', 1000)
         self.lambd = kwargs.pop('lambd', 1e-4)
         self.R_init = kwargs.pop('R_init', 2.3e-5)  # microns
-        self.dist_table_density = kwargs.pop('dist_table_density', self.n_src_init)
+        self.dist_table_density = kwargs.pop('dist_table_density', 100)
         self.dim = 'skCSD'
         self.tolerance = kwargs.pop('tolerance', 2e-06)
         self.skmonaco_available = kwargs.pop('skmonaco_available',skmonaco_available)
@@ -573,6 +573,7 @@ class sKCSD(KCSD1D):
         self.cell = sKCSDcell(self.morphology, self.ele_pos,
                               self.n_src_init, self.tolerance)
         self.n_estm = len(self.cell.est_pos)
+        
 
     def place_basis(self):
         """Places basis sources of the defined type.
@@ -603,6 +604,21 @@ class sKCSD(KCSD1D):
         self.src_x = self.cell.distribute_srcs_3D_morph()
         self.n_src = self.cell.n_src
 
+    def get_src_ele_dists(self):
+        
+        if self.n_src > self.dist_table_density*2:
+            return
+
+        electrode_no = np.arange(0, self.ele_pos.shape[0], 1, dtype=int)
+        src_ele_dists =  np.meshgrid(self.src_x, electrode_no, indexing='ij' )
+        self.src_ele_dists = [src_ele_dists[0]]
+        shape = src_ele_dists[1].shape
+        positions = np.zeros((shape[0], shape[1], 3))
+        self.src_ele_dists.append(positions)
+        for i in range(shape[0]):
+            for j in range(shape[1]):
+                self.src_ele_dists[1][i, j] = self.ele_pos[src_ele_dists[1][i, j]]
+
     def create_src_dist_tables(self):
         """Creates distance tables between sources, electrode and estm points
 
@@ -614,38 +630,13 @@ class sKCSD(KCSD1D):
         -------
         None
         """
-        src_loc = self.cell.source_xyz
+
         est_pos = self.cell.est_pos
-        source_pos = self.src_x
-        self.src_ele_dists = distance.cdist(src_loc, self.ele_pos, 'euclidean')
-        self.src_estm_dists = distance.cdist(source_pos, est_pos,  'euclidean')
-        self.dist_max_pot =  np.max(self.src_estm_dists) + self.R
-        self.dist_max_cur = np.max(self.src_ele_dists) + self.R
-    
-    def create_half_lookup(self, dist_max):
-        """Creates a table for easy potential/CSD estimation.
-        Updates and Returns the potentials due to a
-        given basis source like a lookup
-        table whose shape=(dist_table_density,)
-
-        Parameters
-        ----------
-        max_dist : float
-            maximum distance for estimation
-        what : function
-
-        """
-        xs_pot = np.logspace(0., np.log10(dist_max+1.), self.dist_table_density)
-        xs_pot = xs_pot - 1.0
-        dist_table_pot = np.zeros(len(xs_pot))
-        for i, pos in enumerate(xs_pot):
-            dist_table_pot[i] = self.forward_model(pos,
-                                                   self.R,
-                                                   self.h,
-                                                   self.sigma,
-                                                   self.basis)
-        return interpolate.interp1d(xs_pot, dist_table_pot,
-                                    kind='cubic')
+        self.src_estm_dists = distance.cdist(self.src_x, est_pos,  'euclidean')
+        self.src_estm_dists_pot = np.meshgrid(self.src_x, est_pos, indexing='ij')
+        self.get_src_ele_dists()
+        self.dist_max = np.max(self.src_x)+self.R
+        
     def create_lookup(self):
         """Create two lookup tables for easy potential and CSD estimation.
         Because maximum source-electrode distance can be two orders
@@ -656,10 +647,39 @@ class sKCSD(KCSD1D):
         one for b_pot and one for b_interp_pot.
         
         """
-        self.interpolate_pot_at = self.create_half_lookup(self.dist_max_pot)
-        self.interpolate_cur_at = self.create_half_lookup(self.dist_max_cur)
-
+        assert 2**1.5*self.R < self.cell.max_dist
         
+        xs = np.logspace(0., np.log10(self.dist_max+1.), self.dist_table_density)
+        xs = xs - 1.
+        #xs = np.linspace(0, self.dist_max,  self.dist_table_density)
+        positions = np.meshgrid(xs, xs, indexing='ij')
+        dist_table = np.zeros_like(positions[0])
+        for i, pos in enumerate(positions[0]):
+            dist_table[i] = self.forward_model(pos,
+                                               positions[1][i],
+                                               self.R,
+                                               self.h,
+                                               self.sigma,
+                                               self.basis)
+            
+        self.interpolate_pot_at = interpolate.RectBivariateSpline(xs,
+                                                                  xs,
+                                                                  dist_table)
+        if self.n_src > self.dist_table_density*2:
+            self.interpolate_at_electrode = []
+            for ele_pos in self.ele_pos:
+                dist_table = np.zeros_like(xs)
+                for i, pos in enumerate(xs):
+                    dist_table[i] = self.forward_model(pos,
+                                                       ele_pos,
+                                                       self.R,
+                                                       self.h,
+                                                       self.sigma,
+                                                       self.basis)
+                self.interpolate_at_electrode.append(interpolate.BSpline(xs,
+                                                                          dist_table,
+                                                                          3))
+                
     def update_R(self, R):
         """Update the width of the basis fuction - Used in Cross validation
 
@@ -668,11 +688,10 @@ class sKCSD(KCSD1D):
         R : float
         """
         self.R = R
-        self.dist_max_pot = np.max(self.src_estm_dists) + self.R
-        self.dist_max_cur = np.max(self.src_ele_dists) + self.R
+        self.dist_max = np.max(self.src_x)+self.R
         self.method()
         
-    def forward_model(self, x, R, h, sigma, src_type):
+    def forward_model(self, src, dist, R, h, sigma, src_type):
         """FWD model functions
         Evaluates potential at point (x,0) by a basis source located at (0,0)
         Utlizies sk monaco monte carlo method if available, otherwise defaults
@@ -691,22 +710,38 @@ class sKCSD(KCSD1D):
         pot : float
             value of potential at specified distance from the source
         """
-        assert 2**1.5*R < self.cell.max_dist
-        if self.skmonaco_available:
-            pot, err = mcmiser(self.int_pot_1D_mc,
-                               npoints=1e5,
-                               xl=[-2**1.5*R],
-                               xu=[2**1.5*R+self.cell.max_dist],
-                               seed=42,
-                               nprocs=num_cores,
-                               args=(x, R, src_type))
-        else:
-            pot, err = integrate.quad(self.int_pot_1D,
-                                      -2**1.5*R,
-                                      2**1.5*R+self.cell.max_dist,
-                                      args=(x, R, src_type))
+        if isinstance(dist, float):
+            if self.skmonaco_available:
+                pot, err = mcmiser(self.int_pot_1D_mc,
+                                   npoints=1e5,
+                                   xl=[-2**1.5*R],
+                                   xu=[2**1.5*R+self.cell.max_dist],
+                                   seed=42,
+                                   nprocs=num_cores,
+                                   args=(src, dist, R, src_type))
+            else:
+                pot, err = integrate.quad(self.int_pot_1D,
+                                          -2**1.5*R,
+                                          2**1.5*R+self.cell.max_dist,
+                                          args=(src, dist, R, src_type))
            
-        return pot/(4.0*np.pi*sigma)
+            return pot/(4.0*np.pi*sigma)
+        elif len(dist) == 3:
+            if self.skmonaco_available:
+                pot, err = mcmiser(self.int_pot_3D_mc,
+                                   npoints=1e5,
+                                   xl=[-2**1.5*R],
+                                   xu=[2**1.5*R+self.cell.max_dist],
+                                   seed=42,
+                                   nprocs=num_cores,
+                                   args=(src, dist[0], dist[1], dist[2], R, src_type))
+            else:
+                pot, err = integrate.quad(self.int_pot_3D,
+                                          -2**1.5*R,
+                                          2**1.5*R+self.cell.max_dist,
+                                          args=(src, dist[0], dist[1], dist[2], R, src_type))
+           
+            return pot/(4.0*np.pi*sigma)
 
     def update_b_pot(self):
         """Updates the b_pot  - array is (#_basis_sources, #_electrodes)
@@ -720,9 +755,45 @@ class sKCSD(KCSD1D):
         ----------
         None
         """
-        self.b_pot = self.interpolate_cur_at(self.src_ele_dists)
+        if self.n_src > self.dist_table_density*2:
+            dims = (self.n_src, len(self.ele_pos))
+            self.b_pot = np.zeros(dims)
+            for i in range(len(self.ele_pos)):
+                self.b_pot[:, i] = self.interpolate_at_electrode[i](self.src_x[:,0])
+        else:
+            dims = self.src_ele_dists[0].shape
+            self.b_pot = np.zeros(dims)
+            for i in range(dims[0]):
+                for j in range(dims[1]):
+                    self.b_pot[i, j] = self.forward_model(self.src_ele_dists[0][i,j],
+                                                          self.src_ele_dists[1][i,j],
+                                                          self.R,
+                                                          self.h,
+                                                          self.sigma,
+                                                          self.basis)
+        
         self.k_pot = np.dot(self.b_pot.T, self.b_pot)  # K(x,x') Eq9,Jan2012
         self.k_pot /= self.n_src
+        
+
+    def update_b_interp_pot(self):
+        """Compute the matrix of potentials generated by every source
+        basis function at every position in the interpolated space.
+        Updates b_interp_pot
+        Updates k_interp_pot
+
+        Parameters
+        ----------
+        None
+        """
+        shape = self.src_estm_dists_pot[0].shape
+        src = self.src_estm_dists_pot[0].reshape(shape[0]*shape[1])
+        est_points = self.src_estm_dists_pot[1].reshape(shape[0]*shape[1])
+        b_interp_pot = self.interpolate_pot_at(src, est_points, grid=False)
+        self.b_interp_pot = b_interp_pot.reshape(shape[0], shape[1])
+        self.k_interp_pot = np.dot(self.b_interp_pot.T, self.b_pot)
+        self.k_interp_pot /= self.n_src
+
 
     def potential_at_the_electrodes(self):
         """
@@ -776,7 +847,7 @@ class sKCSD(KCSD1D):
         raise Exception("Unknown transformation %s of %s" %
                         (transformation, estimate))
 
-    def int_pot_1D(self, xp, x, R, basis_func):
+    def int_pot_3D(self, xp, src, x, y, z, R, basis_func):
         """FWD model function.
         Returns contribution of a point sp,yp, belonging to a basis source
         support centered at (0,0) to the potential measured at (x,0,0),
@@ -799,16 +870,85 @@ class sKCSD(KCSD1D):
         -------
         pot : float
         """
+        
         if xp > self.cell.max_dist:
             xp = xp - self.cell.max_dist
         elif xp < 0:
             xp = xp + self.cell.max_dist
+        
         xp_coor = self.cell.get_xyz(xp)
-        dist = ((x - xp_coor[0])**2 + xp_coor[1]**2 + xp_coor[2]**2)**0.5
-        pot = basis_func(xp, R)/dist  # xp is the distance
+        dist = 0
+        x = [x, y, z]
+        for i, coor in enumerate(xp_coor):
+            dist += (x[i] - coor)**2 
+        pot = basis_func(xp-src, R)/np.sqrt(dist)  # xp is the distance
         return pot
 
-    def int_pot_1D_mc(self, xyz, x, R, basis_func):
+    def int_pot_3D_mc(self, xyz, src, x, y, z, R, basis_func):
+        """
+        The same as int_pot_1D, just different input: x <-- xp (tuple)
+        FWD model function, using Monte Carlo Method of integration
+        Returns contribution of a point xp,yp, belonging to a basis source
+        support centered at (0,0) to the potential measured at (x,0),
+        integrated over xp,yp gives the potential generated by a
+        basis source element centered at (0,0) at point (x,0)
+
+        Parameters
+        ----------
+        xp : floats or np.arrays
+            point or set of points where function should be calculated
+        x :  float
+            position at which potential is being measured
+        R : float
+            The size of the basis function
+        basis_func : method
+            Fuction of the basis source
+
+        Returns
+        -------
+        pot : float
+        """
+        xp = xyz[0]
+        return self.int_pot_3D(xp, src, x, y, z, R, basis_func)
+    
+    def int_pot_1D(self, xp, src, x, R, basis_func):
+        """FWD model function.
+        Returns contribution of a point sp,yp, belonging to a basis source
+        support centered at (0,0) to the potential measured at (x,0,0),
+        integrated over xp,yp gives the potential generated by a
+        basis source element centered at (0,0) at point (x,0)
+        Eq 26 kCSD by Jan,2012
+
+        Parameters
+        ----------
+        xp : floats or np.arrays
+            point or set of points where function should be calculated
+        x :  float
+            position at which potential is being measured
+        R : float
+            The size of the basis function
+        basis_func : method
+            Fuction of the basis source
+
+        Returns
+        -------
+        pot : float
+        """
+        
+        if xp > self.cell.max_dist:
+            xp = xp - self.cell.max_dist
+        elif xp < 0:
+            xp = xp + self.cell.max_dist
+            
+        xp_coor = self.cell.get_xyz(xp)
+        x_coor = self.cell.get_xyz(x)
+        dist = 0
+        for i, coor in enumerate(xp_coor):
+            dist += (x_coor[i] - coor)**2 
+        pot = basis_func(xp-src, R)/np.sqrt(dist)  # xp is the distance
+        return pot
+
+    def int_pot_1D_mc(self, xyz, src, x, R, basis_func):
         """
         The same as int_pot_1D, just different input: x <-- xp (tuple)
         FWD model function, using Monte Carlo Method of integration
