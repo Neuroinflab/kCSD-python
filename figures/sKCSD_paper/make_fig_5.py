@@ -9,7 +9,7 @@ import kcsd.utility_functions as utils
 import kcsd.validation.plotting_functions as pl
 import sKCSD_utils
 n_src = 512
-R = 8e-6/2**.5
+R = 16e-6/2**.5
 lambd = 1
 
 if __name__ == '__main__':

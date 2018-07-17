@@ -10,7 +10,7 @@ import kcsd.validation.plotting_functions as pl
 import sKCSD_utils
 n_src = 512
 lambd = 1e-1
-R = 8e-6/2**.5
+R = 16e-6/2**.5
 if __name__ == '__main__':
     fname_base = "Figure_6"
     tstop = 70
