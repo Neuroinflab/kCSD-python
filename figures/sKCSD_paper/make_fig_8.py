@@ -48,7 +48,7 @@ if __name__ == '__main__':
     ground_truth = np.loadtxt(os.path.join(data_dir,
                                            'membcurr'))/seglen[:, None]*1e-3
     dt = c.cell_parameters['dt']
-    t0 = 500//dt
+    t0 = int(500/dt)
     for i, R in enumerate(R_inits):
         for j, l in enumerate(lambdas):
             lambd = l*2*(2*np.pi)**3*R**2*n_src
@@ -59,7 +59,7 @@ if __name__ == '__main__':
                         src_type='gauss',
                         lambd=lambd,
                         R_init=R,
-                        dist_table_density=250,
+                        dist_table_density=50,
                         skmonaco_available=False)
             if not i and not j:
                 ground_truth_3D = ker.cell.transform_to_3D(ground_truth,
