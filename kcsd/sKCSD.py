@@ -664,9 +664,11 @@ class sKCSD(KCSD1D):
         """
         assert 2**1.5*self.R < self.cell.max_dist
         
-        xs = np.logspace(0., np.log10(self.dist_max+1.), self.dist_table_density)
+        xs = np.logspace(0.,
+                         np.log10(self.dist_max+1.),
+                         self.dist_table_density)
         xs = xs - 1.
-        #xs = np.linspace(0, self.dist_max,  self.dist_table_density)
+
         positions = np.meshgrid(xs, xs, indexing='ij')
         dist_table = np.zeros_like(positions[0])
         for i, pos in enumerate(positions[0]):
