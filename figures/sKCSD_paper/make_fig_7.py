@@ -15,7 +15,7 @@ if __name__ == '__main__':
     scale_factor = 1000**2
     scale_factor_LFP = 1000
     R_inits = np.array([(2**(i - .5))/scale_factor for i in range(3, 7)])
-    lambdas = np.array([(10**(-i))for i in range(10, 0, -1)])
+    lambdas = np.array([(10**(-i))for i in range(4, -4, -1)])
     n_srcs = np.array([32, 64, 128, 512, 1024])
     x_ticklabels = [2**i for i in range(3, 9)]
     y_ticklabels = [str(lambd) for lambd in lambdas]
