@@ -10,7 +10,7 @@ import kcsd.validation.plotting_functions as pl
 import sKCSD_utils
 n_src = 512
 lambd = 1e-1
-R = 8e-6/2**.5
+R = 16e-6/2**.5
 if __name__ == '__main__':
     fname_base = "Figure_6"
     tstop = 70
@@ -47,10 +47,10 @@ if __name__ == '__main__':
                                            'membcurr'))
     ground_truth = ground_truth/seglen[:, None]*1e-3
     dt = c.cell_parameters['dt']
-    t1 = 42//dt
-    t2 = 5//dt
+    t1 = int(42/dt)
+    t2 = int(5/dt)
     atstart = t2
-    atstop = t2 + 10//dt
+    atstop = int(t2 + 10/dt)
     simulation_paths = []
     data_paths = []
     skcsd_grid = []
