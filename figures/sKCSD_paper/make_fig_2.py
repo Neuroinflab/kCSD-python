@@ -23,8 +23,6 @@ from kcsd.validation import plotting_functions as pl
 n_src = 512
 lambd = 1
 R = 8e-6/2**.5
-import run_LFP
-
 if __name__ == '__main__':
     fname_base = "Figure_2"
     fig_name = sKCSD_utils.make_fig_names(fname_base)
@@ -36,22 +34,28 @@ if __name__ == '__main__':
     xmin, xmax = -100, 600
     ymin, ymax = 0, 200
     orientation = 1
+    
     for rownb in electrode_number:
-        fname = "Figure_2"
-        c = sKCSD_utils.simulate(fname,
-                                 morphology=1,
-                                 simulate_what="sine",
-                                 colnb=1,
-                                 rownb=rownb,
-                                 xmin=xmin,
-                                 xmax=xmax,
-                                 ymin=ymin,
-                                 ymax=ymax,
-                                 tstop=tstop,
-                                 seed=1988,
-                                 weight=0.1,
-                                 n_syn=100)
-        data_dir.append(c.return_paths_skCSD_python())
+        fname = '%s_rows_%d' % (fname_base, rownb)
+        if sys.version_info < (3, 0):
+            c = sKCSD_utils.simulate(fname,
+                                     morphology=1,
+                                     simulate_what="sine",
+                                     colnb=1,
+                                     rownb=rownb,
+                                     xmin=xmin,
+                                     xmax=xmax,
+                                     ymin=ymin,
+                                     ymax=ymax,
+                                     tstop=tstop,
+                                     seed=1988,
+                                     weight=0.1,
+                                     n_syn=100)
+            data_dir.append(c.return_paths_skCSD_python())
+        else:
+            new_dir = os.path.join('simulation', fname)
+            data_dir.append(new_dir)
+            
     seglen = np.loadtxt(os.path.join(data_dir[0], 'seglength'))
     ground_truth = np.loadtxt(os.path.join(data_dir[0], 'membcurr'))
     ground_truth = ground_truth/seglen[:, None]*1e-3

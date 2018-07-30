@@ -1,5 +1,4 @@
 from __future__ import division, print_function
-import run_LFP
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
@@ -24,21 +23,25 @@ if __name__ == '__main__':
     ymin, ymax = 0, 200
     orientation = 1
     for rownb in electrode_number:
-        fname = "Figure_3"
-        c = sKCSD_utils.simulate(fname,
-                                 morphology=1,
-                                 simulate_what="random",
-                                 colnb=1,
-                                 rownb=rownb,
-                                 xmin=xmin,
-                                 xmax=xmax,
-                                 ymin=ymin,
-                                 ymax=ymax,
-                                 tstop=tstop,
-                                 seed=1988,
-                                 weight=0.1,
-                                 n_syn=100)
-        data_dir.append(c.return_paths_skCSD_python())
+        fname = '%s_rows_%d' % (fname_base, rownb)
+        if sys.version_info < (3, 0):
+            c = sKCSD_utils.simulate(fname,
+                                     morphology=1,
+                                     simulate_what="random",
+                                     colnb=1,
+                                     rownb=rownb,
+                                     xmin=xmin,
+                                     xmax=xmax,
+                                     ymin=ymin,
+                                     ymax=ymax,
+                                     tstop=tstop,
+                                     seed=1988,
+                                     weight=0.1,
+                                     n_syn=100)
+            new_dir = c.return_paths_skCSD_python()
+        else:
+            new_dir = os.path.join('simulation', fname)
+        data_dir.append(new_dir)
     seglen = np.loadtxt(os.path.join(data_dir[0], 'seglength'))
     ground_truth = np.loadtxt(os.path.join(data_dir[0], 'membcurr'))
     ground_truth = ground_truth/seglen[:, None]*1e-3
