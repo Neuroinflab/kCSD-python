@@ -1,0 +1,4 @@
+All figures are generated using LFPy package. Since there is no LFPy
+for Python3, if you want to run scripts generating figures first you
+have to run them with Python2, so all the generated data is saved on
+your disk and then rerun the scripts using Python3.

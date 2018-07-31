@@ -1,5 +1,4 @@
 from __future__ import division, print_function
-import run_LFP
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
@@ -8,7 +7,7 @@ from kcsd import sKCSD
 import kcsd.utility_functions as utils
 import kcsd.validation.plotting_functions as pl
 import sKCSD_utils
-import run_LFP
+
 n_src = 512
 if __name__ == '__main__':
     fname_base = "Figure_8"
@@ -21,23 +20,28 @@ if __name__ == '__main__':
     lambdas = np.array([(10**(-i))for i in range(5)])
     colnb = 10
     rownb = 10
-    c = sKCSD_utils.simulate(fname_base,
-                             morphology=6,
-                             tstop=tstop,
-                             seed=1988,
-                             weight=0.04,
-                             n_syn=1000,
-                             simulate_what='oscillatory',
-                             electrode_distribution=1,
-                             electrode_orientation=3,
-                             xmin=-400,
-                             xmax=400,
-                             ymin=-400,
-                             ymax=400,
-                             colnb=colnb,
-                             rownb=rownb,
-                             dt=0.5)
-    data_dir = c.return_paths_skCSD_python()
+    fname = '%s_rows_%d' % (fname_base, rownb)
+    dt = .5
+    if sys.version_info< (3, 0):
+        c = sKCSD_utils.simulate(fname,
+                                 morphology=6,
+                                 tstop=tstop,
+                                 seed=1988,
+                                 weight=0.04,
+                                 n_syn=1000,
+                                 simulate_what='oscillatory',
+                                 electrode_distribution=1,
+                                 electrode_orientation=3,
+                                 xmin=-400,
+                                 xmax=400,
+                                 ymin=-400,
+                                 ymax=400,
+                                 colnb=colnb,
+                                 rownb=rownb,
+                                 dt=dt)
+        data_dir = c.return_paths_skCSD_python()
+    else:
+        data_dir = os.path.join('simulation', fname)
     data = utils.LoadData(data_dir)
     ele_pos = data.ele_pos/scale_factor
     data.LFP = data.LFP/scale_factor_LFP
@@ -47,7 +51,6 @@ if __name__ == '__main__':
                                      'seglength'))
     ground_truth = np.loadtxt(os.path.join(data_dir,
                                            'membcurr'))/seglen[:, None]*1e-3
-    dt = c.cell_parameters['dt']
     t0 = int(500/dt)
     for i, R in enumerate(R_inits):
         for j, l in enumerate(lambdas):
@@ -66,8 +69,6 @@ if __name__ == '__main__':
                                                           what="morpho")
                 vmax, vmin = pl.get_min_max(ground_truth_3D)
             ker_dir = data_dir + '_R_%f_lambda_%f' % (R, lambd)
-            c.new_path = ker_dir
-            c.save_skCSD_python()
             morpho, extent = ker.cell.draw_cell2D(axis=2)
             est_skcsd = ker.values()
             fig, ax = plt.subplots(1, 2)

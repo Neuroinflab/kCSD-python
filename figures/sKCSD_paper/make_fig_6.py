@@ -1,5 +1,4 @@
 from __future__ import division, print_function
-import run_LFP
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
@@ -18,35 +17,39 @@ if __name__ == '__main__':
     scaling_factor_LFP = 1000
     data_dir = []
     colnb = 4
+    dt = 2**(-4)
     rows = [2, 4, 8, 16]
     xmin, xmax = -200, 600
     ymin, ymax = -200, 200
     sim_type = {'1': "grid", '2': "random"}
     for i, rownb in enumerate(rows):
         for orientation in [1, 2]:
-            fname = "Figure_6_" + sim_type[str(orientation)]
-            c = sKCSD_utils.simulate(fname,
-                                     morphology=2,
-                                     simulate_what="symmetric",
-                                     colnb=colnb,
-                                     rownb=rownb,
-                                     xmin=xmin,
-                                     xmax=xmax,
-                                     ymin=ymin,
-                                     ymax=ymax,
-                                     tstop=tstop,
-                                     seed=1988,
-                                     weight=0.04,
-                                     n_syn=100,
-                                     electrode_distribution=orientation,
-                                     dt=2**(-4))
-            data_dir.append(c.return_paths_skCSD_python())
+            fname = "Figure_6_%s_rows_%d" % (sim_type[str(orientation)], rownb)
+            if sys.version_info < (3, 0):
+                c = sKCSD_utils.simulate(fname,
+                                         morphology=2,
+                                         simulate_what="symmetric",
+                                         colnb=colnb,
+                                         rownb=rownb,
+                                         xmin=xmin,
+                                         xmax=xmax,
+                                         ymin=ymin,
+                                         ymax=ymax,
+                                         tstop=tstop,
+                                         seed=1988,
+                                         weight=0.04,
+                                         n_syn=100,
+                                         electrode_distribution=orientation,
+                                         dt=dt)
+                new_path = c.return_paths_skCSD_python()
+            else:
+                new_path = os.path.join('simulation', fname)
+            data_dir.append(new_path)
     seglen = np.loadtxt(os.path.join(data_dir[0],
                                      'seglength'))
     ground_truth = np.loadtxt(os.path.join(data_dir[0],
                                            'membcurr'))
     ground_truth = ground_truth/seglen[:, None]*1e-3
-    dt = c.cell_parameters['dt']
     t1 = int(42/dt)
     t2 = int(5/dt)
     atstart = t2

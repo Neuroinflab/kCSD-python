@@ -3,6 +3,7 @@ import numpy as np
 import sys
 import os
 import random
+
 import LFPy
 from kcsd import sample_data_path
 morphology_directory = os.path.join(sample_data_path,'morphology')

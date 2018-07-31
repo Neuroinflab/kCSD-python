@@ -1,5 +1,5 @@
 from __future__ import division, print_function
-import run_LFP
+
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
@@ -24,30 +24,34 @@ if __name__ == '__main__':
     lfps = []
     extent = [-200, 200, -200, 600]
     xmin = [50, -200]
+    dt = 0.15
     for i, rownb in enumerate(electrode_number):
-        fname = fname_base
-        c = sKCSD_utils.simulate(fname,
-                                 morphology=2,
-                                 colnb=colnb,
-                                 rownb=rownb,
-                                 xmin=-200,
-                                 xmax=600,
-                                 ymin=xmin[i],
-                                 ymax=200,
-                                 tstop=tstop,
-                                 seed=1988,
-                                 weight=0.01,
-                                 n_syn=100,
-                                 simulate_what="symmetric",
-                                 dt=.2)
-        data_dir.append(c.return_paths_skCSD_python())
+        fname = '%s_%d' %(fname_base, rownb)
+        if sys.version_info < (3, 0):
+            c = sKCSD_utils.simulate(fname,
+                                     morphology=2,
+                                     colnb=colnb,
+                                     rownb=rownb,
+                                     xmin=-200,
+                                     xmax=600,
+                                     ymin=xmin[i],
+                                     ymax=200,
+                                     tstop=tstop,
+                                     seed=1988,
+                                     weight=0.01,
+                                     n_syn=100,
+                                     simulate_what="symmetric",
+                                     dt=dt)
+            new_dir = c.return_paths_skCSD_python()
+        else:
+            new_dir = os.path.join('simulation', fname)
+        data_dir.append(new_dir)
     seglen = np.loadtxt(os.path.join(data_dir[0], 'seglength'))
     ground_truth = np.loadtxt(os.path.join(data_dir[0], 'membcurr'))
     ground_truth = ground_truth/seglen[:, None]*1e-3
     ground_truth_grid = []
     ground_truth_t1 = None
     ground_truth_t2 = None
-    dt = c.cell_parameters['dt']
     t1 = int(45.5/dt)
     t2 = int(5.5/dt)
     R_inits = [2**i for i in range(3, 8)]

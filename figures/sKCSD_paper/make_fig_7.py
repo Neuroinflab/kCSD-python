@@ -1,5 +1,4 @@
 from __future__ import division, print_function
-import run_LFP
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
@@ -14,34 +13,40 @@ if __name__ == '__main__':
     tstop = 70
     scale_factor = 1000**2
     scale_factor_LFP = 1000
-    R_inits = np.array([(2**(i - .5))/scale_factor for i in range(3, 7)])
-    lambdas = np.array([(10**(-i))for i in range(10, 0, -1)])
+    R_inits = np.array([(2**(i - .5))/scale_factor for i in range(4, 7)])
+    lambdas = np.array([(10**(-i))for i in range(4, -4, -1)])
     n_srcs = np.array([32, 64, 128, 512, 1024])
     x_ticklabels = [2**i for i in range(3, 9)]
     y_ticklabels = [str(lambd) for lambd in lambdas]
     colnb = 4
     rownb = 4
-    c = sKCSD_utils.simulate(fname_base,
-                             morphology=2,
-                             colnb=colnb,
-                             rownb=rownb,
-                             xmin=-200,
-                             xmax=600,
-                             ymin=-200,
-                             ymax=200,
-                             tstop=tstop,
-                             seed=1988,
-                             weight=0.04,
-                             n_syn=100,
-                             simulate_what='symmetric')
-    data = utils.LoadData(c.return_paths_skCSD_python())
+    fname = '%s_rows_%d' % (fname_base, rownb)
+    if sys.version_info < (3, 0):
+        c = sKCSD_utils.simulate(fname,
+                                 morphology=2,
+                                 colnb=colnb,
+                                 rownb=rownb,
+                                 xmin=-200,
+                                 xmax=600,
+                                 ymin=-200,
+                                 ymax=200,
+                                 tstop=tstop,
+                                 seed=1988,
+                                 weight=0.04,
+                                 n_syn=100,
+                                 simulate_what='symmetric')
+        new_path = c.return_paths_skCSD_python()
+    else:
+        new_path = os.path.join('simulation', fname)
+    data = utils.LoadData(new_path)
     ele_pos = data.ele_pos/scale_factor
     pots = data.LFP/scale_factor_LFP
     morphology = data.morphology
     morphology[:, 2:6] = morphology[:, 2:6]/scale_factor
-    ground_truth = np.loadtxt(os.path.join(c.return_paths_skCSD_python(),
+    
+    ground_truth = np.loadtxt(os.path.join(new_path,
                                            'membcurr'))
-    seglen = np.loadtxt(os.path.join(c.return_paths_skCSD_python(),
+    seglen = np.loadtxt(os.path.join(new_path,
                                      'seglength'))
     ground_truth = ground_truth/seglen[:, None]*1e-3
     outs = np.zeros((len(n_srcs), len(lambdas), len(R_inits)))
@@ -61,6 +66,7 @@ if __name__ == '__main__':
                                        transformation='segments')
                 outs[i, j, k] = sKCSD_utils.L1_error(ground_truth,
                                                      est_skcsd)
+                print(outs[i, j, k])
     fig, ax = plt.subplots(1, 4, sharey=True)
     vmax = outs.max()
     vmin = outs.min()

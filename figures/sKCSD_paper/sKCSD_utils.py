@@ -1,7 +1,9 @@
 from __future__ import division
 import numpy as np
 import os
-import run_LFP
+import sys
+if sys.version_info < (3, 0):
+    import run_LFP
 
 
 def make_fig_names(fname_base):
@@ -10,7 +12,7 @@ def make_fig_names(fname_base):
     return os.path.join('Figures', fname_base)
 
 
-def simulate(fname_base, **kwargs):
+def simulate(fname, **kwargs):
     morphology = kwargs.pop("morphology", 1)
     simulate_what = kwargs.pop("simulate_what", 1)
     electrode_orientation = kwargs.pop("electrode_orientation", 2)
@@ -25,7 +27,6 @@ def simulate(fname_base, **kwargs):
     seed = kwargs.pop("seed", 1988)
     weight = kwargs.pop("weight", .01)
     n_syn = kwargs.pop("n_syn", 1000)
-    fname = fname_base+'_rows_%s' % rownb
     triside = kwargs.pop("triside", 60)
     dt = kwargs.pop("dt", 0.5)
     if kwargs:
