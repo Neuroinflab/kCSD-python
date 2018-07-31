@@ -72,6 +72,7 @@ class sKCSDcell(object):
         self.dims = self.get_grid()
         if kwargs:
             raise TypeError('Invalid keyword arguments:', kwargs.keys())
+        self.est_xyz_auto =  False
 
     def add_segment(self, mp1, mp2):
         """Add indices (mp1, mp2) of morphology points defining a segment
