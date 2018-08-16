@@ -553,6 +553,8 @@ class sKCSD(KCSD1D):
         self.dim = 'skCSD'
         self.tolerance = kwargs.pop('tolerance', 2e-06)
         self.skmonaco_available = kwargs.pop('skmonaco_available',skmonaco_available)
+        self.est_xyz = np.array([])
+        self.est_xyz_auto =  False
         if kwargs:
             raise TypeError('Invalid keyword arguments:', kwargs.keys())
 

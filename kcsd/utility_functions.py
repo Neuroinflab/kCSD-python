@@ -366,6 +366,56 @@ def get_src_params_3D(Lx, Ly, Lz, n_src):
     return (nx, ny, nz, Lx_n, Ly_n, Lz_n, ds)
 
 
+def get_estm_places(wsp_plot, gdx, gdy, gdz):
+    """Distribute sources under virtual electrode surface
+    default method for electrode surface interpolation is "nearest"
+    form scipy.interpolate.griddata function
+    Parameters
+    ----------
+    wsp_plot : np.arrays
+        electrode XYZ coordinates
+    gdx, gdy, gdz : ints
+        distance beetwen estimation/source points 
+    Returns
+    -------
+    est_xyz : np.array
+        coordinates of points where we want to estimate CSD (under electordes)
+    """
+    xmin = np.min(wsp_plot[0])
+    xmax = np.max(wsp_plot[0])
+    ymin = np.min(wsp_plot[1])
+    ymax = np.max(wsp_plot[1])
+    zmin = np.min(wsp_plot[2])
+    zmax = np.max(wsp_plot[2])
+
+    lnx = int((xmax - xmin)/gdx)
+    lny = int((ymax - ymin)/gdy)
+    lnz = int((zmax - zmin)/gdz)
+
+    grid_x, grid_y = np.mgrid[xmin:xmax:lnx*1j, ymin:ymax:lny*1j]
+    points = np.array([wsp_plot[0], wsp_plot[1]]).T
+    values = wsp_plot[2]
+    grid_z = interpolate.griddata(points, values, (grid_x, grid_y), method='nearest')
+    estm_x, estm_y, estm_z = np.mgrid[xmin:xmax:np.complex(0,int(lnx)), 
+                                      ymin:ymax:np.complex(0,int(lny)),
+                                      zmin:zmax:np.complex(0,int(lnz))]
+    mask_mtrx = np.zeros(estm_x.shape)
+    for z in range(lnz):
+        mask_mtrx[:,:,z] = estm_z[:,:,z]<grid_z
+    estm_z_new = mask_mtrx * estm_z
+
+    xpos = estm_x.ravel()
+    ypos = estm_y.ravel()
+    zpos = estm_z_new.ravel()
+
+    idx_to_remove = np.where(zpos == 0)
+    xpos = np.delete(xpos, idx_to_remove)
+    ypos = np.delete(ypos, idx_to_remove)
+    zpos = np.delete(zpos, idx_to_remove)
+
+    est_xyz = np.array([xpos,ypos,zpos])
+    return est_xyz
+
 def L_model_fast(k_pot, pots, lamb, i):
     """Method for Fast L-curve computation
     Parameters
