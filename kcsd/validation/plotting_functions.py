@@ -319,7 +319,7 @@ def make_map_plot(ax_i, what, **kwargs):
     cmap = kwargs.pop('cmap', plt.cm.bwr_r)
     xlabel = kwargs.pop('xlabel', None)
     ylabel = kwargs.pop('ylabel', None)
-
+    alpha = kwargs.pop('alpha', 0.5)  # transparency
     if kwargs:
         raise TypeError('Invalid keyword arguments:', kwargs.keys())
 
@@ -336,7 +336,8 @@ def make_map_plot(ax_i, what, **kwargs):
                           vmin=xmin,
                           vmax=xmax,
                           extent=extent,
-                          cmap=cmap)
+                          cmap=cmap,
+                          alpha=alpha)
         for tick in ax_i.get_xticklabels():
             tick.set_rotation(90)
     else:
@@ -346,7 +347,8 @@ def make_map_plot(ax_i, what, **kwargs):
                           interpolation='none',
                           vmin=xmin,
                           vmax=xmax,
-                          cmap=cmap)
+                          cmap=cmap,
+                          alpha=alpha)
     if xticklabels:
         xticks = calculate_ticks(xticklabels, what.shape[1])
         ax_i.set_xticks(xticks)
