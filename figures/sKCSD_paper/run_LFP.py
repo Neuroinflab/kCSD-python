@@ -49,13 +49,13 @@ class CellModel():
         'tstart': 0.,
         'passive': True,
         'passive_parameters': {'e_pas': -65,
-                               'g_pas': 1./30000},
+        'g_pas': 1./30000},
         # initial crossmembrane potential
         'v_init': -65,
         'nsegs_method': 'fixed_length',
         'max_nsegs_length': 10,
         'custom_code': [],  # will run this file
-        'dt': 0.5,
+        'dt': 0.25,
     }
     SYNAPSE_PARAMETERS = {
         # idx to be set later
@@ -69,7 +69,8 @@ class CellModel():
         'rec_imem': True,
     }
     ELECTRODE_PARAMETERS = {
-        'method': 'linesource'
+        'method': 'linesource',
+        
     }
     POINT_PROCESS = {
         'idx': 0,
@@ -99,7 +100,7 @@ class CellModel():
         tstop = kwargs.pop('tstop', 850)
         self.cell_parameters['tstop'] = tstop
         cell_electrode_dist = kwargs.pop('electrode_distance', 50)
-        triside = kwargs.pop('triside', 19)
+        triside = 2*kwargs.pop('triside', 60)
         ssNB = kwargs.pop('seed', 123456)
         custom_code = kwargs.pop('custom_code', [])
         morphology = kwargs.pop('morphology', 1)
@@ -130,6 +131,7 @@ class CellModel():
                                 triside,
                                 ssNB)
         self.add_electrodes()
+        self.pre_syn_pick = np.empty((1,1))
 
     def make_y_shaped(self):
         self.cell_parameters['rm'] = 30000.
@@ -156,13 +158,22 @@ class CellModel():
 
     def make_cell(self, morphology, custom_code=[]):
         self.cell_parameters['morphology'] = morphology
-        if not morphology.endswith('.hoc'):
-            if not self.cell_parameters['custom_code']:
-                path = os.path.join(morphology_directory, 'active.hoc')
-                self.cell_parameters['custom_code'].append(path)
+        
         for code in custom_code:
             self.cell_parameters['custom_code'].append(custom_code)
+
         self.cell = LFPy.Cell(**self.cell_parameters)
+        
+        if not morphology.endswith('.hoc'):
+            if not self.cell_parameters['custom_code']:
+               for section in self.cell.allseclist:
+                   if 'soma' in section.name():
+                       section.insert('hh')
+                       print('Inserting Hodgkin-Huxley channels into %s' % section.name())
+                       
+        self.cell.set_pos(x = LFPy.cell.neuron.h.x3d(0),
+                          y = LFPy.cell.neuron.h.y3d(0),
+                          z = LFPy.cell.neuron.h.z3d(0))
         return self.cell
 
     def save_morphology_to_file(self):
@@ -182,6 +193,7 @@ class CellModel():
         self.morphology[0, 2:5] = coords[0]
         self.morphology[0, 5] = segdiam[0]
         self.morphology[0, 6] = -1
+
         for section in self.cell.allseclist:
             parents[section.name()] = section.parentseg()
         for secn in self.cell.allsecnames:
@@ -254,6 +266,7 @@ class CellModel():
         if orientation == 3:
             i, j, k = 0, 1, 2
         self.ele_coordinates = np.ones((rownb*colnb, 3))*cellelectrodedist
+
         if eldistribute == 1:  # grid
             linspace = np.linspace(xmin, xmax, rownb)
             self.ele_coordinates[:, i] = np.array(colnb*list(linspace))
@@ -288,7 +301,6 @@ class CellModel():
             Ycoord = grid1[1] + grid2[1]
             self.ele_coordinates[:, i] = Xcoord
             self.ele_coordinates[:, j] = Ycoord
-            self.ele_coordinates[:, k] *= cellelectrodedist
         elif eldistribute == 4:
             self.ele_coordinates = np.loadtxt(os.path.join(sample_data_path, 'ElcoordsDomi14.txt'))
         if not os.path.exists(self.new_path):
@@ -310,10 +322,9 @@ class CellModel():
                                                   tstop=400)
         l = np.arange(self.n_pre_syn)
         pre_syn_pick = np.random.permutation(l)[0:self.n_synapses]
-        self.synapse_parameters['weight'] = 0.05
         pars = {}
         for i_syn in range(self.n_synapses):
-            syn_idx = int(self.cell.get_rand_idx_area_norm(section="dend"))
+            syn_idx = int(self.cell.get_rand_idx_area_norm())
             spike_times = pre_syn_sptimes[pre_syn_pick[i_syn]]
             if syn_idx in pars:
                 pars[syn_idx].extend(list(spike_times))
@@ -323,13 +334,19 @@ class CellModel():
             self.synapse_parameters.update({'idx': syn_idx})
             synapse = LFPy.Synapse(self.cell, **self.synapse_parameters)
             synapse.set_spike_times(np.array(pars[syn_idx]))
-        self.point_process['dur'] = 1
-        TimesStim = np.arange(tstop)
-        stim = np.array(3.6e-1*np.sin(2.*3.141*6.5*TimesStim/1000.))
+       
+        TimesStim = np.arange(850)
+        stim = np.array(3.6*np.sin(2.*3.141*6.5*TimesStim/1000.))
         for istim in range(tstop):
-            self.point_process['amp'] = stim[istim]
-            self.point_process['delay'] = istim
-            stimulus = LFPy.StimIntElectrode(self.cell, **self.point_process)
+            pointprocess = {
+                'idx' : 0,
+                'pptype': 'IClamp',
+                'record_current' : True,
+                'amp': stim[istim],
+                'dur' : 1.,
+                'delay': istim,
+                }
+            stimulus = LFPy.StimIntElectrode(self.cell, **pointprocess)
 
     def random_synaptic_input(self,
                               lambd=2,
@@ -389,7 +406,7 @@ class CellModel():
         if stimulus:
             self.stimulus = stimulus
         if self.stimulus == 'constant':
-            self.constant_current_injection(amp=1, idx=0)
+            self.constant_current_injection(amp=10, idx=0)
         elif self.stimulus == 'random':
             self.random_synaptic_input()
         elif self.stimulus == 'sine':
