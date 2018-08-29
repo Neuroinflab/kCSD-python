@@ -8,8 +8,8 @@ import kcsd.utility_functions as utils
 import kcsd.validation.plotting_functions as pl
 import sKCSD_utils
 n_src = 512
-lambd = 1e-1
 R = 16e-6/2**.5
+lambd = .1/((2*(2*np.pi)**3*R**2*n_src))
 if __name__ == '__main__':
     fname_base = "Figure_6"
     tstop = 70
@@ -19,32 +19,29 @@ if __name__ == '__main__':
     colnb = 4
     dt = 2**(-4)
     rows = [2, 4, 8, 16]
-    xmin, xmax = -200, 600
-    ymin, ymax = -200, 200
+    xmin, xmax = -100, 600
+    ymin, ymax = -100, 100
     sim_type = {'1': "grid", '2': "random"}
     for i, rownb in enumerate(rows):
         for orientation in [1, 2]:
-            fname = "Figure_6_%s_rows_%d" % (sim_type[str(orientation)], rownb)
-            if sys.version_info < (3, 0):
-                c = sKCSD_utils.simulate(fname,
-                                         morphology=2,
-                                         simulate_what="symmetric",
-                                         colnb=colnb,
-                                         rownb=rownb,
-                                         xmin=xmin,
-                                         xmax=xmax,
-                                         ymin=ymin,
-                                         ymax=ymax,
-                                         tstop=tstop,
-                                         seed=1988,
-                                         weight=0.04,
-                                         n_syn=100,
-                                         electrode_distribution=orientation,
-                                         dt=dt)
-                new_path = c.return_paths_skCSD_python()
-            else:
-                new_path = os.path.join('simulation', fname)
-            data_dir.append(new_path)
+            fname = "Figure_6_" + sim_type[str(orientation)]
+            c = sKCSD_utils.simulate(fname,
+                                     morphology=2,
+                                     simulate_what="symmetric",
+                                     colnb=rownb,
+                                     rownb=colnb,
+                                     xmin=-100,
+                                     xmax=500,
+                                     ymin=-100,
+                                     ymax=100,
+                                     tstop=tstop,
+                                     seed=1988,
+                                     weight=0.04,
+                                     n_syn=100,
+                                     electrode_distribution=orientation,
+                                     electrode_orientation=2,
+                                     dt=2**(-4))
+            data_dir.append(c.return_paths_skCSD_python())
     seglen = np.loadtxt(os.path.join(data_dir[0],
                                      'seglength'))
     ground_truth = np.loadtxt(os.path.join(data_dir[0],
