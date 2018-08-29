@@ -27,6 +27,7 @@ def simulate(fname, **kwargs):
     seed = kwargs.pop("seed", 1988)
     weight = kwargs.pop("weight", .01)
     n_syn = kwargs.pop("n_syn", 1000)
+    fname = fname_base+'_rows_%s_cols_%s' % (rownb, colnb)
     triside = kwargs.pop("triside", 60)
     dt = kwargs.pop("dt", 0.5)
     if kwargs:
