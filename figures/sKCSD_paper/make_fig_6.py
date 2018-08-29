@@ -9,8 +9,9 @@ import kcsd.utility_functions as utils
 import kcsd.validation.plotting_functions as pl
 import sKCSD_utils
 n_src = 512
-lambd = 1e-1
-R = 8e-6/2**.5
+
+R = 16e-6/2**.5
+lambd = .1/((2*(2*np.pi)**3*R**2*n_src))
 if __name__ == '__main__':
     fname_base = "Figure_6"
     tstop = 70
@@ -19,8 +20,8 @@ if __name__ == '__main__':
     data_dir = []
     colnb = 4
     rows = [2, 4, 8, 16]
-    xmin, xmax = -200, 600
-    ymin, ymax = -200, 200
+    xmin, xmax = -100, 600
+    ymin, ymax = -100, 100
     sim_type = {'1': "grid", '2': "random"}
     for i, rownb in enumerate(rows):
         for orientation in [1, 2]:
@@ -28,17 +29,18 @@ if __name__ == '__main__':
             c = sKCSD_utils.simulate(fname,
                                      morphology=2,
                                      simulate_what="symmetric",
-                                     colnb=colnb,
-                                     rownb=rownb,
-                                     xmin=xmin,
-                                     xmax=xmax,
-                                     ymin=ymin,
-                                     ymax=ymax,
+                                     colnb=rownb,
+                                     rownb=colnb,
+                                     xmin=-100,
+                                     xmax=500,
+                                     ymin=-100,
+                                     ymax=100,
                                      tstop=tstop,
                                      seed=1988,
                                      weight=0.04,
                                      n_syn=100,
                                      electrode_distribution=orientation,
+                                     electrode_orientation=2,
                                      dt=2**(-4))
             data_dir.append(c.return_paths_skCSD_python())
     seglen = np.loadtxt(os.path.join(data_dir[0],
