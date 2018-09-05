@@ -69,7 +69,7 @@ def load_swc(path):
     return morphology
 
 
-def save_sim(path,k):
+def save_sim(path, k):
     """
     Save estimated CSD, potential and cell morphology to file.
     
