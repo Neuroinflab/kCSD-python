@@ -11,7 +11,7 @@ import sKCSD_utils
 n_src = 512
 R = 16e-6/2**.5
 lambd = .1/((2*(2*np.pi)**3*R**2*n_src))
-
+dt = 0.5
 
 if __name__ == '__main__':
     fname_base = "Figure_5"
@@ -25,7 +25,6 @@ if __name__ == '__main__':
     lfps = []
     xmin = [33, -100]
     for i, rownb in enumerate(electrode_number):
-
         fname = fname_base
         c = sKCSD_utils.simulate(fname,
                                  morphology=2,
@@ -41,7 +40,7 @@ if __name__ == '__main__':
                                  n_syn=100,
                                  simulate_what="symmetric",
                                  electrode_orientation=2,
-                                 dt=.2)
+                                 dt=dt)
         data_dir.append(c.return_paths_skCSD_python())
     seglen = np.loadtxt(os.path.join(data_dir[0], 'seglength'))
     ground_truth = np.loadtxt(os.path.join(data_dir[0], 'membcurr'))
@@ -63,14 +62,10 @@ if __name__ == '__main__':
     morphology[:, 2:6] = morphology[:, 2:6]/scaling_factor
     cell_itself =  sKCSDcell(morphology, ele_pos, n_src)
     cell_itself.distribute_srcs_3D_morph()
-    morpho, new_extent = cell_itself.draw_cell2D(axis=1)
-    morpho = np.rot90(morpho, k=1)
-    extent = new_extent[2:] + new_extent[:2]
+    morpho, extent = cell_itself.draw_cell2D(axis=1)
     ground_truth_grid = cell_itself.transform_to_3D(ground_truth, what="morpho")
     ground_truth_t1 = ground_truth_grid[:, :, :, t1].sum(axis=1)
     ground_truth_t2 = ground_truth_grid[:, :, :, t2].sum(axis=1)
-    ground_truth_t1 = np.rot90(ground_truth_t1, k=3)
-    ground_truth_t2 = np.rot90(ground_truth_t2, k=3)
     for i, x in enumerate(extent):
         if i%2:
             extent[i] = x + 50
@@ -85,14 +80,14 @@ if __name__ == '__main__':
         data.LFP = data.LFP/scaling_factor_LFP
         morphology = data.morphology
         morphology[:, 2:6] = morphology[:, 2:6]/scaling_factor
-        # ker = sKCSD(ele_pos,
-        #           data.LFP,
-        #           morphology,
-        #           n_src_init=n_src,
-        #           src_type='gauss',
-        #           lambd=lambd,
-        #           R_init=R,
-        #           exact=True)
+        ker = sKCSD(ele_pos,
+                  data.LFP,
+                  morphology,
+                  n_src_init=n_src,
+                  src_type='gauss',
+                  lambd=lambd,
+                  R_init=R,
+                  exact=True)
         
         xmin = cell_itself.xmin
         xmax = cell_itself.xmax
@@ -124,10 +119,11 @@ if __name__ == '__main__':
             path = os.path.join(fname_base % i, "preprocessed_data/Python_2")
         else:
             path = os.path.join(fname_base % i, "preprocessed_data/Python_3")
-        # if not os.path.exists(path):
-        #     print("Creating", path)
-        #     os.makedirs(path)
-        #utils.save_sim(path, ker)
+
+        if not os.path.exists(path):
+            print("Creating", path)
+            os.makedirs(path)
+        utils.save_sim(path, ker)
         try:
             est_skcsd = ker.values(estimate='CSD')
         except NameError:
@@ -137,18 +133,15 @@ if __name__ == '__main__':
 
         est_skcsd_t1 = est_skcsd[:, :, :, t1].sum(axis=1)
         est_skcsd_t2 = est_skcsd[:, :, :, t2].sum(axis=1)
-        est_skcsd_t1 = np.rot90(est_skcsd_t1, k=3)
-        est_skcsd_t2 = np.rot90(est_skcsd_t2, k=3)            
-
         est_kcsd = kcsd.values(estimate='CSD')
         est_kcsd_pot = kcsd.values(estimate='POT')
 
         if i == 0:
             for j in [1, 2]:
                 for k in [2, 3]:
-                    ax[j, k].imshow(morpho, extent=extent)
+                    ax[j, k].imshow(morpho, extent=extent, origin='lower', aspect="auto")
                     for z in ele_pos:
-                        pos_x, pos_y = 1e6*z[0], 1e6*z[2]
+                        pos_x, pos_y = 1e6*z[2], 1e6*z[0]
                         ax[j, k].text(pos_x, pos_y, '*',
                                       ha="center", va="center", color="k")
             cax = pl.make_map_plot(ax[1, 2], ground_truth_t1, extent=extent)
@@ -159,15 +152,17 @@ if __name__ == '__main__':
         else:
             for j in [1, 2]:
                 for k in [0, 1]:
-                    ax[j, k].imshow(morpho, extent=extent)
+                    ax[j, k].imshow(morpho, extent=extent, origin='lower', aspect="auto")
                     for z in ele_pos:
-                        pos_x, pos_y = 1e6*z[0], 1e6*z[2]
+                        pos_x, pos_y = 1e6*z[2], 1e6*z[0]
+                        print(z)
                         ax[j, k].text(pos_x, pos_y, '*',
                                       ha="center", va="center", color="k")
             for j in [0, 1, 2, 3]:
-                    ax[0, j].imshow(morpho, extent=extent)
+                    ax[0, j].imshow(morpho, extent=extent, origin='lower', aspect="auto")
                     for z in ele_pos:
-                        pos_x, pos_y = 1e6*z[0], 1e6*z[2]
+                        print(z)
+                        pos_x, pos_y = 1e6*z[2], 1e6*z[0]
                         ax[0, j].text(pos_x, pos_y, '*',
                                       ha="center", va="center", color="k")
             cax = pl.make_map_plot(ax[0, 0], est_kcsd_pot[:, :, :, t1].sum(axis=1),cmap=plt.cm.viridis, extent=extent)
@@ -185,4 +180,3 @@ if __name__ == '__main__':
                     bbox_inches='tight',
                     transparent=True,
                     pad_inches=0.1)
-    plt.show()
