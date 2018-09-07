@@ -38,7 +38,7 @@ class sKCSDcell(object):
     The method implented here is based on the original paper
     by Dorottya Cserpan et al., 2017.
     """
-    def __init__(self, morphology, ele_pos, n_src, tolerance=2e-6):
+    def __init__(self, morphology, ele_pos, n_src, **kwargs):
         """
         Parameters
         ----------
@@ -66,16 +66,19 @@ class sKCSDcell(object):
         self.source_pos[:, 0] = np.linspace(0, self.max_dist, n_src)
         # Cartesian coordinates of the sources
         self.source_xyz = np.zeros(shape=(n_src, 3))
-        self.tolerance = tolerance  # smallest dendrite used for visualisation
-        # max and min points of the neuron's morphology
-        self.xmin = np.min(self.morphology[:, 2])
-        self.xmax = np.max(self.morphology[:, 2])
-        self.ymin = np.min(self.morphology[:, 3])
-        self.ymax = np.max(self.morphology[:, 3])
-        self.zmin = np.min(self.morphology[:, 4])
-        self.zmax = np.max(self.morphology[:, 4])
+        self.tolerance = kwargs.pop('tolerance', 2e-6)  # smallest dendrite used for visualisation
+        # max and min points of the neuron's morphology, unless given
+        self.xmin = kwargs.pop('xmin', np.min(self.morphology[:, 2]))
+        self.xmax = kwargs.pop('xmax', np.max(self.morphology[:, 2]))
+        self.ymin = kwargs.pop('ymin', np.min(self.morphology[:, 3]))
+        self.ymax = kwargs.pop('ymax', np.max(self.morphology[:, 3]))
+        self.zmin = kwargs.pop('zmin', np.min(self.morphology[:, 4]))
+        self.zmax = kwargs.pop('zmax', np.max(self.morphology[:, 4]))
+        print(self.xmin, self.xmax, self.ymin, self.ymax, self.zmin, self.zmax)
         self.dxs = self.get_dxs()
         self.dims = self.get_grid()
+        if kwargs:
+            raise TypeError('Invalid keyword arguments:', kwargs.keys())
 
     def add_segment(self, mp1, mp2):
         """Add indices (mp1, mp2) of morphology points defining a segment
@@ -204,7 +207,7 @@ class sKCSDcell(object):
 
     def points_in_between(self, p1, p0, last):
         """Wrapper for the Bresenheim algorythm, which accepts only 2D vector
-        coordinates. last -- p0 is included in output
+        coordinates. The last point -- p0 is included in output
 
         Parameters
         ----------
@@ -389,6 +392,7 @@ class sKCSDcell(object):
 
         n_time = estimated.shape[-1]
         new_dims = list(self.dims)+[n_time]
+        print(new_dims)
         result = np.zeros(new_dims)
 
         for i in coor_3D:
@@ -573,7 +577,7 @@ class sKCSD(KCSD1D):
         None
         """
         self.cell = sKCSDcell(self.morphology, self.ele_pos,
-                              self.n_src_init, self.tolerance)
+                              self.n_src_init, tolerance=self.tolerance)
         self.n_estm = len(self.cell.est_pos)
         
 
