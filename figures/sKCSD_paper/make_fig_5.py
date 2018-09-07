@@ -60,17 +60,12 @@ if __name__ == '__main__':
     ele_pos = data.ele_pos/scaling_factor
     morphology = data.morphology
     morphology[:, 2:6] = morphology[:, 2:6]/scaling_factor
-    cell_itself =  sKCSDcell(morphology, ele_pos, n_src)
+    cell_itself =  sKCSDcell(morphology, ele_pos, n_src, xmin=-120e-6, xmax=120e-6, zmin=-50e-6, zmax=550e-6)
     cell_itself.distribute_srcs_3D_morph()
     morpho, extent = cell_itself.draw_cell2D(axis=1)
     ground_truth_grid = cell_itself.transform_to_3D(ground_truth, what="morpho")
     ground_truth_t1 = ground_truth_grid[:, :, :, t1].sum(axis=1)
     ground_truth_t2 = ground_truth_grid[:, :, :, t2].sum(axis=1)
-    for i, x in enumerate(extent):
-        if i%2:
-            extent[i] = x + 50
-        else:
-            extent[i] = x - 50
 
     for i, datd in enumerate(data_dir):
        
@@ -128,7 +123,7 @@ if __name__ == '__main__':
             est_skcsd = ker.values(estimate='CSD')
         except NameError:
             skcsd, pot, cell_obj = utils.load_sim(path)
-            est_skcsd = cell_obj.transform_to_3D(skcsd)
+            est_skcsd = cell_itself.transform_to_3D(skcsd)
 
 
         est_skcsd_t1 = est_skcsd[:, :, :, t1].sum(axis=1)
