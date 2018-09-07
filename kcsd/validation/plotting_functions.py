@@ -319,7 +319,7 @@ def make_map_plot(ax_i, what, **kwargs):
     cmap = kwargs.pop('cmap', plt.cm.bwr_r)
     xlabel = kwargs.pop('xlabel', None)
     ylabel = kwargs.pop('ylabel', None)
-    alpha = kwargs.pop('alpha', 0.5)  # transparency
+    alpha = kwargs.pop('alpha', 0.25)  # transparency
     if kwargs:
         raise TypeError('Invalid keyword arguments:', kwargs.keys())
 
