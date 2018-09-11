@@ -74,7 +74,6 @@ class sKCSDcell(object):
         self.ymax = kwargs.pop('ymax', np.max(self.morphology[:, 3]))
         self.zmin = kwargs.pop('zmin', np.min(self.morphology[:, 4]))
         self.zmax = kwargs.pop('zmax', np.max(self.morphology[:, 4]))
-        print(self.xmin, self.xmax, self.ymin, self.ymax, self.zmin, self.zmax)
         self.dxs = self.get_dxs()
         self.dims = self.get_grid()
         if kwargs:
@@ -392,7 +391,6 @@ class sKCSDcell(object):
 
         n_time = estimated.shape[-1]
         new_dims = list(self.dims)+[n_time]
-        print(new_dims)
         result = np.zeros(new_dims)
 
         for i in coor_3D:
