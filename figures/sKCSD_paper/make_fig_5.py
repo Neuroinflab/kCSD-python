@@ -1,5 +1,4 @@
 from __future__ import division, print_function
-
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
@@ -8,6 +7,7 @@ from kcsd import sKCSD, KCSD3D, sKCSDcell
 import kcsd.utility_functions as utils
 import kcsd.validation.plotting_functions as pl
 import sKCSD_utils
+
 n_src = 512
 R = 16e-6/2**.5
 lambd = .1/((2*(2*np.pi)**3*R**2*n_src))
@@ -55,7 +55,7 @@ if __name__ == '__main__':
     fig_name = sKCSD_utils.make_fig_names(fname)
     
     fig, ax = plt.subplots(3, 4)
-    fname_base = "simuation/Figure_5_%d"
+    fname_base = "simulation/Figure_5_%d"
     data = utils.LoadData(data_dir[0])
     ele_pos = data.ele_pos/scaling_factor
     morphology = data.morphology
@@ -75,14 +75,15 @@ if __name__ == '__main__':
         data.LFP = data.LFP/scaling_factor_LFP
         morphology = data.morphology
         morphology[:, 2:6] = morphology[:, 2:6]/scaling_factor
+ 
         ker = sKCSD(ele_pos,
-                  data.LFP,
-                  morphology,
-                  n_src_init=n_src,
-                  src_type='gauss',
-                  lambd=lambd,
-                  R_init=R,
-                  exact=True)
+                    data.LFP,
+                    morphology,
+                    n_src_init=n_src,
+                    src_type='gauss',
+                    lambd=lambd,
+                    R_init=R,
+                    exact=True)
         
         xmin = cell_itself.xmin
         xmax = cell_itself.xmax
@@ -138,9 +139,9 @@ if __name__ == '__main__':
                     for z in ele_pos:
                         pos_x, pos_y = 1e6*z[2], 1e6*z[0]
                         ax[j, k].text(pos_x, pos_y, '*',
-                                      ha="center", va="center", color="k")
-            cax = pl.make_map_plot(ax[1, 2], ground_truth_t1, extent=extent)
-            cax = pl.make_map_plot(ax[2, 2], ground_truth_t2, extent=extent)
+                                      ha="center", va="center", color="k", fontsize=3)
+            cax = pl.make_map_plot(ax[1, 2], ground_truth_t1, extent=extent, alpha=.95)
+            cax = pl.make_map_plot(ax[2, 2], ground_truth_t2, extent=extent, alpha=.95)
             cax = pl.make_map_plot(ax[1, 3], est_skcsd_t1, extent=extent)
             cax = pl.make_map_plot(ax[2, 3], est_skcsd_t2, extent=extent)
 
@@ -150,19 +151,17 @@ if __name__ == '__main__':
                     ax[j, k].imshow(morpho, extent=extent, origin='lower', aspect="auto")
                     for z in ele_pos:
                         pos_x, pos_y = 1e6*z[2], 1e6*z[0]
-                        print(z)
                         ax[j, k].text(pos_x, pos_y, '*',
-                                      ha="center", va="center", color="k")
+                                      ha="center", va="center", color="k", fontsize=3)
             for j in [0, 1, 2, 3]:
                     ax[0, j].imshow(morpho, extent=extent, origin='lower', aspect="auto")
                     for z in ele_pos:
-                        print(z)
                         pos_x, pos_y = 1e6*z[2], 1e6*z[0]
                         ax[0, j].text(pos_x, pos_y, '*',
-                                      ha="center", va="center", color="k")
+                                      ha="center", va="center", color="k", fontsize=3)
             cax = pl.make_map_plot(ax[0, 0], est_kcsd_pot[:, :, :, t1].sum(axis=1),cmap=plt.cm.viridis, extent=extent)
             cax = pl.make_map_plot(ax[0, 1], est_kcsd[:, :, :, t1].sum(axis=1), extent=extent)
-            cax = pl.make_map_plot(ax[0, 2], ground_truth_t1, extent=extent)
+            cax = pl.make_map_plot(ax[0, 2], ground_truth_t1, extent=extent, alpha=.95)
             cax = pl.make_map_plot(ax[0, 3], est_skcsd_t1, extent=extent)
             cax = pl.make_map_plot(ax[1, 0], est_kcsd_pot[:, :, :, t1].sum(axis=1),cmap=plt.cm.viridis, extent=extent)
             cax = pl.make_map_plot(ax[1, 1], est_kcsd[:, :, :, t1].sum(axis=1), extent=extent)
@@ -170,8 +169,18 @@ if __name__ == '__main__':
                           est_kcsd_pot[:, :, :, t2].sum(axis=1),
                                    extent=extent, cmap=plt.cm.viridis)
             cax = pl.make_map_plot(ax[2, 1], est_kcsd[:, :, :, t2].sum(axis=1), extent=extent)
-            
-        fig.savefig(fig_name,
-                    bbox_inches='tight',
-                    transparent=True,
-                    pad_inches=0.1)
+    for i in range(3):
+        for j in range(4):
+            if not j:
+                ax[i, j].set_title('Potential')
+            elif j == 1:
+                ax[i, j].set_title('KCSD')
+            elif j == 2:
+                ax[i, j].set_title('Ground truth')
+            elif j == 3:
+                ax[i, j].set_title('sKCSD')
+                
+    fig.savefig(fig_name,
+                bbox_inches='tight',
+                transparent=True,
+                pad_inches=0.1)
