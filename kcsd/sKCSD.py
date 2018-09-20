@@ -20,13 +20,6 @@ import sys
 from .KCSD import KCSD1D
 from . import utility_functions as utils
 from . import basis_functions as basis
-try:
-    from skmonaco import mcmiser
-    skmonaco_available = True
-    import multiprocessing
-    num_cores = multiprocessing.cpu_count()
-except ImportError:
-    skmonaco_available = False
 
 class sKCSDcell(object):
     """
@@ -54,6 +47,7 @@ class sKCSDcell(object):
         self.morphology = morphology  # morphology file
         self.ele_pos = ele_pos  # electrode_positions
         self.n_src = n_src  # number of sources
+        assert n_src 
         self.max_dist = 0  # maximum distance
         self.segments = {}  # segment dictionary with loops as keys
         self.segment_counter = 0  # which segment we're on
@@ -63,7 +57,7 @@ class sKCSDcell(object):
         self.source_pos = np.zeros((n_src, 1))
         # positions of sources on the morphology (1D),
         # necessary for source division
-        self.source_pos[:, 0] = np.linspace(0, self.max_dist, n_src)
+        self.source_pos[:, 0] = np.linspace(0, self.max_dist - self.max_dist/n_src, n_src)
         # Cartesian coordinates of the sources
         self.source_xyz = np.zeros(shape=(n_src, 3))
         self.tolerance = kwargs.pop('tolerance', 2e-6)  # smallest dendrite used for visualisation
@@ -171,6 +165,18 @@ class sKCSDcell(object):
         for i, x in enumerate(self.source_pos):
             self.source_xyz[i] = self.get_xyz(x)
         return self.source_pos
+    
+    def get_src_ele_mesh(self, electrode_no):
+        return np.meshgrid(self.source_pos,
+                           electrode_no,
+                           indexing='ij')
+
+    def get_src_ele_dists(self):
+        electrode_no = np.arange(0, self.ele_pos.shape[0], 1, dtype=int)
+        src_ele_help =  self.get_src_ele_mesh(electrode_no)
+        positions = self.ele_pos[src_ele_help[1]]
+        src_ele_dists = [src_ele_help[0]]
+        src_ele_dists.append(positions)
 
     def get_xyz(self, x):
         """Find cartesian coordinates of a point (x) on the morphology loop.
@@ -204,6 +210,7 @@ class sKCSDcell(object):
         total_dist *= 2
         return total_dist
 
+    
     def points_in_between(self, p1, p0, last):
         """Wrapper for the Bresenheim algorythm, which accepts only 2D vector
         coordinates. The last point -- p0 is included in output
@@ -476,7 +483,7 @@ class sKCSDcell(object):
                 for i in range(len(idx_arr)):
                     image[idx_arr[i, 0] - 1:idx_arr[i, 0] + 1,
                           idx_arr[i, 1] - 1:idx_arr[i, 1] + 1, :] = np.array(
-                              [0, 0, 0, 20])
+                              [0, 0, 0, 255])
             x0, y0 = xi, yi
         return image, extent
 
@@ -553,7 +560,6 @@ class sKCSD(KCSD1D):
         self.dist_table_density = kwargs.pop('dist_table_density', 100)
         self.dim = 'skCSD'
         self.tolerance = kwargs.pop('tolerance', 2e-06)
-        self.skmonaco_available = kwargs.pop('skmonaco_available',skmonaco_available)
         self.exact = kwargs.pop('exact', False)
         if self.n_src_init > self.dist_table_density*2:
             self.exact = True
@@ -609,15 +615,9 @@ class sKCSD(KCSD1D):
         self.n_src = self.cell.n_src
 
     def get_src_ele_dists(self):
-        
         if not self.exact:
             return
-
-        electrode_no = np.arange(0, self.ele_pos.shape[0], 1, dtype=int)
-        src_ele_dists =  np.meshgrid(self.src_x, electrode_no, indexing='ij' )
-        positions = self.ele_pos[src_ele_dists[1]]
-        self.src_ele_dists = [src_ele_dists[0]]
-        self.src_ele_dists.append(positions)
+        self.src_ele_dists = self.cell.get_src_ele_dists()
         
     def create_src_dist_tables(self):
         """Creates distance tables between sources, electrode and estm points
@@ -633,11 +633,13 @@ class sKCSD(KCSD1D):
 
         est_pos = self.cell.est_pos
         self.src_estm_dists = distance.cdist(self.src_x, est_pos,  'euclidean')
+        print(self.src_estm_dists)
+        
         self.src_estm_dists_pot = np.meshgrid(self.src_x, est_pos, indexing='ij')
         self.get_src_ele_dists()
         self.dist_max = np.max(self.src_x)+self.R
     
-    def forward_model_1D(self, src, dist, R, h, sigma, src_type):
+    def forward_model_1D(self, src, dist, R, sigma, src_type):
         """FWD model functions
         Evaluates potential at point (x,0) by a basis source located at (0,0)
         Utlizies sk monaco monte carlo method if available, otherwise defaults
@@ -657,14 +659,14 @@ class sKCSD(KCSD1D):
             value of potential at specified distance from the source
         """
         pot, err = integrate.quad(self.int_pot_1D,
-                                  -2*R,
-                                  self.cell.max_dist + 2*R,
-                                  args=(src, dist, R, src_type))
+                                  -2*R*np.sqrt(2),
+                                  self.cell.max_dist + 2*R*np.sqrt(2),
+                                  args=(src, dist, R, src_type), limit=75)
            
         return pot/(4.0*np.pi*sigma)
 
     
-    def forward_model_3D(self, src, dist, R, h, sigma, src_type):
+    def forward_model_3D(self, src, dist, R,  sigma, src_type):
         """FWD model functions
         Evaluates potential at point (x,0) by a basis source located at (0,0)
         Utlizies sk monaco monte carlo method if available, otherwise defaults
@@ -684,9 +686,9 @@ class sKCSD(KCSD1D):
             value of potential at specified distance from the source
         """
         pot, err = integrate.quad(self.int_pot_3D,
-                                  -2*R,
-                                  self.cell.max_dist + 2*R,
-                                  args=(src, dist[0], dist[1], dist[2], R, src_type))
+                                  -2*R*np.sqrt(2),
+                                  self.cell.max_dist + 2*R*np.sqrt(2),
+                                  args=(src, dist[0], dist[1], dist[2], R, src_type), limit=75)
         
         return pot/(4.0*np.pi*sigma)
     
@@ -712,7 +714,6 @@ class sKCSD(KCSD1D):
                dist_table[i, j] = self.forward_model_1D(p,
                                                         positions[1][i, j],
                                                         self.R,
-                                                        self.h,
                                                         self.sigma,
                                                         self.basis)
             
@@ -772,7 +773,6 @@ class sKCSD(KCSD1D):
                     self.b_pot[i, j] = self.forward_model_3D(self.src_ele_dists[0][i,j],
                                                              self.src_ele_dists[1][i,j],
                                                              self.R,
-                                                             self.h,
                                                              self.sigma,
                                                              self.basis)
         self.k_pot = np.dot(self.b_pot.T, self.b_pot)  # K(x,x') Eq9,Jan2012
@@ -852,17 +852,17 @@ class sKCSD(KCSD1D):
 
     def int_pot_3D(self, xp, src, x, y, z, R, basis_func):
         """FWD model function.
-        Returns contribution of a point sp,yp, belonging to a basis source
-        support centered at (0,0) to the potential measured at (x,0,0),
-        integrated over xp,yp gives the potential generated by a
-        basis source element centered at (0,0) at point (x,0)
+        Returns contribution of a point xp, belonging to a basis source
+        support centered at src to the potential measured at (x,y,z),
+        integrated over xp gives the potential generated by a
+        basis source element centered at (src) at point (x, y, z)
         Eq 26 kCSD by Jan,2012
 
         Parameters
         ----------
         xp : floats or np.arrays
             point or set of points where function should be calculated
-        x :  float
+        x, y, z :  float
             position at which potential is being measured
         R : float
             The size of the basis function
@@ -879,7 +879,7 @@ class sKCSD(KCSD1D):
         x = [x, y, z]
         for i, coor in enumerate(xp_coor):
             dist += (x[i] - coor)**2
-        if dist<1e-9:
+        if dist < 1e-9:
             dist = 1e-9
         pot = basis_func(xp-src, R)/np.sqrt(dist)  # xp is the distance
         return pot
@@ -887,10 +887,10 @@ class sKCSD(KCSD1D):
     
     def int_pot_1D(self, xp, src, x, R, basis_func):
         """FWD model function.
-        Returns contribution of a point sp,yp, belonging to a basis source
-        support centered at (0,0) to the potential measured at (x,0,0),
-        integrated over xp,yp gives the potential generated by a
-        basis source element centered at (0,0) at point (x,0)
+        Returns contribution of a point xp belonging to a basis source
+        support centered at src to the potential measured at x,
+        integrated over xp gives the potential generated by a
+        basis source element centered at (src) at point (x)
         Eq 26 kCSD by Jan,2012
 
         Parameters
@@ -916,7 +916,7 @@ class sKCSD(KCSD1D):
         dist = 0
         for i, coor in enumerate(xp_coor):
             dist += (x_coor[i] - coor)**2
-        if dist<1e-9:
+        if dist < 1e-9:
             dist = 1e-9
         pot = basis_func(xp-src, R)/np.sqrt(dist)  # xp is the distance
         return pot
