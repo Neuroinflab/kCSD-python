@@ -5,6 +5,7 @@ import os
 import random
 import LFPy
 from kcsd import sample_data_path
+import neuron
 morphology_directory = os.path.join(sample_data_path,'morphology')
 """Electrode grid is 2D. If z is the zero dimention x=x, y=y.
 If x is the zero dimension x=0, y=x, z=y.
@@ -42,6 +43,7 @@ class CellModel():
         7: os.path.join(morphology_directory,"Badea2011Fig2Du.CNG.swc"),
         8: os.path.join(morphology_directory,"DomiCell.swc"),
         9: os.path.join(morphology_directory,"Test.swc"),
+        10: os.path.join(morphology_directory,"L5_Mainen96_LFPy.hoc"),
     }
     CELL_PARAMETERS = {
         'Ra': 123,
@@ -167,10 +169,10 @@ class CellModel():
         if not morphology.endswith('.hoc'):
             if not self.cell_parameters['custom_code']:
                for section in self.cell.allseclist:
-                   if 'soma' in section.name():
+                   if 'soma' in section.name() or 'axon' in section.name():
                        section.insert('hh')
                        print('Inserting Hodgkin-Huxley channels into %s' % section.name())
-                       
+
         self.cell.set_pos(x = LFPy.cell.neuron.h.x3d(0),
                           y = LFPy.cell.neuron.h.y3d(0),
                           z = LFPy.cell.neuron.h.z3d(0))
@@ -193,11 +195,13 @@ class CellModel():
         self.morphology[0, 2:5] = coords[0]
         self.morphology[0, 5] = segdiam[0]
         self.morphology[0, 6] = -1
-
-        for section in self.cell.allseclist:
+        
+        for section in neuron.h.allsec():
             parents[section.name()] = section.parentseg()
-        for secn in self.cell.allsecnames:
+        for sec in neuron.h.allsec():
+            secn = sec.name()
             idxs = self.cell.get_idx(secn)
+            
             for i, idx in enumerate(idxs):
                 self.morphology[idx+1, 0] = idx+2
                 self.morphology[idx+1, 2:5] = ends[idx]
@@ -218,7 +222,12 @@ class CellModel():
                     if not parents[secn]:
                         self.morphology[idx+1, 6] = 1
                     else:
-                        par = self.cell.get_idx(parents[secn].sec.name())[-1]
+                        x = parents[secn].x
+                        how_many = len(self.cell.get_idx(parents[secn].sec.name()))
+                        par_idx = int(x*how_many)
+                        if par_idx > how_many - 1:
+                            par_idx = how_many -1
+                        par = self.cell.get_idx(parents[secn].sec.name())[par_idx]
                         self.morphology[idx+1, 6] = par + 2
                 else:
                     self.morphology[idx+1, 6] = idx+1
@@ -418,6 +427,7 @@ class CellModel():
         self.cell.simulate(**self.simulation_parameters)
 
     def save_LFP(self, directory=''):
+        self.simulation_parameters['electrode'].calc_lfp()
         LFP_path = os.path.join(self.new_path, directory)
         if not os.path.exists(LFP_path):
             print("Creating", LFP_path)
