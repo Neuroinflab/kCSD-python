@@ -200,7 +200,7 @@ class sKCSDcell(object):
         tuple of length 3
         """
         return interpolate.interp1d(self.est_pos[:, 0], self.est_xyz,
-                                    kind='slinear', axis=0)(x)
+                                    kind='slinear', axis=0)(v)
         # if v == 0:
         #     return self.est_xyz[0]
         # idx_v1 = np.where(self.est_pos < v)[0][-1]
