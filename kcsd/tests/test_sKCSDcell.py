@@ -390,5 +390,83 @@ class testsKCDcell(unittest.TestCase):
         for i in range(l-1):
             self.assertTrue(len(self.cell_small_segment_coordinates_loops[i]) == 1)
 
+    def test_corrected_x_1(self):
+        x = self.cell.max_dist/2
+        new_x = self.cell.corrected_x(x)
+        self.assertTrue(new_x == x)
+
+    def test_corrected_x_2(self):
+        x = self.cell.max_dist/2 + self.cell.max_dist
+        new_x = self.cell.corrected_x(x)
+        self.assertTrue(new_x == x-self.cell.max_dist)
+
+    def test_corrected_x_3(self):
+        x = self.cell.max_dist/2 - self.cell.max_dist
+        new_x = self.cell.corrected_x(x)
+        self.assertTrue(new_x == x + self.cell.max_dist)
+
+    def test_get_src_ele_mesh_1(self):
+        electrodes = np.arange(0, self.cell_small.ele_pos.shape[0], 1, dtype=int)
+        out = self.cell_small.get_src_ele_mesh(electrodes)
+        self.assertTrue(isinstance(out, list))
+        
+    def test_get_src_ele_mesh_2(self):
+        n = self.cell_small.ele_pos.shape[0]
+        electrodes = np.arange(0, n, 1, dtype=int)
+        out = self.cell_small.get_src_ele_mesh(electrodes)
+        for i in range(n):
+            self.assertTrue(out[1][0, i] == electrodes[i])
+
+    def test_get_src_ele_mesh_2(self):
+        n = self.cell_small.ele_pos.shape[0]
+        electrodes = np.arange(0, n, 1, dtype=int)
+        out = self.cell_small.get_src_ele_mesh(electrodes)
+        for j in range(len(self.cell_small.source_pos)):
+            for i in range(n):
+                self.assertTrue(out[1][j, i] == electrodes[i])
+
+    def test_get_src_ele_mesh_3(self):
+        n = self.cell_small.ele_pos.shape[0]
+        electrodes = np.arange(0, n, 1, dtype=int)
+        out = self.cell_small.get_src_ele_mesh(electrodes)
+        for j in range(len(self.cell_small.source_pos)):
+            for i in range(n):
+                self.assertTrue(out[0][j, i] == self.cell_small.source_pos[j])
+
+    def test_get_src_ele_dists_1(self):
+        out = self.cell_small.get_src_ele_dists()
+        for j in range(len(self.cell_small.source_pos)):
+            for i in range(len(self.cell_small.ele_pos)):
+                self.assertTrue(out[0][j, i] == self.cell_small.source_pos[j])
+
+    def test_get_src_ele_dists_2(self):
+        out = self.cell_small.get_src_ele_dists()
+        self.assertTrue(out[1].shape[2] == 3)
+
+    def test_get_src_ele_dists_3(self):
+        out = self.cell_small.get_src_ele_dists()
+        for j in range(len(self.cell_small.source_pos)):
+            for i in range(len(self.cell_small.ele_pos)):
+                for k in range(3):
+                    self.assertTrue(out[1][j, i, k] == self.cell_small.ele_pos[i, k])
+
+    def test_get_src_estm_dists_1(self):
+        out = self.cell_small.get_src_estm_dists()
+        self.assertTrue(out.shape[0] == len(self.cell_small.source_pos))
+
+    def test_get_src_estm_dists_2(self):
+        out = self.cell_small.get_src_estm_dists()
+        self.assertTrue(out.shape[1] == len(self.cell_small.est_pos))
+    
+    def test_get_src_estm_dists_3(self):
+        out = self.cell_small.get_src_estm_dists()
+        for i in range(len(self.cell_small.source_pos)):
+            for j in range(len(self.cell_small.est_pos)):
+                self.assertTrue(out[i, j ] == abs(self.cell_small.source_pos[i] - self.cell_small.est_pos[j]))
+
+    def test_get_src_estm_dists_pot_1(self):
+        out = self.cell_small.get_src_estm_dists_pot()
+        self.assertTrue(isinstance(out, list))
+
 if __name__ == '__main__':
     unittest.main()

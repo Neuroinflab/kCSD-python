@@ -15,7 +15,7 @@ import numpy as np
 import os
 from scipy.spatial import distance
 from scipy import special, interpolate, integrate
-from collections import Counter
+from collections import Counter, OrderedDict
 import sys
 from .KCSD import KCSD1D
 from . import utility_functions as utils
@@ -128,7 +128,7 @@ class sKCSDcell(object):
                     parent = int(self.morphology[last_point, 6]) - 1
                     self.add_loop(parent, last_point)
                     if parent == last_branch:
-                        break
+                         break
                     last_point = parent
                 self.add_loop(morph_pnt, int(self.morphology[morph_pnt,
                                                              6]) - 1)
@@ -144,14 +144,11 @@ class sKCSDcell(object):
         self.loops = np.array(self.loops)
         self.est_pos = np.zeros((len(self.loops)+1, 1))
         self.est_xyz = np.zeros((len(self.loops)+1, 3))
-        self.est_xyz[0, :] = self.morphology[0, 2:5]
+        self.est_xyz[0, :] = self.morphology[self.loops[0][0], 2:5]
         for i, loop in enumerate(self.loops):
-            length = 0
-            for j in [2, 3, 4]:
-                length += (
-                    self.morphology[loop[1]][j] - self.morphology[loop[0]][j]
-                )**2
-            self.est_pos[i+1] = self.est_pos[i] + length**0.5
+            length = utils.calculate_distance(self.morphology[loop[1],2:5],
+                                              self.morphology[loop[0], 2:5])
+            self.est_pos[i+1] = self.est_pos[i] + length
             self.est_xyz[i+1, :] = self.morphology[loop[1], 2:5]
 
     def distribute_srcs_3D_morph(self):
@@ -177,9 +174,20 @@ class sKCSDcell(object):
         positions = self.ele_pos[src_ele_help[1]]
         src_ele_dists = [src_ele_help[0]]
         src_ele_dists.append(positions)
-
-    def get_xyz(self, x):
-        """Find cartesian coordinates of a point (x) on the morphology loop.
+        return src_ele_dists
+        
+    def get_src_estm_dists(self):
+        return distance.cdist(self.source_pos,
+                              self.est_pos,
+                              'euclidean')
+    
+    def get_src_estm_dists_pot(self):
+        return np.meshgrid(self.source_pos,
+                           self.est_pos,
+                           indexing='ij')
+    
+    def get_xyz(self, v):
+        """Find cartesian coordinates of a point (v) on the morphology loop.
         Use morphology point cartesian coordinates (from the morphology file,
         self.est_xyz) for interpolation.
 
@@ -192,8 +200,16 @@ class sKCSDcell(object):
         tuple of length 3
         """
         return interpolate.interp1d(self.est_pos[:, 0], self.est_xyz,
-                                    kind='linear', axis=0)(x)
-
+                                    kind='slinear', axis=0)(x)
+        # if v == 0:
+        #     return self.est_xyz[0]
+        # idx_v1 = np.where(self.est_pos < v)[0][-1]
+        # idx_v2 = idx_v1+1
+        # f = (v - self.est_pos[idx_v1])/(self.est_pos[idx_v2]\
+        #                                 -self.est_pos[idx_v1])
+        # return self.est_xyz[idx_v1] + f*(self.est_xyz[idx_v2]\
+        #                                  -self.est_xyz[idx_v1])
+    
     def calculate_total_distance(self):
         """
         Calculates doubled total legth of the cell.
@@ -210,6 +226,9 @@ class sKCSDcell(object):
         total_dist *= 2
         return total_dist
 
+
+    def corrected_x(self, xp):
+        return xp + (xp<0)*self.max_dist - (xp>self.max_dist)*self.max_dist
     
     def points_in_between(self, p1, p0, last):
         """Wrapper for the Bresenheim algorythm, which accepts only 2D vector
@@ -584,7 +603,6 @@ class sKCSD(KCSD1D):
                               self.n_src_init, tolerance=self.tolerance)
         self.n_estm = len(self.cell.est_pos)
         
-
     def place_basis(self):
         """Places basis sources of the defined type.
         Checks if a given source_type is defined, if so then defines it
@@ -631,11 +649,8 @@ class sKCSD(KCSD1D):
         None
         """
 
-        est_pos = self.cell.est_pos
-        self.src_estm_dists = distance.cdist(self.src_x, est_pos,  'euclidean')
-        print(self.src_estm_dists)
-        
-        self.src_estm_dists_pot = np.meshgrid(self.src_x, est_pos, indexing='ij')
+        self.src_estm_dists = self.cell.get_src_estm_dists()
+        self.src_estm_dists_pot = self.cell.get_src_estm_dists_pot()
         self.get_src_ele_dists()
         self.dist_max = np.max(self.src_x)+self.R
     
@@ -661,7 +676,7 @@ class sKCSD(KCSD1D):
         pot, err = integrate.quad(self.int_pot_1D,
                                   -2*R*np.sqrt(2),
                                   self.cell.max_dist + 2*R*np.sqrt(2),
-                                  args=(src, dist, R, src_type), limit=75)
+                                  args=(src, dist, R, src_type))
            
         return pot/(4.0*np.pi*sigma)
 
@@ -688,7 +703,7 @@ class sKCSD(KCSD1D):
         pot, err = integrate.quad(self.int_pot_3D,
                                   -2*R*np.sqrt(2),
                                   self.cell.max_dist + 2*R*np.sqrt(2),
-                                  args=(src, dist[0], dist[1], dist[2], R, src_type), limit=75)
+                                  args=(src, dist[0], dist[1], dist[2], R, src_type))
         
         return pot/(4.0*np.pi*sigma)
     
@@ -873,15 +888,11 @@ class sKCSD(KCSD1D):
         -------
         pot : float
         """
-        xp += (xp<0)*self.cell.max_dist - (xp>self.cell.max_dist)*self.cell.max_dist
+        xp = self.cell.corrected_x(xp)
         xp_coor = self.cell.get_xyz(xp)
-        dist = 0
-        x = [x, y, z]
-        for i, coor in enumerate(xp_coor):
-            dist += (x[i] - coor)**2
-        if dist < 1e-9:
-            dist = 1e-9
-        pot = basis_func(xp-src, R)/np.sqrt(dist)  # xp is the distance
+        new_x = [x, y, z]
+        dist = utils.calculate_distance(xp_coor, new_x)
+        pot = basis_func(xp-src, R)/dist
         return pot
 
     
@@ -908,15 +919,10 @@ class sKCSD(KCSD1D):
         -------
         pot : float
         """
-
-        xp += (xp<0)*self.cell.max_dist - (xp>self.cell.max_dist)*self.cell.max_dist
-        x += (x<0)*self.cell.max_dist - (x>self.cell.max_dist)*self.cell.max_dist
+        xp = self.cell.corrected_x(xp)
+        x = self.cell.corrected_x(x)
         xp_coor = self.cell.get_xyz(xp)
         x_coor = self.cell.get_xyz(x)
-        dist = 0
-        for i, coor in enumerate(xp_coor):
-            dist += (x_coor[i] - coor)**2
-        if dist < 1e-9:
-            dist = 1e-9
-        pot = basis_func(xp-src, R)/np.sqrt(dist)  # xp is the distance
+        dist = utils.calculate_distance(xp_coor, x_coor)
+        pot = basis_func(xp-src, R)/dist
         return pot
