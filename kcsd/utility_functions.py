@@ -33,6 +33,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from __future__ import print_function, division, absolute_import
 import numpy as np
+from scipy.spatial import distance
 import os
 import pickle
 from scipy import interpolate
@@ -515,6 +516,12 @@ def bresenhamline(start, end, max_iter=5):
     return _bresenhamlines(start, end, max_iter).reshape(-1, start.shape[-1])
 
 
+def calculate_distance(xp_coor, x_coor):
+    dist = distance.euclidean(xp_coor, x_coor)
+    if dist < 1e-9:
+        return 1e-9
+    return dist
+    
 class LoadData(object):
     def __init__(self,path):
         self.Func = {}
