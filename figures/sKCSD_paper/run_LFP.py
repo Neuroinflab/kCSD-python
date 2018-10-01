@@ -106,7 +106,7 @@ class CellModel():
         triside = 2*kwargs.pop('triside', 60)
         ssNB = kwargs.pop('seed', 123456)
         custom_code = kwargs.pop('custom_code', [])
-        morphology = kwargs.pop('morphology', 1)
+        morphology_no = kwargs.pop('morphology', 1)
         self.sigma = kwargs.pop('sigma', 0.3)
         self.n_pre_syn = kwargs.pop('n_presyn', 1000)
         self.n_synapses = kwargs.pop('n_syn', 1000)
@@ -116,10 +116,10 @@ class CellModel():
         if kwargs:
             raise TypeError('Invalid keyword arguments:', kwargs.keys())
         try:
-            morphology = self.MORPHOLOGY_FILES[morphology]
+            morphology = self.MORPHOLOGY_FILES[morphology_no]
         except AttributeError:
             sys.exit('Unknown morphology %d\n', morphology)
-        if morphology == 2:
+        if morphology_no == 2:
                 self.make_y_shaped()
         self.make_cell(morphology, custom_code)
         self.setup_LFPy_2D_grid(eldistribute,
@@ -137,11 +137,11 @@ class CellModel():
         self.pre_syn_pick = np.empty((1,1))
 
     def make_y_shaped(self):
-        self.cell_parameters['rm'] = 30000.
+        self.cell_parameters['passive_parameters'] = {'g_pas':1./30000,
+                                                      'e_pas':-65}
         self.cell_parameters['cm'] = 1.
         self.cell_parameters['Ra'] = 100.
         self.simulation_parameters['rec_vmem'] = True
-        self.synapse_parameters['idx']
 
     def stationary_poisson(self, nsyn, lambd, tstart, tstop):
         '''Generates nsyn stationary possion processes with
