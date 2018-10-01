@@ -70,7 +70,7 @@ if __name__ == '__main__':
                   src_type='gauss',
                   lambd=lambd,
                   R_init=R,
-                  skmonaco_available=False)
+                  exact=True)
         csd = k.values(transformation='segments')
         
         cax = ax[1, i].imshow(csd,
