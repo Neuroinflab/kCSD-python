@@ -73,14 +73,14 @@ if __name__ == '__main__':
         morphology = data.morphology
         morphology[:, 2:6] = morphology[:, 2:6]/scaling_factor
         k = sKCSD(ele_pos,
-                 data.LFP,
-                 morphology,
-                 n_src_init=n_src,
-                 src_type='gauss',
-                 lambd=lambd,
-                 R_init=R,
-                 dist_table_density=100,
-                 skmonaco_available=False)
+                  data.LFP,
+                  morphology,
+                  n_src_init=n_src,
+                  src_type='gauss',
+                  lambd=lambd,
+                  R_init=R,
+                  dist_table_density=20,
+                  exact=True)
         est_skcsd = k.values(estimate='CSD',
                              transformation='segments')
         est_skcsd /= seglen[:, None]
@@ -101,19 +101,21 @@ if __name__ == '__main__':
                                              tstop=atstop,
                                              merge=1)
     pl.make_map_plot(ax[1],
-            skcsd_maps_grid,
-            xticklabels=['8', '16', '32', '64'],
-            title="Grid",
-            xlabel='electrodes')
+                     skcsd_maps_grid,
+                     xticklabels=['8', '16', '32', '64'],
+                     title="Grid",
+                     xlabel='electrodes',
+                     alpha=1)
     skcsd_maps_random = sKCSD_utils.merge_maps(skcsd_random,
                                                tstart=atstart,
                                                tstop=atstop,
                                                merge=1)
     pl.make_map_plot(ax[2],
-            skcsd_maps_random,
-            xticklabels=['8', '16', '32', '64'],
-            title="Random",
-            xlabel='electrodes')
+                     skcsd_maps_random,
+                     xticklabels=['8', '16', '32', '64'],
+                     title="Random",
+                     xlabel='electrodes',
+                     alpha=1)
     fig.savefig(fig_name,
                 bbox_inches='tight',
                 transparent=True,
