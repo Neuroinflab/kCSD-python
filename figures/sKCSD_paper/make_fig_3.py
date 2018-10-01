@@ -72,7 +72,7 @@ if __name__ == '__main__':
                   R_init=R,
                   skmonaco_available=False)
         csd = k.values(transformation='segments')
-        vmax, vmin = pl.get_min_max(csd)
+        
         cax = ax[1, i].imshow(csd,
                               extent=[0, tstop, 1, 52],
                               origin='lower',
