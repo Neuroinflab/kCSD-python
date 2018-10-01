@@ -135,7 +135,7 @@ if __name__ == '__main__':
         if i == 0:
             for j in [1, 2]:
                 for k in [2, 3]:
-                    ax[j, k].imshow(morpho, extent=extent, origin='lower', aspect="auto")
+                    ax[j, k].imshow(morpho, extent=extent, origin='lower', aspect="auto", alpha=0.5)
                     for z in ele_pos:
                         pos_x, pos_y = 1e6*z[2], 1e6*z[0]
                         ax[j, k].text(pos_x, pos_y, '*',
@@ -148,13 +148,13 @@ if __name__ == '__main__':
         else:
             for j in [1, 2]:
                 for k in [0, 1]:
-                    ax[j, k].imshow(morpho, extent=extent, origin='lower', aspect="auto")
+                    ax[j, k].imshow(morpho, extent=extent, origin='lower', aspect="auto", alpha=0.5)
                     for z in ele_pos:
                         pos_x, pos_y = 1e6*z[2], 1e6*z[0]
                         ax[j, k].text(pos_x, pos_y, '*',
                                       ha="center", va="center", color="k", fontsize=3)
             for j in [0, 1, 2, 3]:
-                    ax[0, j].imshow(morpho, extent=extent, origin='lower', aspect="auto")
+                    ax[0, j].imshow(morpho, extent=extent, origin='lower', aspect="auto", alpha=.5)
                     for z in ele_pos:
                         pos_x, pos_y = 1e6*z[2], 1e6*z[0]
                         ax[0, j].text(pos_x, pos_y, '*',
