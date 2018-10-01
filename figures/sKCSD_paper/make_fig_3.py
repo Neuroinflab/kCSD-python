@@ -78,8 +78,8 @@ if __name__ == '__main__':
                               origin='lower',
                               aspect='auto',
                               cmap='seismic_r',
-                              vmax=vmax,
-                              vmin=vmin)
+                              vmax=gvmax,
+                              vmin=gvmin)
         ax[1, i].set_title(electrode_number[i])
     fig.savefig(fig_name,
                 bbox_inches='tight',
