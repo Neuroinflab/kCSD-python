@@ -25,7 +25,7 @@ if __name__ == '__main__':
     colnb = 4
     rownb = 8
     xmin, xmax = 0, 500
-    ymin, ymax = -100, 100
+    ymin, ymax = -80, 80
     t1 = int(5.5/dt)
     fname = "Figure_9"
     c = sKCSD_utils.simulate(fname,
@@ -145,15 +145,15 @@ if __name__ == '__main__':
     for z in range(ele_pos.shape[0]):
         pos_x, pos_y = 1e6*ele_pos[z, 2], 1e6*ele_pos[z, 0]
         ax[0, 0].text(pos_x, pos_y, '*',
-                      ha="center", va="center", color="k", fontsize=3)
+                      ha="center", va="center", color="k", fontsize=7)
         ax[0, 1].text(pos_x, pos_y, '*',
-                      ha="center", va="center", color="k", fontsize=3)
+                      ha="center", va="center", color="k", fontsize=7)
         ax[1, 0].text(pos_x, pos_y, '*',
-                      ha="center", va="center", color="k", fontsize=3)
+                      ha="center", va="center", color="k", fontsize=7)
         ax[1, 1].text(pos_x, pos_y, '*',
-                      ha="center", va="center", color="k", fontsize=3)
+                      ha="center", va="center", color="k", fontsize=7)
         ax[1, 2].text(pos_x, pos_y, '*',
-                      ha="center", va="center", color="k", fontsize=3)
+                      ha="center", va="center", color="k", fontsize=7)
 
     ax[0, 2].plot([i for i in range(len(snrs))], L1, 'dk')
     ax[0, 2].set_xticks([i for i in range(len(snrs))])
