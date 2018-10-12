@@ -164,11 +164,37 @@ class sKCSDcell(object):
         return self.source_pos
     
     def get_src_ele_mesh(self, electrode_no):
+        """
+        Calculate mesh with coordinates of sources and electrodes number
+        for exact b_pot calculation.
+
+        Parameters
+        ----------
+        electrode_no : int
+
+        Returns
+        -------
+        list, where list[0]: 1D source coordinates on the morphology loop,
+        list[1]: electrode number
+        """
         return np.meshgrid(self.source_pos,
                            electrode_no,
                            indexing='ij')
 
     def get_src_ele_dists(self):
+        """
+        Calculate mesh with coordinates of sources and coordinates of electrodes
+        for exact b_pot calculation.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        list, where list[0]: 1D source coordinates on the morphology loop,
+        list[1]: 3D electrode coordinates
+        """
         electrode_no = np.arange(0, self.ele_pos.shape[0], 1, dtype=int)
         src_ele_help =  self.get_src_ele_mesh(electrode_no)
         positions = self.ele_pos[src_ele_help[1]]
@@ -177,6 +203,19 @@ class sKCSDcell(object):
         return src_ele_dists
         
     def get_src_estm_dists(self):
+        """
+        Calculate Euclidean distance between source position on the morphology
+        loop and positions of estimation points on the morphology loop 
+        (segment ends).
+        
+        Parameters
+        ----------
+        None
+        
+        Returns
+        -------
+        numpy array with distances of the shape (n_src, len(morphology))
+        """
         return distance.cdist(self.source_pos,
                               self.est_pos,
                               'euclidean')
@@ -201,14 +240,6 @@ class sKCSDcell(object):
         """
         return interpolate.interp1d(self.est_pos[:, 0], self.est_xyz,
                                     kind='slinear', axis=0)(v)
-        # if v == 0:
-        #     return self.est_xyz[0]
-        # idx_v1 = np.where(self.est_pos < v)[0][-1]
-        # idx_v2 = idx_v1+1
-        # f = (v - self.est_pos[idx_v1])/(self.est_pos[idx_v2]\
-        #                                 -self.est_pos[idx_v1])
-        # return self.est_xyz[idx_v1] + f*(self.est_xyz[idx_v2]\
-        #                                  -self.est_xyz[idx_v1])
     
     def calculate_total_distance(self):
         """
@@ -225,7 +256,6 @@ class sKCSDcell(object):
             total_dist += np.linalg.norm(xyz2 - xyz1)
         total_dist *= 2
         return total_dist
-
 
     def corrected_x(self, xp):
         return xp + (xp<0)*self.max_dist - (xp>self.max_dist)*self.max_dist
@@ -245,16 +275,13 @@ class sKCSDcell(object):
         points between p0 and p1 including (last=True) or not including p0
         """
         # bresenhamline only works with 2D vectors with coordinates
-        new_p1 = np.ndarray((1, 3), dtype=np.int)
-        new_p0 = np.ndarray((1, 3), dtype=np.int)
+        new_p1, new_p0 = np.ndarray((1, 3), dtype=np.int), np.ndarray((1, 3), dtype=np.int)
         for i in range(3):
-            new_p1[0, i] = p1[i]
-            new_p0[0, i] = p0[i]
+            new_p1[0, i], new_p0[0, i] = p1[i], p0[i]
         intermediate_points = utils.bresenhamline(new_p0, new_p1, -1)
         if last:
             return np.concatenate((new_p0, intermediate_points))
-        else:
-            return intermediate_points
+        return intermediate_points
 
     def get_dxs(self):
         """Calculate parameters of the 3D grid used to transform CSD
@@ -324,7 +351,8 @@ class sKCSDcell(object):
         """
         minis = np.array([self.xmin, self.ymin, self.zmin])
         zero_coords = np.zeros((3, ), dtype=int)
-        coor_3D = np.zeros((morpho.shape[0]-1, morpho.shape[1]), dtype=np.int)
+        coor_3D = np.zeros((morpho.shape[0] - 1, morpho.shape[1]),
+                           dtype=np.int)
         for i, dx in enumerate(self.dxs):
             if dx:
                 coor_3D[:, i] = np.floor((morpho[1:, i] - minis[i])/dx)
@@ -380,7 +408,7 @@ class sKCSDcell(object):
         while True:
             last = (i+1 == len(coor_3D))
             segment_coordinates[i] = self.points_in_between(p0, p1, last)
-            if i+1 == len(coor_3D):
+            if i + 1 == len(coor_3D):
                 break
             if i:
                 p0_idx = int(parentage[i + 1])
@@ -416,11 +444,10 @@ class sKCSDcell(object):
             sys.exit('Do not understand morphology %s\n' % what)
 
         n_time = estimated.shape[-1]
-        new_dims = list(self.dims)+[n_time]
+        new_dims = list(self.dims) + [n_time]
         result = np.zeros(new_dims)
 
         for i in coor_3D:
-
             coor = coor_3D[i]
             for p in coor:
                 x, y, z, = p
@@ -444,9 +471,7 @@ class sKCSDcell(object):
         for i, loop in enumerate(self.loops):
             key = "%d_%d" % (loop[0], loop[1])
             seg_no = self.segments[key]
-
             result[seg_no, :] += estimated[i, :]
-
         return result
 
     def draw_cell2D(self, axis=2):
