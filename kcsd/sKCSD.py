@@ -619,7 +619,7 @@ class sKCSD(KCSD1D):
         self.n_src_init = kwargs.pop('n_src_init', 1000)
         self.lambd = kwargs.pop('lambd', 1e-4)
         self.R_init = kwargs.pop('R_init', 2.3e-5)  # microns
-        self.dist_table_density = kwargs.pop('dist_table_density', 100)
+        self.dist_table_density = kwargs.pop('dist_table_density', 20)
         self.dim = 'skCSD'
         self.tolerance = kwargs.pop('tolerance', 2e-06)
         if self.n_src_init > self.dist_table_density*2:
@@ -785,7 +785,6 @@ class sKCSD(KCSD1D):
                     dist_table[i] = self.forward_model_3D(pos,
                                                           ele_pos,
                                                           self.R,
-                                                          self.h,
                                                           self.sigma,
                                                           self.basis)
                 interpolate_at_electrode.append(interpolate.interp1d(xs, dist_table, kind="cubic"))
