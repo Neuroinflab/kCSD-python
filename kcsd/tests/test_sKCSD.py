@@ -45,10 +45,6 @@ class testsKCD(unittest.TestCase):
 
     def test_values_cartesian_shape(self): 
         self.assertTrue(len(self.cartesian.shape) == 4)
-
-    def test_get_src_ele_dists_1(self):
-        self.assertTrue(len(self.reco2.src.ele_help) == 2)
-
    
 if __name__ == '__main__':
   unittest.main()
