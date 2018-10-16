@@ -258,6 +258,18 @@ class sKCSDcell(object):
         return total_dist
 
     def corrected_x(self, xp):
+        """
+        Function calculating x position if x is outside the bounds 
+        of the morphology loop
+
+        Parameters
+        ----------
+        xp : float
+
+        Returns
+        -------
+        float
+        """
         return xp + (xp<0)*self.max_dist - (xp>self.max_dist)*self.max_dist
     
     def points_in_between(self, p1, p0, last):
@@ -577,6 +589,12 @@ class sKCSD(KCSD1D):
                 minimum neurite size used for 3D tranformation of CSD
                 and potential
                 Defaults to 2 um
+            exact : bool
+                switch for exact computation of b_pot instead of 
+                interpolating results 
+                (a faster solution for lower number of electrodes and less
+                 complicated morphology)
+                Defaults to False
 
         Returns
         -------
@@ -604,9 +622,9 @@ class sKCSD(KCSD1D):
         self.dist_table_density = kwargs.pop('dist_table_density', 100)
         self.dim = 'skCSD'
         self.tolerance = kwargs.pop('tolerance', 2e-06)
-        self.exact = kwargs.pop('exact', False)
         if self.n_src_init > self.dist_table_density*2:
             self.exact = True
+        self.exact = kwargs.pop('exact', False)
         if kwargs:
             raise TypeError('Invalid keyword arguments:', kwargs.keys())
 
@@ -682,14 +700,11 @@ class sKCSD(KCSD1D):
     def forward_model_1D(self, src, dist, R, sigma, src_type):
         """FWD model functions
         Evaluates potential at point (x,0) by a basis source located at (0,0)
-        Utlizies sk monaco monte carlo method if available, otherwise defaults
-        to scipy integrate
 
         Parameters
         ----------
         x : float
         R : float
-        h : float
         sigma : float
         src_type : basis_3D.key
 
@@ -709,14 +724,11 @@ class sKCSD(KCSD1D):
     def forward_model_3D(self, src, dist, R,  sigma, src_type):
         """FWD model functions
         Evaluates potential at point (x,0) by a basis source located at (0,0)
-        Utlizies sk monaco monte carlo method if available, otherwise defaults
-        to scipy integrate
-
+ 
         Parameters
         ----------
         x : float
         R : float
-        h : float
         sigma : float
         src_type : basis_3D.key
 
@@ -728,7 +740,8 @@ class sKCSD(KCSD1D):
         pot, err = integrate.quad(self.int_pot_3D,
                                   -2*R*np.sqrt(2),
                                   self.cell.max_dist + 2*R*np.sqrt(2),
-                                  args=(src, dist[0], dist[1], dist[2], R, src_type))
+                                  args=(src, dist[0], dist[1], dist[2], R,
+                                        src_type))
         
         return pot/(4.0*np.pi*sigma)
     
@@ -740,13 +753,15 @@ class sKCSD(KCSD1D):
         and distance between the furthest source and segment (estimation point)
         can be of an order of mm), we create two separate look-up tables
         one for b_pot and one for b_interp_pot.
+
+        In case of exact calculations (self.exact=True) the interpolation table 
+        for b_interp_pot is not created.
         
         """
         assert 2*self.R < self.cell.max_dist
         
         xs = np.logspace(0., np.log10(self.dist_max+1.), self.dist_table_density)
         xs = xs - 1.
-        #xs = np.linspace(0, self.dist_max,  self.dist_table_density)
         positions = np.meshgrid(xs, xs, indexing='ij')
         dist_table = np.zeros_like(positions[0])
         for i, pos in enumerate(positions[0]):
@@ -782,11 +797,8 @@ class sKCSD(KCSD1D):
         R : float
         """
         self.R = R
-        self.dist_max = np.max(self.src_x)+self.R
+        self.dist_max = np.max(self.src_x) + self.R
         self.method()
-        
-   
-
     
     def update_b_pot(self):
         """Updates the b_pot  - array is (#_basis_sources, #_electrodes)
@@ -795,6 +807,10 @@ class sKCSD(KCSD1D):
         Calculates b_pot - matrix containing the values of all
         the potential basis functions in all the electrode positions
         (essential for calculating the cross_matrix).
+
+        If self.exact is False, an interpolation table created 
+        by self.create_lookup() is used, otherwise the potential
+        is calculated for every source and electrode position.
 
         Parameters
         ----------
