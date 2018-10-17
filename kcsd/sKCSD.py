@@ -622,8 +622,6 @@ class sKCSD(KCSD1D):
         self.dist_table_density = kwargs.pop('dist_table_density', 20)
         self.dim = 'skCSD'
         self.tolerance = kwargs.pop('tolerance', 2e-06)
-        if self.n_src_init > self.dist_table_density*2:
-            self.exact = True
         self.exact = kwargs.pop('exact', False)
         if kwargs:
             raise TypeError('Invalid keyword arguments:', kwargs.keys())
@@ -695,7 +693,7 @@ class sKCSD(KCSD1D):
         self.src_estm_dists = self.cell.get_src_estm_dists()
         self.src_estm_dists_pot = self.cell.get_src_estm_dists_pot()
         self.get_src_ele_dists()
-        self.dist_max = np.max(self.src_x)+self.R
+        self.dist_max = np.max(self.src_x) + self.R
     
     def forward_model_1D(self, src, dist, R, sigma, src_type):
         """FWD model functions
