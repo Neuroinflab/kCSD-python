@@ -12,7 +12,7 @@ def make_fig_names(fname_base):
     return os.path.join('Figures', fname_base)
 
 
-def simulate(fname, **kwargs):
+def simulate(fname_base, **kwargs):
     morphology = kwargs.pop("morphology", 1)
     simulate_what = kwargs.pop("simulate_what", 1)
     electrode_orientation = kwargs.pop("electrode_orientation", 2)
