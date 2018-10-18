@@ -127,7 +127,9 @@ def load_elpos(path):
     """Load electrode postions.
 
     File format: text file, one column, x of all the electrodes, y of
-    all the electrodes, z of all the electrodes
+    all the electrodes, z of all the electrodes, or three columns 
+    with cartesian coordinates of the electrodes
+
 
     Parameters
     ----------
@@ -517,13 +519,47 @@ def bresenhamline(start, end, max_iter=5):
 
 
 def calculate_distance(xp_coor, x_coor):
+    """
+    Calculate euclidean distance of two points. 
+    If this distance is smaller that 9 nm set it to 9 nm.
+
+    Parameters
+    ----------
+    xp_coor, x_coor : np.array like
+
+    Returns
+    -------
+    float
+    """
     dist = distance.euclidean(xp_coor, x_coor)
     if dist < 1e-9:
         return 1e-9
     return dist
     
 class LoadData(object):
-    def __init__(self,path):
+    """
+    Class for loading data for sKCSD calculations.
+    Data should be divided into three subdirectories: morphology,
+    electrode_positions and LFP, each containing one file with morphology,
+    electrode_positions and LFP. LoadData currently supports only swc morphology
+    format. LoadData can read in electrode positions as a text file either with 
+    1 column with x postions for each electrode followed by y postions 
+    for each electrodes followed by z positions of each electrode; 
+    or a textfile with 3 columns with x, y, z electrode postions. 
+    LFPs should be a text file with appropriate numbers.
+
+    LoadData allows for initialization of an empty object and reading 
+    in arbitrary data files from specific location using specified function.
+    """
+    def __init__(self, path):
+        """
+        Initialize LoadData object.
+
+        Parameteres
+        -----------
+        path : path to directory with 3 subdirectories containing morphology,
+        electrode positions and LFP.
+        """
         self.Func = {}
         self.Path = {}
         self.path = path
@@ -532,7 +568,20 @@ class LoadData(object):
         self.load('electrode_positions')
         self.load('LFP')
 
-    def assign(self,what, value):
+    def assign(self, what, value):
+        """
+        Assign values to specified fields, if the field value is either
+        morphology, electrode_postions or LFP.
+        
+        Parameters
+        ----------
+        what : string
+        value 
+        
+        Returns
+        -------
+        None
+        """
         if what == 'morphology':
             self.morphology = value
         elif what == 'electrode_positions':
@@ -540,46 +589,93 @@ class LoadData(object):
         elif what == 'LFP':
             self.LFP = value
             
-    def sub_dir_path(self,d):
-        return  filter(os.path.isdir, [os.path.join(d,f) for f in os.listdir(d)])
+    def sub_dir_path(self, d):
+        """Find all the directories inside d
+        Parameters
+        ----------
+        d : string
 
-    def get_fname(self,d,fnames):
+        Returns
+        -------
+        list of strings
+        """
+        return filter(os.path.isdir,
+                      [os.path.join(d, f) for f in os.listdir(d)])
+
+    def get_fname(self, d, fnames):
+        """
+        Find all the files in directory d. 
+
+        Parameters
+        ----------
+        d : string
+        fnames : string or list of strings
+
+        Returns
+        -------
+        string or list of strings
+        """
         if len(fnames) == 1:
-            return os.path.join(d,fnames[0])
+            return os.path.join(d, fnames[0])
         else:
             paths = []
             for fname in fnames:
-                paths.append(os.path.join(d,fname))
+                paths.append(os.path.join(d, fname))
             return paths
         
     def get_paths(self):
+        """
+        Look for morphology file, electrode positions and LFP in the 
+        subdirectories of path. Assign correct functions for loadig 
+        data.
+        
+        Parameters
+        ----------
+        None
 
+        Returns
+        -------
+        None
+        """
         dir_list = self.sub_dir_path(self.path)
         for drc in dir_list:
             files = os.listdir(drc)
             if drc.endswith("morphology"):
-                self.path_morphology = self.get_fname(drc,files)
+                self.path_morphology = self.get_fname(drc, files)
                 self.Path['morphology'] = self.path_morphology
                 self.Func['morphology'] = load_swc
             if drc.endswith("positions"):
-                self.path_ele_pos = self.get_fname(drc,files)
+                self.path_ele_pos = self.get_fname(drc, files)
                 self.Path["electrode_positions"] = self.path_ele_pos
                 self.Func["electrode_positions"] = load_elpos
             if drc.endswith("LFP"):
-                self.path_LFP = self.get_fname(drc,files)
+                self.path_LFP = self.get_fname(drc, files)
                 self.Path["LFP"] = self.path_LFP
                 self.Func["LFP"] = np.loadtxt
                    
                 
     def load(self, what, func=None, path=None):
+        """
+        Load file with morphology, electrode positions or LFP. 
+        what is specifying what is going to be loaded. Both function
+        for loading and path can be overwritten, which should make
+        it possible to read in arbitrary file using arbitrary function.
+
+        Parameters
+        ----------
+        what : string
+        func : object for reading data
+               Defaults to None
+        path : string
+               Alternative path to a data file
+               Defaults to None
+        """
         if not func:
             func = self.Func[what]
 
         if not path:
             
             path = self.Path[what]
-            #print(what,'unknown file type. Currently recognized file types are morphology, electrode_positions, LFP')
-            #return
 
         if isinstance(path,list):
             for p in path:
@@ -595,11 +691,11 @@ class LoadData(object):
 
         try:
             data = func(f)
-            self.assign(what,data)
+            self.assign(what, data)
         except ValueError:
             print('Could not load file',path)
-            self.assign(what,None)
+            self.assign(what, None)
             f.close()
             return
-        print('Load',path)
+        print('Load', path)
         f.close()
