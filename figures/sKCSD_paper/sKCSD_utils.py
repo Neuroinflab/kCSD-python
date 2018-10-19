@@ -2,8 +2,7 @@ from __future__ import division
 import numpy as np
 import os
 import sys
-if sys.version_info < (3, 0):
-    import run_LFP
+import run_LFP
 
 
 def make_fig_names(fname_base):
