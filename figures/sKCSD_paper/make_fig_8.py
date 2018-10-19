@@ -60,8 +60,6 @@ if __name__ == '__main__':
     time = np.linspace(0, tstop, len(somav))
     t0 = np.argmax(somav[int(400./dt):int(600./dt)])+int(400./dt)
  
-    vmax, vmin = pl.get_min_max(ground_truth)
-    print(vmax, vmin)
     cell_itself = sKCSDcell(morphology, ele_pos, n_src, tolerance=tolerance, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
     cell_itself.distribute_srcs_3D_morph()
     ground_truth_3D = cell_itself.transform_to_3D(ground_truth,
@@ -86,17 +84,24 @@ if __name__ == '__main__':
     ax3 = plt.subplot2grid((4, 2), (2, 1))
     ax4 = plt.subplot2grid((4, 2), (3, 0))
     ax5 = plt.subplot2grid((4, 2), (3, 1))
-    cell_itself = sKCSDcell(morphology, ele_pos, n_src, tolerance=tolerance, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
+    cell_itself = sKCSDcell(morphology,
+                            ele_pos,
+                            n_src,
+                            tolerance=tolerance,
+                            xmin=xmin,
+                            xmax=xmax,
+                            ymin=ymin,
+                            ymax=ymax)
     cell_itself.distribute_srcs_3D_morph()
-    ker = sKCSD(ele_pos,
-                data.LFP,
-                morphology,
-                n_src_init=n_src,
-                src_type='gauss',
-                lambd=lambd,
-                R_init=R,
-                tolerance=tolerance,
-                exact=True)
+    # ker = sKCSD(ele_pos,
+    #             data.LFP,
+    #             morphology,
+    #             n_src_init=n_src,
+    #             src_type='gauss',
+    #             lambd=lambd,
+    #             R_init=R,
+    #             tolerance=tolerance,
+    #             exact=True)
     path = os.path.join(data_dir, 'lambda_%f_R_%f_n_src_%d' % (l, R, n_src))
     if sys.version_info < (3, 0):
         path = os.path.join(path, "preprocessed_data/Python_2")
@@ -112,42 +117,45 @@ if __name__ == '__main__':
     
     skcsd, pot, cell_obj = utils.load_sim(path)
     est_skcsd = cell_itself.transform_to_3D(skcsd)
-        
+   
     skcsd_seg = cell_itself.transform_to_segments(skcsd)
-    axfig22.imshow(skcsd_seg, origin="lower", interpolation="none", vmin=gvmin, vmax=gvmax, cmap=plt.cm.bwr_r )
-    ax4.imshow(morpho,
-               origin='lower',
-               aspect='auto',
-               interpolation='none',
-               extent=extent)
-    cax = ax4.imshow(ground_truth_3D[:, :, :, t0-tt:t0+tt].sum(axis=(2, 3)),
-                     origin='lower',
-                     aspect='auto',
-                     interpolation='none',
-                     vmin=vmin,
-                     vmax=vmax,
-                     extent=extent,
-                     cmap=cmap, alpha=0.5)
+    skcsd_snapshot = est_skcsd[:, :, :, t0-tt:t0+tt].sum(axis=(2, 3))
+    gt_snapshot = ground_truth_3D[:, :, :, t0-tt:t0+tt].sum(axis=(2, 3))
+                      
+    axfig22.imshow(skcsd_seg,
+                   origin="lower",
+                   interpolation="none",
+                   vmin=gvmin,
+                   vmax=gvmax,
+                   cmap=plt.cm.bwr_r )
+    
+    cax = pl.make_map_plot(ax4,
+                           gt_snapshot,
+                           vmin=vmin,
+                           vmax=vmax,
+                           extent=extent,
+                           cmap=cmap,
+                           alpha=.95,
+                           ele_pos=ele_pos,
+                           morphology=morpho)
             
     ax2.set_yticklabels([])
     ax3.set_yticklabels([])
     ax2.set_xticklabels([])
     ax3.set_xticklabels([])
 
-    ax5.imshow(morpho,
-               origin='lower',
-               aspect='auto',
-               interpolation='none',
-               extent=extent)
-    cax2 = ax5.imshow(est_skcsd[:, :, :, t0-tt:t0+tt].sum(axis=(2, 3)),
-                      origin='lower',
-                      aspect='auto',
-                      interpolation='none',
-                      vmin=vmin,
-                      vmax=vmax,
-                      extent=extent,
-                      cmap=cmap, alpha=.5)
-
+    
+    
+  
+    cax2 = pl.make_map_plot(ax5,
+                            skcsd_snapshot,
+                            vmin=vmin,
+                            vmax=vmax,
+                            extent=extent,
+                            alpha=.95,
+                            ele_pos=ele_pos,
+                            morphology=morpho)
+    
     fig.suptitle('lambda %f, R %f' % (l, R))
     xmin = cell_itself.xmin
     xmax = cell_itself.xmax
@@ -158,7 +166,7 @@ if __name__ == '__main__':
     gdx = (xmax-xmin)/50
     gdy = (ymax-ymin)/50
     gdz = (zmax-zmin)/5
-    print('kcsd')
+
     kcsd = KCSD3D(ele_pos,
                   data.LFP,
                   n_src_init=n_src,
@@ -175,45 +183,26 @@ if __name__ == '__main__':
                   gdx=gdx,
                   gdy=gdy,
                   gdz=gdz)
-    print('kcsd')
+
     kcsd_csd = kcsd.values()
     kcsd_pot = kcsd.values("POT")
-    ax2.imshow(morpho,
-               origin='lower',
-               aspect='auto',
-               interpolation='none',
-               extent=extent)
-    ax3.imshow(morpho,
-               origin='lower',
-               aspect='auto',
-               interpolation='none',
-               extent=extent)
 
-    cax = ax2.imshow(kcsd_pot[:, :, :, t0-tt:t0+tt].sum(axis=(2, 3)),
-                     origin='lower',
-                     aspect='auto',
+    pl.make_map_plot(ax2, kcsd_pot[:, :, :,
+                                   t0-tt:t0+tt].sum(axis=(2, 3)),
+                     extent=extent,
+                     cmap=plt.cm.viridis,
+                     alpha=.9,
+                     ele_pos=ele_pos,
+                     morphology=morpho)
+    pl.make_map_plot(ax3, kcsd_csd[:, :, :,
+                                   t0-tt:t0+tt].sum(axis=(2, 3)),
                      vmin=vmin,
                      vmax=vmax,
                      extent=extent,
-                     cmap=plt.cm.viridis)
-    cax = ax3.imshow(kcsd_csd[:, :, :, t0-tt:t0+tt].sum(axis=(2, 3)),
-                     origin='lower',
-                     aspect='auto',
-                     vmin=vmin,
-                     vmax=vmax,
-                     extent=extent,
-                     cmap=cmap)
-    print('electrodes')
-    for i in range(ele_pos.shape[0]):
-        pos_x, pos_y = 1e6*ele_pos[i, 0], 1e6*ele_pos[i, 1]
-        text = ax2.text(pos_x, pos_y, '*',
-                        ha="center", va="center", color="k")
-        text = ax3.text(pos_x, pos_y, '*',
-                        ha="center", va="center", color="k")
-        text = ax4.text(pos_x, pos_y, '*',
-                                ha="center", va="center", color="k")
-        text = ax5.text(pos_x, pos_y, '*',
-                        ha="center", va="center", color="k")
+                     cmap=cmap,
+                     alpha=.9,
+                     ele_pos=ele_pos,
+                     morphology=morpho)
 
     ax1.set_title('Time %d' % t0)
     ax2.set_title('Potential')
