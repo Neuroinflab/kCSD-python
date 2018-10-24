@@ -52,6 +52,32 @@ Load either one column file (or a one row file) with x positions,
 y positions, z positions, or a 3 column file with x and y and z positions.
 """
 
+
+# Set this in a global path so that you do not have to re-compute in each sub-dir
+HIDDEN_FOLDER = os.path.join(os.path.abspath('.'), '.kcsd_tables')
+
+def save_precomputed(dist_table_filename, dist_table):
+    with open(os.path.join(HIDDEN_FOLDER, dist_table_filename+'.npy'), 'wb') as f1:
+        np.save(f1, dist_table)
+    return
+
+
+def load_precomputed(dist_table_filename):
+    try:
+        dist_table = np.load(os.path.join(HIDDEN_FOLDER, dist_table_filename+'.npy'))
+        flag = False
+    except IOError:
+        try:
+            os.mkdir(HIDDEN_FOLDER)
+            with open(os.path.join(HIDDEN_FOLDER, 'README.txt'), 'w') as ff:
+                ff.write('Folder for saving pre-computed distance tables to calculate potentials. Can be deleted')
+        except FileExistsError:
+            pass
+        dist_table = None
+        flag = True
+    return dist_table, flag
+
+
 def load_swc(path):
     """Load swc morphology from file
 

@@ -147,6 +147,7 @@ class KCSD(CSD):
         self.update_b_src()                                 # update crskernel
         self.update_b_interp_pot()                          # update pot interp
 
+
     def create_lookup(self):
         """Creates a table for easy potential estimation from CSD.
         Updates and Returns the potentials due to a
@@ -161,13 +162,20 @@ class KCSD(CSD):
         """
         xs = np.logspace(0., np.log10(self.dist_max+1.), self.dist_table_density)
         xs = xs - 1.0  # starting from 0
-        dist_table = np.zeros(len(xs))
-        for i, pos in enumerate(xs):
-            dist_table[i] = self.forward_model(pos,
-                                               self.R,
-                                               self.h,
-                                               self.sigma,
-                                               self.basis)
+
+        dist_table_uniquename = '_'.join([self.__class__.__name__, str(self.dist_max),
+                                          str(self.dist_table_density), str(self.R),
+                                          str(self.h), str(self.sigma), self.src_type])
+        dist_table, new_dist_flag = utils.load_precomputed(dist_table_uniquename)
+        if new_dist_flag:   # In this case the potentials were never computed before  
+            dist_table = np.zeros(len(xs))
+            for i, pos in enumerate(xs):
+                dist_table[i] = self.forward_model(pos,
+                                                   self.R,
+                                                   self.h,
+                                                   self.sigma,
+                                                   self.basis)
+            utils.save_precomputed(dist_table_uniquename, dist_table)
         self.interpolate_pot_at = interpolate.interp1d(xs, dist_table,
                                                        kind='cubic')
 
@@ -566,7 +574,7 @@ class KCSD1D(KCSD):
         R : float
         h : float
         sigma : float
-        src_type : basis_1D.key
+        src_type : basis_1D[key]
 
         Returns
         -------
@@ -741,7 +749,7 @@ class KCSD2D(KCSD):
         R : float
         h : float
         sigma : float
-        src_type : basis_2D.key
+        src_type : basis_2D[key]
 
         Returns
         -------
@@ -864,7 +872,7 @@ class MoIKCSD(KCSD2D):
         R : float
         h : float
         sigma : float
-        src_type : basis_2D.key
+        src_type : basis_2D[key]
 
         Returns
         -------
@@ -1061,7 +1069,7 @@ class KCSD3D(KCSD):
         R : float
         h : float
         sigma : float
-        src_type : basis_3D.key
+        src_type : basis_3D[key]
 
         Returns
         -------
