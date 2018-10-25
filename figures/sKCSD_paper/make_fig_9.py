@@ -75,13 +75,15 @@ if __name__ == '__main__':
     gdt1 = ground_truth_grid[:,:,:,t1].sum(axis=1)
     morpho, extent = cell.draw_cell2D(axis=1)
 
-    ax[0, 0].imshow(morpho, extent=extent, origin="lower", interpolation="none")
-    ax[0, 1].imshow(morpho, extent=extent, origin="lower", interpolation="none")
-    ax[1, 0].imshow(morpho, extent=extent, origin="lower", interpolation="none")
-    ax[1, 1].imshow(morpho, extent=extent, origin="lower", interpolation="none")
-    ax[1, 2].imshow(morpho, extent=extent, origin="lower", interpolation="none")
-
-    pl.make_map_plot(ax[0, 0], gdt1, vmin=vmin, vmax=vmax, extent=extent, alpha=.9)
+   
+    pl.make_map_plot(ax[0, 0],
+                     gdt1,
+                     vmin=vmin,
+                     vmax=vmax,
+                     extent=extent,
+                     alpha=.9,
+                     morphology=morpho,
+                     ele_pos=ele_pos)
     snrs = []
     L1 = []  
     for i, nl in enumerate(noise_levels):
@@ -132,7 +134,9 @@ if __name__ == '__main__':
                              vmax=vmax,
                              extent=extent,
                              title="No noise",
-                             alpha=.8)
+                             alpha=.8,
+                             morphology=morpho,
+                             ele_pos=ele_pos)
         else:
             pl.make_map_plot(ax[1, i-1],
                              est_skcsd[:,:,:,t1].sum(axis=1),
@@ -140,20 +144,9 @@ if __name__ == '__main__':
                              vmax=vmax,
                              extent=extent,
                              title='SNR %f' % snr,
-                             alpha=.9)
-
-    for z in range(ele_pos.shape[0]):
-        pos_x, pos_y = 1e6*ele_pos[z, 2], 1e6*ele_pos[z, 0]
-        ax[0, 0].text(pos_x, pos_y, '*',
-                      ha="center", va="center", color="k", fontsize=7)
-        ax[0, 1].text(pos_x, pos_y, '*',
-                      ha="center", va="center", color="k", fontsize=7)
-        ax[1, 0].text(pos_x, pos_y, '*',
-                      ha="center", va="center", color="k", fontsize=7)
-        ax[1, 1].text(pos_x, pos_y, '*',
-                      ha="center", va="center", color="k", fontsize=7)
-        ax[1, 2].text(pos_x, pos_y, '*',
-                      ha="center", va="center", color="k", fontsize=7)
+                             alpha=.9,
+                             morphology=morpho,
+                             ele_pos=ele_pos)
 
     ax[0, 2].plot([i for i in range(len(snrs))], L1, 'dk')
     ax[0, 2].set_xticks([i for i in range(len(snrs))])

@@ -40,8 +40,8 @@ if __name__ == '__main__':
     tstop = 250
     scale_factor = 1000**2
     scale_factor_LFP = 1000
-    R = 32e-6/np.sqrt(2)
-    l = 1.
+    R = 64e-6/np.sqrt(2)
+    l = .1
     data_dir = []
     for i in range(7):
         colnb = different_trials_parameters[i]['colnb']

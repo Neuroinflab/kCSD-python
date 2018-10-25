@@ -19,27 +19,28 @@ if __name__ == '__main__':
     tstop = 70
     scaling_factor = 1000**2
     scaling_factor_LFP = 1000
-    electrode_number = [1, 4]
+    rownb =  [16, 4]
     data_dir = []
-    colnb = 16
+    colnb = [4, 16]
     lfps = []
-    xmin = [33, -100]
-    for i, rownb in enumerate(electrode_number):
+    xmax = [100, 500]
+    ymax = [500, 100]
+    for i, electrode_orientation in enumerate([1, 2]):
         fname = fname_base
         c = sKCSD_utils.simulate(fname,
                                  morphology=2,
-                                 colnb=rownb,
-                                 rownb=colnb,
-                                 xmin=0,
-                                 xmax=500,
-                                 ymin=xmin[i],
-                                 ymax=100,
+                                 colnb=rownb[i],
+                                 rownb=colnb[i],
+                                 xmin=-100,
+                                 xmax=xmax[i],
+                                 ymin=-100,
+                                 ymax=ymax[i],
                                  tstop=tstop,
                                  seed=1988,
                                  weight=0.01,
                                  n_syn=100,
                                  simulate_what="symmetric",
-                                 electrode_orientation=2,
+                                 electrode_orientation=electrode_orientation,
                                  dt=dt)
         data_dir.append(c.return_paths_skCSD_python())
     seglen = np.loadtxt(os.path.join(data_dir[0], 'seglength'))
@@ -60,9 +61,10 @@ if __name__ == '__main__':
     ele_pos = data.ele_pos/scaling_factor
     morphology = data.morphology
     morphology[:, 2:6] = morphology[:, 2:6]/scaling_factor
-    cell_itself =  sKCSDcell(morphology, ele_pos, n_src, xmin=-120e-6, xmax=120e-6, zmin=-50e-6, zmax=550e-6)
+    cell_itself =  sKCSDcell(morphology, ele_pos, n_src, xmin=-120e-6, xmax=120e-6, zmin=-150e-6, zmax=550e-6)
     cell_itself.distribute_srcs_3D_morph()
-    morpho, extent = cell_itself.draw_cell2D(axis=1)
+    morpho1, extent1 = cell_itself.draw_cell2D(axis=1)
+    morpho2, extent2 = cell_itself.draw_cell2D(axis=2)
     ground_truth_grid = cell_itself.transform_to_3D(ground_truth, what="morpho")
     ground_truth_t1 = ground_truth_grid[:, :, :, t1].sum(axis=1)
     ground_truth_t2 = ground_truth_grid[:, :, :, t2].sum(axis=1)
@@ -71,7 +73,7 @@ if __name__ == '__main__':
        
         data = utils.LoadData(datd)
         ele_pos = data.ele_pos/scaling_factor
-       
+        print(ele_pos)
         data.LFP = data.LFP/scaling_factor_LFP
         morphology = data.morphology
         morphology[:, 2:6] = morphology[:, 2:6]/scaling_factor
@@ -135,40 +137,40 @@ if __name__ == '__main__':
         if i == 0:
             for j in [1, 2]:
                 for k in [2, 3]:
-                    ax[j, k].imshow(morpho, extent=extent, origin='lower', aspect="auto", alpha=0.5)
+                    ax[j, k].imshow(morpho1, extent=extent1, origin='lower', aspect="auto", alpha=0.5)
                     for z in ele_pos:
                         pos_x, pos_y = 1e6*z[2], 1e6*z[0]
                         ax[j, k].text(pos_x, pos_y, '*',
                                       ha="center", va="center", color="k", fontsize=3)
-            cax = pl.make_map_plot(ax[1, 2], ground_truth_t1, extent=extent, alpha=.95)
-            cax = pl.make_map_plot(ax[2, 2], ground_truth_t2, extent=extent, alpha=.95)
-            cax = pl.make_map_plot(ax[1, 3], est_skcsd_t1, extent=extent)
-            cax = pl.make_map_plot(ax[2, 3], est_skcsd_t2, extent=extent)
+            cax = pl.make_map_plot(ax[1, 2], ground_truth_t1, extent=extent1, alpha=.95)
+            cax = pl.make_map_plot(ax[2, 2], ground_truth_t2, extent=extent1, alpha=.95)
+            cax = pl.make_map_plot(ax[1, 3], est_skcsd_t1, extent=extent1)
+            cax = pl.make_map_plot(ax[2, 3], est_skcsd_t2, extent=extent1)
 
         else:
             for j in [1, 2]:
                 for k in [0, 1]:
-                    ax[j, k].imshow(morpho, extent=extent, origin='lower', aspect="auto", alpha=0.5)
+                    ax[j, k].imshow(morpho2, extent=extent2, origin='lower', aspect="auto", alpha=0.5)
                     for z in ele_pos:
                         pos_x, pos_y = 1e6*z[2], 1e6*z[0]
                         ax[j, k].text(pos_x, pos_y, '*',
                                       ha="center", va="center", color="k", fontsize=3)
             for j in [0, 1, 2, 3]:
-                    ax[0, j].imshow(morpho, extent=extent, origin='lower', aspect="auto", alpha=.5)
+                    ax[0, j].imshow(morpho1, extent=extent1, origin='lower', aspect="auto", alpha=.5)
                     for z in ele_pos:
                         pos_x, pos_y = 1e6*z[2], 1e6*z[0]
                         ax[0, j].text(pos_x, pos_y, '*',
                                       ha="center", va="center", color="k", fontsize=3)
-            cax = pl.make_map_plot(ax[0, 0], est_kcsd_pot[:, :, :, t1].sum(axis=1),cmap=plt.cm.viridis, extent=extent)
-            cax = pl.make_map_plot(ax[0, 1], est_kcsd[:, :, :, t1].sum(axis=1), extent=extent)
-            cax = pl.make_map_plot(ax[0, 2], ground_truth_t1, extent=extent, alpha=.95)
-            cax = pl.make_map_plot(ax[0, 3], est_skcsd_t1, extent=extent)
-            cax = pl.make_map_plot(ax[1, 0], est_kcsd_pot[:, :, :, t1].sum(axis=1),cmap=plt.cm.viridis, extent=extent)
-            cax = pl.make_map_plot(ax[1, 1], est_kcsd[:, :, :, t1].sum(axis=1), extent=extent)
+            cax = pl.make_map_plot(ax[0, 0], est_kcsd_pot[:, :, :, t1].sum(axis=1),cmap=plt.cm.viridis, extent=extent1)
+            cax = pl.make_map_plot(ax[0, 1], est_kcsd[:, :, :, t1].sum(axis=1), extent=extent1)
+            cax = pl.make_map_plot(ax[0, 2], ground_truth_t1, extent=extent1, alpha=.95)
+            cax = pl.make_map_plot(ax[0, 3], est_skcsd_t1, extent=extent1)
+            cax = pl.make_map_plot(ax[1, 0], est_kcsd_pot[:, :, :, t1].sum(axis=1),cmap=plt.cm.viridis, extent=extent1)
+            cax = pl.make_map_plot(ax[1, 1], est_kcsd[:, :, :, t1].sum(axis=1), extent=extent1)
             cax = pl.make_map_plot(ax[2, 0],
                           est_kcsd_pot[:, :, :, t2].sum(axis=1),
-                                   extent=extent, cmap=plt.cm.viridis)
-            cax = pl.make_map_plot(ax[2, 1], est_kcsd[:, :, :, t2].sum(axis=1), extent=extent)
+                                   extent=extent1, cmap=plt.cm.viridis)
+            cax = pl.make_map_plot(ax[2, 1], est_kcsd[:, :, :, t2].sum(axis=1), extent=extent1)
     for i in range(3):
         for j in range(4):
             if not j:
@@ -184,3 +186,4 @@ if __name__ == '__main__':
                 bbox_inches='tight',
                 transparent=True,
                 pad_inches=0.1)
+    plt.show()
