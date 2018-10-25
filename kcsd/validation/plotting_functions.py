@@ -17,7 +17,7 @@ import glob
 from matplotlib.patches import Circle
 from matplotlib.collections import PatchCollection
 
-max_r = 10 #times a point
+max_r = 5 #times a point
 def skCSD_reconstruction_plot_z(pots, est_csd, est_pot, cell_obj,
                                 t_min=0, electrode=5):
     """Displays interactive skCSD reconstruction plot in z plane
@@ -371,7 +371,7 @@ def make_map_plot(ax_i, what, **kwargs):
             if y_high >= what.shape[1]:
                 y_high = what.shape[1]
            
-            greys[x_low:x_high, y_low:y_high, :] = greys[x_low:x_high, y_low:y_high, :]*0
+            greys[x_low:x_high, y_low:y_high, :] = greys[x_low:x_high, y_low:y_high, :]*0.5
 
         caxg = ax_i.imshow(greys,
                            origin='lower',

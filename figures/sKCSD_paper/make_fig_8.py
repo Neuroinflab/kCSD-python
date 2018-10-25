@@ -93,15 +93,15 @@ if __name__ == '__main__':
                             ymin=ymin,
                             ymax=ymax)
     cell_itself.distribute_srcs_3D_morph()
-    # ker = sKCSD(ele_pos,
-    #             data.LFP,
-    #             morphology,
-    #             n_src_init=n_src,
-    #             src_type='gauss',
-    #             lambd=lambd,
-    #             R_init=R,
-    #             tolerance=tolerance,
-    #             exact=True)
+    ker = sKCSD(ele_pos,
+                data.LFP,
+                morphology,
+                n_src_init=n_src,
+                src_type='gauss',
+                lambd=lambd,
+                R_init=R,
+                tolerance=tolerance,
+                exact=True)
     path = os.path.join(data_dir, 'lambda_%f_R_%f_n_src_%d' % (l, R, n_src))
     if sys.version_info < (3, 0):
         path = os.path.join(path, "preprocessed_data/Python_2")

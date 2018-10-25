@@ -26,7 +26,7 @@ def simulate(fname_base, **kwargs):
     seed = kwargs.pop("seed", 1988)
     weight = kwargs.pop("weight", .01)
     n_syn = kwargs.pop("n_syn", 1000)
-    fname = fname_base+'_rows_%s_cols_%s_xmin_%s_xmax_%s_ymin_%s_ymax_%s' % (rownb, colnb, xmin, xmax, ymin, ymax)
+    fname = fname_base+'_rows_%s_cols_%s_xmin_%s_xmax_%s_ymin_%s_ymax_%s_orientation_%s' % (rownb, colnb, xmin, xmax, ymin, ymax,  electrode_orientation)
     triside = kwargs.pop("triside", 60)
     electrode_distance = kwargs.pop("electrode_distance", 50)
     dt = kwargs.pop("dt", 0.5)
