@@ -29,7 +29,7 @@ class KCSD1D_TestCase(unittest.TestCase):
         self.pots = np.reshape(pots, (-1, 1))
         self.test_method = 'KCSD1D'
         self.test_params = {'h': 1., 'sigma': 0.3, 'R_init': 0.2,
-                            'n_src_init': 1000, 'xmin': 0., 'xmax': 1.,}
+                            'n_src_init': 300, 'xmin': 0., 'xmax': 1.,}
 
     def test_kcsd1d_estimate(self, cv_params={}):
         self.test_params.update(cv_params)
@@ -118,11 +118,11 @@ class KCSD3D_TestCase(unittest.TestCase):
                                          h=50., sigma=1.)
         self.pots = np.reshape(pots, (-1, 1))
         self.test_method = 'KCSD3D'
-        self.test_params = {'gdx': 0.05, 'gdy': 0.05, 'gdz': 0.05,
+        self.test_params = {'gdx': 0.1, 'gdy': 0.1, 'gdz': 0.1,
                             'src_type': 'gauss',
                             'R_init': 0.31, 'xmin': 0., 'xmax': 1., 'ymin': 0.,
                             'ymax': 1., 'zmin': 0., 'zmax': 1.,
-                            'n_src_init': 3000}
+                            'n_src_init': 1000}
 
     def test_kcsd3d_estimate(self, cv_params={}):
         self.test_params.update(cv_params)
