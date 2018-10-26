@@ -29,7 +29,7 @@ class KCSD1D_TestCase(unittest.TestCase):
         self.pots = np.reshape(pots, (-1, 1))
         self.test_method = 'KCSD1D'
         self.test_params = {'h': 1., 'sigma': 0.3, 'R_init': 0.2,
-                            'n_src_init': 100, 'xmin': 0., 'xmax': 1.,}
+                            'n_src_init': 1000, 'xmin': 0., 'xmax': 1.,}
 
     def test_kcsd1d_estimate(self, cv_params={}):
         self.test_params.update(cv_params)
@@ -84,7 +84,7 @@ class KCSD2D_TestCase(unittest.TestCase):
                         'between trueCSD and estimate > 0.5')
 
     def test_moi_estimate(self):
-        result = MoIKCSD(self.ele_pos, self.pots, n_src_init=200,
+        result = MoIKCSD(self.ele_pos, self.pots, n_src_init=500,
                          MoI_iters=20, sigma_S=0.3, **self.test_params)
         result.cross_validate(Rs=np.array((0.41, 0.42)))
         vals = result.values()
@@ -118,11 +118,11 @@ class KCSD3D_TestCase(unittest.TestCase):
                                          h=50., sigma=1.)
         self.pots = np.reshape(pots, (-1, 1))
         self.test_method = 'KCSD3D'
-        self.test_params = {'gdx': 0.2, 'gdy': 0.2, 'gdz': 0.2,
+        self.test_params = {'gdx': 0.05, 'gdy': 0.05, 'gdz': 0.05,
                             'src_type': 'gauss',
                             'R_init': 0.31, 'xmin': 0., 'xmax': 1., 'ymin': 0.,
                             'ymax': 1., 'zmin': 0., 'zmax': 1.,
-                            'n_src_init': 100}
+                            'n_src_init': 3000}
 
     def test_kcsd3d_estimate(self, cv_params={}):
         self.test_params.update(cv_params)
