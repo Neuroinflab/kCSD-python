@@ -18,7 +18,10 @@ n_src = 5
 class testsKCD(unittest.TestCase):
     @classmethod
     def setUpClass(cls, n_src=5):
-        
+        """
+        Check, if it is possible to read in data. 
+        This test will be expanded and more neurons read-in.
+        """
         
         cls.data2 = LoadData(os.path.join(sample_data_path, "Simple_with_branches"))
         cls.data2.morphology[:, 2:6] = cls.data2.morphology[:, 2:6]/sc
