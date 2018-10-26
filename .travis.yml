@@ -1,4 +1,4 @@
-dist: precise
+dist: trusty
 language: python
 sudo: false
 python:
@@ -32,9 +32,9 @@ env:
       COVERAGE="true"
 
     # basic Ubuntu build environment
-    - DISTRIB="ubuntu" PYTHON_VERSION="2.7"
-      NUMPY_VERSION="1.8.0" SCIPY_VERSION="0.14.0" SIX_VERSION="1.10.0"
-      COVERAGE="true"
+    # - DISTRIB="ubuntu" PYTHON_VERSION="2.7"
+    #  NUMPY_VERSION="1.8.0" SCIPY_VERSION="0.14.0" SIX_VERSION="1.10.0"
+    #  COVERAGE="true"
 
     # - DISTRUB="ubuntu_extra" PYTHON_VERSION="2.7"
     #   SKMONACO_VERSION="0.2" NUMPY_VERSION="1.13.0" SCIPY_VERSION="1.0.0"
