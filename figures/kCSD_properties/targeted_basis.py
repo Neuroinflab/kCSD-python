@@ -8,10 +8,14 @@ import matplotlib.pyplot as plt
 import datetime
 import time
 
-from kcsd import csd_profile as CSD
 from kcsd import ValidateKCSD, ValidateKCSD1D, SpectralStructure, KCSD1D
 
 __abs_file__ = os.path.abspath(__file__)
+home = expanduser('~')
+DAY = datetime.datetime.now()
+DAY = DAY.strftime('%Y%m%d')
+TIMESTR = time.strftime("%H%M%S")
+SAVE_PATH = home + "/kCSD_results/" + DAY + '/' + TIMESTR
 
 
 def makemydir(directory):
@@ -118,7 +122,7 @@ def targeted_basis(val, csd_at, true_csd, ele_pos, pots, n_src, R, MU,
     k: object of the class ValidateKCSD1D
     '''
     k = ValidateKCSD1D(1, n_src_init=n_src, R_init=0.23,
-                       ele_lims=ele_lims,
+                       ele_lims=ele_lims, est_xres=0.01,
                        true_csd_xlims=true_csd_xlims, sigma=sigma, h=h,
                        src_type='gauss')
     obj, est_csd = k.recon(pots, ele_pos, method='cross-validation',
@@ -292,7 +296,7 @@ def plot_eigenvectors(eigenvectors, save_path, title):
 
 
 def modified_bases(k, pots, ele_pos, n_src, title, h=0.25, sigma=0.3,
-                   gdx=0.035, ext_x=0, xmin=0, xmax=1):
+                   gdx=0.01, ext_x=0, xmin=0, xmax=1):
     '''
     Parameters
     ----------
@@ -384,73 +388,68 @@ def plot_k_interp_cross_v(k_icross, eigenvectors, save_path, title):
     plt.close()
 
 
-home = expanduser('~')
-DAY = datetime.datetime.now()
-DAY = DAY.strftime('%Y%m%d')
-TIMESTR = time.strftime("%H%M%S")
-SAVE_PATH = home + "/kCSD_results/" + DAY + '/' + TIMESTR
-makemydir(SAVE_PATH)
-save_source_code(SAVE_PATH, time.strftime("%Y%m%d-%H%M%S"))
+if __name__ == '__main__':
+    makemydir(SAVE_PATH)
+    save_source_code(SAVE_PATH, time.strftime("%Y%m%d-%H%M%S"))
 
-CSD_PROFILE = CSD.gauss_1d_mono
-CSD_SEED = 15
-N_SRC = 64
-ELE_LIMS = [0, 1.]  # range of electrodes space
-TRUE_CSD_XLIMS = [0., 1.]
-TOTAL_ELE = 12
+    CSD_SEED = 15
+    N_SRC = 64
+    ELE_LIMS = [0, 1.]  # range of electrodes space
+    TRUE_CSD_XLIMS = [0., 1.]
+    TOTAL_ELE = 12
 
-#  A
-R = 0.2
-MU = 0.25
-csd_at, true_csd, ele_pos, pots, val = simulate_data(csd_profile,
-                                                     TRUE_CSD_XLIMS, R, MU,
-                                                     TOTAL_ELE, ELE_LIMS)
-title = 'A_basis_lims_0_1'
-obj, k = targeted_basis(val, csd_at, true_csd, ele_pos, pots, N_SRC, R, MU,
-                        TRUE_CSD_XLIMS, ELE_LIMS, title)
-ss = SpectralStructure(obj)
-eigenvectors, eigenvalues = ss.evd()
-plot_eigenvalues(eigenvalues, SAVE_PATH, title)
-plot_eigenvectors(eigenvectors, SAVE_PATH, title)
-plot_k_interp_cross_v(obj.k_interp_cross, eigenvectors, SAVE_PATH, title)
+    #  A
+    R = 0.2
+    MU = 0.25
+    csd_at, true_csd, ele_pos, pots, val = simulate_data(csd_profile,
+                                                         TRUE_CSD_XLIMS, R, MU,
+                                                         TOTAL_ELE, ELE_LIMS)
+    title = 'A_basis_lims_0_1'
+    obj, k = targeted_basis(val, csd_at, true_csd, ele_pos, pots, N_SRC, R, MU,
+                            TRUE_CSD_XLIMS, ELE_LIMS, title)
+    ss = SpectralStructure(obj)
+    eigenvectors, eigenvalues = ss.evd()
+    plot_eigenvalues(eigenvalues, SAVE_PATH, title)
+    plot_eigenvectors(eigenvectors, SAVE_PATH, title)
+    plot_k_interp_cross_v(obj.k_interp_cross, eigenvectors, SAVE_PATH, title)
 
-#  A.2
-title = 'A_basis_lims_0_0_5'
-modified_bases(k, pots, ele_pos, N_SRC, title, h=0.25, sigma=0.3, gdx=0.035,
-               ext_x=0, xmin=0, xmax=0.5)
+    #  A.2
+    title = 'A_basis_lims_0_0_5'
+    modified_bases(k, pots, ele_pos, N_SRC, title, h=0.25, sigma=0.3,
+                   gdx=0.01, ext_x=0, xmin=0, xmax=0.5)
 
-#  A.2.b
-title = 'A_basis_lims_0_0_5_less_sources'
-modified_bases(k, pots, ele_pos, N_SRC/2, title, h=0.25, sigma=0.3, gdx=0.035,
-               ext_x=0, xmin=0, xmax=0.5)
+    #  A.2.b
+    title = 'A_basis_lims_0_0_5_less_sources'
+    modified_bases(k, pots, ele_pos, N_SRC/2, title, h=0.25, sigma=0.3,
+                   gdx=0.01, ext_x=0, xmin=0, xmax=0.5)
 
-#  B
-TRUE_CSD_XLIMS = [0., 1.5]
-R = 0.2
-MU = 1.25
-csd_at, true_csd, ele_pos, pots, val = simulate_data(csd_profile,
-                                                     TRUE_CSD_XLIMS, R, MU,
-                                                     TOTAL_ELE, ELE_LIMS)
-title = 'B_basis_lims_0_1'
-obj, k = targeted_basis(val, csd_at, true_csd, ele_pos, pots, N_SRC, R, MU,
-                        TRUE_CSD_XLIMS, ELE_LIMS, title)
-ss = SpectralStructure(obj)
-eigenvectors, eigenvalues = ss.evd()
-plot_eigenvalues(eigenvalues, SAVE_PATH, title)
-plot_eigenvectors(eigenvectors, SAVE_PATH, title)
-plot_k_interp_cross_v(obj.k_interp_cross, eigenvectors, SAVE_PATH, title)
+    #  B
+    TRUE_CSD_XLIMS = [0., 1.5]
+    R = 0.2
+    MU = 1.25
+    csd_at, true_csd, ele_pos, pots, val = simulate_data(csd_profile,
+                                                         TRUE_CSD_XLIMS, R, MU,
+                                                         TOTAL_ELE, ELE_LIMS)
+    title = 'B_basis_lims_0_1'
+    obj, k = targeted_basis(val, csd_at, true_csd, ele_pos, pots, N_SRC, R, MU,
+                            TRUE_CSD_XLIMS, ELE_LIMS, title)
+    ss = SpectralStructure(obj)
+    eigenvectors, eigenvalues = ss.evd()
+    plot_eigenvalues(eigenvalues, SAVE_PATH, title)
+    plot_eigenvectors(eigenvectors, SAVE_PATH, title)
+    plot_k_interp_cross_v(obj.k_interp_cross, eigenvectors, SAVE_PATH, title)
 
-#  B.2
-title = 'B_basis_lims_1_1_5'
-modified_bases(k, pots, ele_pos, N_SRC, title, h=0.25, sigma=0.3, gdx=0.035,
-               ext_x=0, xmin=1, xmax=1.5)
+    #  B.2
+    title = 'B_basis_lims_1_1_5'
+    modified_bases(k, pots, ele_pos, N_SRC, title, h=0.25, sigma=0.3,
+                   gdx=0.01, ext_x=0, xmin=1, xmax=1.5)
 
-#  B.2.b
-title = 'B_basis_lims_1_1_5_less_sources'
-modified_bases(k, pots, ele_pos, N_SRC/2, title, h=0.25, sigma=0.3, gdx=0.035,
-               ext_x=0, xmin=1, xmax=1.5)
+    #  B.2.b
+    title = 'B_basis_lims_1_1_5_less_sources'
+    modified_bases(k, pots, ele_pos, N_SRC/2, title, h=0.25, sigma=0.3,
+                   gdx=0.01, ext_x=0, xmin=1, xmax=1.5)
 
-#  B.3
-title = 'B_basis_lims_0_1_5'
-modified_bases(k, pots, ele_pos, N_SRC, title, h=0.25, sigma=0.3, gdx=0.035,
-               ext_x=0, xmin=0, xmax=1.5)
+    #  B.3
+    title = 'B_basis_lims_0_1_5'
+    modified_bases(k, pots, ele_pos, N_SRC, title, h=0.25, sigma=0.3,
+                   gdx=0.01, ext_x=0, xmin=0, xmax=1.5)

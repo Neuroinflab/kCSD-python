@@ -93,7 +93,7 @@ def stability_M(csd_profile, csd_seed, n_src, ele_lims, true_csd_xlims,
     for i, value in enumerate(n_src):
         KK = ValidateKCSD1D(csd_seed, n_src_init=value, R_init=0.23,
                             ele_lims=ele_lims, true_csd_xlims=true_csd_xlims,
-                            sigma=0.3, h=0.25, src_type='gauss')
+                            sigma=0.3, h=0.25, src_type='gauss', est_xres=0.01)
         obj, rms[i], point_error = KK.make_reconstruction(csd_profile,
                                                           csd_seed,
                                                           total_ele=total_ele,
@@ -414,7 +414,8 @@ if __name__ == '__main__':
 
     CSD_PROFILE = CSD.gauss_1d_mono
     CSD_SEED = 15
-    N_SRC = [2, 4, 8, 16, 32, 64, 128, 256, 512]
+#    N_SRC = [2, 4, 8, 16, 32, 64, 128, 256, 512]
+    N_SRC = [2, 8, 16, 512]
     ELE_LIMS = [0.1, 0.9]  # range of electrodes space
     TRUE_CSD_XLIMS = [0., 1.]
     TOTAL_ELE = 10
