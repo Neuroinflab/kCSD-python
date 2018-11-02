@@ -45,6 +45,12 @@ def do_kcsd(CSD_PROFILE, csd_seed, prefix):
                             0.05: 0.95: 10j]
     ele_pos = np.vstack((ele_x.flatten(), ele_y.flatten())).T
 
+    #Remove some electrodes
+    remove_num = 5
+    rstate = np.random.RandomState(42)  # just a random seed
+    rmv = rstate.choice(ele_pos.shape[0], remove_num, replace=False)
+    ele_pos = np.delete(ele_pos, rmv, 0)
+    
     # Potentials generated 
     pots = np.zeros(ele_pos.shape[0])
     xlin = csd_at[0, :, 0]
@@ -139,7 +145,7 @@ def do_kcsd(CSD_PROFILE, csd_seed, prefix):
 
 if __name__ == '__main__':
     CSD_PROFILE = CSD.gauss_2d_small
-    prefix = '/home/chaitu/kCSD-python/figures/kCSD_properties/small_srcs_all_ele'
-    for csd_seed in range(75,100):
+    prefix = '/home/chaitu/kCSD-python/figures/kCSD_properties/small_srcs_minus_5'
+    for csd_seed in range(100):
         do_kcsd(CSD_PROFILE, csd_seed, prefix)
-        
+        print("Done ", csd_seed)
