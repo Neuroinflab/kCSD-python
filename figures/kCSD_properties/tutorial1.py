@@ -4,10 +4,11 @@ from kcsd import csd_profile as CSD
 from kcsd import KCSD2D
 from scipy.integrate import simps
 from scipy.interpolate import griddata
+
 from figure_properties import *
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
-
+import matplotlib.gridspec as gridspec
 
 def integrate_2d(csd_at, true_csd, ele_pos, h, csd_lims):
     csd_x, csd_y = csd_at
@@ -31,6 +32,16 @@ def grid(x, y, z):
                       min(y):max(y):np.complex(0, 100)]
     zi = griddata((x, y), z, (xi, yi), method='linear')
     return xi, yi, zi
+
+def set_axis(ax, letter=None):
+    ax.text(
+        0.05,
+        1.025,
+        letter,
+        fontsize=12,
+        weight='bold',
+        transform=ax.transAxes)
+    return ax
 
 
 def do_kcsd(CSD_PROFILE, csd_seed, prefix):
@@ -67,30 +78,32 @@ def do_kcsd(CSD_PROFILE, csd_seed, prefix):
                R_init=1., n_src_init=1000,
                src_type='gauss')   # rest of the parameters are set at default
     est_csd_pre_cv = k.values('CSD')
-    k.cross_validate(Rs=np.linspace(0.03, 0.12, 10))
+    #k.cross_validate(Rs=np.linspace(0.03, 0.12, 10))
     #k.cross_validate()
-    #k.cross_validate(lambdas=None, Rs=np.array(0.08).reshape(1))
+    k.cross_validate(lambdas=None, Rs=np.array(0.1).reshape(1))
     est_csd_post_cv = k.values('CSD')
 
     fig = plt.figure(figsize=(20, 5))
-    ax = plt.subplot(141)
+    gs = gridspec.GridSpec(2, 4, height_ratios=[1., 0.07], width_ratios=[1]*4, hspace=0.5)
+    ax = plt.subplot(gs[0, 0])
     ax.set_aspect('equal')
     t_max = np.max(np.abs(true_csd))
-    levels = np.linspace(-1 * t_max, t_max, 16)
+    levels = np.linspace(-1 * t_max, t_max, 32)
     im = ax.contourf(csd_x, csd_y, true_csd,
                      levels=levels, cmap=cm.bwr)
     ax.set_xlabel('X [mm]')
     ax.set_ylabel('Y [mm]')
-    ax.set_title('True CSD', pad=20)
+    ax.set_title('True CSD')
     ax.set_xticks([0, 0.5, 1])
     ax.set_yticks([0, 0.5, 1])
     ticks = np.linspace(-1 * t_max, t_max, 5, endpoint=True)
-    plt.colorbar(im, orientation='horizontal', format='%.2f', ticks=ticks, pad=0.25)
+    cax = plt.subplot(gs[1, 0])
+    plt.colorbar(im, cax=cax, orientation='horizontal', format='%.2f', ticks=ticks)
 
-    ax = plt.subplot(142)
+    ax = plt.subplot(gs[0, 1])
     ax.set_aspect('equal')
     v_max = np.max(np.abs(pots))
-    levels_pot = np.linspace(-1 * v_max, v_max, 16)
+    levels_pot = np.linspace(-1 * v_max, v_max, 32)
     im = ax.contourf(pot_X, pot_Y, pot_Z,
                      levels=levels_pot, cmap=cm.PRGn) 
     ax.scatter(ele_pos[:, 0], ele_pos[:, 1], 10, c='k')
@@ -99,14 +112,15 @@ def do_kcsd(CSD_PROFILE, csd_seed, prefix):
     ax.set_xticks([0, 0.5, 1])
     ax.set_yticks([0, 0.5, 1])
     ax.set_xlabel('X [mm]')
-    ax.set_title('Interpolated potentials', pad=20)
+    ax.set_title('Interpolated potentials')
     ticks = np.linspace(-1 * v_max, v_max, 5, endpoint=True)
-    plt.colorbar(im, orientation='horizontal', format='%.2f', ticks=ticks, pad=0.25)
+    cax = plt.subplot(gs[1, 1])
+    plt.colorbar(im, cax=cax, orientation='horizontal', format='%.2f', ticks=ticks)
 
-    ax = plt.subplot(143)
+    ax = plt.subplot(gs[0, 2])
     ax.set_aspect('equal')
     t_max = np.max(np.abs(est_csd_pre_cv[:, :, 0]))
-    levels_kcsd = np.linspace(-1 * t_max, t_max, 16, endpoint=True)
+    levels_kcsd = np.linspace(-1 * t_max, t_max, 32, endpoint=True)
     im = ax.contourf(k.estm_x, k.estm_y, est_csd_pre_cv[:, :, 0],
                      levels=levels_kcsd, cmap=cm.bwr) 
     ax.set_xlim([0, 1])
@@ -114,14 +128,15 @@ def do_kcsd(CSD_PROFILE, csd_seed, prefix):
     ax.set_xticks([0, 0.5, 1])
     ax.set_yticks([0, 0.5, 1])
     ax.set_xlabel('X [mm]')
-    ax.set_title('Estimated CSD without CV', pad=20)
+    ax.set_title('Estimated CSD without CV')
     ticks = np.linspace(-1 * t_max, t_max, 5, endpoint=True)
-    plt.colorbar(im, orientation='horizontal', format='%.2f', ticks=ticks, pad=0.25)
+    cax = plt.subplot(gs[1, 2])
+    plt.colorbar(im, cax=cax, orientation='horizontal', format='%.2f', ticks=ticks)
 
-    ax = plt.subplot(144)
+    ax = plt.subplot(gs[0, 3])
     ax.set_aspect('equal')
     t_max = np.max(np.abs(est_csd_post_cv[:, :, 0]))
-    levels_kcsd = np.linspace(-1 * t_max, t_max, 16, endpoint=True)
+    levels_kcsd = np.linspace(-1 * t_max, t_max, 32, endpoint=True)
     im = ax.contourf(k.estm_x, k.estm_y, est_csd_post_cv[:, :, 0],
                      levels=levels_kcsd, cmap=cm.bwr) 
     ax.set_xlim([0, 1])
@@ -129,17 +144,19 @@ def do_kcsd(CSD_PROFILE, csd_seed, prefix):
     ax.set_xticks([0, 0.5, 1])
     ax.set_yticks([0, 0.5, 1])
     ax.set_xlabel('X [mm]')
-    ax.set_title('Estimated CSD with CV', pad=20)
+    ax.set_title('Estimated CSD with CV')
     ticks = np.linspace(-1 * t_max, t_max, 5, endpoint=True)
-    plt.colorbar(im, orientation='horizontal', format='%.2f', ticks=ticks, pad=0.25)
-    plt.savefig(os.path.join(prefix, str(csd_seed)+'.pdf'))
-    #plt.show()
-    np.savez(os.path.join(prefix, str(csd_seed)+'.npz'),
-             true_csd=true_csd, pots=pots, post_cv=est_csd_post_cv, R=k.R)
+    cax = plt.subplot(gs[1, 3])
+    plt.colorbar(im, cax=cax, orientation='horizontal', format='%.2f', ticks=ticks)
+    #plt.savefig(os.path.join(prefix, str(csd_seed)+'.pdf'))
+    #plt.close()
+    plt.show()
+    #np.savez(os.path.join(prefix, str(csd_seed)+'.npz'),
+    #         true_csd=true_csd, pots=pots, post_cv=est_csd_post_cv, R=k.R)
 
 if __name__ == '__main__':
     CSD_PROFILE = CSD.gauss_2d_small
-    prefix = '/home/chaitu/kCSD-python/figures/kCSD_properties/small_srcs_all_ele'
-    for csd_seed in range(75,100):
+    prefix = '/home/chaitanya/kCSD-python/figures/kCSD_properties/small_srcs_all_ele'
+    for csd_seed in [15]: #ange(75, 100):
         do_kcsd(CSD_PROFILE, csd_seed, prefix)
-        
+        print("Done ", csd_seed)

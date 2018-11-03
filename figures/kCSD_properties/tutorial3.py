@@ -33,7 +33,7 @@ def grid(x, y, z):
     return xi, yi, zi
 
 
-def do_kcsd(CSD_PROFILE, csd_seed, prefix):
+def do_kcsd(CSD_PROFILE, csd_seed, prefix, missing_ele):
     # True CSD_PROFILE
     csd_at = np.mgrid[0.:1.:100j,
                       0.:1.:100j]
@@ -46,7 +46,7 @@ def do_kcsd(CSD_PROFILE, csd_seed, prefix):
     ele_pos = np.vstack((ele_x.flatten(), ele_y.flatten())).T
 
     #Remove some electrodes
-    remove_num = 5
+    remove_num = missing_ele
     rstate = np.random.RandomState(42)  # just a random seed
     rmv = rstate.choice(ele_pos.shape[0], remove_num, replace=False)
     ele_pos = np.delete(ele_pos, rmv, 0)
@@ -70,10 +70,13 @@ def do_kcsd(CSD_PROFILE, csd_seed, prefix):
                xmin=0.0, xmax=1.0,
                ymin=0.0, ymax=1.0,
                gdx=0.01, gdy=0.01,
-               R_init=1., n_src_init=1000,
+               R_init=0.1, n_src_init=1000,
                src_type='gauss')   # rest of the parameters are set at default
     est_csd_pre_cv = k.values('CSD')
-    k.cross_validate(Rs=np.linspace(0.03, 0.12, 10))
+    R_range = np.linspace(0.1, 1.0, 10)
+    #R_range = np.linspace(0.03, 0.12, 10)
+    #R_range = np.linspace(0.1, 1.0, 10)
+    k.cross_validate(Rs=R_range)
     #k.cross_validate()
     #k.cross_validate(lambdas=None, Rs=np.array(0.08).reshape(1))
     est_csd_post_cv = k.values('CSD')
@@ -87,7 +90,7 @@ def do_kcsd(CSD_PROFILE, csd_seed, prefix):
                      levels=levels, cmap=cm.bwr)
     ax.set_xlabel('X [mm]')
     ax.set_ylabel('Y [mm]')
-    ax.set_title('True CSD', pad=20)
+    ax.set_title('True CSD')
     ax.set_xticks([0, 0.5, 1])
     ax.set_yticks([0, 0.5, 1])
     ticks = np.linspace(-1 * t_max, t_max, 5, endpoint=True)
@@ -105,7 +108,7 @@ def do_kcsd(CSD_PROFILE, csd_seed, prefix):
     ax.set_xticks([0, 0.5, 1])
     ax.set_yticks([0, 0.5, 1])
     ax.set_xlabel('X [mm]')
-    ax.set_title('Interpolated potentials', pad=20)
+    ax.set_title('Interpolated potentials')
     ticks = np.linspace(-1 * v_max, v_max, 5, endpoint=True)
     plt.colorbar(im, orientation='horizontal', format='%.2f', ticks=ticks, pad=0.25)
 
@@ -120,7 +123,7 @@ def do_kcsd(CSD_PROFILE, csd_seed, prefix):
     ax.set_xticks([0, 0.5, 1])
     ax.set_yticks([0, 0.5, 1])
     ax.set_xlabel('X [mm]')
-    ax.set_title('Estimated CSD without CV', pad=20)
+    ax.set_title('Estimated CSD without CV')
     ticks = np.linspace(-1 * t_max, t_max, 5, endpoint=True)
     plt.colorbar(im, orientation='horizontal', format='%.2f', ticks=ticks, pad=0.25)
 
@@ -135,17 +138,18 @@ def do_kcsd(CSD_PROFILE, csd_seed, prefix):
     ax.set_xticks([0, 0.5, 1])
     ax.set_yticks([0, 0.5, 1])
     ax.set_xlabel('X [mm]')
-    ax.set_title('Estimated CSD with CV', pad=20)
+    ax.set_title('Estimated CSD with CV')
     ticks = np.linspace(-1 * t_max, t_max, 5, endpoint=True)
     plt.colorbar(im, orientation='horizontal', format='%.2f', ticks=ticks, pad=0.25)
     plt.savefig(os.path.join(prefix, str(csd_seed)+'.pdf'))
+    plt.close()
     #plt.show()
     np.savez(os.path.join(prefix, str(csd_seed)+'.npz'),
              true_csd=true_csd, pots=pots, post_cv=est_csd_post_cv, R=k.R)
 
 if __name__ == '__main__':
-    CSD_PROFILE = CSD.gauss_2d_small
-    prefix = '/home/chaitu/kCSD-python/figures/kCSD_properties/small_srcs_minus_5'
+    CSD_PROFILE =  CSD.gauss_2d_large #CSD.gauss_2d_small #
+    prefix = '/home/chaitanya/kCSD-python/figures/kCSD_properties/large_srcs_minus_20'
     for csd_seed in range(100):
-        do_kcsd(CSD_PROFILE, csd_seed, prefix)
+        do_kcsd(CSD_PROFILE, csd_seed, prefix, missing_ele=20)
         print("Done ", csd_seed)
