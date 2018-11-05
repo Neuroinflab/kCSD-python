@@ -295,8 +295,9 @@ def plot_eigenvectors(eigenvectors, save_path, title):
     plt.close()
 
 
-def modified_bases(k, pots, ele_pos, n_src, title, h=0.25, sigma=0.3,
-                   gdx=0.01, ext_x=0, xmin=0, xmax=1):
+def modified_bases(val, pots, ele_pos, n_src, title=None, h=0.25, sigma=0.3,
+                   gdx=0.01, ext_x=0, xmin=0, xmax=1, R=2, MU=0.25,
+                   method='cross-validation', Rs=None, lambdas=None):
     '''
     Parameters
     ----------
@@ -333,21 +334,25 @@ def modified_bases(k, pots, ele_pos, n_src, title, h=0.25, sigma=0.3,
     pots = pots.reshape((len(ele_pos), 1))
     obj_m = KCSD1D(ele_pos, pots, src_type='gauss', sigma=sigma, h=h, gdx=gdx,
                    n_src_init=n_src, ext_x=ext_x, xmin=xmin, xmax=xmax)
-    obj_m.cross_validate(Rs=np.arange(0.2, 0.5, 0.1))
+    if method == 'cross-validation':
+        obj_m.cross_validate(Rs=Rs, lambdas=lambdas)
+    elif method == 'L-curve':
+        obj_m.L_curve(Rs=Rs, lambdas=lambdas)
     est_csd = obj_m.values('CSD')
     test_csd = csd_profile(obj_m.estm_x, [R, MU])
     rms = val.calculate_rms(test_csd, est_csd)
-    titl = "Lambda: %0.2E; R: %0.2f; RMS_Error: %0.2E;" % (obj_m.lambd,
-                                                           obj_m.R, rms)
-    fig = k.make_plot(csd_at, true_csd, obj_m, est_csd, ele_pos, pots, titl)
-    save_as = (SAVE_PATH)
-    fig.savefig(os.path.join(SAVE_PATH, save_as + '/' + title + '.png'))
-    plt.close()
-    ss = SpectralStructure(obj_m)
-    eigenvectors, eigenvalues = ss.evd()
-    plot_eigenvalues(eigenvalues, SAVE_PATH, title)
-    plot_eigenvectors(eigenvectors, SAVE_PATH, title)
-    plot_k_interp_cross_v(obj_m.k_interp_cross, eigenvectors, SAVE_PATH, title)
+#    titl = "Lambda: %0.2E; R: %0.2f; RMS_Error: %0.2E;" % (obj_m.lambd,
+#                                                           obj_m.R, rms)
+#    fig = k.make_plot(csd_at, true_csd, obj_m, est_csd, ele_pos, pots, titl)
+#    save_as = (SAVE_PATH)
+#    fig.savefig(os.path.join(SAVE_PATH, save_as + '/' + title + '.png'))
+#    plt.close()
+#    ss = SpectralStructure(obj_m)
+#    eigenvectors, eigenvalues = ss.evd()
+#    plot_eigenvalues(eigenvalues, SAVE_PATH, title)
+#    plot_eigenvectors(eigenvectors, SAVE_PATH, title)
+#    plot_k_interp_cross_v(obj_m.k_interp_cross, eigenvectors, SAVE_PATH, title)
+    return obj_m
 
 
 def plot_k_interp_cross_v(k_icross, eigenvectors, save_path, title):
@@ -415,12 +420,12 @@ if __name__ == '__main__':
 
     #  A.2
     title = 'A_basis_lims_0_0_5'
-    modified_bases(k, pots, ele_pos, N_SRC, title, h=0.25, sigma=0.3,
+    modified_bases(val, pots, ele_pos, N_SRC, title, h=0.25, sigma=0.3,
                    gdx=0.01, ext_x=0, xmin=0, xmax=0.5)
 
     #  A.2.b
     title = 'A_basis_lims_0_0_5_less_sources'
-    modified_bases(k, pots, ele_pos, N_SRC/2, title, h=0.25, sigma=0.3,
+    modified_bases(val, pots, ele_pos, N_SRC/2, title, h=0.25, sigma=0.3,
                    gdx=0.01, ext_x=0, xmin=0, xmax=0.5)
 
     #  B
@@ -441,15 +446,15 @@ if __name__ == '__main__':
 
     #  B.2
     title = 'B_basis_lims_1_1_5'
-    modified_bases(k, pots, ele_pos, N_SRC, title, h=0.25, sigma=0.3,
+    modified_bases(val, pots, ele_pos, N_SRC, title, h=0.25, sigma=0.3,
                    gdx=0.01, ext_x=0, xmin=1, xmax=1.5)
 
     #  B.2.b
     title = 'B_basis_lims_1_1_5_less_sources'
-    modified_bases(k, pots, ele_pos, N_SRC/2, title, h=0.25, sigma=0.3,
+    modified_bases(val, pots, ele_pos, N_SRC/2, title, h=0.25, sigma=0.3,
                    gdx=0.01, ext_x=0, xmin=1, xmax=1.5)
 
     #  B.3
     title = 'B_basis_lims_0_1_5'
-    modified_bases(k, pots, ele_pos, N_SRC, title, h=0.25, sigma=0.3,
+    modified_bases(val, pots, ele_pos, N_SRC, title, h=0.25, sigma=0.3,
                    gdx=0.01, ext_x=0, xmin=0, xmax=1.5)
