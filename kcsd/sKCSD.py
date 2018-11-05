@@ -486,7 +486,7 @@ class sKCSDcell(object):
             result[seg_no, :] += estimated[i, :]
         return result
 
-    def draw_cell2D(self, axis=2):
+    def draw_cell2D(self, axis=2, resolution=None):
         """
         Cell morphology in 3D grid in projection of axis.
 
@@ -495,11 +495,11 @@ class sKCSDcell(object):
         axis : int
           0: x axis, 1: y axis, 2: z axis
         """
-        resolution = self.dims
+        if resolution is None:
+            resolution = self.dims
         xgrid = np.linspace(self.xmin, self.xmax, resolution[0])
         ygrid = np.linspace(self.ymin, self.ymax, resolution[1])
         zgrid = np.linspace(self.zmin, self.zmax, resolution[2])
-
         if axis == 0:
             image = np.ones(shape=(resolution[1],
                                    resolution[2], 4), dtype=np.uint8) * 255
