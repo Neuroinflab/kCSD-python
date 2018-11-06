@@ -1567,7 +1567,7 @@ class SpectralStructure(object):
         idx = eigenvalues.argsort()[::-1]
         eigenvalues = eigenvalues[idx]
         eigenvectors = eigenvectors[:, idx]
-        self.plot_evd_sigma(eigenvalues)
+#        self.plot_evd_sigma(eigenvalues)
 #        self.plot_evd_sigma_lambd(eigenvalues)
         return eigenvectors, eigenvalues
 
