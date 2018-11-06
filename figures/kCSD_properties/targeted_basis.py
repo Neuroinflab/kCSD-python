@@ -139,7 +139,7 @@ def targeted_basis(val, csd_at, true_csd, ele_pos, pots, n_src, R, MU,
 
 
 def simulate_data(csd_profile, true_csd_xlims, R, MU, total_ele, ele_lims,
-                  h=0.25, sigma=0.3, csd_res=100):
+                  h=0.25, sigma=0.3, csd_res=100, noise=None):
     '''
     Generates groundtruth profiles and interpolates potentials.
 
@@ -184,6 +184,8 @@ def simulate_data(csd_profile, true_csd_xlims, R, MU, total_ele, ele_lims,
     true_csd = csd_profile(csd_at, [R, MU])
     ele_pos = val.generate_electrodes(total_ele=total_ele, ele_lims=ele_lims)
     pots = val.calculate_potential(true_csd, csd_at, ele_pos, h, sigma)
+    if noise is not None:
+            pots = val.add_noise(pots, level=noise)
     return csd_at, true_csd, ele_pos, pots, val
 
 
