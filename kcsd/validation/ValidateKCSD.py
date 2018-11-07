@@ -461,7 +461,7 @@ class ValidateKCSD(object):
         if self.dim == 1:
             m = np.sqrt((csd_at - ele_loc)**2 + h**2) - abs(csd_at - ele_loc)
             y = true_csd * m
-            Integral = simps(y, csd_at)
+            Integral = simps(y, x=csd_at)
         elif self.dim == 2:
             csd_x = csd_at[0]
             csd_y = csd_at[1]
@@ -1567,7 +1567,7 @@ class SpectralStructure(object):
         idx = eigenvalues.argsort()[::-1]
         eigenvalues = eigenvalues[idx]
         eigenvectors = eigenvectors[:, idx]
-        self.plot_evd_sigma(eigenvalues)
+#        self.plot_evd_sigma(eigenvalues)
 #        self.plot_evd_sigma_lambd(eigenvalues)
         return eigenvectors, eigenvalues
 
