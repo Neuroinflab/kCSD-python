@@ -185,7 +185,7 @@ def simulate_data(csd_profile, true_csd_xlims, R, MU, total_ele, ele_lims,
     ele_pos = val.generate_electrodes(total_ele=total_ele, ele_lims=ele_lims)
     pots = val.calculate_potential(true_csd, csd_at, ele_pos, h, sigma)
     if noise is not None:
-            pots = val.add_noise(pots, level=noise)
+            pots = val.add_noise(pots, 10, level=noise)
     return csd_at, true_csd, ele_pos, pots, val
 
 
@@ -351,9 +351,6 @@ def modified_bases(val, pots, ele_pos, n_src, title=None, h=0.25, sigma=0.3,
 #    plt.close()
 #    ss = SpectralStructure(obj_m)
 #    eigenvectors, eigenvalues = ss.evd()
-#    plot_eigenvalues(eigenvalues, SAVE_PATH, title)
-#    plot_eigenvectors(eigenvectors, SAVE_PATH, title)
-#    plot_k_interp_cross_v(obj_m.k_interp_cross, eigenvectors, SAVE_PATH, title)
     return obj_m
 
 
@@ -378,7 +375,6 @@ def plot_k_interp_cross_v(k_icross, eigenvectors, save_path, title):
     None
     """
     fig = plt.figure(figsize=(15, 15))
-#    fig.suptitle('Vectors of cross kernel and eigenvectors product')
     for i in range(eigenvectors.shape[0]):
         plt.subplot(int(k_icross.shape[1]/2) + 1, 2, i + 1)
         plt.plot(np.dot(k_icross, eigenvectors[:, i]), '--',
