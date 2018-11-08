@@ -10,7 +10,7 @@ plt.rcParams.update({
     'axes.labelsize': 15,
     'axes.titlesize': 20,
     'axes.titlepad' : 30,
-    'legend.fontsize': 12,
+    'legend.fontsize': 15,
     # 'figure.subplot.wspace': 0.4,
     # 'figure.subplot.hspace': 0.4,
     # 'figure.subplot.left': 0.1,
