@@ -181,4 +181,4 @@ if __name__ == '__main__':
     MU = 0.25
     generate_figure(CSD_PROFILE, R, MU, TRUE_CSD_XLIMS, TOTAL_ELE, ELE_LIMS,
                     SAVE_PATH, method='cross-validation',
-                    Rs=np.arange(0.1, 0.5, 0.05), noise=0)
+                    Rs=np.arange(0.1, 0.5, 0.05), noise=None)
