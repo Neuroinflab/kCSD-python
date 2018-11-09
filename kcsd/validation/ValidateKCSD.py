@@ -343,7 +343,7 @@ class ValidateKCSD(object):
         pots = self.calculate_potential(true_csd, csd_at, ele_pos, h, sigma)
         num_ele = ele_pos.shape[0]
         print('Number of electrodes:', num_ele)
-        if noise > 0:
+        if noise is not None:
             pots = self.add_noise(pots, csd_seed, level=noise)
         return ele_pos, pots.reshape((len(ele_pos), 1))
 
@@ -720,7 +720,7 @@ class ValidateKCSD1D(ValidateKCSD):
 
     def make_reconstruction(self, csd_profile, csd_seed, total_ele,
                             ele_lims=None, noise=0, nr_broken_ele=None,
-                            Rs=None, lambdas=None):
+                            Rs=None, lambdas=None, method='cross-validation'):
         """
         Main method, makes the whole kCSD reconstruction.
 
@@ -766,7 +766,13 @@ class ValidateKCSD1D(ValidateKCSD):
                    h=self.h, n_src_init=self.n_src_init, ext_x=self.ext_x,
                    gdx=self.est_xres, xmin=np.min(self.kcsd_xlims),
                    xmax=np.max(self.kcsd_xlims))
-        k.cross_validate(Rs=Rs, lambdas=lambdas)
+        if method == 'cross-validation':
+            k.cross_validate(Rs=Rs, lambdas=lambdas)
+        elif method == 'L-curve':
+            k.L_curve(Rs=Rs, lambdas=lambdas)
+        else:
+            raise ValueError('Invalid value of reconstruction method,'
+                             'pass either cross-validation or L-curve')
         est_csd = k.values('CSD')
         test_csd = csd_profile(k.estm_x, self.csd_seed)
         rms = self.calculate_rms(test_csd, est_csd[:, 0])
@@ -898,7 +904,7 @@ class ValidateKCSD2D(ValidateKCSD):
 
     def make_reconstruction(self, csd_profile, csd_seed, total_ele,
                             ele_lims=None, noise=0, nr_broken_ele=None,
-                            Rs=None, lambdas=None):
+                            Rs=None, lambdas=None, method='cross-validation'):
         """
         Main method, makes the whole kCSD reconstruction.
 
@@ -948,7 +954,13 @@ class ValidateKCSD2D(ValidateKCSD):
                    n_src_init=self.n_src_init, src_type=self.src_type,
                    ext_x=self.ext_x, ext_y=self.ext_y,
                    gdx=self.est_xres, gdy=self.est_yres)
-        k.cross_validate(Rs=Rs, lambdas=lambdas)
+        if method == 'cross-validation':
+            k.cross_validate(Rs=Rs, lambdas=lambdas)
+        elif method == 'L-curve':
+            k.L_curve(Rs=Rs, lambdas=lambdas)
+        else:
+            raise ValueError('Invalid value of reconstruction method,'
+                             'pass either cross-validation or L-curve')
         est_csd = k.values('CSD')
         test_csd = csd_profile([k.estm_x, k.estm_y], self.csd_seed)
         rms = self.calculate_rms(test_csd, est_csd[:, :, 0])
@@ -1192,7 +1204,7 @@ class ValidateKCSD3D(ValidateKCSD):
 
     def make_reconstruction(self, csd_profile, csd_seed, total_ele,
                             ele_lims=None, noise=0, nr_broken_ele=None,
-                            Rs=None, lambdas=None):
+                            Rs=None, lambdas=None, method='cross-validation'):
         """
         Main method, makes the whole kCSD reconstruction.
 
@@ -1245,7 +1257,13 @@ class ValidateKCSD3D(ValidateKCSD):
                    ext_x=self.ext_x, ext_y=self.ext_y, ext_z=self.ext_z,
                    gdx=self.est_xres, gdy=self.est_yres, gdz=self.est_zres)
         tic = time.time()
-        k.cross_validate(Rs=Rs, lambdas=lambdas)
+        if method == 'cross-validation':
+            k.cross_validate(Rs=Rs, lambdas=lambdas)
+        elif method == 'L-curve':
+            k.L_curve(Rs=Rs, lambdas=lambdas)
+        else:
+            raise ValueError('Invalid value of reconstruction method,'
+                             'pass either cross-validation or L-curve')
         est_csd = k.values('CSD')
         ss = SpectralStructure(k)
         ss.picard_plot(pots)
@@ -1711,28 +1729,32 @@ if __name__ == '__main__':
     CSD_SEED = 15
     N_SRC_INIT = 100
     ELE_LIMS = [0.1, 0.9]  # range of electrodes space
+    method = 'cross-validation'
+    Rs = np.arange(0.2, 0.5, 0.1)
+    lambdas = None
+    noise = 0
 
     KK = ValidateKCSD1D(CSD_SEED, n_src_init=N_SRC_INIT, h=0.25, R_init=0.23,
                         ele_lims=ELE_LIMS, true_csd_xlims=[0., 1.], sigma=0.3,
                         src_type='gauss')
 
-    KK.make_reconstruction(CSD_PROFILE, CSD_SEED, total_ele=16, noise=0,
-                           Rs=np.arange(0.2, 0.5, 0.1))
+    KK.make_reconstruction(CSD_PROFILE, CSD_SEED, total_ele=16, noise=noise,
+                           Rs=Rs, lambdas=lambdas, method=method)
 
     print('Checking 2D')
     CSD_PROFILE = CSD.gauss_2d_small
     CSD_SEED = 5
 
     KK = ValidateKCSD2D(CSD_SEED, h=50., sigma=1., n_src_init=400)
-    KK.make_reconstruction(CSD_PROFILE, CSD_SEED, total_ele=16, noise=0,
-                           Rs=np.arange(0.2, 0.5, 0.1))
+    KK.make_reconstruction(CSD_PROFILE, CSD_SEED, total_ele=16, noise=noise,
+                           Rs=Rs, lambdas=lambdas, method=method)
 
     print('Checking 3D')
     CSD_PROFILE = CSD.gauss_3d_small
     CSD_SEED = 20  # 0-49 are small sources, 50-99 are large sources
     TIC = time.time()
     KK = ValidateKCSD3D(CSD_SEED, h=50, sigma=1)
-    KK.make_reconstruction(CSD_PROFILE, CSD_SEED, total_ele=125, noise=0,
-                           Rs=np.arange(0.2, 0.5, 0.1))
+    KK.make_reconstruction(CSD_PROFILE, CSD_SEED, total_ele=125, noise=noise,
+                           Rs=Rs, lambdas=lambdas, method=method)
     TOC = time.time() - TIC
     print('time', TOC)

@@ -53,7 +53,8 @@ def save_source_code(save_path, timestr):
 
 
 def stability_M(csd_profile, csd_seed, n_src, ele_lims, true_csd_xlims,
-                total_ele):
+                total_ele, noise=None, method='cross-validation', Rs=None,
+                lambdas=None):
     """
     Investigates stability of reconstruction for different number of basis
     sources
@@ -97,10 +98,9 @@ def stability_M(csd_profile, csd_seed, n_src, ele_lims, true_csd_xlims,
         obj, rms[i], point_error = KK.make_reconstruction(csd_profile,
                                                           csd_seed,
                                                           total_ele=total_ele,
-                                                          noise=0,
-                                                          Rs=np.arange(0.2,
-                                                                       0.5,
-                                                                       0.1))
+                                                          noise=noise,
+                                                          Rs=Rs,
+                                                          lambdas=lambdas)
         ss = SpectralStructure(obj)
         eigenvectors[i], eigenvalues[i] = ss.evd()
         point_error_all.append(point_error)
@@ -419,11 +419,18 @@ if __name__ == '__main__':
     ELE_LIMS = [0.1, 0.9]  # range of electrodes space
     TRUE_CSD_XLIMS = [0., 1.]
     TOTAL_ELE = 10
+    noise = None
+    Rs = np.arange(0.1, 0.5, 0.1)
+    lambdas = None
+    method = 'cross-validation'
     OBJ, RMS, POINT_ERROR, eigenval, eigenvec = stability_M(CSD_PROFILE,
                                                             CSD_SEED,
                                                             N_SRC, ELE_LIMS,
                                                             TRUE_CSD_XLIMS,
-                                                            TOTAL_ELE)
+                                                            TOTAL_ELE, Rs=Rs,
+                                                            noise=noise,
+                                                            lambdas=lambdas,
+                                                            method=method)
     k_pot_list = []
     k_interp_cross_list = []
     lambdas = []

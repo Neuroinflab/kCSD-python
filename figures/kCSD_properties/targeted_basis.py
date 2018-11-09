@@ -81,7 +81,8 @@ def csd_profile(x, seed):
 
 def targeted_basis(val, csd_at, true_csd, ele_pos, pots, n_src, R, MU,
                    true_csd_xlims, ele_lims, title, h=0.25, sigma=0.3,
-                   csd_res=100):
+                   csd_res=100, method='cross-validation', Rs=None,
+                   lambdas=None):
     '''
     Function investigating kCSD analysis for targeted bases.
 
@@ -125,8 +126,7 @@ def targeted_basis(val, csd_at, true_csd, ele_pos, pots, n_src, R, MU,
                        ele_lims=ele_lims, est_xres=0.01,
                        true_csd_xlims=true_csd_xlims, sigma=sigma, h=h,
                        src_type='gauss')
-    obj, est_csd = k.recon(pots, ele_pos, method='cross-validation',
-                           Rs=np.arange(0.2, 0.5, 0.1))
+    obj, est_csd = k.recon(pots, ele_pos, method=method, Rs=Rs, lambdas=lambdas)
     test_csd = csd_profile(obj.estm_x, [R, MU])
     rms = val.calculate_rms(test_csd, est_csd)
     titl = "Lambda: %0.2E; R: %0.2f; RMS_Error: %0.2E;" % (obj.lambd, obj.R,
@@ -191,7 +191,8 @@ def simulate_data(csd_profile, true_csd_xlims, R, MU, total_ele, ele_lims,
 
 def structure_investigation(csd_profile, true_csd_xlims, n_src, R, MU,
                             total_ele, ele_lims, title, h=0.25, sigma=0.3,
-                            csd_res=100):
+                            csd_res=100, method='cross-validation', Rs=None,
+                            lambdas=None, noise=None):
     '''
     .
 
@@ -229,10 +230,12 @@ def structure_investigation(csd_profile, true_csd_xlims, n_src, R, MU,
     csd_at, true_csd, ele_pos, pots, val = simulate_data(csd_profile,
                                                          true_csd_xlims, R, MU,
                                                          total_ele, ele_lims,
-                                                         h=h, sigma=sigma)
+                                                         h=h, sigma=sigma,
+                                                         noise=noise)
     obj, k = targeted_basis(val, csd_at, true_csd, ele_pos, pots, n_src, R, MU,
                             true_csd_xlims, ele_lims, title, h=0.25,
-                            sigma=0.3, csd_res=100)
+                            sigma=0.3, csd_res=100, method=method, Rs=Rs,
+                            lambdas=lambdas)
     return obj
 
 
@@ -400,16 +403,22 @@ if __name__ == '__main__':
     ELE_LIMS = [0, 1.]  # range of electrodes space
     TRUE_CSD_XLIMS = [0., 1.]
     TOTAL_ELE = 12
+    noise = 0
+    method = 'cross-validation'
+    Rs = None
+    lambdas = None
 
     #  A
     R = 0.2
     MU = 0.25
     csd_at, true_csd, ele_pos, pots, val = simulate_data(csd_profile,
                                                          TRUE_CSD_XLIMS, R, MU,
-                                                         TOTAL_ELE, ELE_LIMS)
+                                                         TOTAL_ELE, ELE_LIMS,
+                                                         noise=noise)
     title = 'A_basis_lims_0_1'
     obj, k = targeted_basis(val, csd_at, true_csd, ele_pos, pots, N_SRC, R, MU,
-                            TRUE_CSD_XLIMS, ELE_LIMS, title)
+                            TRUE_CSD_XLIMS, ELE_LIMS, title, method=method, Rs=Rs,
+                            lambdas=lambdas)
     ss = SpectralStructure(obj)
     eigenvectors, eigenvalues = ss.evd()
     plot_eigenvalues(eigenvalues, SAVE_PATH, title)
@@ -419,12 +428,14 @@ if __name__ == '__main__':
     #  A.2
     title = 'A_basis_lims_0_0_5'
     modified_bases(val, pots, ele_pos, N_SRC, title, h=0.25, sigma=0.3,
-                   gdx=0.01, ext_x=0, xmin=0, xmax=0.5)
+                   gdx=0.01, ext_x=0, xmin=0, xmax=0.5, method=method, Rs=Rs,
+                   lambdas=lambdas)
 
     #  A.2.b
     title = 'A_basis_lims_0_0_5_less_sources'
     modified_bases(val, pots, ele_pos, N_SRC/2, title, h=0.25, sigma=0.3,
-                   gdx=0.01, ext_x=0, xmin=0, xmax=0.5)
+                   gdx=0.01, ext_x=0, xmin=0, xmax=0.5, method=method, Rs=Rs,
+                   lambdas=lambdas)
 
     #  B
     TRUE_CSD_XLIMS = [0., 1.5]
@@ -432,10 +443,12 @@ if __name__ == '__main__':
     MU = 1.25
     csd_at, true_csd, ele_pos, pots, val = simulate_data(csd_profile,
                                                          TRUE_CSD_XLIMS, R, MU,
-                                                         TOTAL_ELE, ELE_LIMS)
+                                                         TOTAL_ELE, ELE_LIMS,
+                                                         noise=noise)
     title = 'B_basis_lims_0_1'
     obj, k = targeted_basis(val, csd_at, true_csd, ele_pos, pots, N_SRC, R, MU,
-                            TRUE_CSD_XLIMS, ELE_LIMS, title)
+                            TRUE_CSD_XLIMS, ELE_LIMS, title, method=method, Rs=Rs,
+                            lambdas=lambdas)
     ss = SpectralStructure(obj)
     eigenvectors, eigenvalues = ss.evd()
     plot_eigenvalues(eigenvalues, SAVE_PATH, title)
@@ -445,14 +458,17 @@ if __name__ == '__main__':
     #  B.2
     title = 'B_basis_lims_1_1_5'
     modified_bases(val, pots, ele_pos, N_SRC, title, h=0.25, sigma=0.3,
-                   gdx=0.01, ext_x=0, xmin=1, xmax=1.5)
+                   gdx=0.01, ext_x=0, xmin=1, xmax=1.5, method=method, Rs=Rs,
+                   lambdas=lambdas)
 
     #  B.2.b
     title = 'B_basis_lims_1_1_5_less_sources'
     modified_bases(val, pots, ele_pos, N_SRC/2, title, h=0.25, sigma=0.3,
-                   gdx=0.01, ext_x=0, xmin=1, xmax=1.5)
+                   gdx=0.01, ext_x=0, xmin=1, xmax=1.5, method=method, Rs=Rs,
+                   lambdas=lambdas)
 
     #  B.3
     title = 'B_basis_lims_0_1_5'
     modified_bases(val, pots, ele_pos, N_SRC, title, h=0.25, sigma=0.3,
-                   gdx=0.01, ext_x=0, xmin=0, xmax=1.5)
+                   gdx=0.01, ext_x=0, xmin=0, xmax=1.5, method=method, Rs=Rs,
+                   lambdas=lambdas)
