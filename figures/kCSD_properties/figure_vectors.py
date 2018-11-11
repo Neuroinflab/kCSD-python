@@ -9,6 +9,7 @@ from figure_properties import *
 import matplotlib.gridspec as gridspec
 from mpl_toolkits.axes_grid1.inset_locator import zoomed_inset_axes
 from mpl_toolkits.axes_grid1.inset_locator import mark_inset
+from matplotlib.ticker import FuncFormatter
 import datetime
 import time
 
@@ -106,7 +107,7 @@ def generate_figure(csd_profile, R, MU, TRUE_CSD_XLIMS, TOTAL_ELE, ELE_LIMS,
                 (5, 0), (5, 2), (5, 4),
                 (6, 0), (6, 2), (6, 4)]
     
-    letters = ['B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N']
+    letters = ['B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M']
 
     BLACK = _html(0, 0, 0)
     ORANGE = _html(230, 159, 0)
@@ -120,7 +121,7 @@ def generate_figure(csd_profile, R, MU, TRUE_CSD_XLIMS, TOTAL_ELE, ELE_LIMS,
 
     fig = plt.figure(figsize=(21, 18))
     #heights = [1, 1, 1, 0.2, 1, 1, 1, 1]
-    heights = [1, 1, 0.2, 1, 1, 1, 1]
+    heights = [2, 2, 0.3, 1, 1, 1, 1]
     markers = ['^', '.', '*', 'x', ',']
     #linestyles = [':', '--', '-.', '-']
     linestyles = ['-', '-', '-', '-']
@@ -132,7 +133,7 @@ def generate_figure(csd_profile, R, MU, TRUE_CSD_XLIMS, TOTAL_ELE, ELE_LIMS,
     for indx, i in enumerate(src_idx):
         ax.plot(np.arange(1, TOTAL_ELE + 1), eigenval_M[i],
                 linestyle=linestyles[indx], color=colors[indx],
-                marker=markers[indx], label='M='+str(n_src_M[i]), markersize=6)
+                marker=markers[indx], label='M='+str(n_src_M[i]), markersize=10)
     #ax.set_title(' ', fontsize=12)
     ht, lh = ax.get_legend_handles_labels()
     set_axis(ax, -0.05, 1.05, letter='A')
@@ -144,7 +145,7 @@ def generate_figure(csd_profile, R, MU, TRUE_CSD_XLIMS, TOTAL_ELE, ELE_LIMS,
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
     #ax = fig.add_subplot(gs[0:3, 3:])
-    axins = zoomed_inset_axes(ax, 7., loc=3, borderpad=3.)
+    axins = zoomed_inset_axes(ax, 7., loc=3, borderpad=3)
     for indx, i in enumerate(src_idx):
         axins.plot(np.arange(1, TOTAL_ELE + 1), eigenval_M[i],
                    linestyle=linestyles[indx], color=colors[indx],
@@ -172,10 +173,11 @@ def generate_figure(csd_profile, R, MU, TRUE_CSD_XLIMS, TOTAL_ELE, ELE_LIMS,
                     linestyle=linestyles[idx], color=colors[idx],
                     label='M='+str(n_src_M[j]), lw=2)
             #ax.set_title('$\\tilde{{K}}*v_{{{i+1:d}}}$')
-            ax.locator_params(axis='y', nbins=3)
+            #ax.locator_params(axis='y', nbins=3)
+
             #ax.set_xlabel('Depth (mm)', fontsize=12)
             #ax.set_ylabel('CSD (mA/mm)', fontsize=12)
-            set_axis(ax, -0.05, 1.05, letter=letters[i])
+            set_axis(ax, -0.10, 1.1, letter=letters[i])
             if i < 9:
                 ax.get_xaxis().set_visible(False)
                 ax.spines['bottom'].set_visible(False)
@@ -183,6 +185,10 @@ def generate_figure(csd_profile, R, MU, TRUE_CSD_XLIMS, TOTAL_ELE, ELE_LIMS,
                 ax.set_xlabel('Depth ($mm$)')
             if i % 3 == 0:
                 ax.set_ylabel('CSD ($mA/mm$)')
+            #ax.yaxis.get_major_formatter().set_powerlimits((0, 1))
+            #ax.tick_params(direction='out', pad=10)
+            #ax.yaxis.get_major_formatter(FormatStrFormatter('%.2f'))
+            ax.ticklabel_format(style='sci', axis='y', scilimits=((0,0)))
             ax.spines['right'].set_visible(False)
             ax.spines['top'].set_visible(False)
     # ht, lh = ax.get_legend_handles_labels()
@@ -194,10 +200,10 @@ def generate_figure(csd_profile, R, MU, TRUE_CSD_XLIMS, TOTAL_ELE, ELE_LIMS,
 
     # plt.tight_layout()
     fig.legend(ht, lh, loc='lower center', ncol=5, frameon=False)
-    fig.savefig(os.path.join(save_path, 'vectors_' + method +
-                             '_noise_' + str(noise) + '.png'), dpi=300)
+    # fig.savefig(os.path.join(save_path, 'vectors_' + method +
+    #                          '_noise_' + str(noise) + '.png'), dpi=300)
 
-    #plt.show()
+    plt.show()
 
 
 if __name__ == '__main__':
