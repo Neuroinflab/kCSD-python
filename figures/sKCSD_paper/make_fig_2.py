@@ -74,7 +74,6 @@ if __name__ == '__main__':
         data.LFP = data.LFP/scaling_factor_LFP
         morphology = data.morphology
         morphology[:, 2:6] = morphology[:, 2:6]/scaling_factor
-        sKCSD.skmonaco_available = False
         k = sKCSD(ele_pos,
                   data.LFP,
                   morphology,

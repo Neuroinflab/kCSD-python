@@ -85,7 +85,6 @@ if __name__ == '__main__':
                   src_type='gauss',
                   lambd=lambd,
                   R_init=R,
-                  skmonaco_available=False,
                   dist_table_density=100)
         csd = k.values(transformation='segments')
         

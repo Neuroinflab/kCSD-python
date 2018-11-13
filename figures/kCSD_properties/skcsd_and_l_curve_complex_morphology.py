@@ -87,8 +87,7 @@ if __name__ == '__main__':
                   src_type='gauss',
                   lambd=lambd,
                   dist_table_density=50,
-                  R_init=R,
-                  skmonaco_available=False)
+                  R_init=R)
         csd = k.values(transformation='segments')
         print(csd.shape)
         print(csd.max(), csd.min())
