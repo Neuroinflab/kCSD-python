@@ -172,7 +172,7 @@ def generate_figure(csd_profile, R, MU, TRUE_CSD_XLIMS, TOTAL_ELE, ELE_LIMS,
                     eigenvec_M[j, :, i]),
                     linestyle=linestyles[idx], color=colors[idx],
                     label='M='+str(n_src_M[j]), lw=2)
-            #ax.set_title('$\\tilde{{K}}*v_{{{i+1:d}}}$')
+            ax.set_title(r"$\tilde{K}*v_{{%(i)d}}$" % {'i': i+1}, pad=0.1)
             #ax.locator_params(axis='y', nbins=3)
 
             #ax.set_xlabel('Depth (mm)', fontsize=12)
@@ -185,10 +185,11 @@ def generate_figure(csd_profile, R, MU, TRUE_CSD_XLIMS, TOTAL_ELE, ELE_LIMS,
                 ax.set_xlabel('Depth ($mm$)')
             if i % 3 == 0:
                 ax.set_ylabel('CSD ($mA/mm$)')
+                ax.yaxis.set_label_coords(-0.18, 0.5)
             #ax.yaxis.get_major_formatter().set_powerlimits((0, 1))
             #ax.tick_params(direction='out', pad=10)
             #ax.yaxis.get_major_formatter(FormatStrFormatter('%.2f'))
-            ax.ticklabel_format(style='sci', axis='y', scilimits=((0,0)))
+            ax.ticklabel_format(style='sci', axis='y', scilimits=((0.0,0.0)))
             ax.spines['right'].set_visible(False)
             ax.spines['top'].set_visible(False)
     # ht, lh = ax.get_legend_handles_labels()
@@ -198,10 +199,10 @@ def generate_figure(csd_profile, R, MU, TRUE_CSD_XLIMS, TOTAL_ELE, ELE_LIMS,
     #           loc='upper center', frameon=False, bbox_to_anchor=(0.5, 0.0))
     # ax.axis('off')
 
-    # plt.tight_layout()
+#    plt.tight_layout()
     fig.legend(ht, lh, loc='lower center', ncol=5, frameon=False)
-    # fig.savefig(os.path.join(save_path, 'vectors_' + method +
-    #                          '_noise_' + str(noise) + '.png'), dpi=300)
+    fig.savefig(os.path.join(save_path, 'vectors_' + method +
+                             '_noise_' + str(noise) + '.png'), dpi=300)
 
     plt.show()
 
