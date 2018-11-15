@@ -60,7 +60,7 @@ class VisibilityMap1D(ValidateKCSD1D):
         csd_profile: function
             Function to produce csd profile.
         n: int
-            Number of simulations included in error map calculations.
+            Number of simulations included in reliability map calculations.
             Default: 100.
         noise: float
             Determines the level of noise in the data.
@@ -252,11 +252,8 @@ class VisibilityMap2D(ValidateKCSD2D):
 
         Returns
         -------
-        List of [rms, kcsd] and point_error
         rms: float
             Error of reconstruction.
-        kcsd: object of a class
-            Object of a class.
         point_error: numpy array
             Error of reconstruction calculated at every point of reconstruction
             space.
@@ -296,7 +293,7 @@ class VisibilityMap2D(ValidateKCSD2D):
         csd_profile: function
             Function to produce csd profile.
         n: int
-            Number of simulations included in error map calculations.
+            Number of simulations included in reliability map calculations.
             Default: 100.
         noise: float
             Determines the level of noise in the data.
@@ -477,7 +474,7 @@ class VisibilityMap3D(ValidateKCSD3D):
         csd_profile: function
             Function to produce csd profile.
         n: int
-            Number of simulations included in error map calculations.
+            Number of simulations included in reliability map calculations.
             Default: 5.
         noise: float
             Determines the level of noise in the data.

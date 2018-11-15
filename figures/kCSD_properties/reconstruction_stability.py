@@ -53,7 +53,7 @@ def save_source_code(save_path, timestr):
 
 
 def stability_M(csd_profile, csd_seed, n_src, ele_lims, true_csd_xlims,
-                total_ele, noise=None, method='cross-validation', Rs=None,
+                total_ele, noise=0, method='cross-validation', Rs=None,
                 lambdas=None):
     """
     Investigates stability of reconstruction for different number of basis
@@ -73,6 +73,19 @@ def stability_M(csd_profile, csd_seed, n_src, ele_lims, true_csd_xlims,
         Boundaries for ground truth space.
     total_ele: int
         Number of electrodes.
+    noise: float
+        Determines the level of noise in the data.
+        Default: 0.
+    method: string
+        Determines the method of regularization.
+        Default: cross-validation.
+    Rs: numpy 1D array
+        Basis source parameter for crossvalidation.
+        Default: None.
+    lambdas: numpy 1D array
+        Regularization parameter for crossvalidation.
+        Default: None.
+
     Returns
     -------
     obj_all: class object
@@ -121,8 +134,6 @@ def plot_M(n_src_init, rms, save_path):
         Error of reconstruction.
     save_path: string
         Directory.
-    timestr: float
-        Time.
 
     Returns
     -------

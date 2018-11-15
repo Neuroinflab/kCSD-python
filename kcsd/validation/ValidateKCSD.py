@@ -747,6 +747,9 @@ class ValidateKCSD1D(ValidateKCSD):
         lambdas: numpy 1D array
             Regularization parameter for crossvalidation.
             Default: None.
+        method: string
+            Determines the method of regularization.
+            Default: cross-validation.
 
         Returns
         -------
@@ -931,10 +934,13 @@ class ValidateKCSD2D(ValidateKCSD):
         lambdas: numpy 1D array
             Regularization parameter for crossvalidation.
             Default: None.
+        method: string
+            Determines the method of regularization.
+            Default: cross-validation.
 
         Returns
         -------
-        kcsd: instance of the class
+        k: instance of the class
             Instance of class KCSD1D.
         rms: float
             Error of reconstruction.
@@ -1113,7 +1119,7 @@ class ValidateMoIKCSD(ValidateKCSD):
 
         Returns
         -------
-        kcsd: instance of the class
+        k: instance of the class
             Instance of class KCSD1D.
         est_csd: numpy array
             Estimated csd (with kCSD method).
@@ -1176,7 +1182,7 @@ class ValidateKCSD3D(ValidateKCSD):
 
         Returns
         -------
-        kcsd: instance of the class
+        k: instance of the class
             Instance of class KCSD1D.
         est_csd: numpy array
             Estimated csd (with kCSD method).
@@ -1231,10 +1237,13 @@ class ValidateKCSD3D(ValidateKCSD):
         lambdas: numpy 1D array
             Regularization parameter for crossvalidation.
             Default: None.
+        method: string
+            Determines the method of regularization.
+            Default: cross-validation.
 
         Returns
         -------
-        kcsd: instance of the class
+        k: instance of the class
             Instance of class KCSD1D.
         rms: float
             Error of reconstruction.
@@ -1648,7 +1657,7 @@ class SpectralStructure(object):
         Parameters
         ----------
         v: numpy array
-            Eigen vectors.
+            Eigenvectors.
 
         Returns
         -------

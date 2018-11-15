@@ -107,6 +107,8 @@ def targeted_basis(val, csd_at, true_csd, ele_pos, pots, n_src, R, MU,
         Boundaries for ground truth space.
     ele_lims: list
         Boundaries for electrodes placement.
+    title: string
+        Name of the figure that is to be saved
     h: float
         Thickness of analyzed cylindrical slice.
         Default: 0.25.
@@ -116,6 +118,15 @@ def targeted_basis(val, csd_at, true_csd, ele_pos, pots, n_src, R, MU,
     csd_res: int
         Resolution of ground truth.
         Default: 100.
+    method: string
+        Determines the method of regularization.
+        Default: cross-validation.
+    Rs: numpy 1D array
+        Basis source parameter for crossvalidation.
+        Default: None.
+    lambdas: numpy 1D array
+        Regularization parameter for crossvalidation.
+        Default: None.
 
     Returns
     -------
@@ -126,7 +137,8 @@ def targeted_basis(val, csd_at, true_csd, ele_pos, pots, n_src, R, MU,
                        ele_lims=ele_lims, est_xres=0.01,
                        true_csd_xlims=true_csd_xlims, sigma=sigma, h=h,
                        src_type='gauss')
-    obj, est_csd = k.recon(pots, ele_pos, method=method, Rs=Rs, lambdas=lambdas)
+    obj, est_csd = k.recon(pots, ele_pos, method=method, Rs=Rs,
+                           lambdas=lambdas)
     test_csd = csd_profile(obj.estm_x, [R, MU])
     rms = val.calculate_rms(test_csd, est_csd)
     titl = "Lambda: %0.2E; R: %0.2f; RMS_Error: %0.2E;" % (obj.lambd, obj.R,
@@ -139,7 +151,7 @@ def targeted_basis(val, csd_at, true_csd, ele_pos, pots, n_src, R, MU,
 
 
 def simulate_data(csd_profile, true_csd_xlims, R, MU, total_ele, ele_lims,
-                  h=0.25, sigma=0.3, csd_res=100, noise=None):
+                  h=0.25, sigma=0.3, csd_res=100, noise=0):
     '''
     Generates groundtruth profiles and interpolates potentials.
 
@@ -166,6 +178,9 @@ def simulate_data(csd_profile, true_csd_xlims, R, MU, total_ele, ele_lims,
     csd_res: int
         Resolution of ground truth.
         Default: 100.
+    noise: float
+        Determines the level of noise in the data.
+        Default: 0.
 
     Returns
     -------
@@ -192,7 +207,7 @@ def simulate_data(csd_profile, true_csd_xlims, R, MU, total_ele, ele_lims,
 def structure_investigation(csd_profile, true_csd_xlims, n_src, R, MU,
                             total_ele, ele_lims, title, h=0.25, sigma=0.3,
                             csd_res=100, method='cross-validation', Rs=None,
-                            lambdas=None, noise=None):
+                            lambdas=None, noise=0):
     '''
     .
 
@@ -212,6 +227,8 @@ def structure_investigation(csd_profile, true_csd_xlims, n_src, R, MU,
         Number of electrodes.
     ele_lims: list
         Boundaries for electrodes placement.
+    title: string
+        Name of the figure that is to be saved
     h: float
         Thickness of analyzed cylindrical slice.
         Default: 0.25.
@@ -221,6 +238,18 @@ def structure_investigation(csd_profile, true_csd_xlims, n_src, R, MU,
     csd_res: int
         Resolution of ground truth.
         Default: 100.
+    method: string
+        Determines the method of regularization.
+        Default: cross-validation.
+    Rs: numpy 1D array
+        Basis source parameter for crossvalidation.
+        Default: None.
+    lambdas: numpy 1D array
+        Regularization parameter for crossvalidation.
+        Default: None.
+    noise: float
+        Determines the level of noise in the data.
+        Default: 0.
 
     Returns
     -------
@@ -301,12 +330,12 @@ def plot_eigenvectors(eigenvectors, save_path, title):
 
 
 def modified_bases(val, pots, ele_pos, n_src, title=None, h=0.25, sigma=0.3,
-                   gdx=0.01, ext_x=0, xmin=0, xmax=1, R=2, MU=0.25,
+                   gdx=0.01, ext_x=0, xmin=0, xmax=1, R=0.2, MU=0.25,
                    method='cross-validation', Rs=None, lambdas=None):
     '''
     Parameters
     ----------
-    k: object of the class ValidateKCSD1D
+    val: object of the class ValidateKCSD1D
     pots: numpy array
         Potentials measured (calculated) on electrodes.
     ele_pos: numpy array
@@ -331,10 +360,25 @@ def modified_bases(val, pots, ele_pos, n_src, title=None, h=0.25, sigma=0.3,
         Boundaries for CSD estimation space.
     xmax: float
         boundaries for CSD estimation space.
+    R: float
+        Thickness of the groundtruth source.
+        Default: 0.2.
+    MU: float
+        Central position of Gaussian source
+        Default: 0.25.
+    method: string
+        Determines the method of regularization.
+        Default: cross-validation.
+    Rs: numpy 1D array
+        Basis source parameter for crossvalidation.
+        Default: None.
+    lambdas: numpy 1D array
+        Regularization parameter for crossvalidation.
+        Default: None.
 
     Returns
     -------
-    None
+    obj_m: object of the class KCSD1D
     '''
     pots = pots.reshape((len(ele_pos), 1))
     obj_m = KCSD1D(ele_pos, pots, src_type='gauss', sigma=sigma, h=h, gdx=gdx,
@@ -370,8 +414,8 @@ def plot_k_interp_cross_v(k_icross, eigenvectors, save_path, title):
         Eigenvectors of k_pot matrix.
     save_path: string
         Directory.
-    n_src: list
-        List of number of basis sources.
+    title: string
+        Name of the figure that is to be saved.
 
     Returns
     -------
