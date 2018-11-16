@@ -137,8 +137,8 @@ def targeted_basis(val, csd_at, true_csd, ele_pos, pots, n_src, R, MU,
                        ele_lims=ele_lims, est_xres=0.01,
                        true_csd_xlims=true_csd_xlims, sigma=sigma, h=h,
                        src_type='gauss')
-    obj, est_csd = k.recon(pots, ele_pos, method=method, Rs=Rs,
-                           lambdas=lambdas)
+    obj, est_csd = k.do_kcsd(pots, ele_pos, method=method, Rs=Rs,
+                             lambdas=lambdas)
     test_csd = csd_profile(obj.estm_x, [R, MU])
     rms = val.calculate_rms(test_csd, est_csd)
     titl = "Lambda: %0.2E; R: %0.2f; RMS_Error: %0.2E;" % (obj.lambd, obj.R,

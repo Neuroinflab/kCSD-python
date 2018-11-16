@@ -675,8 +675,8 @@ class ValidateKCSD1D(ValidateKCSD):
         super(ValidateKCSD1D, self).__init__(dim=1, **kwargs)
         self.csd_seed = csd_seed
 
-    def recon(self, pots, ele_pos, method='cross-validation', Rs=None,
-              lambdas=None):
+    def do_kcsd(self, pots, ele_pos, method='cross-validation', Rs=None,
+                lambdas=None):
         """
         Calls KCSD1D class to reconstruct current source density.
 
@@ -858,8 +858,8 @@ class ValidateKCSD2D(ValidateKCSD):
         super(ValidateKCSD2D, self).__init__(dim=2, **kwargs)
         self.csd_seed = csd_seed
 
-    def recon(self, pots, ele_pos, method='cross-validation', Rs=None,
-              lambdas=None):
+    def do_kcsd(self, pots, ele_pos, method='cross-validation', Rs=None,
+                lambdas=None):
         """
         Calls KCSD2D class to reconstruct current source density.
 
@@ -1096,8 +1096,8 @@ class ValidateMoIKCSD(ValidateKCSD):
         """
         super(ValidateMoIKCSD, self).__init__(dim=2)
 
-    def recon(self, pots, ele_pos, method='cross-validation', Rs=None,
-              lambdas=None, **params):
+    def do_kcsd(self, pots, ele_pos, method='cross-validation', Rs=None,
+                lambdas=None, **params):
         """
         Calls MoIKCSD class to reconstruct current source density.
 
@@ -1159,8 +1159,8 @@ class ValidateKCSD3D(ValidateKCSD):
         super(ValidateKCSD3D, self).__init__(dim=3, **kwargs)
         self.csd_seed = csd_seed
 
-    def recon(self, pots, ele_pos, method='cross-validation', Rs=None,
-              lambdas=None):
+    def do_kcsd(self, pots, ele_pos, method='cross-validation', Rs=None,
+                lambdas=None):
         """
         Calls KCSD3D class to reconstruct current source density.
 
