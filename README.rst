@@ -75,7 +75,6 @@ Requirements
 Additional Packages
 -------------------
 
-- scikit-monaco 0.2 (for monte carlo type integration for 3D case)
 - matplotlib 0.99 (for visualization and plotting)
 
 
