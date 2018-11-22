@@ -21,7 +21,7 @@ import sKCSD_utils
 from kcsd.validation import plotting_functions as pl
 
 n_src = 512
-lambd = 1
+lambd = .1
 R = 8e-6/2**.5
 if __name__ == '__main__':
     fname_base = "Figure_2"
@@ -59,14 +59,14 @@ if __name__ == '__main__':
     seglen = np.loadtxt(os.path.join(data_dir[0], 'seglength'))
     ground_truth = np.loadtxt(os.path.join(data_dir[0], 'membcurr'))
     ground_truth = ground_truth/seglen[:, None]*1e-3
-    gvmin, gvmax = pl.get_min_max(ground_truth)
+    gvmax, gvmin = pl.get_min_max(ground_truth)
     fname = fname_base + '.png'
     fig_name = sKCSD_utils.make_fig_names(fname)
     data_paths = []
     fig, ax = plt.subplots(4, 1)
     xticklabels = list(np.linspace(0, 800, 5))
     yticklabels = list(np.linspace(0, 52, 5))
-    pl.make_map_plot(ax[0], ground_truth)
+    pl.make_map_plot(ax[0], ground_truth, alpha=1., vmin=gvmin, vmax=gvmax)
     for i, datd in enumerate(data_dir):
         l = 0
         data = utils.LoadData(datd)
@@ -74,7 +74,6 @@ if __name__ == '__main__':
         data.LFP = data.LFP/scaling_factor_LFP
         morphology = data.morphology
         morphology[:, 2:6] = morphology[:, 2:6]/scaling_factor
-        sKCSD.skmonaco_available = False
         k = sKCSD(ele_pos,
                   data.LFP,
                   morphology,
@@ -82,17 +81,24 @@ if __name__ == '__main__':
                   src_type='gauss',
                   lambd=lambd,
                   R_init=R,
-                  skmonaco_available=False)
+                  exact=True)
         est_csd = k.values(transformation='segments')/seglen[:, None]
         if i == 2:
             pl.make_map_plot(ax[i+1],
-                    est_csd,
-                    xticklabels=xticklabels,
-                    yticklabels=yticklabels,
-                    xlabel='Time [ms]',
-                    ylabel='#segment')
+                             est_csd,
+                             xticklabels=xticklabels,
+                             yticklabels=yticklabels,
+                             xlabel='Time [ms]',
+                             ylabel='#segment',
+                             vmin=gvmin,
+                             vmax=gvmax, 
+                             alpha=1.)
         else:
-            pl.make_map_plot(ax[i+1], est_csd)
+            pl.make_map_plot(ax[i+1],
+                             est_csd,
+                             vmin=gvmin,
+                             vmax=gvmax,
+                             alpha=1.)
 
         if sys.version_info < (3, 0):
             path = os.path.join(datd, "preprocessed_data/Python_2")
@@ -103,7 +109,4 @@ if __name__ == '__main__':
             print("Creating", path)
             os.makedirs(path)
         utils.save_sim(path, k)
-    fig.savefig(fig_name,
-                bbox_inches='tight',
-                transparent=True,
-                pad_inches=0.1)
+    fig.savefig(fig_name, bbox_inches='tight', transparent=True, pad_inches=0.1)
