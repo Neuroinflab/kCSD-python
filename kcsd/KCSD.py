@@ -363,7 +363,7 @@ class KCSD(CSD):
         print('max lambda', str.format('{0:.4f}', np.std(np.diag(self.k_pot))))
         return np.logspace(np.log10(s[-1]), np.std(np.diag(self.k_pot)), 20)
 
-       def L_curve(self, estimate='CSD', lambdas=None, Rs=None, n_jobs=1):
+    def L_curve(self, estimate='CSD', lambdas=None, Rs=None, n_jobs=1):
         """Method defines the L-curve.
         By default calculates L-curve over lambda,
         When no argument is passed, it takes
