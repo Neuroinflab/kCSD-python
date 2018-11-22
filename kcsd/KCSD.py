@@ -415,10 +415,10 @@ class KCSD(CSD):
         else:
             lambdas = lambdas.flatten()
         if Rs is None:
-            R = np.array((self.R)).flatten()
+            Rs = np.array((self.R)).flatten()
         else:
-            R = np.array((Rs)).flatten()
-        curve_list = []
+            Rs = np.array((Rs)).flatten()
+        self.lcurve_axis = np.zeros((2,len(Rs),len(lambdas)))
         self.curve_surf = np.zeros((len(Rs), len(lambdas)))
         for R_idx, R in enumerate(Rs):
             self.update_R(R)
@@ -431,8 +431,11 @@ class KCSD(CSD):
             curveseq = res_log[0] * (norm_log - norm_log[-1]) + res_log * (norm_log[-1] - norm_log[0]) \
                 + res_log[-1] * (norm_log[0] - norm_log)
             self.curve_surf[R_idx] = curveseq
-            curve_list.append(np.max(curveseq))
-        best_R_ind = np.argmax(curve_list)
+            self.lcurve_axis[0,R_idx]=norm_log
+            self.lcurve_axis[1,R_idx]=res_log
+        best_R_ind = np.argmax(np.max(self.curve_surf, axis=1))
+        self.m_norm = self.lcurve_axis[0,best_R_ind]
+        self.m_resi = self.lcurve_axis[1,best_R_ind]
         self.update_R(Rs[best_R_ind])
         self.update_lambda(lambdas[np.argmax(self.curve_surf, axis=1)[best_R_ind]])
         print("Best lambda and R = ", self.lambd, ', ',
