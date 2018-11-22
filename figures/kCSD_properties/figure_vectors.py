@@ -42,14 +42,23 @@ def stability_M(csd_profile, n_src, ele_lims, true_csd_xlims,
         Boundaries for ground truth space.
     total_ele: int
         Number of electrodes.
+    ele_pos: numpy array
+        Electrodes positions.
+    pots: numpy array
+        Values of potentials at ele_pos.
+    method: string
+        Determines the method of regularization.
+        Default: cross-validation.
+    Rs: numpy 1D array
+        Basis source parameter for crossvalidation.
+        Default: None.
+    lambdas: numpy 1D array
+        Regularization parameter for crossvalidation.
+        Default: None.
+
     Returns
     -------
     obj_all: class object
-    rms: float
-        Normalized error of reconstruction.
-    point_error_all: numpy array
-        Normalized error of reconstruction calculated separetly at every point
-        point of estimation space.
     eigenvalues: numpy array
         Eigenvalues of k_pot matrix.
     eigenvectors: numpy array
@@ -74,6 +83,24 @@ def stability_M(csd_profile, n_src, ele_lims, true_csd_xlims,
 
 
 def set_axis(ax, x, y, letter=None):
+    """
+    Formats the plot's caption.
+
+    Parameters
+    ----------
+    ax: Axes object.
+    x: float
+        X-position of caption.
+    y: float
+        Y-position of caption.
+    letter: string
+        Caption of the plot.
+        Default: None.
+
+    Returns
+    -------
+    ax: modyfied Axes object.
+    """
     ax.text(
         x,
         y,
@@ -84,29 +111,65 @@ def set_axis(ax, x, y, letter=None):
     return ax
 
 
-def generate_figure(csd_profile, R, MU, TRUE_CSD_XLIMS, TOTAL_ELE, ELE_LIMS,
+def generate_figure(csd_profile, R, MU, true_csd_xlims, total_ele, ele_lims,
                     save_path, method='cross-validation', Rs=None,
-                    lambdas=None, noise=None):
+                    lambdas=None, noise=0):
+    """
+    Generates figure for spectral structure decomposition.
+
+    Parameters
+    ----------
+    csd_profile: function
+        Function to produce csd profile.
+    R: float
+        Thickness of the groundtruth source.
+        Default: 0.2.
+    MU: float
+        Central position of Gaussian source
+        Default: 0.25.
+    true_csd_xlims: list
+        Boundaries for ground truth space.
+    total_ele: int
+        Number of electrodes.
+    ele_lims: list
+        Electrodes limits.
+    save_path: string
+        Directory.
+    method: string
+        Determines the method of regularization.
+        Default: cross-validation.
+    Rs: numpy 1D array
+        Basis source parameter for crossvalidation.
+        Default: None.
+    lambdas: numpy 1D array
+        Regularization parameter for crossvalidation.
+        Default: None.
+    noise: float
+        Determines the level of noise in the data.
+        Default: 0.
+
+    Returns
+    -------
+    None
+    """
     csd_at, true_csd, ele_pos, pots, val = tb.simulate_data(csd_profile,
-                                                            TRUE_CSD_XLIMS,
-                                                            R, MU, TOTAL_ELE,
-                                                            ELE_LIMS,
+                                                            true_csd_xlims,
+                                                            R, MU, total_ele,
+                                                            ele_lims,
                                                             noise=noise)
 
     n_src_M = [2, 4, 8, 16, 32, 64, 128, 256, 512]
     OBJ_M, eigenval_M, eigenvec_M = stability_M(csd_profile, n_src_M,
-                                                ELE_LIMS, TRUE_CSD_XLIMS,
-                                                TOTAL_ELE, ele_pos, pots,
+                                                ele_lims, true_csd_xlims,
+                                                total_ele, ele_pos, pots,
                                                 method=method, Rs=Rs,
                                                 lambdas=lambdas)
 
-    # plt_cord = [(4, 0), (4, 2), (4, 4), (5, 0), (5, 2), (5, 4), (6, 0), (6, 2),
-    #             (6, 4), (7, 0), (7, 2), (7, 4)]
     plt_cord = [(3, 0), (3, 2), (3, 4),
                 (4, 0), (4, 2), (4, 4),
                 (5, 0), (5, 2), (5, 4),
                 (6, 0), (6, 2), (6, 4)]
-    
+
     letters = ['B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M']
 
     BLACK = _html(0, 0, 0)
@@ -120,10 +183,10 @@ def generate_figure(csd_profile, R, MU, TRUE_CSD_XLIMS, TOTAL_ELE, ELE_LIMS,
     colors = [BLUE, ORANGE, GREEN, PURPLE, VERMILION, SKY_BLUE, YELLOW, BLACK]
 
     fig = plt.figure(figsize=(21, 18))
-    #heights = [1, 1, 1, 0.2, 1, 1, 1, 1]
+#    heights = [1, 1, 1, 0.2, 1, 1, 1, 1]
     heights = [2, 2, 0.3, 1, 1, 1, 1]
     markers = ['^', '.', '*', 'x', ',']
-    #linestyles = [':', '--', '-.', '-']
+#    linestyles = [':', '--', '-.', '-']
     linestyles = ['-', '-', '-', '-']
     src_idx = [0, 2, 3, 8]
 
@@ -131,38 +194,40 @@ def generate_figure(csd_profile, R, MU, TRUE_CSD_XLIMS, TOTAL_ELE, ELE_LIMS,
 
     ax = fig.add_subplot(gs[0:2, :])
     for indx, i in enumerate(src_idx):
-        ax.plot(np.arange(1, TOTAL_ELE + 1), eigenval_M[i],
+        ax.plot(np.arange(1, total_ele + 1), eigenval_M[i],
                 linestyle=linestyles[indx], color=colors[indx],
-                marker=markers[indx], label='M='+str(n_src_M[i]), markersize=10)
-    #ax.set_title(' ', fontsize=12)
+                marker=markers[indx], label='M='+str(n_src_M[i]),
+                markersize=10)
+#    ax.set_title(' ', fontsize=12)
     ht, lh = ax.get_legend_handles_labels()
     set_axis(ax, -0.05, 1.05, letter='A')
-    #ax.legend(loc='lower left')
+#    ax.legend(loc='lower left')
     ax.set_xlabel('Number of components')
     ax.set_ylabel('Eigenvalues')
     ax.set_yscale('log')
     ax.set_ylim([1e-6, 1])
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
-    #ax = fig.add_subplot(gs[0:3, 3:])
+#    ax = fig.add_subplot(gs[0:3, 3:])
     axins = zoomed_inset_axes(ax, 7., loc=3, borderpad=3)
     for indx, i in enumerate(src_idx):
-        axins.plot(np.arange(1, TOTAL_ELE + 1), eigenval_M[i],
+        axins.plot(np.arange(1, total_ele + 1), eigenval_M[i],
                    linestyle=linestyles[indx], color=colors[indx],
-                   marker=markers[indx], label='M='+str(n_src_M[i]), markersize=6)
+                   marker=markers[indx], label='M='+str(n_src_M[i]),
+                   markersize=6)
     axins.set_xlim([0.9, 1.1])
     axins.set_ylim([0.2, 0.4])
     axins.get_xaxis().set_visible(False)
-    #axins.spines['right'].set_visible(False)
-    #axins.spines['top'].set_visible(False)
+#    axins.spines['right'].set_visible(False)
+#    axins.spines['top'].set_visible(False)
     mark_inset(ax, axins, loc1=2, loc2=1, fc="none", ec="0.5")
-    #cbaxes.plot(n_src_M, eigenval_M[:, 0], marker='s', color='k', markersize=5,
-    #         linestyle=' ')
-    #ax.set_title(' ', fontsize=12)
-    # set_axis(ax, -0.05, 1.01, letter='B')
-    #ax.set_xlabel('Number of basis sources', fontsize=12)
-    #ax.set_xscale('log')
-    #ax.set_ylabel('Eigenvalues', fontsize=12)
+#    cbaxes.plot(n_src_M, eigenval_M[:, 0], marker='s', color='k',
+#                markersize=5, linestyle=' ')
+#    ax.set_title(' ', fontsize=12)
+#     set_axis(ax, -0.05, 1.01, letter='B')
+#    ax.set_xlabel('Number of basis sources', fontsize=12)
+#    ax.set_xscale('log')
+#    ax.set_ylabel('Eigenvalues', fontsize=12)
 
     for i in range(OBJ_M[0].k_interp_cross.shape[1]):
         ax = fig.add_subplot(gs[plt_cord[i][0],
@@ -173,10 +238,10 @@ def generate_figure(csd_profile, R, MU, TRUE_CSD_XLIMS, TOTAL_ELE, ELE_LIMS,
                     linestyle=linestyles[idx], color=colors[idx],
                     label='M='+str(n_src_M[j]), lw=2)
             ax.set_title(r"$\tilde{K}*v_{{%(i)d}}$" % {'i': i+1}, pad=0.1)
-            #ax.locator_params(axis='y', nbins=3)
+#            ax.locator_params(axis='y', nbins=3)
 
-            #ax.set_xlabel('Depth (mm)', fontsize=12)
-            #ax.set_ylabel('CSD (mA/mm)', fontsize=12)
+#            ax.set_xlabel('Depth (mm)', fontsize=12)
+#            ax.set_ylabel('CSD (mA/mm)', fontsize=12)
             set_axis(ax, -0.10, 1.1, letter=letters[i])
             if i < 9:
                 ax.get_xaxis().set_visible(False)
@@ -186,18 +251,18 @@ def generate_figure(csd_profile, R, MU, TRUE_CSD_XLIMS, TOTAL_ELE, ELE_LIMS,
             if i % 3 == 0:
                 ax.set_ylabel('CSD ($mA/mm$)')
                 ax.yaxis.set_label_coords(-0.18, 0.5)
-            #ax.yaxis.get_major_formatter().set_powerlimits((0, 1))
-            #ax.tick_params(direction='out', pad=10)
-            #ax.yaxis.get_major_formatter(FormatStrFormatter('%.2f'))
-            ax.ticklabel_format(style='sci', axis='y', scilimits=((0.0,0.0)))
+#            ax.yaxis.get_major_formatter().set_powerlimits((0, 1))
+#            ax.tick_params(direction='out', pad=10)
+#            ax.yaxis.get_major_formatter(FormatStrFormatter('%.2f'))
+            ax.ticklabel_format(style='sci', axis='y', scilimits=((0.0, 0.0)))
             ax.spines['right'].set_visible(False)
             ax.spines['top'].set_visible(False)
-    # ht, lh = ax.get_legend_handles_labels()
-            
-    # ax = fig.add_subplot(gs[3, :])
-    # ax.legend(ht, lh,  fancybox=False, shadow=False, ncol=len(src_idx),
-    #           loc='upper center', frameon=False, bbox_to_anchor=(0.5, 0.0))
-    # ax.axis('off')
+#     ht, lh = ax.get_legend_handles_labels()
+
+#     ax = fig.add_subplot(gs[3, :])
+#     ax.legend(ht, lh,  fancybox=False, shadow=False, ncol=len(src_idx),
+#               loc='upper center', frameon=False, bbox_to_anchor=(0.5, 0.0))
+#     ax.axis('off')
 
 #    plt.tight_layout()
     fig.legend(ht, lh, loc='lower center', ncol=5, frameon=False)
