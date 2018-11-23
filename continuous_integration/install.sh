@@ -28,7 +28,7 @@ if [[ "$DISTRIB" == "conda_min" ]]; then
     # Configure the conda environment and put it in the path using the
     # provided versions
     conda create -n testenv --yes python=$PYTHON_VERSION pip nose coverage \
-        six=$SIX_VERSION numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION
+        six=$SIX_VERSION numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION numba=$NUMBA_VERSION
     source activate testenv
     pip install matplotlib
 
@@ -49,7 +49,7 @@ elif [[ "$DISTRIB" == "conda" ]]; then
     # Configure the conda environment and put it in the path using the
     # provided versions
     conda create -n testenv --yes python=$PYTHON_VERSION pip nose coverage six=$SIX_VERSION \
-        numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION
+        numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION numba=$NUMBA_VERSION
     source activate testenv
     
     if [[ "$COVERAGE" == "true" ]]; then
@@ -73,7 +73,7 @@ elif [[ "$DISTRIB" == "conda_extra" ]]; then
     # Configure the conda environment and put it in the path using the
     # provided versions
     conda create -n testenv --yes python=$PYTHON_VERSION pip nose coverage six=$SIX_VERSION \
-        numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION
+        numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION  numba=$NUMBA_VERSION
     source activate testenv
 
     pip install scikit-monaco
@@ -94,6 +94,7 @@ elif [[ "$DISTRIB" == "ubuntu" ]]; then
     pip install numpy==$NUMPY_VERSION
     pip install scipy==$SCIPY_VERSION
     pip install six==$SIX_VERSION
+    pip install numba=$NUMBA_VERSION
     pip install matplotlib
 
 elif [[ "$DISTRIB" == "ubuntu_extra" ]]; then
@@ -106,7 +107,7 @@ elif [[ "$DISTRIB" == "ubuntu_extra" ]]; then
     pip install numpy==$NUMPY_VERSION
     pip install scipy==$SCIPY_VERSION
     pip install six==$SIX_VERSION
-    pip install scikit-monaco==$SKMONACO_VERSION
+    pip install numba=$NUMBA_VERSION
     pip install matplotlib==$MATPLOTLIB_VERSION
  
 fi

@@ -12,6 +12,7 @@ KCSD1D[1][2], KCSD2D[1], KCSD3D[1], MoIKCSD[1]
 from __future__ import division, print_function, absolute_import
 
 import numpy as np
+from numba import jit 
 from numpy.linalg import LinAlgError, svd
 from scipy import special, integrate, interpolate
 from scipy.spatial import distance
@@ -570,6 +571,7 @@ class KCSD1D(KCSD):
         pot *= 1./(2.0*sigma)
         return pot
 
+    @jit
     def int_pot_1D(self, xp, x, R, h, basis_func):
         """FWD model function.
         Returns contribution of a point xp,yp, belonging to a basis source
@@ -747,6 +749,7 @@ class KCSD2D(KCSD):
         pot *= 1./(2.0*np.pi*sigma)  # Potential basis functions bi_x_y
         return pot
 
+    @jit
     def int_pot_2D(self, xp, yp, x, R, h, basis_func):
         """FWD model function.
         Returns contribution of a point xp,yp, belonging to a basis source
@@ -869,6 +872,7 @@ class MoIKCSD(KCSD2D):
         pot *= 1./(2.0*np.pi*sigma)
         return pot
 
+    @jit
     def int_pot_2D_moi(self, xp, yp, x, R, h, basis_func):
         """FWD model function. Incorporates the Method of Images.
         Returns contribution of a point xp,yp, belonging to a basis source
@@ -1092,6 +1096,7 @@ class KCSD3D(KCSD):
         pot *= 1./(4.0*np.pi*sigma)
         return pot
 
+    @jit
     def int_pot_3D(self, xp, yp, zp, x, R, h, basis_func):
         """FWD model function.
         Returns contribution of a point xp,yp, belonging to a basis source

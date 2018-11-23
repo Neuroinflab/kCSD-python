@@ -13,8 +13,9 @@ Nencki Institute of Experimental Biology, Warsaw.
 """
 from __future__ import division, print_function, absolute_import
 import numpy as np
+from numba import jit
 
-
+@jit(nopython=True)
 def gauss(d, stdev, dim):
     """Gaussian function
     Parameters
@@ -33,7 +34,7 @@ def gauss(d, stdev, dim):
     Z = np.exp(-(d**2) / (2*stdev**2)) / (np.sqrt(2*np.pi)*stdev)**dim
     return Z
 
-
+@jit(nopython=True)
 def step_1D(d, R):
     """Returns normalized 1D step function.
     Parameters
@@ -50,6 +51,7 @@ def step_1D(d, R):
     s = s / R #normalize with width
     return s
 
+@jit(nopython=True)
 def gauss_1D(d, three_stdev):
     """Returns normalized gaussian 2D scale function
     Parameters
@@ -66,7 +68,7 @@ def gauss_1D(d, three_stdev):
     Z = gauss(d, stdev, 1)
     return Z
 
-
+@jit(nopython=True)
 def gauss_lim_1D(d, three_stdev):
     """Returns gausian 2D function cut off after 3 standard deviations.
     Parameters
@@ -84,7 +86,7 @@ def gauss_lim_1D(d, three_stdev):
     Z *= (d < three_stdev)
     return Z
 
-
+@jit(nopython=True)
 def step_2D(d, R):
     """Returns normalized 2D step function.
     Parameters
@@ -101,6 +103,7 @@ def step_2D(d, R):
     s = (d <= R) / (np.pi*(R**2))
     return s
 
+@jit(nopython=True)
 def gauss_2D(d, three_stdev):
     """Returns normalized gaussian 2D scale function
     Parameters
@@ -118,7 +121,7 @@ def gauss_2D(d, three_stdev):
     Z = gauss(d, stdev, 2)
     return Z
 
-
+@jit(nopython=True)
 def gauss_lim_2D(d, three_stdev):
     """Returns gausian 2D function cut off after 3 standard deviations.
     Parameters
@@ -135,7 +138,7 @@ def gauss_lim_2D(d, three_stdev):
     Z = (d <= three_stdev)*gauss_2D(d, three_stdev)
     return Z
 
-
+@jit(nopython=True)
 def gauss_3D(d, three_stdev):
     """Returns normalized gaussian 3D scale function
     Parameters
@@ -153,7 +156,7 @@ def gauss_3D(d, three_stdev):
     Z = gauss(d, stdev, 3)
     return Z
 
-
+@jit(nopython=True)
 def gauss_lim_3D(d, three_stdev):
     """Returns normalized gaussian 3D scale function cut off after 3stdev
     Parameters
@@ -171,7 +174,7 @@ def gauss_lim_3D(d, three_stdev):
     Z = Z * (d < (three_stdev))
     return Z
 
-
+@jit(nopython=True)
 def step_3D(d, R):
     """Returns normalized 3D step function.
     Parameters
