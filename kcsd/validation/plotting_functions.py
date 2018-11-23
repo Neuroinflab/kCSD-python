@@ -14,7 +14,10 @@ import sys
 import argparse
 import kcsd.utility_functions as utils
 import glob
+from matplotlib.patches import Circle
+from matplotlib.collections import PatchCollection
 
+max_r = 5 #times a point
 def skCSD_reconstruction_plot_z(pots, est_csd, est_pot, cell_obj,
                                 t_min=0, electrode=5):
     """Displays interactive skCSD reconstruction plot in z plane
@@ -319,34 +322,75 @@ def make_map_plot(ax_i, what, **kwargs):
     cmap = kwargs.pop('cmap', plt.cm.bwr_r)
     xlabel = kwargs.pop('xlabel', None)
     ylabel = kwargs.pop('ylabel', None)
-
+    alpha = kwargs.pop('alpha', 0.95) 
+    circles = kwargs.pop('circles', True)
+    ele_pos = kwargs.pop('ele_pos', None) #Optional electrode positions
+    morphology =  kwargs.pop('morphology', None) #Optional morphology
     if kwargs:
         raise TypeError('Invalid keyword arguments:', kwargs.keys())
 
     if not vmin or not vmax:
-        xmax, xmin = get_min_max(what)
+        vxmax, vxmin = get_min_max(what)
     else:
-        xmax = vmax
-        xmin = vmin
-    if extent:
-        cax = ax_i.imshow(what,
-                          origin='lower',
-                          aspect='auto',
-                          interpolation='none',
-                          vmin=xmin,
-                          vmax=xmax,
-                          extent=extent,
-                          cmap=cmap)
-        for tick in ax_i.get_xticklabels():
-            tick.set_rotation(90)
-    else:
-        cax = ax_i.imshow(what,
-                          origin='lower',
-                          aspect='auto',
-                          interpolation='none',
-                          vmin=xmin,
-                          vmax=xmax,
-                          cmap=cmap)
+        vxmax = vmax
+        vxmin = vmin
+
+    if not extent:
+        #this is the default extent for imshow
+        extent = (-0.5, what.shape[1]-0.5, -0.5, what.shape[0]-0.5)
+    xmin, xmax, ymin, ymax = extent
+    dx = (xmax-xmin)/what.shape[0]
+    dy = (ymax-ymin)/what.shape[1]
+    r_base = np.sqrt(dx**2 + dy**2)*max_r
+    #add circles
+    if morphology is not None:
+        ax_i.imshow(morphology,
+                    extent=extent,
+                    origin='lower',
+                    aspect='auto',
+                    interpolation='none')
+    if circles:
+        greys = np.ones((what.shape[0], what.shape[1], 3), dtype=np.uint8)*255
+        non_zero = np.where(what != 0)
+
+        for i, x_idx in enumerate(non_zero[0]): # imshow transposes the figure
+            y_idx = non_zero[1][i]
+            r = abs(what[x_idx, y_idx] * r_base/vxmax)  #value
+            in_x = int(r/dx)
+            in_y = int(r/dy)
+            x_low = x_idx - in_x
+            x_high = x_idx + in_x + 1
+            y_low = y_idx - in_y
+            y_high = y_idx + in_y + 1
+            if x_low < 0:
+                x_low = 0
+            if x_high >= what.shape[0]:
+                x_high = what.shape[0]
+            if y_low < 0:
+                y_low = 0
+            if y_high >= what.shape[1]:
+                y_high = what.shape[1]
+           
+            greys[x_low:x_high, y_low:y_high, :] = greys[x_low:x_high, y_low:y_high, :]*0.5
+
+        caxg = ax_i.imshow(greys,
+                           origin='lower',
+                           aspect='auto',
+                           interpolation='none',
+                           extent=extent)
+    
+    cax = ax_i.imshow(what, origin='lower', aspect='auto', interpolation='none',
+                      vmin=vxmin,
+                      vmax=vxmax,
+                      extent=extent,
+                      cmap=cmap,
+                      alpha=alpha)
+
+    
+            
+    for tick in ax_i.get_xticklabels():
+        tick.set_rotation(90)
+        
     if xticklabels:
         xticks = calculate_ticks(xticklabels, what.shape[1])
         ax_i.set_xticks(xticks)
@@ -371,6 +415,13 @@ def make_map_plot(ax_i, what, **kwargs):
         ax_i.set_xlabel(xlabel)
     if ylabel:
         ax_i.set_ylabel(ylabel)
+    
+    if isinstance(ele_pos, np.ndarray):
+        for i in range(ele_pos.shape[0]):
+            pos_x, pos_y = 1e6*ele_pos[i, 0], 1e6*ele_pos[i, 1]
+            text = ax_i.text(pos_x, pos_y, '*',
+                             ha="center", va="center", color="k")
+            
     return cax
 
 

@@ -1,96 +1,131 @@
 from __future__ import division, print_function
-
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
 import os
-from kcsd import sKCSD, KCSD3D
+from kcsd import sKCSD, KCSD3D, sKCSDcell
 import kcsd.utility_functions as utils
 import kcsd.validation.plotting_functions as pl
 import sKCSD_utils
+
 n_src = 512
 R = 16e-6/2**.5
-lambd = 1
-
+lambd = .1/((2*(2*np.pi)**3*R**2*n_src))
+dt = 0.5
+n = 100  # dist_table_density for kCSD
 if __name__ == '__main__':
     fname_base = "Figure_5"
-    fig_name = sKCSD_utils.make_fig_names(fname_base)
+    fig_name = sKCSD_utils.make_fig_names("Figure_5.png")
     tstop = 70
     scaling_factor = 1000**2
     scaling_factor_LFP = 1000
-    electrode_number = [1, 4]
+    rownb =  [16, 4]
     data_dir = []
-    colnb = 16
+    colnb = [4, 16]
     lfps = []
-    extent = [-200, 200, -200, 600]
-    xmin = [50, -200]
-    dt = 0.15
-    for i, rownb in enumerate(electrode_number):
-        fname = '%s_%d' %(fname_base, rownb)
-        if sys.version_info < (3, 0):
-            c = sKCSD_utils.simulate(fname,
-                                     morphology=2,
-                                     colnb=colnb,
-                                     rownb=rownb,
-                                     xmin=-200,
-                                     xmax=600,
-                                     ymin=xmin[i],
-                                     ymax=200,
-                                     tstop=tstop,
-                                     seed=1988,
-                                     weight=0.01,
-                                     n_syn=100,
-                                     simulate_what="symmetric",
-                                     dt=dt)
-            new_dir = c.return_paths_skCSD_python()
+    xmax = [100, 500]
+    ymax = [500, 100]
+    cell_itself = []
+    morpho = []
+    extent = []
+    
+    for i, electrode_orientation in enumerate([1, 2]):
+        fname = fname_base
+        c = sKCSD_utils.simulate(fname,
+                                 morphology=2,
+                                 colnb=rownb[i],
+                                 rownb=colnb[i],
+                                 xmin=-100,
+                                 xmax=xmax[i],
+                                 ymin=-100,
+                                 ymax=ymax[i],
+                                 tstop=tstop,
+                                 seed=1988,
+                                 weight=0.01,
+                                 n_syn=100,
+                                 simulate_what="symmetric",
+                                 electrode_orientation=electrode_orientation,
+                                 dt=dt)
+        data_dir.append(c.return_paths_skCSD_python())
+        data = utils.LoadData(data_dir[i])
+        ele_pos = data.ele_pos/scaling_factor
+        morphology = data.morphology
+        morphology[:, 2:6] = morphology[:, 2:6]/scaling_factor
+        if i == 0:
+            cell_itself.append(sKCSDcell(morphology,
+                                         ele_pos,
+                                         n_src,
+                                         xmin=-120e-6,
+                                         xmax=120e-6,
+                                         ymin=-200e-6,
+                                         ymax=200e-6,
+                                         zmin=-150e-6,
+                                         zmax=550e-6))
         else:
-            new_dir = os.path.join('simulation', fname)
-        data_dir.append(new_dir)
+            cell_itself.append(sKCSDcell(morphology,
+                                         ele_pos,
+                                         n_src,
+                                         xmin=-120e-6,
+                                         xmax=120e-6,
+                                         ymin=-200e-6,
+                                         ymax=200e-6,
+                                         zmin=-150e-6,
+                                         zmax=550e-6))
+        
+
+        cell_itself[i].distribute_srcs_3D_morph()
+        morpho, extent = cell_itself[i].draw_cell2D(axis=1)
+        if i == 0:
+            morpho_kcsd, extent_kcsd = cell_itself[i].draw_cell2D(axis=0, resolution=[50, 50, 50])
+
     seglen = np.loadtxt(os.path.join(data_dir[0], 'seglength'))
     ground_truth = np.loadtxt(os.path.join(data_dir[0], 'membcurr'))
     ground_truth = ground_truth/seglen[:, None]*1e-3
-    ground_truth_grid = []
-    ground_truth_t1 = None
-    ground_truth_t2 = None
+    dt = c.cell_parameters['dt']
     t1 = int(45.5/dt)
     t2 = int(5.5/dt)
-    R_inits = [2**i for i in range(3, 8)]
-    lambdas = [10**(-i) for i in range(6)]
-    n = 100
+    ground_truth_grid = cell_itself[1].transform_to_3D(ground_truth, what="morpho")
+    ground_truth_t1 = ground_truth_grid[:, :, :, t1].sum(axis=1)
+    ground_truth_t2 = ground_truth_grid[:, :, :, t2].sum(axis=1)
+    
+    vmax, vmin = pl.get_min_max(ground_truth_grid)
+    
     fname = fname_base+'.png'
     fig_name = sKCSD_utils.make_fig_names(fname)
     fig, ax = plt.subplots(3, 4)
+    fname_base = "simulation/Figure_5_%d"
+
     for i, datd in enumerate(data_dir):
         data = utils.LoadData(datd)
         ele_pos = data.ele_pos/scaling_factor
         data.LFP = data.LFP/scaling_factor_LFP
         morphology = data.morphology
         morphology[:, 2:6] = morphology[:, 2:6]/scaling_factor
-
-        k = sKCSD(ele_pos,
-                  data.LFP,
-                  morphology,
-                  n_src_init=n_src,
-                  src_type='gauss',
-                  lambd=lambd,
-                  R_init=R,
-                  dist_table_density=n,
-                  skmonaco_available=False)
-        xmin = -200/scaling_factor
-        xmax = 200/scaling_factor
-        ymin = -100/scaling_factor
-        ymax = 200/scaling_factor
-        zmin = -200/scaling_factor
-        zmax = 600/scaling_factor
-        gdx = (xmax-xmin)/100
-        gdy = (ymax-ymin)/2
-        gdz = (zmax-zmin)/200
-
+      
+        ker = sKCSD(ele_pos,
+                    data.LFP,
+                    morphology,
+                    n_src_init=n_src,
+                    src_type='gauss',
+                    lambd=lambd,
+                    R_init=R,
+                    exact=True)
+        utils.save_sim(path, ker)
+        xmin = cell_itself[i].xmin
+        xmax = cell_itself[i].xmax
+        ymin = -200e-6
+        ymax = 200e-6
+        zmin = cell_itself[i].zmin
+        zmax = cell_itself[i].zmax
+        gdx = (xmax-xmin)/50
+        gdy = (ymax-ymin)/50
+        gdz = (zmax-zmin)/50
+        
         kcsd = KCSD3D(ele_pos,
                       data.LFP,
                       n_src_init=n_src,
                       src_type='gauss',
-                      lambd=lambd,
+                      lambd=lambd*((2*(2*np.pi)**3*R**2*n_src))*.00001,
                       R_init=R,
                       dist_table_density=n,
                       xmin=xmin,
@@ -102,33 +137,108 @@ if __name__ == '__main__':
                       gdx=gdx,
                       gdy=gdy,
                       gdz=gdz)
-        if not len(ground_truth_grid):
-            ground_truth_grid = k.cell.transform_to_3D(ground_truth,
-                                                       what="morpho")
-            ground_truth_t1 = ground_truth_grid[:, :, :, t1].sum(axis=1).T
-            ground_truth_t2 = ground_truth_grid[:, :, :, t2].sum(axis=1).T
-            est_skcsd = k.values(estimate='CSD')
-            est_skcsd_t1 = est_skcsd[:, :, :, t1].sum(axis=1).T
-            est_skcsd_t2 = est_skcsd[:, :, :, t2].sum(axis=1).T
-            est_kcsd = kcsd.values(estimate='CSD')
-            est_kcsd_pot = kcsd.values(estimate='POT')
-        if i == 0:
-            cax = pl.make_map_plot(ax[1, 2], ground_truth_t1)
-            cax = pl.make_map_plot(ax[2, 2], ground_truth_t2)
-            cax = pl.make_map_plot(ax[1, 3], est_skcsd_t1)
-            cax = pl.make_map_plot(ax[2, 3], est_skcsd_t2)
+        est_kcsd = kcsd.values(estimate='CSD')
+        est_kcsd_pot = kcsd.values(estimate='POT')
+        if sys.version_info < (3, 0):
+            path = os.path.join(fname_base % i, "preprocessed_data/Python_2")
         else:
-            cax = pl.make_map_plot(ax[0, 0], est_kcsd_pot[:, :, :, t1].sum(axis=1))
-            cax = pl.make_map_plot(ax[0, 1], est_kcsd[:, :, :, t1].sum(axis=1))
-            cax = pl.make_map_plot(ax[0, 2], ground_truth_t1)
-            cax = pl.make_map_plot(ax[0, 3], est_skcsd_t1)
-            cax = pl.make_map_plot(ax[1, 0], est_kcsd_pot[:, :, :, t1].sum(axis=1))
-            cax = pl.make_map_plot(ax[1, 1], est_kcsd[:, :, :, t1].sum(axis=1))
-            cax = pl.make_map_plot(ax[2, 0],
-                          est_kcsd_pot[:, :, :, t2].sum(axis=1),
-                          extent=[-200, 200, -200, 600])
-            cax = pl.make_map_plot(ax[2, 1], est_kcsd[:, :, :, t2].sum(axis=1))
-    fig.savefig(fig_name,
-                bbox_inches='tight',
-                transparent=True,
-                pad_inches=0.1)
+            path = os.path.join(fname_base % i, "preprocessed_data/Python_3")
+
+        if not os.path.exists(path):
+            print("Creating", path)
+            os.makedirs(path)
+        
+        try:
+            est_skcsd = ker.values(estimate='CSD')
+        except NameError:
+            skcsd, pot, cell_obj = utils.load_sim(path)
+            est_skcsd = cell_itself[i].transform_to_3D(skcsd)
+
+
+        est_skcsd_t1 = est_skcsd[:, :, :, t1].sum(axis=1)
+        est_skcsd_t2 = est_skcsd[:, :, :, t2].sum(axis=1)
+        
+        if i == 0:  # wrong plane
+            for j in [1, 2]:
+                for k in [2, 3]:
+                    ax[j, k].imshow(morpho, extent=extent, origin='lower', aspect="auto", alpha=0.95)
+                    for z in ele_pos:
+                        pos_x, pos_y = 1e6*z[2], 1e6*z[0]
+                        ax[j, k].text(pos_x, pos_y, '*',
+                                      ha="center", va="center", color="k", fontsize=3)
+            cax = pl.make_map_plot(ax[1, 2], ground_truth_t1, extent=extent, alpha=.95, vmin=vmin, vmax=vmax)
+            cax = pl.make_map_plot(ax[2, 2], ground_truth_t2, extent=extent, alpha=.95, vmin=vmin, vmax=vmax)
+            cax = pl.make_map_plot(ax[1, 3], est_skcsd_t1, extent=extent, vmin=vmin, vmax=vmax)
+            cax = pl.make_map_plot(ax[2, 3], est_skcsd_t2, extent=extent, vmin=vmin, vmax=vmax)  # ok
+            
+            for j in [1, 2]:
+                for k in [0, 1]:
+                    ax[j, k].imshow(morpho_kcsd, extent=extent_kcsd, origin='lower', aspect="auto", alpha=0.95)
+                    for z in ele_pos:
+                        pos_x, pos_y = 1e6*z[2], 1e6*z[1]
+                        ax[j, k].text(pos_x, pos_y, '*',
+                                      ha="center", va="center", color="k", fontsize=3)
+            ax[1, 0].imshow(est_kcsd_pot[:, :, :, t1].sum(axis=0),
+                            cmap=plt.cm.viridis,
+                            extent=extent_kcsd,
+                            origin='lower',
+                            aspect='auto',
+                            alpha=0.5)
+            
+            ax[1, 1].imshow(est_kcsd[:, :, :, t1].sum(axis=0),
+                            extent=extent_kcsd,
+                            cmap=plt.cm.bwr_r,
+                            origin='lower',
+                            aspect='auto', vmin=vmin, vmax=vmax,
+                            alpha=0.5)
+            
+            ax[2, 0].imshow(est_kcsd_pot[:, :, :, t2].sum(axis=0),
+                            extent=extent_kcsd,
+                            cmap=plt.cm.viridis,
+                            origin='lower',
+                            aspect='auto',
+                            alpha=0.5)
+                            
+            ax[2, 1].imshow(est_kcsd[:, :, :, t2].sum(axis=0),
+                            extent=extent_kcsd,
+                            cmap=plt.cm.bwr_r,
+                            origin='lower',
+                            aspect='auto', vmin=vmin, vmax=vmax,
+                            alpha=0.5)
+        else:
+            
+            for j in [0, 1, 2, 3]:
+                    ax[0, j].imshow(morpho, extent=extent, origin='lower', aspect="auto", alpha=.95)
+                    for z in ele_pos:
+                        pos_x, pos_y = 1e6*z[2], 1e6*z[0]
+                        ax[0, j].text(pos_x, pos_y, '*',
+                                      ha="center", va="center", color="k", fontsize=3)
+            
+            cax = pl.make_map_plot(ax[0, 2], ground_truth_t1, extent=extent, alpha=.95, vmin=vmin, vmax=vmax)
+            cax = pl.make_map_plot(ax[0, 3], est_skcsd_t1, extent=extent, vmin=vmin, vmax=vmax)
+            cax = pl.make_map_plot(ax[0, 0],
+                                   est_kcsd_pot[:, :, :, t1].sum(axis=1),
+                                   cmap=plt.cm.viridis,
+                                   extent=extent,
+                                   alpha=0.5)
+            cax = pl.make_map_plot(ax[0, 1],
+                                   est_kcsd[:, :, :, t1].sum(axis=1),
+                                   extent=extent, vmin=vmin, vmax=vmax,
+                                   alpha=0.5)
+            
+    for i in range(3):
+        for j in range(4):
+            if not j:
+                ax[i, j].set_title('Potential')
+            elif j == 1:
+                ax[i, j].set_title('KCSD')
+            elif j == 2:
+                ax[i, j].set_title('Ground truth')
+            elif j == 3:
+                ax[i, j].set_title('sKCSD')
+                
+    # fig.savefig(fig_name,
+    #             bbox_inches='tight',
+    #             transparent=True,
+    #             pad_inches=0.1)
+    plt.show()

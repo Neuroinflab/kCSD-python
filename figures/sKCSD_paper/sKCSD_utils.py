@@ -2,8 +2,7 @@ from __future__ import division
 import numpy as np
 import os
 import sys
-if sys.version_info < (3, 0):
-    import run_LFP
+import run_LFP
 
 
 def make_fig_names(fname_base):
@@ -12,7 +11,7 @@ def make_fig_names(fname_base):
     return os.path.join('Figures', fname_base)
 
 
-def simulate(fname, **kwargs):
+def simulate(fname_base, **kwargs):
     morphology = kwargs.pop("morphology", 1)
     simulate_what = kwargs.pop("simulate_what", 1)
     electrode_orientation = kwargs.pop("electrode_orientation", 2)
@@ -27,7 +26,9 @@ def simulate(fname, **kwargs):
     seed = kwargs.pop("seed", 1988)
     weight = kwargs.pop("weight", .01)
     n_syn = kwargs.pop("n_syn", 1000)
+    fname = fname_base+'_rows_%s_cols_%s_xmin_%s_xmax_%s_ymin_%s_ymax_%s_orientation_%s' % (rownb, colnb, xmin, xmax, ymin, ymax,  electrode_orientation)
     triside = kwargs.pop("triside", 60)
+    electrode_distance = kwargs.pop("electrode_distance", 50)
     dt = kwargs.pop("dt", 0.5)
     if kwargs:
             raise TypeError('Invalid keyword arguments:', kwargs.keys())
@@ -45,6 +46,7 @@ def simulate(fname, **kwargs):
                           n_syn=n_syn,
                           electrode_distribution=electrode_distribution,
                           electrode_orientation=electrode_orientation,
+                          electrode_distance=electrode_distance,
                           triside=triside,
                           dt=dt)
     c.simulate(stimulus=simulate_what)
@@ -68,7 +70,6 @@ def make_output(what, tstart, tstop, merge):
 
 def merge_maps(maps, tstart, tstop, merge=1):
     single_width = (tstop-tstart)//merge
-    print(single_width, tstop-tstart)
     outs = np.zeros((maps[0].shape[0], single_width*len(maps)))
     for i, mappe in enumerate(maps):
         outs[:, i*single_width:(i+1)*single_width] = make_output(mappe,

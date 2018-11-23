@@ -70,16 +70,16 @@ if __name__ == '__main__':
                   src_type='gauss',
                   lambd=lambd,
                   R_init=R,
-                  skmonaco_available=False)
+                  exact=True)
         csd = k.values(transformation='segments')
-        vmax, vmin = pl.get_min_max(csd)
+        
         cax = ax[1, i].imshow(csd,
                               extent=[0, tstop, 1, 52],
                               origin='lower',
                               aspect='auto',
                               cmap='seismic_r',
-                              vmax=vmax,
-                              vmin=vmin)
+                              vmax=gvmax,
+                              vmin=gvmin)
         ax[1, i].set_title(electrode_number[i])
     fig.savefig(fig_name,
                 bbox_inches='tight',
