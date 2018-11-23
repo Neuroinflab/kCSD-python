@@ -13,10 +13,10 @@ env:
     # This environment tests the newest supported anaconda env
     - DISTRIB="conda" PYTHON_VERSION="2.7"
       NUMPY_VERSION="1.10.4" SCIPY_VERSION="0.16.1"
-      SIX_VERSION="1.10.0" COVERAGE="true"
+      SIX_VERSION="1.10.0" NUMBA_VERSION="0.38.0" COVERAGE="true"
     - DISTRIB="conda" PYTHON_VERSION="3.5"
       NUMPY_VERSION="1.10.4" SCIPY_VERSION="0.16.1"
-      SIX_VERSION="1.10.0" COVERAGE="true"
+      SIX_VERSION="1.10.0" NUMBA_VERSION="0.38.0" COVERAGE="true"
       
     # # This environment tests conda extras  matplotlib
     # - DISTRIB="conda_extra" PYTHON_VERSION="3.5"
@@ -26,10 +26,10 @@ env:
     # This environment tests minimal dependency versions
     - DISTRIB="conda_min" PYTHON_VERSION="2.7"
       SIX_VERSION="1.10.0" NUMPY_VERSION="1.10.4" SCIPY_VERSION="0.16.1"
-      COVERAGE="true"
+      NUMBA_VERSION="0.38.0" COVERAGE="true"
     - DISTRIB="conda_min" PYTHON_VERSION="3.4"
       SIX_VERSION="1.10.0" NUMPY_VERSION="1.10.4" SCIPY_VERSION="0.16.1"
-      COVERAGE="true"
+      NUMBA_VERSION="0.38.0" COVERAGE="true"
 
     # basic Ubuntu build environment
     # - DISTRIB="ubuntu" PYTHON_VERSION="2.7"
@@ -49,5 +49,5 @@ install: source continuous_integration/install.sh
 # command to run tests
 script: bash continuous_integration/test_script.sh
 after_success:
-- if [[ "$COVERAGE" == "true" ]]; then coveralls --base_dir kcsd || echo "failed"; fi
+- if [[ "$COVERAGE" == "true" ]]; then coveralls || echo "failed"; fi
   
