@@ -60,7 +60,7 @@ class VisibilityMap1D(ValidateKCSD1D):
         csd_profile: function
             Function to produce csd profile.
         n: int
-            Number of simulations included in error map calculations.
+            Number of simulations included in reliability map calculations.
             Default: 100.
         noise: float
             Determines the level of noise in the data.
@@ -149,20 +149,12 @@ class VisibilityMap1D(ValidateKCSD1D):
         """
         ele_pos, pots = self.electrode_config(csd_profile, csd_seed,
                                               self.total_ele, self.ele_lims,
-                                              self.h, self.sigma,
-                                              noise, nr_broken_ele)
+                                              h=self.h, sigma=self.sigma,
+                                              noise=noise,
+                                              nr_broken_ele=nr_broken_ele)
 
-        k = KCSD1D(ele_pos, pots, h=self.h, gdx=self.est_xres,
-                   xmax=np.max(self.kcsd_xlims), xmin=np.min(self.kcsd_xlims),
-                   sigma=self.sigma, n_src_init=self.n_src_init)
-        if method == 'cross-validation':
-            k.cross_validate(Rs=Rs, lambdas=lambdas)
-        elif method == 'L-curve':
-            k.L_curve(Rs=Rs, lambdas=lambdas)
-        else:
-            raise ValueError('Invalid value of reconstruction method,'
-                             'pass either cross-validation or L-curve')
-        est_csd = k.values('CSD')
+        k, est_csd = self.do_kcsd(pots, ele_pos, method=method, Rs=Rs,
+                                  lambdas=lambdas)
         test_csd = csd_profile(k.estm_x, csd_seed)
         rms = self.calculate_rms(test_csd, est_csd[:, 0])
         point_error = self.calculate_point_error(test_csd, est_csd[:, 0])
@@ -252,11 +244,8 @@ class VisibilityMap2D(ValidateKCSD2D):
 
         Returns
         -------
-        List of [rms, kcsd] and point_error
         rms: float
             Error of reconstruction.
-        kcsd: object of a class
-            Object of a class.
         point_error: numpy array
             Error of reconstruction calculated at every point of reconstruction
             space.
@@ -264,21 +253,11 @@ class VisibilityMap2D(ValidateKCSD2D):
         ele_pos, pots = self.electrode_config(csd_profile, csd_seed,
                                               self.total_ele, self.ele_lims,
                                               self.h, self.sigma,
-                                              noise, nr_broken_ele)
+                                              noise=noise,
+                                              nr_broken_ele=nr_broken_ele)
 
-        k = KCSD2D(ele_pos, pots, h=self.h, sigma=self.sigma,
-                   xmax=np.max(self.kcsd_xlims), xmin=np.min(self.kcsd_xlims),
-                   ymax=np.max(self.kcsd_ylims), ymin=np.min(self.kcsd_ylims),
-                   n_src_init=self.n_src_init, gdx=self.est_xres,
-                   gdy=self.est_yres)
-        if method == 'cross-validation':
-            k.cross_validate(Rs=Rs, lambdas=lambdas)
-        elif method == 'L-curve':
-            k.L_curve(Rs=Rs, lambdas=lambdas)
-        else:
-            raise ValueError('Invalid value of reconstruction method,'
-                             'pass either cross-validation or L-curve')
-        est_csd = k.values('CSD')
+        k, est_csd = self.do_kcsd(pots, ele_pos, method=method, Rs=Rs,
+                                  lambdas=lambdas)
         test_csd = csd_profile([k.estm_x, k.estm_y], csd_seed)
         rms = self.calculate_rms(test_csd, est_csd[:, :, 0])
         point_error = self.calculate_point_error(test_csd, est_csd[:, :, 0])
@@ -296,7 +275,7 @@ class VisibilityMap2D(ValidateKCSD2D):
         csd_profile: function
             Function to produce csd profile.
         n: int
-            Number of simulations included in error map calculations.
+            Number of simulations included in reliability map calculations.
             Default: 100.
         noise: float
             Determines the level of noise in the data.
@@ -326,8 +305,9 @@ class VisibilityMap2D(ValidateKCSD2D):
         if PARALLEL_AVAILABLE:
             err = Parallel(n_jobs=NUM_CORES)(delayed
                                              (self.make_reconstruction)
-                                             (csd_profile, i, noise,
-                                              nr_broken_ele, Rs, lambdas,
+                                             (csd_profile, i, noise=noise,
+                                              nr_broken_ele=nr_broken_ele,
+                                              Rs=Rs, lambdas=lambdas,
                                               method=method)
                                              for i in range(n))
             rms = np.array([item[0] for item in err])
@@ -337,9 +317,11 @@ class VisibilityMap2D(ValidateKCSD2D):
             point_error = []
             for i in range(n):
                 data, error = self.make_reconstruction(csd_profile, i,
-                                                       noise,
-                                                       nr_broken_ele, Rs,
-                                                       lambdas, method=method)
+                                                       noise=noise,
+                                                       nr_broken_ele=nr_broken_ele,
+                                                       Rs=Rs,
+                                                       lambdas=lambdas,
+                                                       method=method)
                 rms[i] = data
                 point_error.append(error)
         point_error = np.array(point_error)
@@ -446,20 +428,8 @@ class VisibilityMap3D(ValidateKCSD3D):
                                               self.total_ele, self.ele_lims,
                                               self.h, self.sigma, noise,
                                               nr_broken_ele)
-        k = KCSD3D(ele_pos, pots, gdx=self.est_xres, gdy=self.est_yres,
-                   gdz=self.est_zres,
-                   h=self.h, sigma=self.sigma, n_src_init=self.n_src_init,
-                   xmax=np.max(self.kcsd_xlims), xmin=np.min(self.kcsd_xlims),
-                   ymax=np.max(self.kcsd_ylims), ymin=np.min(self.kcsd_ylims),
-                   zmax=np.max(self.kcsd_zlims), zmin=np.min(self.kcsd_zlims))
-        if method == 'cross-validation':
-            k.cross_validate(Rs=Rs, lambdas=lambdas)
-        elif method == 'L-curve':
-            k.L_curve(Rs=Rs, lambdas=lambdas)
-        else:
-            raise ValueError('Invalid value of reconstruction method,'
-                             'pass either cross-validation or L-curve')
-        est_csd = k.values('CSD')
+        k, est_csd = self.do_kcsd(pots, ele_pos, method=method, Rs=Rs,
+                                  lambdas=lambdas)
         test_csd = csd_profile([k.estm_x, k.estm_y, k.estm_z], csd_seed)
         rms = self.calculate_rms(test_csd, est_csd[:, :, :, 0])
         point_error = self.calculate_point_error(test_csd, est_csd[:, :, :, 0])
@@ -477,7 +447,7 @@ class VisibilityMap3D(ValidateKCSD3D):
         csd_profile: function
             Function to produce csd profile.
         n: int
-            Number of simulations included in error map calculations.
+            Number of simulations included in reliability map calculations.
             Default: 5.
         noise: float
             Determines the level of noise in the data.
@@ -507,8 +477,9 @@ class VisibilityMap3D(ValidateKCSD3D):
         if PARALLEL_AVAILABLE:
             err = Parallel(n_jobs=NUM_CORES)(delayed
                                              (self.make_reconstruction)
-                                             (csd_profile, i, noise,
-                                              nr_broken_ele, Rs, lambdas,
+                                             (csd_profile, i, noise=noise,
+                                              nr_broken_ele=nr_broken_ele,
+                                              Rs=Rs, lambdas=lambdas,
                                               method=method)
                                              for i in range(n))
             rms = np.array([item[0] for item in err])
@@ -518,9 +489,10 @@ class VisibilityMap3D(ValidateKCSD3D):
             point_error = []
             for i in range(n):
                 data, error = self.make_reconstruction(csd_profile, i,
-                                                       noise,
-                                                       nr_broken_ele, Rs,
-                                                       lambdas, method=method)
+                                                       noise=noise,
+                                                       nr_broken_ele=nr_broken_ele,
+                                                       Rs=Rs, lambdas=lambdas,
+                                                       method=method)
                 rms[i] = data
                 point_error.append(error)
         point_error = np.array(point_error)

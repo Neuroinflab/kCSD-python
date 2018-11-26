@@ -343,7 +343,7 @@ class ValidateKCSD(object):
         pots = self.calculate_potential(true_csd, csd_at, ele_pos, h, sigma)
         num_ele = ele_pos.shape[0]
         print('Number of electrodes:', num_ele)
-        if noise > 0:
+        if noise is not None:
             pots = self.add_noise(pots, csd_seed, level=noise)
         return ele_pos, pots.reshape((len(ele_pos), 1))
 
@@ -461,7 +461,7 @@ class ValidateKCSD(object):
         if self.dim == 1:
             m = np.sqrt((csd_at - ele_loc)**2 + h**2) - abs(csd_at - ele_loc)
             y = true_csd * m
-            Integral = simps(y, csd_at)
+            Integral = simps(y, x=csd_at)
         elif self.dim == 2:
             csd_x = csd_at[0]
             csd_y = csd_at[1]
@@ -675,8 +675,8 @@ class ValidateKCSD1D(ValidateKCSD):
         super(ValidateKCSD1D, self).__init__(dim=1, **kwargs)
         self.csd_seed = csd_seed
 
-    def recon(self, pots, ele_pos, method='cross-validation', Rs=None,
-              lambdas=None):
+    def do_kcsd(self, pots, ele_pos, method='cross-validation', Rs=None,
+                lambdas=None):
         """
         Calls KCSD1D class to reconstruct current source density.
 
@@ -716,11 +716,12 @@ class ValidateKCSD1D(ValidateKCSD):
             raise ValueError('Invalid value of reconstruction method,'
                              'pass either cross-validation or L-curve')
         est_csd = k.values('CSD')
+        print('here')
         return k, est_csd
 
     def make_reconstruction(self, csd_profile, csd_seed, total_ele,
                             ele_lims=None, noise=0, nr_broken_ele=None,
-                            Rs=None, lambdas=None):
+                            Rs=None, lambdas=None, method='cross-validation'):
         """
         Main method, makes the whole kCSD reconstruction.
 
@@ -747,6 +748,9 @@ class ValidateKCSD1D(ValidateKCSD):
         lambdas: numpy 1D array
             Regularization parameter for crossvalidation.
             Default: None.
+        method: string
+            Determines the method of regularization.
+            Default: cross-validation.
 
         Returns
         -------
@@ -761,13 +765,10 @@ class ValidateKCSD1D(ValidateKCSD):
         csd_at, true_csd = self.generate_csd(csd_profile, csd_seed)
         ele_pos, pots = self.electrode_config(csd_profile, csd_seed, total_ele,
                                               ele_lims, self.h, self.sigma,
-                                              noise, nr_broken_ele)
-        k = KCSD1D(ele_pos, pots, src_type=self.src_type, sigma=self.sigma,
-                   h=self.h, n_src_init=self.n_src_init, ext_x=self.ext_x,
-                   gdx=self.est_xres, xmin=np.min(self.kcsd_xlims),
-                   xmax=np.max(self.kcsd_xlims))
-        k.cross_validate(Rs=Rs, lambdas=lambdas)
-        est_csd = k.values('CSD')
+                                              noise=noise,
+                                              nr_broken_ele=nr_broken_ele)
+        k, est_csd = self.do_kcsd(pots, ele_pos, method=method, Rs=Rs,
+                                  lambdas=lambdas)
         test_csd = csd_profile(k.estm_x, self.csd_seed)
         rms = self.calculate_rms(test_csd, est_csd[:, 0])
         title = "Lambda: %0.2E; R: %0.2f; RMS_Error: %0.2E;" % (k.lambd, k.R,
@@ -849,8 +850,8 @@ class ValidateKCSD2D(ValidateKCSD):
         super(ValidateKCSD2D, self).__init__(dim=2, **kwargs)
         self.csd_seed = csd_seed
 
-    def recon(self, pots, ele_pos, method='cross-validation', Rs=None,
-              lambdas=None):
+    def do_kcsd(self, pots, ele_pos, method='cross-validation', Rs=None,
+                lambdas=None):
         """
         Calls KCSD2D class to reconstruct current source density.
 
@@ -898,7 +899,7 @@ class ValidateKCSD2D(ValidateKCSD):
 
     def make_reconstruction(self, csd_profile, csd_seed, total_ele,
                             ele_lims=None, noise=0, nr_broken_ele=None,
-                            Rs=None, lambdas=None):
+                            Rs=None, lambdas=None, method='cross-validation'):
         """
         Main method, makes the whole kCSD reconstruction.
 
@@ -925,10 +926,13 @@ class ValidateKCSD2D(ValidateKCSD):
         lambdas: numpy 1D array
             Regularization parameter for crossvalidation.
             Default: None.
+        method: string
+            Determines the method of regularization.
+            Default: cross-validation.
 
         Returns
         -------
-        kcsd: instance of the class
+        k: instance of the class
             Instance of class KCSD1D.
         rms: float
             Error of reconstruction.
@@ -940,16 +944,8 @@ class ValidateKCSD2D(ValidateKCSD):
         ele_pos, pots = self.electrode_config(csd_profile, csd_seed, total_ele,
                                               ele_lims, self.h, self.sigma,
                                               noise, nr_broken_ele)
-        k = KCSD2D(ele_pos, pots, h=self.h, sigma=self.sigma,
-                   xmin=np.min(self.kcsd_xlims),
-                   xmax=np.max(self.kcsd_xlims),
-                   ymin=np.min(self.kcsd_ylims),
-                   ymax=np.max(self.kcsd_ylims),
-                   n_src_init=self.n_src_init, src_type=self.src_type,
-                   ext_x=self.ext_x, ext_y=self.ext_y,
-                   gdx=self.est_xres, gdy=self.est_yres)
-        k.cross_validate(Rs=Rs, lambdas=lambdas)
-        est_csd = k.values('CSD')
+        k, est_csd = self.do_kcsd(pots, ele_pos, method=method, Rs=Rs,
+                                  lambdas=lambdas)
         test_csd = csd_profile([k.estm_x, k.estm_y], self.csd_seed)
         rms = self.calculate_rms(test_csd, est_csd[:, :, 0])
         title = "Lambda: %0.2E; R: %0.2f; RMS: %0.2E; CV_Error: %0.2E; "\
@@ -1078,8 +1074,8 @@ class ValidateMoIKCSD(ValidateKCSD):
         """
         super(ValidateMoIKCSD, self).__init__(dim=2)
 
-    def recon(self, pots, ele_pos, method='cross-validation', Rs=None,
-              lambdas=None, **params):
+    def do_kcsd(self, pots, ele_pos, method='cross-validation', Rs=None,
+                lambdas=None, **params):
         """
         Calls MoIKCSD class to reconstruct current source density.
 
@@ -1101,7 +1097,7 @@ class ValidateMoIKCSD(ValidateKCSD):
 
         Returns
         -------
-        kcsd: instance of the class
+        k: instance of the class
             Instance of class KCSD1D.
         est_csd: numpy array
             Estimated csd (with kCSD method).
@@ -1141,8 +1137,8 @@ class ValidateKCSD3D(ValidateKCSD):
         super(ValidateKCSD3D, self).__init__(dim=3, **kwargs)
         self.csd_seed = csd_seed
 
-    def recon(self, pots, ele_pos, method='cross-validation', Rs=None,
-              lambdas=None):
+    def do_kcsd(self, pots, ele_pos, method='cross-validation', Rs=None,
+                lambdas=None):
         """
         Calls KCSD3D class to reconstruct current source density.
 
@@ -1164,7 +1160,7 @@ class ValidateKCSD3D(ValidateKCSD):
 
         Returns
         -------
-        kcsd: instance of the class
+        k: instance of the class
             Instance of class KCSD1D.
         est_csd: numpy array
             Estimated csd (with kCSD method).
@@ -1192,7 +1188,7 @@ class ValidateKCSD3D(ValidateKCSD):
 
     def make_reconstruction(self, csd_profile, csd_seed, total_ele,
                             ele_lims=None, noise=0, nr_broken_ele=None,
-                            Rs=None, lambdas=None):
+                            Rs=None, lambdas=None, method='cross-validation'):
         """
         Main method, makes the whole kCSD reconstruction.
 
@@ -1219,10 +1215,13 @@ class ValidateKCSD3D(ValidateKCSD):
         lambdas: numpy 1D array
             Regularization parameter for crossvalidation.
             Default: None.
+        method: string
+            Determines the method of regularization.
+            Default: cross-validation.
 
         Returns
         -------
-        kcsd: instance of the class
+        k: instance of the class
             Instance of class KCSD1D.
         rms: float
             Error of reconstruction.
@@ -1234,21 +1233,11 @@ class ValidateKCSD3D(ValidateKCSD):
         ele_pos, pots = self.electrode_config(csd_profile, csd_seed, total_ele,
                                               ele_lims, self.h, self.sigma,
                                               noise, nr_broken_ele)
-        k = KCSD3D(ele_pos, pots, h=self.h, sigma=self.sigma,
-                   xmin=np.min(self.kcsd_xlims),
-                   xmax=np.max(self.kcsd_xlims),
-                   ymin=np.min(self.kcsd_ylims),
-                   ymax=np.max(self.kcsd_ylims),
-                   zmin=np.min(self.kcsd_zlims),
-                   zmax=np.max(self.kcsd_zlims),
-                   n_src_init=self.n_src_init, src_type=self.src_type,
-                   ext_x=self.ext_x, ext_y=self.ext_y, ext_z=self.ext_z,
-                   gdx=self.est_xres, gdy=self.est_yres, gdz=self.est_zres)
         tic = time.time()
-        k.cross_validate(Rs=Rs, lambdas=lambdas)
-        est_csd = k.values('CSD')
-        ss = SpectralStructure(k)
-        ss.picard_plot(pots)
+        k, est_csd = self.do_kcsd(pots, ele_pos, method=method, Rs=Rs,
+                                  lambdas=lambdas)
+#        ss = SpectralStructure(k)
+#        ss.picard_plot(pots)
         toc = time.time() - tic
         test_csd = csd_profile([k.estm_x, k.estm_y, k.estm_z],
                                csd_seed)
@@ -1567,7 +1556,7 @@ class SpectralStructure(object):
         idx = eigenvalues.argsort()[::-1]
         eigenvalues = eigenvalues[idx]
         eigenvectors = eigenvectors[:, idx]
-        self.plot_evd_sigma(eigenvalues)
+#        self.plot_evd_sigma(eigenvalues)
 #        self.plot_evd_sigma_lambd(eigenvalues)
         return eigenvectors, eigenvalues
 
@@ -1630,7 +1619,7 @@ class SpectralStructure(object):
         Parameters
         ----------
         v: numpy array
-            Eigen vectors.
+            Eigenvectors.
 
         Returns
         -------
@@ -1711,28 +1700,32 @@ if __name__ == '__main__':
     CSD_SEED = 15
     N_SRC_INIT = 100
     ELE_LIMS = [0.1, 0.9]  # range of electrodes space
+    method = 'cross-validation'
+    Rs = np.arange(0.2, 0.5, 0.1)
+    lambdas = None
+    noise = 0
 
     KK = ValidateKCSD1D(CSD_SEED, n_src_init=N_SRC_INIT, h=0.25, R_init=0.23,
                         ele_lims=ELE_LIMS, true_csd_xlims=[0., 1.], sigma=0.3,
                         src_type='gauss')
 
-    KK.make_reconstruction(CSD_PROFILE, CSD_SEED, total_ele=16, noise=0,
-                           Rs=np.arange(0.2, 0.5, 0.1))
+    KK.make_reconstruction(CSD_PROFILE, CSD_SEED, total_ele=16, noise=noise,
+                           Rs=Rs, lambdas=lambdas, method=method)
 
     print('Checking 2D')
     CSD_PROFILE = CSD.gauss_2d_small
     CSD_SEED = 5
 
     KK = ValidateKCSD2D(CSD_SEED, h=50., sigma=1., n_src_init=400)
-    KK.make_reconstruction(CSD_PROFILE, CSD_SEED, total_ele=16, noise=0,
-                           Rs=np.arange(0.2, 0.5, 0.1))
+    KK.make_reconstruction(CSD_PROFILE, CSD_SEED, total_ele=16, noise=noise,
+                           Rs=Rs, lambdas=lambdas, method=method)
 
     print('Checking 3D')
     CSD_PROFILE = CSD.gauss_3d_small
     CSD_SEED = 20  # 0-49 are small sources, 50-99 are large sources
     TIC = time.time()
     KK = ValidateKCSD3D(CSD_SEED, h=50, sigma=1)
-    KK.make_reconstruction(CSD_PROFILE, CSD_SEED, total_ele=125, noise=0,
-                           Rs=np.arange(0.2, 0.5, 0.1))
+    KK.make_reconstruction(CSD_PROFILE, CSD_SEED, total_ele=125, noise=noise,
+                           Rs=Rs, lambdas=lambdas, method=method)
     TOC = time.time() - TIC
     print('time', TOC)
