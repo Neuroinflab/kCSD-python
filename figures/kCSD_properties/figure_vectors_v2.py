@@ -165,12 +165,13 @@ def generate_figure(csd_profile, R, MU, true_csd_xlims, total_ele, ele_lims,
                                                 method=method, Rs=Rs,
                                                 lambdas=lambdas)
 
-    plt_cord = [(3, 0), (3, 2), (3, 4),
+    plt_cord = [(2, 0), (2, 2), (2, 4),
+                (3, 0), (3, 2), (3, 4),
                 (4, 0), (4, 2), (4, 4),
-                (5, 0), (5, 2), (5, 4),
-                (6, 0), (6, 2), (6, 4)]
+                (5, 0), (5, 2), (5, 4)]
 
-    letters = ['B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M']
+
+    letters = ['C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'O']
 
     BLACK = _html(0, 0, 0)
     ORANGE = _html(230, 159, 0)
@@ -182,17 +183,17 @@ def generate_figure(csd_profile, R, MU, true_csd_xlims, total_ele, ele_lims,
     PURPLE = _html(204, 121, 167)
     colors = [BLUE, ORANGE, GREEN, PURPLE, VERMILION, SKY_BLUE, YELLOW, BLACK]
 
-    fig = plt.figure(figsize=(21, 18))
+    fig = plt.figure(figsize=(18, 16))
 #    heights = [1, 1, 1, 0.2, 1, 1, 1, 1]
-    heights = [2, 2, 0.3, 1, 1, 1, 1]
+    heights = [4, 0.3, 1, 1, 1, 1]
     markers = ['^', '.', '*', 'x', ',']
 #    linestyles = [':', '--', '-.', '-']
     linestyles = ['-', '-', '-', '-']
     src_idx = [0, 2, 3, 8]
 
-    gs = gridspec.GridSpec(7, 6, height_ratios=heights, hspace=0.5, wspace=0.6)
+    gs = gridspec.GridSpec(6, 6, height_ratios=heights, hspace=0.3, wspace=0.6)
 
-    ax = fig.add_subplot(gs[0:2, :])
+    ax = fig.add_subplot(gs[0, :3])
     for indx, i in enumerate(src_idx):
         ax.plot(np.arange(1, total_ele + 1), eigenval_M[i],
                 linestyle=linestyles[indx], color=colors[indx],
@@ -208,26 +209,17 @@ def generate_figure(csd_profile, R, MU, true_csd_xlims, total_ele, ele_lims,
     ax.set_ylim([1e-6, 1])
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
-#    ax = fig.add_subplot(gs[0:3, 3:])
-    axins = zoomed_inset_axes(ax, 7., loc=3, borderpad=4)
-    for indx, i in enumerate(src_idx):
-        axins.plot(np.arange(1, total_ele + 1), eigenval_M[i],
-                   linestyle=linestyles[indx], color=colors[indx],
-                   marker=markers[indx], label='M='+str(n_src_M[i]),
-                   markersize=6)
-    axins.set_xlim([0.9, 1.1])
-    axins.set_ylim([0.2, 0.4])
-    axins.get_xaxis().set_visible(False)
-#    axins.spines['right'].set_visible(False)
-#    axins.spines['top'].set_visible(False)
-    mark_inset(ax, axins, loc1=2, loc2=1, fc="none", ec="0.5")
-#    cbaxes.plot(n_src_M, eigenval_M[:, 0], marker='s', color='k',
-#                markersize=5, linestyle=' ')
-#    ax.set_title(' ', fontsize=12)
-#     set_axis(ax, -0.05, 1.01, letter='B')
-#    ax.set_xlabel('Number of basis sources', fontsize=12)
-#    ax.set_xscale('log')
-#    ax.set_ylabel('Eigenvalues', fontsize=12)
+
+    ax = fig.add_subplot(gs[0, 3:])
+    ax.plot(n_src_M, eigenval_M[:, 0], marker='s', color='k', markersize=5,
+            linestyle=' ')
+    #ax.set_title(' ', fontsize=12)
+    set_axis(ax, -0.05, 1.05, letter='B')
+    ax.set_xlabel('Number of basis sources')
+    ax.set_xscale('log')
+    ax.set_ylabel('Eigenvalues')
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
 
     for i in range(OBJ_M[0].k_interp_cross.shape[1]):
         ax = fig.add_subplot(gs[plt_cord[i][0],
@@ -237,7 +229,9 @@ def generate_figure(csd_profile, R, MU, true_csd_xlims, total_ele, ele_lims,
                     eigenvec_M[j, :, i]),
                     linestyle=linestyles[idx], color=colors[idx],
                     label='M='+str(n_src_M[j]), lw=2)
-            ax.set_title(r"$\tilde{K}*v_{{%(i)d}}$" % {'i': i+1})
+            #ax.set_title(r"$\tilde{K}*v_{{%(i)d}}$" % {'i': i+1})
+            ax.text(0.5, 1., r"$\tilde{K}*v_{{%(i)d}}$" % {'i': i+1},
+                    horizontalalignment='center', transform=ax.transAxes, fontsize=20)
 #            ax.locator_params(axis='y', nbins=3)
 
 #            ax.set_xlabel('Depth (mm)', fontsize=12)
