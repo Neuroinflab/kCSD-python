@@ -124,10 +124,9 @@ def make_plots(title, m_norm, m_resi, true_csd, curveseq, ele_y,
     x = [m_resi[0], m_resi[imax], m_resi[-1]]
     y = [m_norm[0], m_norm[imax], m_norm[-1]]
     ax_L.fill(x, y, alpha=0.2)
-    # ax_L.set_xscale('log')
-    # ax_L.set_yscale('log')
+    ax_L.set_xscale('log')
+    ax_L.set_yscale('log')
 
-    
     ax4 = fig.add_subplot(224)
     im = plt.imshow(curveseq, extent=[Lamb[0], Lamb[1], ery[-1], ery[0]],
                     interpolation='none', aspect='auto',
@@ -218,7 +217,7 @@ def main_loop(src_width, total_ele, inpos, lpos, nm, noise=0, srcs=1):
                                                  start_x=0, end_x=1.,
                                                  start_y=0, end_y=1,
                                                  res_x=100, res_y=100)
-    if type(noise) == float:
+    if type(noise) ==  'numpy.float64':
         n_spec = [noise]
     else:
         n_spec = noise
@@ -257,7 +256,7 @@ def main_loop(src_width, total_ele, inpos, lpos, nm, noise=0, srcs=1):
 
 if __name__=='__main__':
     saveDir = "./LCurve/"
-    figs1_and_fig2 = True
+    figs1_and_fig2 = False
     total_ele = 32
     names = ['lc', 'cv']
     src_width = 0.001
@@ -281,5 +280,6 @@ if __name__=='__main__':
                 sim_results[iname, 2] = RMS_wek
         make_plot_fig2(sim_results)
     else:
+        name = 'lc'
         main_loop(src_width, total_ele, inpos,
-                  lpos, name='lc', noise=noise_lvl[0], srcs=src)
+                  lpos, name, noise=noise_lvl[:1], srcs=0)
