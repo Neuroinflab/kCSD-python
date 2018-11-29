@@ -217,7 +217,7 @@ def main_loop(src_width, total_ele, inpos, lpos, nm, noise=0, srcs=1):
                                                  start_x=0, end_x=1.,
                                                  start_y=0, end_y=1,
                                                  res_x=100, res_y=100)
-    if type(noise) ==  'numpy.float64':
+    if type(noise) ==  float:
         n_spec = [noise]
     else:
         n_spec = noise
@@ -256,7 +256,7 @@ def main_loop(src_width, total_ele, inpos, lpos, nm, noise=0, srcs=1):
 
 if __name__=='__main__':
     saveDir = "./LCurve/"
-    figs1_and_fig2 = False
+    figs1_and_fig2 = True
     total_ele = 32
     names = ['lc', 'cv']
     src_width = 0.001
@@ -276,8 +276,8 @@ if __name__=='__main__':
                 os.chdir(mypath)
                 RMS_wek, LandR = main_loop(src_width, total_ele, inpos,
                                            lpos, name, noise=noise_lvl, srcs=src)
-                sim_results[iname,:2] = LandR
-                sim_results[iname, 2] = RMS_wek
+                sim_results[iname,:2, src] = LandR
+                sim_results[iname, 2, src] = RMS_wek
         make_plot_fig2(sim_results)
     else:
         name = 'lc'
