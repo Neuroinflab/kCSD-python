@@ -604,7 +604,10 @@ class LoadData(object):
     for example:
     data1 = LoadData()
     data1.assign('mophology', path_to_morphology_file)
-    
+    data1.assign('electrode_positions', path_to_electrode_positions_file)
+    data1.assign('LFP', path_to_LFP_file)
+
+
     """
     def __init__(self, path):
         """
