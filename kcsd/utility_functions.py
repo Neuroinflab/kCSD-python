@@ -596,10 +596,15 @@ class LoadData(object):
     1 column with x postions for each electrode followed by y postions 
     for each electrodes followed by z positions of each electrode; 
     or a textfile with 3 columns with x, y, z electrode postions. 
-    LFPs should be a text file with appropriate numbers.
+    LFPs should be a text file with appropriate numbers of the shape 
+    of n_electrodes x n_timesamples.
 
     LoadData allows for initialization of an empty object and reading 
-    in arbitrary data files from specific location using specified function.
+    in arbitrary data files from specific location using assign function, 
+    for example:
+    data1 = LoadData()
+    data1.assign('mophology', path_to_morphology_file)
+    
     """
     def __init__(self, path):
         """
