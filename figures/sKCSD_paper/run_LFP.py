@@ -444,7 +444,7 @@ class CellModel():
         if not os.path.exists(elcoord_x_y_x_path):
             print("Creating", elcoord_x_y_x_path)
             os.makedirs(elcoord_x_y_x_path)
-        fname = os.path.join(elcoord_x_y_x_path, 'elcoord_x_y_x')
+        fname = os.path.join(elcoord_x_y_x_path, 'elcoord_x_y_z')
         np.savetxt(fname, electr)
 
     def save_for_R_kernel(self, directory=''):
