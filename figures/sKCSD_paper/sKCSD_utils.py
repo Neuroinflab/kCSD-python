@@ -77,3 +77,18 @@ def merge_maps(maps, tstart, tstop, merge=1):
                                                                  tstop=tstop,
                                                                  merge=merge)
     return outs
+
+
+if __name__ == '__main__':
+    fname_base = "gang_7x7_200"
+    args = {
+        'morphology': 9,
+        'xmin': -200,
+        'xmax': 200,
+        'ymin': -200,
+        'ymax': 200,
+        'electrode_distribution': 1,
+        'electrode_orientation': 3,
+        'simulate_what':'oscillatory',
+    }
+    simulate(fname_base, **args)
