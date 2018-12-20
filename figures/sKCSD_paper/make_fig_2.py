@@ -82,7 +82,7 @@ if __name__ == '__main__':
                   lambd=lambd,
                   R_init=R,
                   exact=True)
-        est_csd = k.values(transformation='segments')/seglen[:, None]
+        est_csd = k.values(transformation='segments')
         if i == 2:
             pl.make_map_plot(ax[i+1],
                              est_csd,
