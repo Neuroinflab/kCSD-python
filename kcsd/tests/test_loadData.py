@@ -27,20 +27,20 @@ class testData(unittest.TestCase):
         self.assertTrue(a)
 
     def test_get_fname_string(self):
-        path = self.data.get_fname('data/gang_7x7_200/LFP', ['myLFP'])
+        path = self.data.get_fname('data/gang_7x7_200/LFP', ['MyLFP'])
         self.assertTrue(isinstance(path, basestring))
 
     def test_get_fname_list(self):
         path = self.data.get_fname('data/gang_7x7_200/LFP',
-                                   ['myLFP', 'yourLFP'])
+                                   ['MyLFP', 'yourLFP'])
         self.assertTrue(isinstance(path, list))
 
     def test_get_paths_LFP(self):
         print(self.data.path_LFP)
-        self.assertTrue('data/gang_7x7_200/LFP/myLFP' in self.data.path_LFP)
+        self.assertTrue('data/gang_7x7_200/LFP/MyLFP' in self.data.path_LFP)
 
     def test_get_paths_morpho(self):
-        path = os.path.join(self.path,'morphology/Badea2011Fig2Du.CNG.swc')
+        path = os.path.join(self.path,'morphology/gang_7x7_200_rows_4_cols_4_xmin_-200_xmax_200_ymin_-200_ymax_200_orientation_3.swc')
         self.assertTrue(path in self.data.path_morphology)
 
     def test_get_paths_ele_pos(self):
@@ -65,7 +65,7 @@ class testData(unittest.TestCase):
         self.assertFalse(self.data.morphology)
 
     def test_reload_morpho(self):
-        path = os.path.join(self.path, 'morphology/Badea2011Fig2Du.CNG.swc')
+        path = os.path.join(self.path, 'morphology/gang_7x7_200_rows_4_cols_4_xmin_-200_xmax_200_ymin_-200_ymax_200_orientation_3.swc')
         self.data.load(path=path, what='morphology')
         self.assertTrue(isinstance(self.data.morphology, np.ndarray))
 
@@ -92,7 +92,7 @@ class testData(unittest.TestCase):
         self.assertFalse(self.data.LFP)
 
     def test_reload_LFP(self):
-        lfp_path = os.path.join(self.path,'LFP/myLFP')
+        lfp_path = os.path.join(self.path,'LFP/MyLFP')
         self.data.load(path=lfp_path, what="LFP")
         self.assertTrue(isinstance(self.data.LFP, np.ndarray))
 

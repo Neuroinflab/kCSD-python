@@ -33,7 +33,6 @@ class testsKCDcell(unittest.TestCase):
         for loop in cls.cell.loops:
             if loop[0] != loop[1]+1 and loop[0] != loop[1]-1:
                 cls.branch_points.append(loop.tolist())
-
         cls.morpho = cls.cell.morphology[:,2:5]
         cls.coor3D, cls.zero = cls.cell.point_coordinates(cls.morpho)
 
@@ -81,12 +80,12 @@ class testsKCDcell(unittest.TestCase):
                 pass
             elif self.cell.morphology[b[0],6] == b[1]+1:
                 pass
+            elif self.cell.morphology[b[1],6] == b[0]+1:
+                pass
             elif self.cell.morphology[b[0],6] == -1:
                 pass
             else:
                 bad_points += 1
-            
-    
         self.assertTrue(bad_points==0)
 
     def test_all_connections_forward_and_backwards(self):
@@ -237,10 +236,10 @@ class testsKCDcell(unittest.TestCase):
             self.assertTrue(self.cell.dims[1] == 1)
     
     def test_get_grid_large_x(self):
-        if self.cell.dxs[2]:
+        if self.cell.dxs[0]:
             self.assertTrue(self.cell.dims[0] == 1 + np.floor((self.cell.xmax-self.cell.xmin)/self.cell.dxs[0]))
         else:
-            self.assertTrue(self.cell.dims[0] == 1)
+            self.assertTrue(self.cell.dims[0] == 0)
     
     def test_dxs_small_x(self):
         self.assertTrue(self.cell_small.dxs[0]>self.cell_small.tolerance or self.cell_small.dxs[0] == 0)
@@ -258,8 +257,11 @@ class testsKCDcell(unittest.TestCase):
         self.assertTrue(self.zero[1] == np.floor((self.morpho[0,1]-self.cell.ymin)/self.cell.dxs[1]))
         
     def test_point_coordinates_morpho_z(self):
-        self.assertTrue(self.zero[2] == np.floor((self.morpho[0,2]-self.cell.zmin)/self.cell.dxs[2]))
-    
+        if self.cell.dxs[2]:
+            self.assertTrue(self.zero[2] == np.floor((self.morpho[0,2]-self.cell.zmin)/self.cell.dxs[2]))
+        else:
+             self.assertTrue(self.zero[2] == 0)
+            
     def test_point_coordinates_morpho_x_max(self):
         self.assertTrue(max(self.coor3D[:,0]) < self.cell.dims[0])
 
