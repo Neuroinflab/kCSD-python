@@ -90,5 +90,6 @@ if __name__ == '__main__':
         'electrode_distribution': 1,
         'electrode_orientation': 3,
         'simulate_what':'oscillatory',
+        'tstop': 300,
     }
     simulate(fname_base, **args)

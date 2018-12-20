@@ -424,7 +424,7 @@ class CellModel():
         elif self.stimulus == 'symmetric':
             self.y_shaped_symmetric_input()
         elif self.stimulus == 'oscillatory':
-            self.cosine_current_injection()
+            self.cosine_current_injection(tstop=self.cell_parameters['tstop'])
         self.cell.simulate(**self.simulation_parameters)
 
     def save_LFP(self, directory=''):
