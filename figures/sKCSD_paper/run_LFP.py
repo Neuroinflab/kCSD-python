@@ -493,6 +493,15 @@ class CellModel():
             new_path = self.new_path
         np.savetxt(os.path.join(new_path, 'somav.txt'),
                    self.cell.somav)
+
+    def save_tvec(self, directory=''):
+        if directory:
+            new_path = directory
+        else:
+            new_path = self.new_path
+        np.savetxt(os.path.join(new_path, 'tvec.txt'),
+                   self.cell.tvec)
+ 
     def save_for_R_kernel(self, directory=''):
         self.save_LFP(directory)
         self.save_electrode_pos(directory)

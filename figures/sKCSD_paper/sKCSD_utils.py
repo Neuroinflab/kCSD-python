@@ -54,6 +54,7 @@ def simulate(fname_base, **kwargs):
     c.save_memb_curr()
     c.save_seg_length()
     c.save_somav()
+    c.save_tvec()
     return c
 
 
