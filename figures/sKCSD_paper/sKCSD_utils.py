@@ -53,6 +53,7 @@ def simulate(fname_base, **kwargs):
     c.save_skCSD_python()
     c.save_memb_curr()
     c.save_seg_length()
+    c.save_somav()
     return c
 
 
@@ -80,6 +81,21 @@ def merge_maps(maps, tstart, tstop, merge=1):
 
 
 if __name__ == '__main__':
+    fname_base = "gang_7x7_200_distal_osc"
+    args = {
+        'morphology': 9,
+        'xmin': -200,
+        'xmax': 200,
+        'ymin': -200,
+        'ymax': 200,
+        'electrode_distribution': 1,
+        'electrode_orientation': 3,
+        'colnb': 10,
+        'rownb': 10,
+        'tstop': 100,
+        'simulate_what': 'distal_oscillatory',
+    }
+    simulate(fname_base, **args)
     fname_base = "gang_7x7_200"
     args = {
         'morphology': 9,
@@ -90,6 +106,9 @@ if __name__ == '__main__':
         'electrode_distribution': 1,
         'electrode_orientation': 3,
         'simulate_what':'oscillatory',
+        'colnb': 10,
+        'rownb': 10,
         'tstop': 100,
     }
     simulate(fname_base, **args)
+
