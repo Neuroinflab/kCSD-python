@@ -80,10 +80,10 @@ if __name__ == '__main__':
                   lambd=lambd,
                   R_init=R,
                   dist_table_density=20,
-                  exact=True)
+                  exact=True,
+                  sigma=0.3)
         est_skcsd = k.values(estimate='CSD',
                              transformation='segments')
-        est_skcsd /= seglen[:, None]
         if i % 2:
             skcsd_random.append(est_skcsd)
         else:

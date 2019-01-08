@@ -41,7 +41,7 @@ if __name__ == '__main__':
     pots = data.LFP/scale_factor_LFP
     morphology = data.morphology
     morphology[:, 2:6] = morphology[:, 2:6]/scale_factor
-    
+    new_path = c.return_paths_skCSD_python()
     ground_truth = np.loadtxt(os.path.join(new_path,
                                            'membcurr'))
     seglen = np.loadtxt(os.path.join(new_path,
@@ -59,7 +59,8 @@ if __name__ == '__main__':
                             src_type='gauss',
                             lambd=lambd,
                             R_init=R,
-                            exact=True)
+                            exact=True,
+                            sigma=0.3)
                 est_skcsd = ker.values(estimate='CSD',
                                        transformation='segments')
           

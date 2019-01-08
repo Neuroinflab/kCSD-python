@@ -108,7 +108,8 @@ if __name__ == '__main__':
                   src_type='gauss',
                   lambd=lambd,
                   R_init=R,
-                  exact=True)
+                  exact=True,
+                  sigma=0.3)
         
         if sys.version_info < (3, 0):
             path = os.path.join(fname_base % nl, "preprocessed_data/Python_2")

@@ -503,6 +503,10 @@ class CellModel():
                    self.cell.tvec)
  
     def save_for_R_kernel(self, directory=''):
+        if directory:
+            new_path = directory
+        else:
+            new_path = self.new_path
         self.save_LFP(directory)
         self.save_electrode_pos(directory)
         self.save_somav(directory)

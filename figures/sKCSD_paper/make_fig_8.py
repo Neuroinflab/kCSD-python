@@ -101,7 +101,8 @@ if __name__ == '__main__':
                 lambd=lambd,
                 R_init=R,
                 tolerance=tolerance,
-                exact=True)
+                exact=True,
+                sigma=0.3)
     path = os.path.join(data_dir, 'lambda_%f_R_%f_n_src_%d' % (l, R, n_src))
     if sys.version_info < (3, 0):
         path = os.path.join(path, "preprocessed_data/Python_2")

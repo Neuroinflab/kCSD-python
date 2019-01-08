@@ -81,7 +81,8 @@ if __name__ == '__main__':
                   src_type='gauss',
                   lambd=lambd,
                   R_init=R,
-                  exact=True)
+                  exact=True,
+                  sigma=0.3)
         est_csd = k.values(transformation='segments')
         if i == 2:
             pl.make_map_plot(ax[i+1],

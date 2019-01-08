@@ -109,7 +109,16 @@ if __name__ == '__main__':
                     src_type='gauss',
                     lambd=lambd,
                     R_init=R,
-                    exact=True)
+                    exact=True,
+                    sigma=0.3)
+        if sys.version_info < (3, 0):
+            path = os.path.join(fname_base % i, "preprocessed_data/Python_2")
+        else:
+            path = os.path.join(fname_base % i, "preprocessed_data/Python_3")
+
+        if not os.path.exists(path):
+            print("Creating", path)
+            os.makedirs(path)
         utils.save_sim(path, ker)
         xmin = cell_itself[i].xmin
         xmax = cell_itself[i].xmax
@@ -136,17 +145,11 @@ if __name__ == '__main__':
                       zmax=zmax,
                       gdx=gdx,
                       gdy=gdy,
-                      gdz=gdz)
+                      gdz=gdz,
+                      sigma=0.3)
         est_kcsd = kcsd.values(estimate='CSD')
         est_kcsd_pot = kcsd.values(estimate='POT')
-        if sys.version_info < (3, 0):
-            path = os.path.join(fname_base % i, "preprocessed_data/Python_2")
-        else:
-            path = os.path.join(fname_base % i, "preprocessed_data/Python_3")
-
-        if not os.path.exists(path):
-            print("Creating", path)
-            os.makedirs(path)
+     
         
         try:
             est_skcsd = ker.values(estimate='CSD')

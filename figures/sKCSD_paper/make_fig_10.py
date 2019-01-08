@@ -124,7 +124,8 @@ if __name__ == '__main__':
                     R_init=R,
                     tolerance=tolerance,
                     dist_table_density=20,
-                    exact=True)
+                    exact=True,
+                    sigma=0.3)
     
             
         path = os.path.join('simulation', '%s_lambda_%f_R_%f' % (fname_base, l, R))
