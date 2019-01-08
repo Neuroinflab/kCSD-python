@@ -12,15 +12,17 @@ import matplotlib.gridspec as gridspec
 
 
 n_src = 512
-lambd = 10
-R = 16e-6/2**.5
+R = 16e-6
+lambd = 0.1#/(16*np.pi**3*R**2*n_src)
+
+
 if __name__ == '__main__':
     fname_base = "Figure_complex"
     tstop = 75
     scaling_factor = 1000**2
     scaling_factor_LFP = 1000
     R_inits = [2**(i-0.5)*1e-6 for i in range(3, 8)]
-    lambdas = [10**(-i) for i in range(-3, 6, 1)]
+    lambdas = [10**(-i) for i in range(5)]
     electrode_number = [10, 20, 30]
     colnb = 20
     data_dir = []
@@ -41,7 +43,8 @@ if __name__ == '__main__':
                              ymax=400,
                              colnb=colnb,
                              rownb=rownb,
-                             dt=0.125)
+                                 dt=0.5)
+                                 
         data_dir.append(c.return_paths_skCSD_python())
     seglen = np.loadtxt(os.path.join(data_dir[0], 'seglength'))
     n_seg = len(seglen)
@@ -86,8 +89,9 @@ if __name__ == '__main__':
                   n_src_init=n_src,
                   src_type='gauss',
                   lambd=lambd,
-                  dist_table_density=50,
-                  R_init=R)
+                  exact=True,
+                  R_init=R,
+                  sigma=0.3)
         csd = k.values(transformation='segments')
         print(csd.shape)
         print(csd.max(), csd.min())
@@ -99,18 +103,18 @@ if __name__ == '__main__':
                            vmax=gvmax,
                            vmin=gvmin)
         ax[3+i].set_title(electrode_number[i])
-        k.L_curve(lambdas=np.array(lambdas), Rs=np.array(R_inits))
-        csd_Lcurve = k.values(transformation=None)
+        #k.L_curve(lambdas=np.array(lambdas), Rs=np.array(R_inits))
+        #csd_Lcurve = k.values(transformation=None)
         
         # #Rcv, lambdacv = k.cross_validate(lambdas=np.array(lambdas), Rs=np.array(R_inits))
        
-        cax = ax[3+i].imshow(csd_Lcurve,
-                              extent=[0, tstop, 1, csd_Lcurve.shape[0]],
-                              origin='lower',
-                              aspect='auto',
-                              cmap='seismic_r',
-                              vmax=gvmax,
-                              vmin=gvmin)
+        # cax = ax[3+i].imshow(csd_Lcurve,
+        #                       extent=[0, tstop, 1, csd_Lcurve.shape[0]],
+        #                       origin='lower',
+        #                       aspect='auto',
+        #                       cmap='seismic_r',
+        #                       vmax=gvmax,
+        #                       vmin=gvmin)
         ax[i].set_title('%d electrodes' % electrode_number[i])
         ax[i].set_xticklabels([])
         ax[i+3].set_xlabel('time (s)')
