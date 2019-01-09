@@ -105,7 +105,7 @@ if __name__ == '__main__':
     morpho, extent = cell_itself.draw_cell2D(axis=2)
     lambd = l/(2*(2*np.pi)**3*R**2*n_src)
     fig, ax = plt.subplots(3, 3, figsize=(8, 20))
-    pl.make_map_plot(ax[0, 0], morpho, extent=extent)
+    pl.make_map_plot(ax[0, 0], morpho, extent=extent, circles=False)
     pl.make_map_plot(ax[0, 0], ground_truth_t0, extent=extent, title="Ground truth", vmin=vmin, vmax=vmax, alpha=.75)
     vmax, vmin = pl.get_min_max(ground_truth_t0)
     
@@ -169,6 +169,4 @@ if __name__ == '__main__':
                 bbox_inches='tight',
                 transparent=True,
                 pad_inches=0.1)
-                
-    plt.show()
  
