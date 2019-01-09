@@ -12,12 +12,13 @@ dt = 0.5
 tolerance = 5e-6
 cmap = plt.cm.bwr_r
 n = 100
-tt = 1
+scale_factor = 1000**2
+R = 16./np.sqrt(2)/scale_factor
+lambd = 0.01
 if __name__ == '__main__':
     fname_base = "Figure_8"
     fig_name = sKCSD_utils.make_fig_names(fname_base)
     tstop = 850
-    scale_factor = 1000**2
     scale_factor_LFP = 1000
     xmin = -650/scale_factor
     xmax = 650/scale_factor
@@ -38,7 +39,6 @@ if __name__ == '__main__':
                              xmax=400,
                              ymin=-400,
                              ymax=400,
-                             triside=45,
                              colnb=colnb,
                              rownb=rownb,
                              dt=dt)
@@ -64,20 +64,14 @@ if __name__ == '__main__':
     cell_itself.distribute_srcs_3D_morph()
     ground_truth_3D = cell_itself.transform_to_3D(ground_truth,
                                                   what="morpho")
-    vmax, vmin = pl.get_min_max(ground_truth_3D[:, :, :, t0-tt:t0+tt].sum(axis=(2,3)))
+    vmax, vmin = pl.get_min_max(ground_truth_3D[:, :, :, t0].sum(axis=(2)))
     morpho, extent = cell_itself.draw_cell2D(axis=2)
     gvmax, gvmin = pl.get_min_max(ground_truth)
-    l = 0.1
-    
-    R = 64./np.sqrt(2)/scale_factor
-    fig2 = plt.figure()
-    axfig21 = fig2.add_subplot(2,1,1)
-    axfig22 = fig2.add_subplot(2,1,2)
-    axfig21.imshow(ground_truth, interpolation="none", origin="lower", vmin=gvmin, vmax=gvmax, cmap=plt.cm.bwr_r)
-    lambd = l/(2*(2*np.pi)**3*R**2*n_src)
     fig = plt.figure(figsize=(8, 20))
     ax1 = plt.subplot2grid((3, 2), (0, 0), colspan=2)
     ax1.plot(time, somav)
+    lims = ax1.get_ylim()
+    ax1.plot(time[t0]*np.ones_like(time), np.linspace(lims[0], lims[-1], len(time)), 'r')
     ax1.set_xlabel('time (ms)')
     ax1.set_ylabel('Vm (mV)')
     ax2 = plt.subplot2grid((4, 2), (2, 0))
@@ -103,7 +97,7 @@ if __name__ == '__main__':
                 tolerance=tolerance,
                 exact=True,
                 sigma=0.3)
-    path = os.path.join(data_dir, 'lambda_%f_R_%f_n_src_%d' % (l, R, n_src))
+    path = os.path.join(data_dir, 'lambda_%f_R_%f_n_src_%d' % (lambd, R, n_src))
     if sys.version_info < (3, 0):
         path = os.path.join(path, "preprocessed_data/Python_2")
     else:
@@ -120,16 +114,8 @@ if __name__ == '__main__':
     est_skcsd = cell_itself.transform_to_3D(skcsd)
    
     skcsd_seg = cell_itself.transform_to_segments(skcsd)
-    skcsd_snapshot = est_skcsd[:, :, :, t0-tt:t0+tt].sum(axis=(2, 3))
-    gt_snapshot = ground_truth_3D[:, :, :, t0-tt:t0+tt].sum(axis=(2, 3))
-                      
-    axfig22.imshow(skcsd_seg,
-                   origin="lower",
-                   interpolation="none",
-                   vmin=gvmin,
-                   vmax=gvmax,
-                   cmap=plt.cm.bwr_r )
-    
+    skcsd_snapshot = est_skcsd[:, :, :, t0].sum(axis=(2))
+    gt_snapshot = ground_truth_3D[:, :, :, t0].sum(axis=(2))
     cax = pl.make_map_plot(ax4,
                            gt_snapshot,
                            vmin=vmin,
@@ -189,14 +175,14 @@ if __name__ == '__main__':
     kcsd_pot = kcsd.values("POT")
 
     pl.make_map_plot(ax2, kcsd_pot[:, :, :,
-                                   t0-tt:t0+tt].sum(axis=(2, 3)),
+                                   t0].sum(axis=(2)),
                      extent=extent,
                      cmap=plt.cm.viridis,
                      alpha=.9,
                      ele_pos=ele_pos,
                      morphology=morpho)
     pl.make_map_plot(ax3, kcsd_csd[:, :, :,
-                                   t0-tt:t0+tt].sum(axis=(2, 3)),
+                                   t0].sum(axis=(2)),
                      vmin=vmin,
                      vmax=vmax,
                      extent=extent,
