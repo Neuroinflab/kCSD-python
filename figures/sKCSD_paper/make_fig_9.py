@@ -74,8 +74,7 @@ if __name__ == '__main__':
     vmax, vmin = pl.get_min_max(ground_truth_grid[:, :, :, t1].sum(axis=1))
     gdt1 = ground_truth_grid[:,:,:,t1].sum(axis=1)
     morpho, extent = cell.draw_cell2D(axis=1)
-
-   
+    new_ele_pos = np.array([ele_pos[:, 2], ele_pos[:, 0]]).T
     pl.make_map_plot(ax[0, 0],
                      gdt1,
                      vmin=vmin,
@@ -83,9 +82,10 @@ if __name__ == '__main__':
                      extent=extent,
                      alpha=.9,
                      morphology=morpho,
-                     ele_pos=ele_pos)
+                     ele_pos=new_ele_pos)
     snrs = []
-    L1 = []  
+    L1 = []
+    
     for i, nl in enumerate(noise_levels):
         if nl:
             noise = numpy.random.normal(scale=std/nl, size=shape)
@@ -127,6 +127,7 @@ if __name__ == '__main__':
         
         est_skcsd, est_pot, cell_obj = utils.load_sim(path)
         est_skcsd = cell.transform_to_3D(est_skcsd)
+        print(ground_truth.min(), ground_truth.max(), est_skcsd.min(), est_skcsd.max())
         L1.append(sKCSD_utils.L1_error(ground_truth_grid, est_skcsd))
         if nl == 0:
             pl.make_map_plot(ax[0, 1],
@@ -135,9 +136,9 @@ if __name__ == '__main__':
                              vmax=vmax,
                              extent=extent,
                              title="No noise",
-                             alpha=.8,
+                             alpha=.9,
                              morphology=morpho,
-                             ele_pos=ele_pos)
+                             ele_pos=new_ele_pos)
         else:
             pl.make_map_plot(ax[1, i-1],
                              est_skcsd[:,:,:,t1].sum(axis=1),
@@ -147,7 +148,7 @@ if __name__ == '__main__':
                              title='SNR %f' % snr,
                              alpha=.9,
                              morphology=morpho,
-                             ele_pos=ele_pos)
+                             ele_pos=new_ele_pos)
 
     ax[0, 2].plot([i for i in range(len(snrs))], L1, 'dk')
     ax[0, 2].set_xticks([i for i in range(len(snrs))])
@@ -161,4 +162,3 @@ if __name__ == '__main__':
                 transparent=True,
                 pad_inches=0.1)
     
-    plt.show()
