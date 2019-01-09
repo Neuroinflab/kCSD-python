@@ -69,7 +69,6 @@ if __name__ == '__main__':
                       tolerance=2e-6,
                       xmin=-120e-6, xmax=120e-6,
                       zmin=-50e-6, zmax=550e-6)
-    cell.distribute_srcs_3D_morph()
     ground_truth_grid = cell.transform_to_3D(ground_truth, what="morpho")
     vmax, vmin = pl.get_min_max(ground_truth_grid[:, :, :, t1].sum(axis=1))
     gdt1 = ground_truth_grid[:,:,:,t1].sum(axis=1)

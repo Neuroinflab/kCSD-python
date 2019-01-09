@@ -73,6 +73,7 @@ class sKCSDcell(object):
         if kwargs:
             raise TypeError('Invalid keyword arguments:', kwargs.keys())
         self.est_xyz_auto =  False
+        self.distribute_srcs_3D_morph()
 
     def add_segment(self, mp1, mp2):
         """Add indices (mp1, mp2) of morphology points defining a segment
@@ -672,7 +673,7 @@ class sKCSD(KCSD1D):
             print('Invalid source_type for basis! available are:',
                   basis.basis_1D.keys())
             raise KeyError
-        self.src_x = self.cell.distribute_srcs_3D_morph()
+        self.src_x = self.cell.source_pos
         self.n_src = self.cell.n_src
 
     def get_src_ele_dists(self):
@@ -930,8 +931,7 @@ class sKCSD(KCSD1D):
         -------
         pot : float
         """
-        xp = self.cell.corrected_x(xp)
-        xp_coor = self.cell.get_xyz(xp)
+        xp_coor = self.cell.get_xyz(self.cell.corrected_x(xp))
         new_x = [x, y, z]
         dist = utils.calculate_distance(xp_coor, new_x)
         pot = basis_func(xp-src, R)/dist
@@ -961,10 +961,8 @@ class sKCSD(KCSD1D):
         -------
         pot : float
         """
-        xp = self.cell.corrected_x(xp)
-        x = self.cell.corrected_x(x)
-        xp_coor = self.cell.get_xyz(xp)
-        x_coor = self.cell.get_xyz(x)
+        xp_coor = self.cell.get_xyz(self.cell.corrected_x(xp))
+        x_coor = self.cell.get_xyz(self.cell.corrected_x(x))
         dist = utils.calculate_distance(xp_coor, x_coor)
         pot = basis_func(xp-src, R)/dist
         return pot

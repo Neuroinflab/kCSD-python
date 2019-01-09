@@ -97,7 +97,6 @@ if __name__ == '__main__':
                             xmax=1000e-6,
                             ymin=-1000e-6,
                             ymax=1000e-6)
-    cell_itself.distribute_srcs_3D_morph()
     ground_truth_3D = cell_itself.transform_to_3D(ground_truth,
                                                   what="morpho")
     ground_truth_t0 = ground_truth_3D[:, :, :, t0].sum(axis=2)

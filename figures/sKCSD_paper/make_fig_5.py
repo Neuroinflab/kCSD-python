@@ -69,9 +69,6 @@ if __name__ == '__main__':
                                          ymax=200e-6,
                                          zmin=-150e-6,
                                          zmax=550e-6))
-        
-
-        cell_itself[i].distribute_srcs_3D_morph()
         morpho, extent = cell_itself[i].draw_cell2D(axis=1)
         if i == 0:
             morpho_kcsd, extent_kcsd = cell_itself[i].draw_cell2D(axis=0, resolution=[50, 50, 50])

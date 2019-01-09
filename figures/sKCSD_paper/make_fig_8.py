@@ -61,7 +61,6 @@ if __name__ == '__main__':
     t0 = np.argmax(somav[int(400./dt):int(600./dt)])+int(400./dt)
  
     cell_itself = sKCSDcell(morphology, ele_pos, n_src, tolerance=tolerance, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
-    cell_itself.distribute_srcs_3D_morph()
     ground_truth_3D = cell_itself.transform_to_3D(ground_truth,
                                                   what="morpho")
     vmax, vmin = pl.get_min_max(ground_truth_3D[:, :, :, t0].sum(axis=(2)))
@@ -86,7 +85,6 @@ if __name__ == '__main__':
                             xmax=xmax,
                             ymin=ymin,
                             ymax=ymax)
-    cell_itself.distribute_srcs_3D_morph()
     ker = sKCSD(ele_pos,
                 data.LFP,
                 morphology,
