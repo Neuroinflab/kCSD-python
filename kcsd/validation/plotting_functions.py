@@ -418,7 +418,7 @@ def make_map_plot(ax_i, what, **kwargs):
     
     if isinstance(ele_pos, np.ndarray):
         for i in range(ele_pos.shape[0]):
-            pos_x, pos_y = 1e6*ele_pos[i, 0], 1e6*ele_pos[i, 1]
+            pos_x, pos_y = ele_pos[i, 0], ele_pos[i, 1]
             text = ax_i.text(pos_x, pos_y, '*',
                              ha="center", va="center", color="k")
             

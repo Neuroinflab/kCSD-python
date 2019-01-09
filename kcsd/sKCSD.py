@@ -504,18 +504,18 @@ class sKCSDcell(object):
         if axis == 0:
             image = np.ones(shape=(resolution[1],
                                    resolution[2], 4), dtype=np.uint8) * 255
-            extent = [1e6*self.zmin, 1e6*self.zmax,
-                      1e6*self.ymin, 1e6*self.ymax]
+            extent = [self.zmin, self.zmax,
+                      self.ymin, self.ymax]
         elif axis == 1:
             image = np.ones(shape=(resolution[0],
                                    resolution[2], 4), dtype=np.uint8) * 255
-            extent = [1e6*self.zmin, 1e6*self.zmax,
-                      1e6*self.xmin, 1e6*self.xmax]
+            extent = [self.zmin, self.zmax,
+                      self.xmin, self.xmax]
         elif axis == 2:
             image = np.ones(shape=(resolution[0],
                                    resolution[1], 4), dtype=np.uint8) * 255
-            extent = [1e6*self.ymin, 1e6*self.ymax,
-                      1e6*self.xmin, 1e6*self.xmax]
+            extent = [self.ymin, self.ymax,
+                      self.xmin, self.xmax]
         else:
             sys.exit('In drawing 2D morphology unknown axis %d' % axis)
         image[:, :, 3] = 0
