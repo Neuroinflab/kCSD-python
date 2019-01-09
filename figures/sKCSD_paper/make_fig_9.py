@@ -127,7 +127,6 @@ if __name__ == '__main__':
         
         est_skcsd, est_pot, cell_obj = utils.load_sim(path)
         est_skcsd = cell.transform_to_3D(est_skcsd)
-        print(ground_truth.min(), ground_truth.max(), est_skcsd.min(), est_skcsd.max())
         L1.append(sKCSD_utils.L1_error(ground_truth_grid, est_skcsd))
         if nl == 0:
             pl.make_map_plot(ax[0, 1],
