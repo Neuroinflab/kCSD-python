@@ -85,14 +85,14 @@ if __name__ == '__main__':
     fname_base = "gang_7x7_200_distal_osc"
     args = {
         'morphology': 9,
-        'xmin': -200,
-        'xmax': 200,
-        'ymin': -200,
-        'ymax': 200,
+        'xmin': -40,
+        'xmax': 40,
+        'ymin': -20,
+        'ymax': 20,
         'electrode_distribution': 1,
         'electrode_orientation': 3,
-        'colnb': 10,
-        'rownb': 10,
+        'colnb': 5,
+        'rownb': 4,
         'tstop': 100,
         'simulate_what': 'distal_oscillatory',
     }
