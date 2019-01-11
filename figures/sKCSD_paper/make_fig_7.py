@@ -15,7 +15,7 @@ if __name__ == '__main__':
     scale_factor = 1000**2
     scale_factor_LFP = 1000
     R_inits = np.array([(2**(i - .5))/scale_factor for i in range(3, 7)])
-    lambdas = np.array([(10**(-i))for i in range(5, 0, -1)])
+    lambdas = np.array([(10**(-i))for i in range(5, -5, -1)])
     n_srcs = np.array([32, 64, 128, 512, 1024])
     x_ticklabels = [2**i for i in range(3, 7)]
     y_ticklabels = [str(lambd) for lambd in lambdas]
@@ -51,7 +51,7 @@ if __name__ == '__main__':
     for i, n_src in enumerate(n_srcs):
         for j, l in enumerate(lambdas):
             for k, R in enumerate(R_inits):
-                lambd = l/(16*np.pi**3*R**2*n_src)
+                lambd = l
                 ker = sKCSD(ele_pos,
                             pots,
                             morphology,
