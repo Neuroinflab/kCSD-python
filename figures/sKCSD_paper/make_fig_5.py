@@ -70,8 +70,11 @@ if __name__ == '__main__':
                                          zmin=-150e-6,
                                          zmax=550e-6))
         morpho, extent = cell_itself[i].draw_cell2D(axis=1)
+        extent = [extent[-2], extent[-1], extent[0], extent[1]]
         if i == 0:
             morpho_kcsd, extent_kcsd = cell_itself[i].draw_cell2D(axis=0, resolution=[50, 50, 50])
+            extent_kcsd = [extent_kcsd[-2], extent_kcsd[-1],
+                           extent_kcsd[0], extent_kcsd[1]]
 
     seglen = np.loadtxt(os.path.join(data_dir[0], 'seglength'))
     ground_truth = np.loadtxt(os.path.join(data_dir[0], 'membcurr'))

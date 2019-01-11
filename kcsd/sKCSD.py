@@ -5,7 +5,7 @@ using the skCSD method by Cserpan et.al (2017).
 These scripts are based on Grzegorz Parka's,
 Google Summer of Code 2014, INFC/pykCSD
 
-This was written by :
+This was written by :dxs
 Joanna Jedrzejewska-Szmek, Jan Maka, Chaitanya Chintaluri
 Laboratory of Neuroinformatics,
 Nencki Institute of Experimental Biology, Warsaw.
@@ -347,7 +347,7 @@ class sKCSDcell(object):
                 dims[i] += np.floor((vals[i][1] - vals[i][0])/dx)
         return dims
 
-    def point_coordinates(self, morpho):
+    def point_coordinates(self, morpho, dxs=None):
         """
         Calculate indices of points in morpho in the 3D grid calculated
         using self.get_grid()
@@ -356,7 +356,9 @@ class sKCSDcell(object):
         ----------
         morpho : np.array
            array with a morphology (either segements or morphology loop)
-
+        dxs : sequence of length 3
+           size of the voxel
+           
         Returns
         -------
         coor_3D : np.array
@@ -367,20 +369,23 @@ class sKCSDcell(object):
         zero_coords = np.zeros((3, ), dtype=int)
         coor_3D = np.zeros((morpho.shape[0] - 1, morpho.shape[1]),
                            dtype=np.int)
-        for i, dx in enumerate(self.dxs):
+        if dxs is None:
+            dxs = self.dxs
+        for i, dx in enumerate(dxs):
             if dx:
                 coor_3D[:, i] = np.floor((morpho[1:, i] - minis[i])/dx)
                 zero_coords[i] = np.floor((morpho[0, i] - minis[i])/dx)
         return coor_3D, zero_coords
 
-    def coordinates_3D_loops(self):
+    def coordinates_3D_loops(self, dxs=None):
         """
         Find points of each loop in 3D grid
         (for CSD/potential calculation in 3D).
 
         Parameters
         ----------
-        None
+        dxs : sequence of length 3
+           size of the voxel
 
         Returns
         -------
@@ -388,7 +393,7 @@ class sKCSDcell(object):
            Indices of points of 3D grid for each loop
 
         """
-        coor_3D, p0 = self.point_coordinates(self.est_xyz)
+        coor_3D, p0 = self.point_coordinates(self.est_xyz, dxs=dxs)
         segment_coordinates = {}
 
         for i, p1 in enumerate(coor_3D):
@@ -422,6 +427,7 @@ class sKCSDcell(object):
         while True:
             last = (i+1 == len(coor_3D))
             segment_coordinates[i] = self.points_in_between(p0, p1, last)
+            
             if i + 1 == len(coor_3D):
                 break
             if i:
@@ -488,6 +494,7 @@ class sKCSDcell(object):
             result[seg_no, :] += estimated[i, :]
         return result
 
+    
     def draw_cell2D(self, axis=2, resolution=None):
         """
         Cell morphology in 3D grid in projection of axis.
@@ -496,54 +503,55 @@ class sKCSDcell(object):
         ----------
         axis : int
           0: x axis, 1: y axis, 2: z axis
+        resolution : sequence of length 3
+          size of the 2D image depicting the morphology
+          default None, in such case default neuron resolution, 
+          which is based on the smallest neurite in the morphology,
+          is used
         """
+        coor_3D = self.coordinates_3D_loops()
         if resolution is None:
+            dxs = self.dxs
             resolution = self.dims
-        xgrid = np.linspace(self.xmin, self.xmax, resolution[0])
-        ygrid = np.linspace(self.ymin, self.ymax, resolution[1])
-        zgrid = np.linspace(self.zmin, self.zmax, resolution[2])
+        else:
+            assert resolution[0] > 0
+            assert resolution[1] > 0
+            assert resolution[2] >0
+            dxs = np.zeros((3,))
+            vals = [
+                [self.xmin, self.xmax],
+                [self.ymin, self.ymax],
+                [self.zmin, self.zmax]
+            ]
+            for i, dx in enumerate(dxs):
+                dx = np.ceil(((vals[i][1]-vals[i][0]))/resolution[i])
+                
+        image_3D = np.zeros(resolution)
+        for coor in coor_3D:
+            points = coor_3D[coor]
+            for point in points:
+                x, y, z = point
+                image_3D[x, y, z] = 1
+        image = image_3D.sum(axis=axis)
+
         if axis == 0:
-            image = np.ones(shape=(resolution[1],
-                                   resolution[2], 4), dtype=np.uint8) * 255
-            extent = [self.zmin, self.zmax,
-                      self.ymin, self.ymax]
-        elif axis == 1:
-            image = np.ones(shape=(resolution[0],
-                                   resolution[2], 4), dtype=np.uint8) * 255
-            extent = [self.zmin, self.zmax,
-                      self.xmin, self.xmax]
-        elif axis == 2:
-            image = np.ones(shape=(resolution[0],
-                                   resolution[1], 4), dtype=np.uint8) * 255
             extent = [self.ymin, self.ymax,
-                      self.xmin, self.xmax]
+                      self.zmin, self.zmax]
+        elif axis == 1:
+            extent = [self.xmin, self.xmax,
+                      self.zmin, self.zmax]
+        elif axis == 2:
+            extent = [self.xmin, self.xmax,
+                      self.ymin, self.ymax]
         else:
             sys.exit('In drawing 2D morphology unknown axis %d' % axis)
-        image[:, :, 3] = 0
-        xs = []
-        ys = []
-        x0, y0 = 0, 0
-        for p in self.source_xyz:
-            x = (np.abs(xgrid-p[0])).argmin()
-            y = (np.abs(ygrid-p[1])).argmin()
-            z = (np.abs(zgrid-p[2])).argmin()
-            if axis == 0:
-                xi, yi = y, z
-            elif axis == 1:
-                xi, yi = x, z
-            elif axis == 2:
-                xi, yi = x, y
-            xs.append(xi)
-            ys.append(yi)
-            image[xi, yi, :] = np.array([0, 0, 0, 1])
-            if x0 != 0:
-                idx_arr = self.points_in_between([xi, yi, 0], [x0, y0, 0], 1)
-                for i in range(len(idx_arr)):
-                    image[idx_arr[i, 0] - 1:idx_arr[i, 0] + 1,
-                          idx_arr[i, 1] - 1:idx_arr[i, 1] + 1, :] = np.array(
-                              [0, 0, 0, 255])
-            x0, y0 = xi, yi
-        return image, extent
+        rgb_image = np.ones(shape=(image.shape[0], image.shape[1], 4), dtype=np.uint8)*255
+        rgb_image[:, :, 3] = 0
+        indices = np.where(image >= 1)
+        for i, x in enumerate(indices[0]):
+            y = indices[1][i]
+            rgb_image[x, y, :] = [0, 0, 0, 255]
+        return rgb_image, extent
 
 
 class sKCSD(KCSD1D):

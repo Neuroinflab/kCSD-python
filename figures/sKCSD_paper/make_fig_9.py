@@ -73,6 +73,7 @@ if __name__ == '__main__':
     vmax, vmin = pl.get_min_max(ground_truth_grid[:, :, :, t1].sum(axis=1))
     gdt1 = ground_truth_grid[:,:,:,t1].sum(axis=1)
     morpho, extent = cell.draw_cell2D(axis=1)
+    extent = [extent[-2], extent[-1], extent[0], extent[1]]
     new_ele_pos = np.array([ele_pos[:, 2], ele_pos[:, 0]]).T
     pl.make_map_plot(ax[0, 0],
                      gdt1,

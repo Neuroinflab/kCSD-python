@@ -13,8 +13,8 @@ tolerance = 5e-6
 cmap = plt.cm.bwr_r
 n = 100
 scale_factor = 1000**2
-R = 16./np.sqrt(2)/scale_factor
-lambd = 0.01
+R = 32e-6
+lambd = 0.0001
 if __name__ == '__main__':
     fname_base = "Figure_8"
     fig_name = sKCSD_utils.make_fig_names(fname_base)
@@ -65,6 +65,7 @@ if __name__ == '__main__':
                                                   what="morpho")
     vmax, vmin = pl.get_min_max(ground_truth_3D[:, :, :, t0].sum(axis=(2)))
     morpho, extent = cell_itself.draw_cell2D(axis=2)
+    extent = [extent[-2], extent[-1], extent[0], extent[1]]
     gvmax, gvmin = pl.get_min_max(ground_truth)
     fig = plt.figure(figsize=(8, 20))
     ax1 = plt.subplot2grid((3, 2), (0, 0), colspan=2)
@@ -141,7 +142,7 @@ if __name__ == '__main__':
                             ele_pos=ele_pos,
                             morphology=morpho)
     
-    fig.suptitle('lambda %f, R %f' % (l, R))
+    fig.suptitle('lambda %f, R %f' % (lambd, R))
     xmin = cell_itself.xmin
     xmax = cell_itself.xmax
     ymin = cell_itself.ymin
@@ -156,7 +157,7 @@ if __name__ == '__main__':
                   data.LFP,
                   n_src_init=n_src,
                   src_type='gauss',
-                  lambd=l,
+                  lambd=lambd,
                   R_init=R,
                   dist_table_density=n,
                   xmin=xmin,

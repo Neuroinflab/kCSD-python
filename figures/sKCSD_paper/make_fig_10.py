@@ -102,6 +102,7 @@ if __name__ == '__main__':
     ground_truth_t0 = ground_truth_3D[:, :, :, t0].sum(axis=2)
     vmax, vmin = pl.get_min_max(ground_truth_t0)
     morpho, extent = cell_itself.draw_cell2D(axis=2)
+    extent = [extent[-2], extent[-1], extent[0], extent[1]]
     lambd = l/(2*(2*np.pi)**3*R**2*n_src)
     fig, ax = plt.subplots(3, 3, figsize=(8, 20))
     pl.make_map_plot(ax[0, 0], morpho, extent=extent, circles=False)
