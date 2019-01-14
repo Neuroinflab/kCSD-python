@@ -40,7 +40,7 @@ class testData(unittest.TestCase):
         self.assertTrue('data/gang_7x7_200/LFP/MyLFP' in self.data.path_LFP)
 
     def test_get_paths_morpho(self):
-        path = os.path.join(self.path,'morphology/gang_7x7_200_rows_4_cols_4_xmin_-200_xmax_200_ymin_-200_ymax_200_orientation_3.swc')
+        path = os.path.join(self.path,'morphology/gang_7x7_200_rows_4_cols_5_xmin_-20_xmax_20_ymin_-20_ymax_20_orientation_3.swc')
         self.assertTrue(path in self.data.path_morphology)
 
     def test_get_paths_ele_pos(self):
@@ -65,7 +65,7 @@ class testData(unittest.TestCase):
         self.assertFalse(self.data.morphology)
 
     def test_reload_morpho(self):
-        path = os.path.join(self.path, 'morphology/gang_7x7_200_rows_4_cols_4_xmin_-200_xmax_200_ymin_-200_ymax_200_orientation_3.swc')
+        path = os.path.join(self.path, 'morphology/gang_7x7_200_rows_4_cols_5_xmin_-20_xmax_20_ymin_-20_ymax_20_orientation_3.swc')
         self.data.load(path=path, what='morphology')
         self.assertTrue(isinstance(self.data.morphology, np.ndarray))
 
