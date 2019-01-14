@@ -508,8 +508,11 @@ class ValidateKCSD(object):
         rms: float
             Normalized error of reconstruction.
         """
-        rms = np.linalg.norm((true_csd/np.max(abs(true_csd)) -
-                              est_csd/np.max(abs(est_csd))))
+#        rms = np.linalg.norm((true_csd/np.max(abs(true_csd)) -
+#                              est_csd/np.max(abs(est_csd))))
+        epsilon = np.finfo(np.float64).eps
+        rms = np.linalg.norm((true_csd - est_csd))/(np.linalg.norm(true_csd) -
+                             epsilon*np.linalg.norm(true_csd))
         return rms
 
     def calculate_point_error(self, true_csd, est_csd):
@@ -530,10 +533,16 @@ class ValidateKCSD(object):
             Normalized error of reconstruction calculated separetly at every
             point of estimation space.
         """
-        point_error = np.linalg.norm(true_csd.reshape(true_csd.size, 1) /
-                                     np.max(abs(true_csd)) -
-                                     est_csd.reshape(est_csd.size, 1) /
-                                     np.max(abs(true_csd)), axis=1)
+#        point_error = np.linalg.norm(true_csd.reshape(true_csd.size, 1) /
+#                                     np.max(abs(true_csd)) -
+#                                     est_csd.reshape(est_csd.size, 1) /
+#                                     np.max(abs(true_csd)), axis=1)
+        epsilon = np.finfo(np.float64).eps
+        point_error = np.linalg.norm(true_csd.reshape(true_csd.size, 1) -
+                                     est_csd.reshape(est_csd.size, 1), axis=1)
+        point_error /= np.linalg.norm(true_csd.reshape(true_csd.size, 1),
+                                      axis=1) + \
+                                      epsilon*np.max(np.linalg.norm(true_csd.reshape(true_csd.size, 1), axis=1))
         if self.dim != 1:
             point_error = point_error.reshape(true_csd.shape)
         return point_error
@@ -716,7 +725,6 @@ class ValidateKCSD1D(ValidateKCSD):
             raise ValueError('Invalid value of reconstruction method,'
                              'pass either cross-validation or L-curve')
         est_csd = k.values('CSD')
-        print('here')
         return k, est_csd
 
     def make_reconstruction(self, csd_profile, csd_seed, total_ele,
@@ -952,8 +960,7 @@ class ValidateKCSD2D(ValidateKCSD):
                 % (k.lambd, k.R, rms, k.cv_error)
         self.make_plot(csd_at, true_csd, test_csd, k, est_csd, ele_pos,
                        pots, title)
-        ss = SpectralStructure(k)
-        ss.picard_plot(pots)
+        SpectralStructure(k)
         point_error = self.calculate_point_error(test_csd, est_csd[:, :, 0])
         return k, rms, point_error
 
@@ -983,14 +990,14 @@ class ValidateKCSD2D(ValidateKCSD):
         -------
         None
         """
+        print(pots.shape)
         csd_x = csd_at[0]
         csd_y = csd_at[1]
         fig = plt.figure(figsize=(15, 7))
-        fig.suptitle(fig_title)
+#        fig.suptitle(fig_title)
         ax1 = plt.subplot(141, aspect='equal')
         t_max = np.max(np.abs(true_csd))
         levels = np.linspace(-1 * t_max, t_max, 16)
-        print(csd_x.shape, csd_y.shape, true_csd.shape)
         im1 = ax1.contourf(csd_x, csd_y, true_csd, levels=levels,
                            cmap=cm.bwr)
         ax1.set_xlabel('x [mm]')
@@ -1699,33 +1706,33 @@ if __name__ == '__main__':
     CSD_PROFILE = CSD.gauss_1d_mono
     CSD_SEED = 15
     N_SRC_INIT = 100
-    ELE_LIMS = [0.1, 0.9]  # range of electrodes space
+    ELE_LIMS = [0.05, 0.95]  # range of electrodes space
     method = 'cross-validation'
     Rs = np.arange(0.2, 0.5, 0.1)
     lambdas = None
     noise = 0
-
-    KK = ValidateKCSD1D(CSD_SEED, n_src_init=N_SRC_INIT, h=0.25, R_init=0.23,
-                        ele_lims=ELE_LIMS, true_csd_xlims=[0., 1.], sigma=0.3,
-                        src_type='gauss')
-
-    KK.make_reconstruction(CSD_PROFILE, CSD_SEED, total_ele=16, noise=noise,
-                           Rs=Rs, lambdas=lambdas, method=method)
+#
+#    KK = ValidateKCSD1D(CSD_SEED, n_src_init=N_SRC_INIT, h=0.25, R_init=0.23,
+#                        ele_lims=ELE_LIMS, true_csd_xlims=[0., 1.], sigma=0.3,
+#                        src_type='gauss')
+#
+#    KK.make_reconstruction(CSD_PROFILE, CSD_SEED, total_ele=16, noise=noise,
+#                           Rs=Rs, lambdas=lambdas, method=method)
 
     print('Checking 2D')
-    CSD_PROFILE = CSD.gauss_2d_small
+    CSD_PROFILE = CSD.gauss_2d_large
     CSD_SEED = 5
 
     KK = ValidateKCSD2D(CSD_SEED, h=50., sigma=1., n_src_init=400)
-    KK.make_reconstruction(CSD_PROFILE, CSD_SEED, total_ele=16, noise=noise,
+    KK.make_reconstruction(CSD_PROFILE, CSD_SEED, total_ele=100, noise=noise,
                            Rs=Rs, lambdas=lambdas, method=method)
 
-    print('Checking 3D')
-    CSD_PROFILE = CSD.gauss_3d_small
-    CSD_SEED = 20  # 0-49 are small sources, 50-99 are large sources
-    TIC = time.time()
-    KK = ValidateKCSD3D(CSD_SEED, h=50, sigma=1)
-    KK.make_reconstruction(CSD_PROFILE, CSD_SEED, total_ele=125, noise=noise,
-                           Rs=Rs, lambdas=lambdas, method=method)
-    TOC = time.time() - TIC
-    print('time', TOC)
+#    print('Checking 3D')
+#    CSD_PROFILE = CSD.gauss_3d_small
+#    CSD_SEED = 20  # 0-49 are small sources, 50-99 are large sources
+#    TIC = time.time()
+#    KK = ValidateKCSD3D(CSD_SEED, h=50, sigma=1)
+#    KK.make_reconstruction(CSD_PROFILE, CSD_SEED, total_ele=125, noise=noise,
+#                           Rs=Rs, lambdas=lambdas, method=method)
+#    TOC = time.time() - TIC
+#    print('time', TOC)

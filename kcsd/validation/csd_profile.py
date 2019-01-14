@@ -11,6 +11,8 @@ Nencki Institute of Exprimental Biology, Warsaw.
 '''
 import numpy as np
 from numpy import exp
+import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 
 
 def get_states_1D(seed, n=1):
@@ -116,6 +118,18 @@ def gauss_2d_small(csd_at, seed=0):
     f4 = gauss2d(x, y, [states[13], states[15], x_amp, y_amp, -0.5, angle])
     f = f1+f2+f3+f4
     return f
+
+
+def gauss_2d_random(size_seed=0, n=100):
+    '''random quadpolar source in 2D'''
+    x, y = csd_at
+    np.random.seed(size_seed)
+    large_count = np.random.randint(0, n)
+    small_count = n - large_count
+    random_indices = np.array(([gauss_2d_large]*large_count +
+                               [gauss_2d_small]*small_count))
+    np.random.shuffle(random_indices)
+    return random_indices
 
 
 def get_states_3D(seed):
@@ -310,25 +324,25 @@ csd_available_dict = {1: [gauss_1d_mono, gauss_1d_dipole],
 
 
 if __name__ == '__main__':
-    seed = 3
+    seed = 10
 
     # 1D CASE
-    csd_profile = gauss_1d_mono
-    chrg_x = np.arange(0., 1., 1./50.)
-    f = csd_profile(chrg_x, seed)
+#    csd_profile = gauss_1d_mono
+#    chrg_x = np.arange(0., 1., 1./50.)
+#    f = csd_profile(chrg_x, seed)
     # plt.plot(chrg_x, f)
 
     # #2D CASE
-    # csd_profile = gauss_2d_large
-    # states[0:12] = 2*states[0:12] -1. #obtain values between -1 and 1
-    # chrg_x, chrg_y = np.mgrid[0.:1.:50j,
-    #                           0.:1.:50j]
-    # f = csd_profile(chrg_x, chrg_y, seed=seed)
-    # fig = plt.figure(1)
-    # ax1 = plt.subplot(111, aspect='equal')
-    # im = ax1.contourf(chrg_x, chrg_y, f, 15, cmap=cm.bwr_r)
-    # cbar = plt.colorbar(im, shrink=0.5)
-    # plt.show()
+    csd_profile = gauss_2d_random
+#    states[0:12] = 2*states[0:12] -1. #obtain values between -1 and 1
+    csd_at = np.mgrid[0.:1.:50j,
+                      0.:1.:50j]
+    f = csd_profile(size_seed=80, n=2)[1](csd_at, seed=seed)
+    fig = plt.figure(1)
+    ax1 = plt.subplot(111, aspect='equal')
+    im = ax1.contourf(csd_at[0], csd_at[1], f, 15, cmap=cm.bwr_r)
+    cbar = plt.colorbar(im, shrink=0.5)
+    plt.show()
 
     # #3D CASE
     # csd_profile = gauss_3d_small
