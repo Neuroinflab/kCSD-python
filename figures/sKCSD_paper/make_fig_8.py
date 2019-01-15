@@ -14,7 +14,7 @@ cmap = plt.cm.bwr_r
 n = 100
 scale_factor = 1000**2
 R = 32e-6
-lambd = 0.0001
+lambd = 0.000001
 if __name__ == '__main__':
     fname_base = "Figure_8"
     fig_name = sKCSD_utils.make_fig_names(fname_base)

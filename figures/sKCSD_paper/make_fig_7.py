@@ -67,7 +67,7 @@ if __name__ == '__main__':
                 outs[i, j, k] = sKCSD_utils.L1_error(ground_truth,
                                                      est_skcsd)
                 print(outs[i, j, k], est_skcsd.min(), est_skcsd.max(), ground_truth.min(), ground_truth.max(), n_src, l, R)
-    fig, ax = plt.subplots(1, 4, sharey=True)
+    fig, ax = plt.subplots(1, len(n_srcs), sharey=True)
     vmax = outs.max()
     vmin = outs.min()
     for i, ax_i in enumerate(ax):
@@ -81,7 +81,7 @@ if __name__ == '__main__':
                     vmax=vmax,
                     title=title,
                     cmap='gray')
-        elif i < 3:
+        elif i < len(n_srcs) - 1:
             pl.make_map_plot(ax_i,
                     outs[i],
                     xticklabels=x_ticklabels,
