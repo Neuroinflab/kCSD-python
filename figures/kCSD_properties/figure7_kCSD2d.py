@@ -206,7 +206,39 @@ def matrix_symmetrization(point_error):
     return symm_array
 
 
-def generate_reliability_map(point_error, ele_pos):
+def make_single_subplot(ax, val_type, xs, ys, values, cax, title=None,
+                        ele_pos=None, xlabel=False, ylabel=False, letter='',
+                        t_max=1., mask=False, level=False):
+    cmap = cm.Greys
+    ax.set_aspect('equal')
+    if t_max is None:
+        t_max = np.max(np.abs(values))
+    if level is not False:
+        levels = level
+    else:
+        levels = np.linspace(0, 1., 32)
+    im = ax.contourf(xs, ys, values,
+                     levels=levels, cmap=cmap, alpha=1)
+    if val_type == 'err':
+        ax.scatter(ele_pos[:, 0], ele_pos[:, 1], 10, c='k')
+    ax.set_xlim([0, 1])
+    ax.set_ylim([0, 1])
+    if xlabel:
+        ax.set_xlabel('X (mm)')
+    if ylabel:
+        ax.set_ylabel('Y (mm)')
+    if title is not None:
+        ax.set_title(title, fontsize=17, pad=30)
+    ax.set_xticks([0, 0.5, 1])
+    ax.set_yticks([0, 0.5, 1])
+    ticks = np.linspace(0, 1., 3, endpoint=True)
+    plt.colorbar(im, cax=cax, orientation='horizontal', format='%.2f',
+                 ticks=ticks)
+    set_axis(ax, letter=letter)
+    return ax, cax
+
+
+def generate_reliability_map(point_error, ele_pos, title):
     csd_at = np.mgrid[0.:1.:100j,
                       0.:1.:100j]
     csd_x, csd_y = csd_at
@@ -214,10 +246,10 @@ def generate_reliability_map(point_error, ele_pos):
     gs = gridspec.GridSpec(2, 1, height_ratios=[1., 0.04])
     ax = plt.subplot(gs[0, 0])
     cax = plt.subplot(gs[1, 0])
-    make_subplot(ax, 'err', csd_x, csd_y, point_error, cax=cax, ele_pos=ele_pos,
-                 title='Reliability Map', xlabel=True, ylabel=True, letter=' ',
-                 t_max=np.max(point_error), level=np.linspace(0, np.max(point_error), 16))
-    plt.savefig('figure_6.png', dpi=300)
+    make_single_subplot(ax, 'err', csd_x, csd_y, point_error, cax=cax, ele_pos=ele_pos,
+                 title=None, xlabel=True, ylabel=True, letter=' ',
+                 t_max=np.max(point_error), level=np.linspace(0, 1., 16))
+    plt.savefig(title + '.png', dpi=300)
     plt.show()
 
 
@@ -241,11 +273,17 @@ if __name__ == '__main__':
                                                              method=method)
     error_l = np.load('/home/mkowalska/Dropbox/PNI/kCSDrev-pics/error_maps_2D/point_error_large_60_bigres_100ele.npy')
     error_s = np.load('/home/mkowalska/Dropbox/PNI/kCSDrev-pics/error_maps_2D/point_error_small_100_bigres_100ele.npy')
+    error_all = np.load('/home/mkowalska/Dropbox/PNI/kCSDrev-pics/error_maps_2D/point_error_random_120_bigres_100ele.npy')
     symm_array_large = matrix_symmetrization(error_l)
     symm_array_small = matrix_symmetrization(error_s)
-    error_all = np.concatenate((symm_array_large, symm_array_small))
-    mask = KK.sigmoid_mean(error_all)
+    symm_array_all = matrix_symmetrization(error_all)
+#    error_all = np.concatenate((symm_array_large, symm_array_small))
+    mask = KK.sigmoid_mean(symm_array_all)
     generate_figure(k, true_csd, ele_pos, pots, mask=mask)
-    generate_reliability_map(mask, ele_pos)
-    generate_reliability_map(KK.sigmoid_mean(symm_array_large), ele_pos)
-    generate_reliability_map(KK.sigmoid_mean(symm_array_small), ele_pos)
+    generate_reliability_map(mask, ele_pos, 'Realiability_map_random_symm')
+    generate_reliability_map(KK.sigmoid_mean(symm_array_large), ele_pos, 'Realiability_map_large_symm')
+    generate_reliability_map(KK.sigmoid_mean(symm_array_small), ele_pos, 'Realiability_map_small_symm')
+    
+    generate_reliability_map(KK.sigmoid_mean(error_all), ele_pos, 'Realiability_map_random')
+    generate_reliability_map(KK.sigmoid_mean(error_l), ele_pos, 'Realiability_map_large')
+    generate_reliability_map(KK.sigmoid_mean(error_s), ele_pos, 'Realiability_map_small')

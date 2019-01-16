@@ -566,7 +566,7 @@ if __name__ == '__main__':
 
     print('Checking 2D')
     ELE_LIMS = [0.05, 0.95]
-    CSD_PROFILE = CSD.gauss_2d_large
+    CSD_PROFILE = CSD.gauss_2d_small
     a = VisibilityMap2D(total_ele=100, h=50., sigma=1., n_src_init=400,
                         ele_lims=ELE_LIMS, true_csd_xlims=TRUE_CSD_XLIMS,
                         est_xres=0.01, est_yres=0.01)
