@@ -52,7 +52,6 @@ def seedSequence(seed):
         yield seed
 
         previous.add(seed)
-        rstate.seed(seed)
         while seed in previous:
             seed = rstate.randint(2 ** 32)
 
