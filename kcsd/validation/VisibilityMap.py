@@ -21,7 +21,7 @@ try:
     from joblib import Parallel, delayed
     import multiprocessing
     NUM_CORES = multiprocessing.cpu_count() - 1
-    PARALLEL_AVAILABLE = True
+    PARALLEL_AVAILABLE = False
 except ImportError:
     PARALLEL_AVAILABLE = False
 
@@ -566,12 +566,12 @@ if __name__ == '__main__':
 
     print('Checking 2D')
     ELE_LIMS = [0.05, 0.95]
-    CSD_PROFILE = CSD.gauss_2d_small
+    CSD_PROFILE = CSD.gauss_2d_large
     a = VisibilityMap2D(total_ele=100, h=50., sigma=1., n_src_init=400,
                         ele_lims=ELE_LIMS, true_csd_xlims=TRUE_CSD_XLIMS,
                         est_xres=0.01, est_yres=0.01)
     rms, point_error = a.calculate_error_map(CSD_PROFILE, Rs=np.arange(0.05, 0.5, 0.05),
-                                             lambdas=np.array(0), n=60)
+                                             lambdas=np.array(0), n=70)
 
 #    print('Checking 3D')
 #    CSD_PROFILE = CSD.gauss_3d_small
