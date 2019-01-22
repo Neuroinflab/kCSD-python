@@ -10,7 +10,36 @@ Laboratory of Neuroinformatics,
 Nencki Institute of Exprimental Biology, Warsaw.
 '''
 import numpy as np
-from numpy import exp
+from numpy import exp, isfinite
+from functools import wraps
+
+
+def repeatUntilValid(f):
+    """
+    A decorator (wrapper).
+
+    If output of `f(..., seed)` contains either NaN or infinite, repeats
+    calculations for other `seed` (randomly generated for the current `seed`)
+    until the result is valid.
+
+    :param f: function of two arguments (the latter is `seed`)
+    :return: wrapped function f
+    """
+    @wraps(f)
+    def wrapper(arg, seed=0):
+        while True:
+            result = f(arg, seed)
+            if isfinite(result).all():
+                return result
+
+            rstate = np.random.RandomState(seed)
+            seed = rstate.randint(2**32 - 1)
+
+    # Python 2.7 walkarround necessary for test purposes
+    if not hasattr(wrapper, '__wrapped__'):
+        setattr(wrapper, '__wrapped__', f)
+
+    return wrapper
 
 
 def get_states_1D(seed, n=1):
@@ -66,6 +95,7 @@ def get_states_2D(seed):
     return states
 
 
+@repeatUntilValid
 def gauss_2d_large(csd_at, seed=0):
     '''random quadpolar'large source' profile in 2012 paper in 2D'''
     x, y = csd_at
@@ -339,3 +369,12 @@ if __name__ == '__main__':
     # neat_4d_plot(chrg_x, chrg_y, chrg_z, f)
 
     # plt.show()
+
+    # test of gauss_2d_large(seed=63) -> NaN fix
+    csd_at = np.mgrid[0.:1.:100j, 0.:1.:100j]
+    for seed in range(63):
+        assert (gauss_2d_large.__wrapped__(csd_at, seed) == gauss_2d_large(csd_at, seed)).all(),\
+               "decorated gauss_2d_large output differs for seed={}".format(seed)
+
+    assert isfinite(gauss_2d_large(csd_at, 63)).all(),\
+           "invalid output of gauss_2d_large(seed=63)"
