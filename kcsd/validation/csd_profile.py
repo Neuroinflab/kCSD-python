@@ -27,13 +27,17 @@ def repeatUntilValid(f):
     """
     @wraps(f)
     def wrapper(arg, seed=0):
+        seeds = set()
         while True:
+            seeds.add(seed)
+
             result = f(arg, seed)
             if isfinite(result).all():
                 return result
 
             rstate = np.random.RandomState(seed)
-            seed = rstate.randint(2**32)
+            while seed in seeds:
+                seed = rstate.randint(2 ** 32)
 
     # Python 2.7 walkarround necessary for test purposes
     if not hasattr(wrapper, '__wrapped__'):
