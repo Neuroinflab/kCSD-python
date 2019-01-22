@@ -27,23 +27,34 @@ def repeatUntilValid(f):
     """
     @wraps(f)
     def wrapper(arg, seed=0):
-        seeds = set()
-        while True:
-            seeds.add(seed)
-
+        for seed in seedSequence(seed):
             result = f(arg, seed)
             if isfinite(result).all():
                 return result
-
-            rstate = np.random.RandomState(seed)
-            while seed in seeds:
-                seed = rstate.randint(2 ** 32)
 
     # Python 2.7 walkarround necessary for test purposes
     if not hasattr(wrapper, '__wrapped__'):
         setattr(wrapper, '__wrapped__', f)
 
     return wrapper
+
+
+def seedSequence(seed):
+    """
+    Yields a sequence of unique, pseudorandom, deterministic seeds.
+
+    :param seed: beginning of the sequence
+    :return: seed generator
+    """
+    previous = set()
+    rstate = np.random.RandomState(seed)
+    while True:
+        yield seed
+
+        previous.add(seed)
+        rstate.seed(seed)
+        while seed in previous:
+            seed = rstate.randint(2 ** 32)
 
 
 def get_states_1D(seed, n=1):
