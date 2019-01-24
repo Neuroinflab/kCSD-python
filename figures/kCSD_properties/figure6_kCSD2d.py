@@ -1,10 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Mon Jan 14 15:38:53 2019
-
-@author: mkowalska
-"""
 from __future__ import print_function
 from __future__ import division
 from __future__ import unicode_literals

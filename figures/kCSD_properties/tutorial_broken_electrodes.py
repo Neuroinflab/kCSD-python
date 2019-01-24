@@ -144,7 +144,7 @@ def generate_figure():
     csd_x, csd_y = csd_at
     fig = plt.figure(figsize=(20, 12))
     gs = gridspec.GridSpec(2, 4, height_ratios=[1., 0.04], width_ratios=[1]*4)
-    gs.update(top=.95, bottom=0.53)
+    gs.update(top=.96, bottom=0.70)
     ax = plt.subplot(gs[0, 0])
     cax = plt.subplot(gs[1, 0])
     make_subplot(ax, 'err', csd_x, csd_y, errs[0], ele_pos=electrode_positions(missing_ele=0),
@@ -169,7 +169,7 @@ def generate_figure():
     errs = fetch_values('large')
     err_max = 0.21
     gs = gridspec.GridSpec(2, 4, height_ratios=[1., 0.04], width_ratios=[1]*4)
-    gs.update(top=.47, bottom=0.05)
+    gs.update(top=.65, bottom=0.49)
     ax = plt.subplot(gs[0, 0])
     cax = plt.subplot(gs[1, 0])
     make_subplot(ax, 'err', csd_x, csd_y, errs[0], ele_pos=electrode_positions(missing_ele=0),
