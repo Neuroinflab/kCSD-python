@@ -47,7 +47,7 @@ def make_larger_cell(data, n_sources=n_src):
     else:
         zmin = data.morphology[:, 4].min() - 50e-6
    
-    return sKCSDcell(data.morphology, data.ele_pos, n_sources, xmin=xmin, xmax=xmax, zmin=zmin, zmax=zmax, ymin=ymin, ymax=ymax, tolerance=4e-6)
+    return sKCSDcell(data.morphology, data.ele_pos, n_sources, xmin=xmin, xmax=xmax, zmin=zmin, zmax=zmax, ymin=ymin, ymax=ymax, tolerance=2e-6)
 
 def make_figure():
     fig = plt.figure(figsize=(18, 8))
@@ -97,8 +97,9 @@ def read_in_data(ddir):
     
     return ground_truth, Data, time, somav
 
-def draw_morpho(ax, morpho, extent, electrode_positions):
-    ax.set_title('Cell morphology')
+def draw_morpho(ax, morpho, extent, electrode_positions, title=False):
+    if title is not False:
+        ax.set_title('Cell morphology')
     ax.set_ylabel('x (um)')
     ax.set_xlabel('y (um)')    
     ax.imshow(morphology,
@@ -106,10 +107,11 @@ def draw_morpho(ax, morpho, extent, electrode_positions):
               interpolation="spline36",
               aspect="auto",
               extent=extent)
+    
     for epos in electrode_positions:
         pos_x, pos_y = 1e6*epos[0], 1e6*epos[1]
         text = ax.text(pos_x, pos_y, '*',
-                       ha="center", va="center", color="b",
+                       ha="center", va="center", color="k",
                        fontsize=4)
 
 def draw_somav(ax, t, V):
@@ -122,16 +124,20 @@ def draw_somav(ax, t, V):
     ys = np.linspace(lim[0], lim[-1], len(t))
     xs = t[toplot]*np.ones_like(t)
     ax.plot(xs, ys, 'r')
+    ax.text(t[toplot]+10, 0, 't = %1.1f ms'%(t[toplot]),
+            ha="center", va="center", color="k",
+            fontsize=10)
 
 def draw_loops(ax_loops, skcsd, gvmin, gvmax):
-    ax_loops.imshow(skcsd, origin="lower",
+    ax_loops.imshow(skcsd,
+                    origin="lower",
                     interpolation="spline36",
                     extent=[0, time[-1], 1, skcsd.shape[0]],
                     aspect='auto',
                     cmap='seismic_r',
                     vmax=gvmax,
                     vmin=gvmin)
-    ax_loops.set_title('KCSD in morphology loop space')
+    ax_loops.set_title('CSD in morphology loops')
 
 def draw_ground_truth_skcsd_segments(ax1, gtruth, skcsd, time, gvmin, gvmax):
     cax = ax1[0].imshow(gtruth,
@@ -140,22 +146,48 @@ def draw_ground_truth_skcsd_segments(ax1, gtruth, skcsd, time, gvmin, gvmax):
                         aspect='auto',
                         cmap='seismic_r',
                         vmax=gvmax,
-                        vmin=gvmin)
+                        vmin=gvmin,
+                        alpha=0.85)
     cax = ax1[1].imshow(skcsd,
                         extent=[0, time[-1], 1, skcsd.shape[0]],
                         origin='lower',
                         aspect='auto',
                         cmap='seismic_r',
                         vmax=gvmax,
-                        vmin=gvmin)
-    ax[0].set_title('Ground truth')
-    ax[1].set_title('sKCSD in segments')
+                        vmin=gvmin,
+                        alpha=0.85)
+    ax[0].set_title('Ground truth ')
+    ax[1].set_title('CSD')
     ax[1].set_yticklabels([])
-    ax[3].set_yticklabels([])
     ax[0].set_xlabel('time (s)')
     ax[1].set_xlabel('time (s)')
     ax[0].set_ylabel('# segment')
 
+def draw_ground_truth_skcsd_3D(ax1, gtruth, skcsd, data,
+                                gvmin, gvmax, t_plot):
+    ax1[2].set_title('Ground truth in t = %1.1f ms' %t_plot)
+    ax1[3].set_title('CSD in t = %1.1f ms' %t_plot)
+    for i in [2, 3]:
+        ax1[i].set_ylabel('x (um)')
+        ax1[i].set_xlabel('y (um)')
+        draw_morpho(ax1[i], morphology, extent, data.ele_pos)
+   
+    ax1[2].imshow(gtruth.sum(axis=(2, 3)), origin="lower",
+                    interpolation="spline36",
+                    extent=extent,
+                    aspect='auto',
+                    cmap='seismic_r',
+                    vmax=gvmax,
+                    vmin=gvmin, alpha=0.85)
+    ax1[3].imshow(skcsd.sum(axis=(2, 3)), origin="lower",
+                    interpolation="spline36",
+                    extent=extent,
+                    aspect='auto',
+                    cmap='seismic_r',
+                    vmax=gvmax,
+                    vmin=gvmin, alpha=0.85)
+    
+    
 if __name__ == '__main__':
     fname_base = "Figure_complex"
     data_dir = simulate()
@@ -167,7 +199,7 @@ if __name__ == '__main__':
     cell_itself = make_larger_cell(data, n_src)
     morphology, extent = cell_itself.draw_cell2D()
     extent = [ex*1e6 for ex in extent]
-    draw_morpho(ax_morpho, morphology, extent, data.ele_pos)
+    draw_morpho(ax_morpho, morphology, extent, data.ele_pos, title=True)
     draw_somav(ax_somav, time, somav)
     toplot = np.argmax(somav)
     
@@ -198,10 +230,11 @@ if __name__ == '__main__':
     
     csd = cell_obj.transform_to_segments(skcsd)
     draw_ground_truth_skcsd_segments(ax, ground_truth, csd, time, gvmin, gvmax)
-    print(skcsd[:, toplot:toplot+1].shape)
     csd_3D = cell_itself.transform_to_3D(skcsd[:, toplot:toplot+1])
     gt_3D = cell_itself.transform_to_3D(ground_truth[:, toplot:toplot+1],
                                         what="morpho")
+    draw_ground_truth_skcsd_3D(ax, gt_3D, csd_3D, data,
+                                gvmin, gvmax, time[toplot])
     
     
     fig.subplots_adjust(wspace=0.5)
