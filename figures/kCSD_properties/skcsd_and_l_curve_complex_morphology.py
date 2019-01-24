@@ -47,10 +47,10 @@ def make_larger_cell(data, n_sources=n_src):
     else:
         zmin = data.morphology[:, 4].min() - 50e-6
    
-    return sKCSDcell(data.morphology, data.ele_pos, n_sources, xmin=xmin, xmax=xmax, zmin=zmin, zmax=zmax, ymin=ymin, ymax=ymax, tolerance=2e-6)
+    return sKCSDcell(data.morphology, data.ele_pos, n_sources, xmin=xmin, xmax=xmax, zmin=zmin, zmax=zmax, ymin=ymin, ymax=ymax, tolerance=4e-6)
 
 def make_figure():
-    fig = plt.figure(figsize=(20, 6))
+    fig = plt.figure(figsize=(18, 8))
     gs = gridspec.GridSpec(2, 5, figure=fig)
     ax_morpho = plt.subplot(gs[0,0])
     ax_loops = plt.subplot(gs[0,1])
@@ -97,8 +97,8 @@ def read_in_data(ddir):
     
     return ground_truth, Data, time, somav
 
-def draw_morpho(ax, morpho, extent):
-    ax.set_title('Cell morphology and morphology loop')
+def draw_morpho(ax, morpho, extent, electrode_positions):
+    ax.set_title('Cell morphology')
     ax.set_ylabel('x (um)')
     ax.set_xlabel('y (um)')    
     ax.imshow(morphology,
@@ -106,12 +106,22 @@ def draw_morpho(ax, morpho, extent):
               interpolation="spline36",
               aspect="auto",
               extent=extent)
+    for epos in electrode_positions:
+        pos_x, pos_y = 1e6*epos[0], 1e6*epos[1]
+        text = ax.text(pos_x, pos_y, '*',
+                       ha="center", va="center", color="b",
+                       fontsize=4)
 
 def draw_somav(ax, t, V):
     ax.plot(t, V)
     ax.set_title('Voltage in the soma')
     ax.set_xlabel('time (ms)')
     ax.set_ylabel('Vm (mV)')
+    toplot = np.argmax(somav)
+    lim = ax.get_ylim()
+    ys = np.linspace(lim[0], lim[-1], len(t))
+    xs = t[toplot]*np.ones_like(t)
+    ax.plot(xs, ys, 'r')
 
 def draw_loops(ax_loops, skcsd, gvmin, gvmax):
     ax_loops.imshow(skcsd, origin="lower",
@@ -157,9 +167,9 @@ if __name__ == '__main__':
     cell_itself = make_larger_cell(data, n_src)
     morphology, extent = cell_itself.draw_cell2D()
     extent = [ex*1e6 for ex in extent]
-    draw_morpho(ax_morpho, morphology, extent)
+    draw_morpho(ax_morpho, morphology, extent, data.ele_pos)
     draw_somav(ax_somav, time, somav)
- 
+    toplot = np.argmax(somav)
     
     # k = sKCSD(data.ele_pos,
     #           data.LFP,
@@ -188,19 +198,23 @@ if __name__ == '__main__':
     
     csd = cell_obj.transform_to_segments(skcsd)
     draw_ground_truth_skcsd_segments(ax, ground_truth, csd, time, gvmin, gvmax)
-
+    print(skcsd[:, toplot:toplot+1].shape)
+    csd_3D = cell_itself.transform_to_3D(skcsd[:, toplot:toplot+1])
+    gt_3D = cell_itself.transform_to_3D(ground_truth[:, toplot:toplot+1],
+                                        what="morpho")
     
-    fig.subplots_adjust(wspace=0.3)
+    
+    fig.subplots_adjust(wspace=0.5)
     fig.subplots_adjust(hspace=0.5)
         
     plt.savefig(fig_name,
                 bbox_inches='tight',
                 transparent=True,
-                pad_inches=0.1,
+                pad_inches=0.05,
                 dpi=600)
     plt.savefig(fig_name[:-4]+'.svg',
                 bbox_inches='tight',
                 transparent=True,
-                pad_inches=0.1,
+                pad_inches=0.05,
                 dpi=600)
     plt.show()
