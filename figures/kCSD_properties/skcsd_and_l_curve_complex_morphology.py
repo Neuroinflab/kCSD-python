@@ -47,7 +47,7 @@ def make_larger_cell(data, n_sources=n_src):
     else:
         zmin = data.morphology[:, 4].min() - 50e-6
    
-    return sKCSDcell(data.morphology, data.ele_pos, n_sources, xmin=xmin, xmax=xmax, zmin=zmin, zmax=zmax, ymin=ymin, ymax=ymax, tolerance=5e-6)
+    return sKCSDcell(data.morphology, data.ele_pos, n_sources, xmin=xmin, xmax=xmax, zmin=zmin, zmax=zmax, ymin=ymin, ymax=ymax, tolerance=3e-6)
 
 def make_figure():
     fig = plt.figure(figsize=(20, 6))
@@ -118,7 +118,7 @@ if __name__ == '__main__':
     print(morphology.shape)
     ax_morpho.imshow(morphology,
                      origin="lower",
-                     interpolation="none",
+                     interpolation="spline36",
                      extent=extent)
     # k = sKCSD(data.ele_pos,
     #           data.LFP,
