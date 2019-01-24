@@ -54,7 +54,7 @@ def make_figure():
     gs = gridspec.GridSpec(2, 5, figure=fig)
     ax_morpho = plt.subplot(gs[0,0])
     ax_loops = plt.subplot(gs[0,1])
-    ax_somav = plt.subplot2grid((2, 5), (1, 0), rowspan=2)
+    ax_somav = plt.subplot2grid((2, 5), (1, 0), colspan=2)
     ax = []
     for i in range(2):
         for j in range(2, 4):
@@ -97,38 +97,70 @@ def read_in_data(ddir):
     
     return ground_truth, Data, time, somav
 
+def draw_morpho(ax, morpho, extent):
+    ax.set_title('Cell morphology and morphology loop')
+    ax.set_ylabel('x (um)')
+    ax.set_xlabel('y (um)')    
+    ax.imshow(morphology,
+              origin="lower",
+              interpolation="spline36",
+              aspect="auto",
+              extent=extent)
+
+def draw_somav(ax, t, V):
+    ax.plot(t, V)
+    ax.set_title('Voltage in the soma')
+    ax.set_xlabel('time (ms)')
+    ax.set_ylabel('Vm (mV)')
+
+def draw_loops(ax_loops, skcsd, gvmin, gvmax):
+    ax_loops.imshow(skcsd, origin="lower",
+                    interpolation="spline36",
+                    extent=[0, time[-1], 1, skcsd.shape[0]],
+                    aspect='auto',
+                    cmap='seismic_r',
+                    vmax=gvmax,
+                    vmin=gvmin)
+    ax_loops.set_title('KCSD in morphology loop space')
+
+def draw_ground_truth_skcsd_segments(ax1, gtruth, skcsd, time, gvmin, gvmax):
+    cax = ax1[0].imshow(gtruth,
+                        extent=[0, time[-1], 1, ground_truth.shape[0]],
+                        origin='lower',
+                        aspect='auto',
+                        cmap='seismic_r',
+                        vmax=gvmax,
+                        vmin=gvmin)
+    cax = ax1[1].imshow(skcsd,
+                        extent=[0, time[-1], 1, skcsd.shape[0]],
+                        origin='lower',
+                        aspect='auto',
+                        cmap='seismic_r',
+                        vmax=gvmax,
+                        vmin=gvmin)
+    ax[0].set_title('Ground truth')
+    ax[1].set_title('sKCSD in segments')
+    ax[1].set_yticklabels([])
+    ax[3].set_yticklabels([])
+    ax[0].set_xlabel('time (s)')
+    ax[1].set_xlabel('time (s)')
+    ax[0].set_ylabel('# segment')
+
 if __name__ == '__main__':
     fname_base = "Figure_complex"
     data_dir = simulate()
     fig, ax_morpho, ax_loops, ax_somav, ax = make_figure()
     ground_truth, data, time, somav = read_in_data(data_dir)
     gvmax, gvmin = pl.get_min_max(ground_truth)        
-    cax = ax[0].imshow(ground_truth,
-                       extent=[0, time[-1], 1, ground_truth.shape[0]],
-                       origin='lower',
-                       aspect='auto',
-                       cmap='seismic_r',
-                       vmax=gvmax,
-                       vmin=gvmin)
-    ax_morpho.set_title('Cell morphology and morphology loop')
-    ax_morpho.set_xlabel('')
-    ax_morpho.set_ylabel('')
-    ax_somav.plot(time, somav)
-    ax_somav.set_title('Voltage in the soma')
-    ax_somav.set_xlabel('time (ms)')
-    ax_somav.set_ylabel('Vm (mV)')
-                       
-    
     new_fname = fname + '.png'
     fig_name = sKCSD_utils.make_fig_names(new_fname)
     cell_itself = make_larger_cell(data, n_src)
     morphology, extent = cell_itself.draw_cell2D()
     extent = [ex*1e6 for ex in extent]
-    ax_morpho.imshow(morphology,
-                     origin="lower",
-                     interpolation="spline36",
-                     aspect="auto",
-                     extent=extent)
+    draw_morpho(ax_morpho, morphology, extent)
+    draw_somav(ax_somav, time, somav)
+ 
+    
     # k = sKCSD(data.ele_pos,
     #           data.LFP,
     #           data.morphology,
@@ -150,36 +182,16 @@ if __name__ == '__main__':
         utils.save_sim(path, k)
     except NameError:
         pass
-    skcsd, pot, cell_obj = utils.load_sim(path)
-    ax_loops.imshow(skcsd, origin="lower",
-                    interpolation="spline36",
-                    extent=[0, time[-1], 1, skcsd.shape[0]],
-                    aspect='auto',
-                    cmap='seismic_r',
-                    vmax=gvmax,
-                    vmin=gvmin)
-    ax_loops.set_title('KCSD in morphology loop space')
-    csd = cell_obj.transform_to_segments(skcsd)
- 
-    cax = ax[1].imshow(csd,
-                       extent=[0, time[-1], 1, csd.shape[0]],
-                       origin='lower',
-                       aspect='auto',
-                       cmap='seismic_r',
-                       vmax=gvmax,
-                       vmin=gvmin)
-    ax[0].set_title('Ground truth')
-    ax[1].set_title('sKCSD in segments')
-    ax[1].set_xticklabels([])
-    ax[0].set_xticklabels([])
-    ax[1].set_yticklabels([])
-    ax[3].set_yticklabels([])
-    ax[3].set_xlabel('time (s)')
-    ax[2].set_xlabel('time (s)')
-    ax[0].set_ylabel('# segment')
 
+    skcsd, pot, cell_obj = utils.load_sim(path)
+    draw_loops(ax_loops, skcsd, gvmin, gvmax)
+    
+    csd = cell_obj.transform_to_segments(skcsd)
+    draw_ground_truth_skcsd_segments(ax, ground_truth, csd, time, gvmin, gvmax)
+
+    
     fig.subplots_adjust(wspace=0.3)
-    fig.subplots_adjust(hspace=0.3)
+    fig.subplots_adjust(hspace=0.5)
         
     plt.savefig(fig_name,
                 bbox_inches='tight',
