@@ -392,7 +392,7 @@ class sKCSDcell(object):
            Indices of points of 3D grid for each loop
 
         """
-        coor_3D, p0 = self.point_coordinates(self.est_xyz, dxs=dxs)
+        coor_3D, p0 = self.point_coordinates(self.source_xyz, dxs=dxs)
         segment_coordinates = {}
 
         for i, p1 in enumerate(coor_3D):
