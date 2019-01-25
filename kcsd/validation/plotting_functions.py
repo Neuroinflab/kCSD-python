@@ -377,7 +377,7 @@ def make_map_plot(ax_i, what, **kwargs):
                            origin='lower',
                            aspect='auto',
                            interpolation='none',
-                           extent=extent)
+                           extent=extent, alpha=alpha)
     
     cax = ax_i.imshow(what, origin='lower', aspect='auto', interpolation='none',
                       vmin=vxmin,
