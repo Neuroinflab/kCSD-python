@@ -172,20 +172,20 @@ def draw_ground_truth_skcsd_3D(ax1, gtruth, skcsd, data,
         ax1[i].set_xlabel('y (um)')
         draw_morpho(ax1[i], morphology, extent, data.ele_pos)
    
-    ax1[2].imshow(gtruth.sum(axis=(2, 3)), origin="lower",
-                    interpolation="spline36",
-                    extent=extent,
-                    aspect='auto',
-                    cmap='seismic_r',
-                    vmax=gvmax,
-                    vmin=gvmin, alpha=0.85)
-    ax1[3].imshow(skcsd.sum(axis=(2, 3)), origin="lower",
-                    interpolation="spline36",
-                    extent=extent,
-                    aspect='auto',
-                    cmap='seismic_r',
-                    vmax=gvmax,
-                    vmin=gvmin, alpha=0.85)
+    pl.make_map_plot(ax1[2],
+                     gtruth.sum(axis=(2, 3)), 
+                     extent=extent,
+                     cmap='seismic_r',
+                     vmax=gvmax,
+                     vmin=gvmin,
+                     alpha=0.85,
+                     circles=True)
+    pl.make_map_plot(ax1[3],
+                     skcsd.sum(axis=(2, 3)),
+                     extent=extent,
+                     cmap='seismic_r',
+                     vmax=gvmax,
+                     vmin=gvmin, alpha=0.85)
     
     
 if __name__ == '__main__':
