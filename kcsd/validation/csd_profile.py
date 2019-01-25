@@ -10,9 +10,50 @@ Laboratory of Neuroinformatics,
 Nencki Institute of Exprimental Biology, Warsaw.
 '''
 import numpy as np
-from numpy import exp
-import matplotlib.pyplot as plt
-import matplotlib.cm as cm
+from numpy import exp, isfinite
+from functools import wraps
+
+
+def repeatUntilValid(f):
+    """
+    A decorator (wrapper).
+
+    If output of `f(..., seed)` contains either NaN or infinite, repeats
+    calculations for other `seed` (randomly generated for the current `seed`)
+    until the result is valid.
+
+    :param f: function of two arguments (the latter is `seed`)
+    :return: wrapped function f
+    """
+    @wraps(f)
+    def wrapper(arg, seed=0):
+        for seed in seedSequence(seed):
+            result = f(arg, seed)
+            if isfinite(result).all():
+                return result
+
+    # Python 2.7 walkarround necessary for test purposes
+    if not hasattr(wrapper, '__wrapped__'):
+        setattr(wrapper, '__wrapped__', f)
+
+    return wrapper
+
+
+def seedSequence(seed):
+    """
+    Yields a sequence of unique, pseudorandom, deterministic seeds.
+
+    :param seed: beginning of the sequence
+    :return: seed generator
+    """
+    previous = set()
+    rstate = np.random.RandomState(seed)
+    while True:
+        yield seed
+
+        previous.add(seed)
+        while seed in previous:
+            seed = rstate.randint(2 ** 32)
 
 
 def get_states_1D(seed, n=1):
@@ -68,6 +109,7 @@ def get_states_2D(seed):
     return states
 
 
+@repeatUntilValid
 def gauss_2d_large(csd_at, seed=0):
     '''random quadpolar'large source' profile in 2012 paper in 2D'''
     x, y = csd_at
@@ -290,34 +332,6 @@ def gauss_3d_mono3_f(csd_at):
     return f1
 
 
-# def neat_4d_plot(csd_at, t, z_steps=5, cmap=cm.bwr_r):
-#     '''Used to show 3D csd profile'''
-#     x, y, z = csd_at
-#     t_max = np.max(np.abs(t))
-#     levels = np.linspace(-1*t_max, t_max, 15)
-#     ind_interest = np.mgrid[0:z.shape[2]:np.complex(0,z_steps+2)]
-#     ind_interest = np.array(ind_interest, dtype=np.int)[1:-1]
-#     fig = plt.figure(figsize=(4,12))
-#     height_ratios = [1 for i in range(z_steps)]
-#     height_ratios.append(0.1)
-#     gs = gridspec.GridSpec(z_steps+1, 1, height_ratios=height_ratios)
-#     for ii, idx in enumerate(ind_interest):
-#         ax = plt.subplot(gs[ii, 0])
-#         im = plt.contourf(chrg_x[:, :, idx], chrg_y[:, :, idx], t[:, :, idx],
-#                           levels=levels, cmap=cmap)
-#         ax.get_xaxis().set_visible(False)
-#         ax.get_yaxis().set_visible(False)
-#         title = str(z[:,:,idx][0][0])[:4]
-#         ax.set_title(label=title, fontdict={'x':0.8, 'y':0.7})
-#         ax.set_aspect('equal')
-#     cax = plt.subplot(gs[z_steps,0])
-#     cbar = plt.colorbar(im, cax=cax, orientation='horizontal')
-#     cbar.set_ticks(levels[::2])
-#     cbar.set_ticklabels(np.around(levels[::2], decimals=2))
-#     gs.tight_layout(fig, rect=[0, 0.03, 1, 0.95])
-#     #plt.tight_layout()
-
-
 csd_available_dict = {1: [gauss_1d_mono, gauss_1d_dipole],
                       2: [gauss_2d_large, gauss_2d_small],
                       3: [gauss_3d_large, gauss_3d_small]}
@@ -330,7 +344,6 @@ if __name__ == '__main__':
 #    csd_profile = gauss_1d_mono
 #    chrg_x = np.arange(0., 1., 1./50.)
 #    f = csd_profile(chrg_x, seed)
-    # plt.plot(chrg_x, f)
 
     # #2D CASE
     csd_profile = gauss_2d_random
@@ -338,11 +351,6 @@ if __name__ == '__main__':
     csd_at = np.mgrid[0.:1.:50j,
                       0.:1.:50j]
     f = csd_profile(size_seed=80, n=2)[1](csd_at, seed=seed)
-    fig = plt.figure(1)
-    ax1 = plt.subplot(111, aspect='equal')
-    im = ax1.contourf(csd_at[0], csd_at[1], f, 15, cmap=cm.bwr_r)
-    cbar = plt.colorbar(im, shrink=0.5)
-    plt.show()
 
     # #3D CASE
     # csd_profile = gauss_3d_small
@@ -350,6 +358,12 @@ if __name__ == '__main__':
     #                                   0.:1.:50j,
     #                                   0.:1.:50j]
     # f = csd_profile(chrg_x, chrg_y, chrg_z, seed=seed)
-    # neat_4d_plot(chrg_x, chrg_y, chrg_z, f)
 
-    # plt.show()
+    # test of gauss_2d_large(seed=63) -> NaN fix
+    csd_at = np.mgrid[0.:1.:100j, 0.:1.:100j]
+    for seed in range(63):
+        assert (gauss_2d_large.__wrapped__(csd_at, seed) == gauss_2d_large(csd_at, seed)).all(),\
+               "decorated gauss_2d_large output differs for seed={}".format(seed)
+
+    assert isfinite(gauss_2d_large(csd_at, 63)).all(),\
+           "invalid output of gauss_2d_large(seed=63)"
