@@ -11,14 +11,25 @@ import sKCSD_utils
 import matplotlib.gridspec as gridspec
 
 
-n_src = 1024
+n_src = 2048
 R = 32e-6
-lambd = 0.1
+lambd = 0.001
 fname = "Figure_complex"
 scaling_factor = 1000**2
 scaling_factor_LFP = 1000
 
-
+def add_figure_labels(ax, ax_somav):
+    limx = ax_somav.get_xlim()
+    limy = ax_somav.get_ylim()
+    ax_somav.text(limx[0]-(limx[-1] - limx[0])/20, limy[-1]+(limy[-1]-limy[0])/20, 'A', fontsize=16)
+    titles = ['B', 'C', 'D', 'E']
+    for i, x in enumerate(ax):
+        limx = x.get_xlim()
+        limy = x.get_ylim()
+        x.text(limx[0]-(limx[-1] - limx[0])/20,
+               limy[-1]+(limy[-1]-limy[0])/20,
+               titles[i], fontsize=16)
+        
 def make_larger_cell(data, n_sources=n_src):
     if data.ele_pos[:, 0].max() > data.morphology[:, 2].max():
         xmax = data.ele_pos[:, 0].max() + 50e-6
@@ -50,16 +61,15 @@ def make_larger_cell(data, n_sources=n_src):
     return sKCSDcell(data.morphology, data.ele_pos, n_sources, xmin=xmin, xmax=xmax, zmin=zmin, zmax=zmax, ymin=ymin, ymax=ymax, tolerance=2e-6)
 
 def make_figure():
-    fig = plt.figure(figsize=(18, 8))
-    gs = gridspec.GridSpec(2, 5, figure=fig)
-    ax_morpho = plt.subplot(gs[0,0])
-    ax_loops = plt.subplot(gs[0,1])
-    ax_somav = plt.subplot2grid((2, 5), (1, 0), colspan=2)
+    fig = plt.figure(figsize=(8, 10))
+    gs = gridspec.GridSpec(3, 2, figure=fig)
+    ax_somav = plt.subplot2grid((3, 2), (0, 0), colspan=2)
     ax = []
-    for i in range(2):
-        for j in range(2, 4):
+    for i in range(1,3):
+        for j in range(2):
             ax.append(plt.subplot(gs[i, j]))
-    return fig, ax_morpho, ax_loops, ax_somav, ax
+
+    return fig,  ax_somav, ax
 
 def simulate():
     tstop = 75
@@ -147,7 +157,7 @@ def draw_ground_truth_skcsd_segments(ax1, gtruth, skcsd, time, gvmin, gvmax):
                         cmap='seismic_r',
                         vmax=gvmax,
                         vmin=gvmin,
-                        alpha=0.85)
+                        alpha=0.5)
     cax = ax1[1].imshow(skcsd,
                         extent=[0, time[-1], 1, skcsd.shape[0]],
                         origin='lower',
@@ -155,9 +165,9 @@ def draw_ground_truth_skcsd_segments(ax1, gtruth, skcsd, time, gvmin, gvmax):
                         cmap='seismic_r',
                         vmax=gvmax,
                         vmin=gvmin,
-                        alpha=0.85)
-    ax[0].set_title('Ground truth ')
-    ax[1].set_title('CSD')
+                        alpha=0.5)
+    ax[0].set_title('Ground truth in segments')
+    ax[1].set_title('CSD in segments')
     ax[1].set_yticklabels([])
     ax[0].set_xlabel('time (s)')
     ax[1].set_xlabel('time (s)')
@@ -178,40 +188,38 @@ def draw_ground_truth_skcsd_3D(ax1, gtruth, skcsd, data,
                      cmap='seismic_r',
                      vmax=gvmax,
                      vmin=gvmin,
-                     alpha=0.85,
+                     alpha=0.5,
                      circles=True)
     pl.make_map_plot(ax1[3],
                      skcsd.sum(axis=(2, 3)),
                      extent=extent,
                      cmap='seismic_r',
                      vmax=gvmax,
-                     vmin=gvmin, alpha=0.85)
-    
+                     vmin=gvmin, alpha=0.5)
     
 if __name__ == '__main__':
+
     fname_base = "Figure_complex"
     data_dir = simulate()
-    fig, ax_morpho, ax_loops, ax_somav, ax = make_figure()
+    fig,  ax_somav, ax = make_figure()
     ground_truth, data, time, somav = read_in_data(data_dir)
-    gvmax, gvmin = pl.get_min_max(ground_truth)        
+    toplot = np.argmax(somav)
+    gvmax, gvmin = pl.get_min_max(ground_truth[:, toplot])        
     new_fname = fname + '.png'
     fig_name = sKCSD_utils.make_fig_names(new_fname)
     cell_itself = make_larger_cell(data, n_src)
     morphology, extent = cell_itself.draw_cell2D()
     extent = [ex*1e6 for ex in extent]
-    draw_morpho(ax_morpho, morphology, extent, data.ele_pos, title=True)
     draw_somav(ax_somav, time, somav)
-    toplot = np.argmax(somav)
-    
-    # k = sKCSD(data.ele_pos,
-    #           data.LFP,
-    #           data.morphology,
-    #           n_src_init=n_src,
-    #           src_type='gauss',
-    #           lambd=lambd,
-    #           exact=True,
-    #           R_init=R,
-    #           sigma=0.3)
+    k = sKCSD(data.ele_pos,
+              data.LFP,
+              data.morphology,
+              n_src_init=n_src,
+              src_type='gauss',
+              lambd=lambd,
+              exact=True,
+              R_init=R,
+              sigma=0.3)
     path = os.path.join(data_dir, 'lambda_%f_R_%f_n_src_%d' % (lambd, R, n_src))
     if sys.version_info < (3, 0):
         path = os.path.join(path, "preprocessed_data/Python_2")
@@ -226,7 +234,6 @@ if __name__ == '__main__':
         pass
 
     skcsd, pot, cell_obj = utils.load_sim(path)
-    draw_loops(ax_loops, skcsd, gvmin, gvmax)
     
     csd = cell_obj.transform_to_segments(skcsd)
     draw_ground_truth_skcsd_segments(ax, ground_truth, csd, time, gvmin, gvmax)
@@ -236,10 +243,11 @@ if __name__ == '__main__':
     draw_ground_truth_skcsd_3D(ax, gt_3D, csd_3D, data,
                                 gvmin, gvmax, time[toplot])
     
-    
+   
+
     fig.subplots_adjust(wspace=0.5)
     fig.subplots_adjust(hspace=0.5)
-        
+    add_figure_labels(ax, ax_somav)
     plt.savefig(fig_name,
                 bbox_inches='tight',
                 transparent=True,
