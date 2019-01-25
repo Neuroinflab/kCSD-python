@@ -508,7 +508,7 @@ class sKCSDcell(object):
           which is based on the smallest neurite in the morphology,
           is used
         """
-        coor_3D = self.coordinates_3D_loops()
+        coor_3D = self.coordinates_3D_segments()
         if resolution is None:
             dxs = self.dxs
             resolution = self.dims
