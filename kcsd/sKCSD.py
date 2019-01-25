@@ -392,9 +392,11 @@ class sKCSDcell(object):
            Indices of points of 3D grid for each loop
 
         """
-        coor_3D, p0 = self.point_coordinates(self.source_xyz, dxs=dxs)
+        if len(self.source_xyz) > len(self.est_xyz):
+            coor_3D, p0 = self.point_coordinates(self.source_xyz, dxs=dxs)
+        else:
+            coor_3D, p0 = self.point_coordinates(self.est_xyz, dxs=dxs)
         segment_coordinates = {}
-
         for i, p1 in enumerate(coor_3D):
             last = (i+1 == len(coor_3D))
             segment_coordinates[i] = self.points_in_between(p0, p1, last)
