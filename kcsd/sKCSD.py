@@ -311,14 +311,13 @@ class sKCSDcell(object):
         dxs: np.array of 3 floats
 
         """
-        dxs = np.zeros((3, ))
+        differences = []
         for i in range(self.est_xyz.shape[1]):
             dx = abs(self.est_xyz[1:, i] - self.est_xyz[:-1, i])
-            try:
-                dxs[i] = min(dx[dx > self.tolerance])
-            except ValueError:
-                pass
-        return dxs
+            differences += list(dx[dx > self.tolerance])
+        if len(differences) == 0:
+            sys.exit('tolerance = %f, which is the minimum pixel width for 3D visiualizations, is too low. Exiting')
+        return min(differences)*np.ones((3,))
 
     def get_grid(self):
         """Calculate size of the 3D grid used to transform CSD
