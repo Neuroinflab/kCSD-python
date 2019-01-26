@@ -10,7 +10,6 @@ Laboratory of Neuroinformatics,
 Nencki Institute of Exprimental Biology, Warsaw.
 '''
 import os
-import scipy.stats as st
 import numpy as np
 from scipy.integrate import simps 
 import matplotlib.pyplot as plt
@@ -23,49 +22,49 @@ def make_plot_fig2(sim_results):
     lam_lc = sim_results[0, 0]
     rms_cv = sim_results[1, 2]
     lam_cv = sim_results[1, 0]
-    
-    fig = plt.figure(figsize=(12, 10), dpi=100)
+
+    fig = plt.figure(figsize=(12,10), dpi=100)
     plt.subplot(211)
-    plt.xlabel('',fontsize = 25)
-    n_spec = np.linspace(1e-2,1,19)
+    plt.xlabel('', fontsize=25)
+    n_spec = np.linspace(1e-2, 1, 19)
     mn_rms = np.mean(rms_lc, axis=0)
     st_rms = np.std(rms_lc, axis=0)
-    plt.plot(n_spec, mn_rms, marker = 'o', color = 'blue', label = 'l-curve')
-    plt.fill_between(n_spec, mn_rms - st_rms, 
-                     mn_rms + st_rms, alpha = 0.3, color = 'blue')
+    plt.plot(n_spec, mn_rms, marker='o', color='blue', label='l-curve')
+    plt.fill_between(n_spec, mn_rms-st_rms, 
+                     mn_rms+st_rms, alpha=0.3, color='blue')
     mn_rms = np.mean(rms_cv, axis=0)
     st_rms = np.std(rms_cv, axis=0)
-    plt.plot(n_spec, mn_rms, marker = 'o', color = 'green', label = 'cross-validation')
-    plt.fill_between(n_spec, mn_rms - st_rms, 
-                    mn_rms + st_rms, alpha = 0.3, color = 'green')
-    plt.legend(fontsize = 15)
+    plt.plot(n_spec, mn_rms, marker='o', color='green', label='cross-validation')
+    plt.fill_between(n_spec, mn_rms-st_rms, 
+                    mn_rms+st_rms, alpha=0.3, color='green')
+    plt.legend(fontsize=15)
     #py.xlabel('Noise',fontsize = 25)
-    plt.ylabel('Estimation error',fontsize = 18)
-    plt.xlabel('Relative noise level',fontsize = 15)
-    plt.xticks(fontsize = 15)
-    plt.yticks(fontsize = 15)
+    plt.ylabel('Estimation error', fontsize=18)
+    plt.xlabel('Relative noise level', fontsize=15)
+    plt.xticks(fontsize=15)
+    plt.yticks(fontsize=15)
     #py.xlim(0, 0.9)
     plt.ylim(0, 100)
     
-    '''second plot'''
+    # '''second plot'''
     plt.subplot(212)
     mn_lam = np.mean(lam_lc, axis=0)
     st_lam = np.std(lam_lc, axis=0)
-    plt.plot(n_spec, mn_lam, marker = 'o', color = 'blue', label = 'l-curve')
-    plt.fill_between(n_spec, mn_lam - st_lam,
-                    mn_lam + st_lam, alpha = 0.3, color = 'blue')
+    plt.plot(n_spec, mn_lam, marker='o', color='blue', label='l-curve')
+    plt.fill_between(n_spec, mn_lam-st_lam,
+                    mn_lam+st_lam, alpha=0.3, color='blue')
     mn_lam = np.mean(lam_cv, axis=0)
     st_lam = np.std(lam_cv, axis=0)
-    plt.plot(n_spec, mn_lam, marker = 'o', color = 'green', label = 'cross-validation')
-    plt.fill_between(n_spec, mn_lam - st_lam,
-                    mn_lam + st_lam, alpha = 0.3, color = 'green')
-    plt.legend(fontsize = 15, loc =2)
-    plt.xticks(fontsize = 15)
-    plt.yticks(fontsize = 15)
+    plt.plot(n_spec, mn_lam, marker='o', color='green', label='cross-validation')
+    plt.fill_between(n_spec, mn_lam-st_lam,
+                    mn_lam+st_lam, alpha=0.3, color='green')
+    plt.legend(fontsize=15, loc=2)
+    plt.xticks(fontsize=15)
+    plt.yticks(fontsize=15)
     #py.xlim(0, 0.9)
     plt.ticklabel_format(style='sci', axis='y',  scilimits=(0,0))
-    plt.ylabel('Lambda',fontsize = 18)
-    plt.xlabel('Relative noise level',fontsize = 15)
+    plt.ylabel('Lambda',fontsize=18)
+    plt.xlabel('Relative noise level',fontsize=15)
 
 def do_kcsd(ele_pos, pots, **params):
     """
@@ -92,7 +91,8 @@ def make_plots(title, m_norm, m_resi, true_csd, curveseq, ele_y,
     1_ LFP measured (with added noise) and estimated LFP with kCSD method
     2_ true CSD and reconstructed CSD with kCSD
     3_ L-curve of the model
-    3_ Surface of parameters R and Lambda with scores for optimal paramater selection with L-curve or cross-validation
+    3_ Surface of parameters R and Lambda with scores for optimal paramater selection 
+    with L-curve or cross-validation
     """
     #True CSD
     fig = plt.figure(figsize=(16, 12), dpi=120)
@@ -103,8 +103,7 @@ def make_plots(title, m_norm, m_resi, true_csd, curveseq, ele_y,
     ax1.plot(xrange, est_pot*1e3, label='recon. potential', color='blue')
     ax1.set_ylabel('Potential [mV]', fontsize=15)
     ax1.set_xlabel('Distance', fontsize=15)
-    plt.legend()
-    
+    plt.legend()    
     ax2 = plt.subplot(222)
     plt.plot(xrange, true_csd, label='true csd', color='red')
     plt.plot(xrange, est_csd, label='recon. csd', color='blue')
@@ -133,7 +132,7 @@ def make_plots(title, m_norm, m_resi, true_csd, curveseq, ele_y,
                     cmap='BrBG_r', vmax=np.max(curveseq), vmin=-np.max(curveseq))
     divider = make_axes_locatable(ax4)
     cax4 = divider.append_axes("right", size="5%", pad=0.05)
-    fig.colorbar(im, cax = cax4)
+    fig.colorbar(im, cax=cax4)
     ax4.set_ylabel('R parameter', fontsize=15)
     ax4.set_xlabel('log(Lambda)', fontsize=15)
 #    fig.suptitle("Lambda =" + title[0] + " I R = " + title[1] + 
@@ -234,7 +233,6 @@ def main_loop(src_width, total_ele, inpos, lpos, nm, noise=0, srcs=1):
         x_lims = [0, 1] #CSD estimation place
         np.random.seed(srcs)
         pots += (np.random.rand(total_ele)*np.max(abs(pots))-np.max(abs(pots))/2)*noise
-
         k, est_csd, est_pot = do_kcsd(ele_y, pots, h=1., gdx=gdX,
                                       xmin=x_lims[0], xmax=x_lims[1], n_src_init=1e4)
 
@@ -255,7 +253,8 @@ def main_loop(src_width, total_ele, inpos, lpos, nm, noise=0, srcs=1):
     return RMS_wek, LandR
 
 if __name__=='__main__':
-    saveDir = "./LCurve/"
+    curr_dir = os.path.abspath(os.getcwd())
+    saveDir = os.path.join(curr_dir, 'LCurve')
     figs1_and_fig2 = True
     total_ele = 32
     names = ['lc', 'cv']
@@ -270,7 +269,7 @@ if __name__=='__main__':
         for iname, name in enumerate(names): 
             for src in range(10):
                 print('noise seed:', src)
-                mypath = saveDir + name + str(src) + '/'
+                mypath = os.path.join(saveDir, name + str(src) + '/')
                 if not os.path.isdir(mypath):
                     os.makedirs(mypath)
                 os.chdir(mypath)
@@ -278,6 +277,7 @@ if __name__=='__main__':
                                            lpos, name, noise=noise_lvl, srcs=src)
                 sim_results[iname,:2, src] = LandR
                 sim_results[iname, 2, src] = RMS_wek
+                os.chdir(curr_dir)
         make_plot_fig2(sim_results)
     else:
         name = 'lc'
