@@ -333,12 +333,13 @@ if __name__=='__main__':
     total_ele = 32
     names = ['lc', 'cv']
     src_width = 0.001
-    noise_lvl = np.linspace(0, 0.5, 10)
+    noises = 3
     seeds = 3
     inpos = [0.5, 0.1]#od dolu
     lpos = [0.5, 0.9]
+    noise_lvl = np.linspace(0, 0.5, noises)
     ery = np.linspace(3*0.025, 0.025*16, 1)
-    sim_results = np.zeros((2, 4, seeds, 10))
+    sim_results = np.zeros((2, 4, seeds, noises))
     sim_results[:, 3, :, :] = noise_lvl
     if figs1_and_fig2:
         for iname, name in enumerate(names): 
@@ -352,8 +353,8 @@ if __name__=='__main__':
                                            lpos, name, noise=noise_lvl, srcs=src)
                 sim_results[iname,:2, src] = LandR
                 sim_results[iname, 2, src] = RMS_wek
-                np.save('sim_results', sim_results)
                 os.chdir('..')
+        np.save('sim_results', sim_results)
         sim_results = np.load('sim_results.npy')
         make_plot_fig2(sim_results)
     else:
