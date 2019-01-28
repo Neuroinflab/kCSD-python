@@ -9,8 +9,6 @@ from __future__ import absolute_import
 
 import time
 
-from builtins import int, range
-
 import numpy as np
 from numpy.linalg import LinAlgError
 from scipy.linalg import inv
