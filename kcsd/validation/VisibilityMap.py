@@ -21,7 +21,7 @@ try:
     from joblib import Parallel, delayed
     import multiprocessing
     NUM_CORES = multiprocessing.cpu_count() - 1
-    PARALLEL_AVAILABLE = True
+    PARALLEL_AVAILABLE = False
 except ImportError:
     PARALLEL_AVAILABLE = False
 
@@ -358,7 +358,7 @@ class VisibilityMap2D(ValidateKCSD2D):
         levels = np.linspace(0, 1., 25)
         im = ax1.contourf(x, y, mean_error, cmap='Greys')
         plt.colorbar(im)#im, fraction=0.046, pad=0.06)
-        plt.scatter(ele_x, ele_y)
+        plt.scatter(ele_x, ele_y, 10, c='k')
         ax1.set_xlabel('Depth x [mm]')
         ax1.set_ylabel('Depth y [mm]')
         ax1.set_title('Sigmoidal mean point error')
@@ -557,19 +557,23 @@ if __name__ == '__main__':
     CSD_PROFILE = CSD.gauss_1d_mono
     ELE_LIMS = [0.1, 0.9]  # range of electrodes space
     TRUE_CSD_XLIMS = [0., 1.]
-    k = VisibilityMap1D(total_ele=10, h=0.25, R_init=0.3, ele_lims=ELE_LIMS,
-                        true_csd_xlims=TRUE_CSD_XLIMS, sigma=0.3,
-                        src_type='gauss', n_src_init=100, ext_x=0.1)
-    rms, point_error = k.calculate_error_map(CSD_PROFILE,
-                                             Rs=np.arange(0.2, 0.5, 0.1))
-    ele_pos = np.linspace(ELE_LIMS[0], ELE_LIMS[1], 32)
+#    k = VisibilityMap1D(total_ele=10, h=0.25, R_init=0.3, ele_lims=ELE_LIMS,
+#                        true_csd_xlims=TRUE_CSD_XLIMS, sigma=0.3,
+#                        src_type='gauss', n_src_init=100, ext_x=0.1)
+#    rms, point_error = k.calculate_error_map(CSD_PROFILE,
+#                                             Rs=np.arange(0.2, 0.5, 0.1))
+#    ele_pos = np.linspace(ELE_LIMS[0], ELE_LIMS[1], 32)
 
     print('Checking 2D')
-    CSD_PROFILE = CSD.gauss_2d_small
-    a = VisibilityMap2D(total_ele=25, h=50., sigma=1., n_src_init=400)
-    rms, point_error = a.calculate_error_map(CSD_PROFILE)
+    ELE_LIMS = [0.05, 0.95]
+    CSD_PROFILE = CSD.gauss_2d_large
+    a = VisibilityMap2D(total_ele=100, h=50., sigma=1., n_src_init=400,
+                        ele_lims=ELE_LIMS, true_csd_xlims=TRUE_CSD_XLIMS,
+                        est_xres=0.01, est_yres=0.01)
+    rms, point_error = a.calculate_error_map(CSD_PROFILE, Rs=np.arange(0.05, 0.5, 0.05),
+                                             lambdas=np.array(0), n=70)
 
-    print('Checking 3D')
-    CSD_PROFILE = CSD.gauss_3d_small
-    a = VisibilityMap3D(total_ele=64, h=50., sigma=1., n_src_init=729)
-    a.calculate_error_map(CSD_PROFILE)
+#    print('Checking 3D')
+#    CSD_PROFILE = CSD.gauss_3d_small
+#    a = VisibilityMap3D(total_ele=64, h=50., sigma=1., n_src_init=729)
+#    a.calculate_error_map(CSD_PROFILE)
