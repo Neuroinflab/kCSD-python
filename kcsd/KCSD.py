@@ -283,7 +283,7 @@ class KCSD(CSD):
             lambdas = lambdas.flatten()
         if Rs is None:                                # when None
             Rs = np.array((self.R)).flatten()         # Default over one R value
-        errs = np.zeros((Rs.size, lambdas.size))
+        self.errs = np.zeros((Rs.size, lambdas.size))
         index_generator = []
         for ii in range(self.n_ele):
             idx_test = [ii]
@@ -294,12 +294,12 @@ class KCSD(CSD):
             self.update_R(R)
             print('Cross validating R (all lambda) :', R)
             for lambd_idx, lambd in enumerate(lambdas):  # Iterate over lambdas
-                errs[R_idx, lambd_idx] = self.compute_cverror(lambd,
+                self.errs[R_idx, lambd_idx] = self.compute_cverror(lambd,
                                                               index_generator)
-        err_idx = np.where(errs == np.min(errs))     # Index of the least error
+        err_idx = np.where(self.errs == np.min(self.errs))     # Index of the least error
         cv_R = Rs[err_idx[0]][0]      # First occurance of the least error's
         cv_lambda = lambdas[err_idx[1]][0]
-        self.cv_error = np.min(errs)  # otherwise is None
+        self.cv_error = np.min(self.errs)  # otherwise is None
         self.update_R(cv_R)           # Update solver
         self.update_lambda(cv_lambda)
         print('R, lambda :', cv_R, cv_lambda)
