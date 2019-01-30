@@ -101,6 +101,7 @@ class KCSD(CSD):
         self.xmin = kwargs.pop('xmin', np.min(self.ele_pos[:, 0]))
         self.xmax = kwargs.pop('xmax', np.max(self.ele_pos[:, 0]))
         self.gdx = kwargs.pop('gdx', 0.01*(self.xmax - self.xmin))
+        self.own_est = kwargs.pop('own_est', np.array([]))
         self.dist_table_density = kwargs.pop('dist_table_density', 20)
         if self.dim >= 2:
             self.ext_y = kwargs.pop('ext_y', 0.0)
@@ -231,6 +232,8 @@ class KCSD(CSD):
         estimation : np.array
             estimated quantity of shape (ngx, ngy, ngz, nt)
         """
+        if self.own_est.any():
+            return estimation
         if self.dim == 1:
             estimation = estimation.reshape(self.ngx, self.n_time)
         elif self.dim == 2:
@@ -677,8 +680,15 @@ class KCSD2D(KCSD):
         ----------
         None
         """
-        src_loc = np.array((self.src_x.ravel(), self.src_y.ravel()))
-        est_loc = np.array((self.estm_x.ravel(), self.estm_y.ravel()))
+        if self.own_est.any():
+            src_loc = np.array((self.own_est[0], 
+                                self.own_est[1]))
+            est_loc = np.array((self.own_est[0],
+                                self.own_est[1]))
+            self.n_estm = self.own_est.shape[1]
+        else:
+            src_loc = np.array((self.src_x.ravel(), self.src_y.ravel()))
+            est_loc = np.array((self.estm_x.ravel(), self.estm_y.ravel()))
         self.src_ele_dists = distance.cdist(src_loc.T, self.ele_pos, 'euclidean')
         self.src_estm_dists = distance.cdist(src_loc.T, est_loc.T, 'euclidean')
         self.dist_max = max(np.max(self.src_ele_dists), np.max(self.src_estm_dists)) + self.R
@@ -975,6 +985,14 @@ class KCSD3D(KCSD):
         ----------
         None
         """
+        if self.own_est.any():
+            src_loc = np.array((self.own_est[0], 
+                                self.own_est[1], 
+                                self.own_est[2]))
+            est_loc = np.array((self.own_est[0],
+                                self.own_est[1],
+                                self.own_est[2]))
+            self.n_estm = self.own_est.shape[1]
         src_loc = np.array((self.src_x.ravel(),
                             self.src_y.ravel(),
                             self.src_z.ravel()))
