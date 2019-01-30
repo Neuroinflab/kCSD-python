@@ -44,6 +44,7 @@ def set_axis(ax, letter=None):
 def make_subplot(ax, true_csd, est_csd, estm_x, title=None, ele_pos=None,
                  xlabel=False, ylabel=False, letter='', t_max=None,
                  est_csd_LC=None):
+
     """
     Parameters
     ----------
@@ -83,10 +84,10 @@ def make_subplot(ax, true_csd, est_csd, estm_x, title=None, ele_pos=None,
     x = np.linspace(0, 1, 100)
     l1 = ax.plot(x, true_csd, label='True CSD', lw=2.)
     if est_csd_LC is not None:
-        l2 = ax.plot(estm_x, est_csd, label='kCSD Cross-validation', lw=2.)
-        l3 = ax.plot(estm_x, est_csd_LC, label='kCSD L-Curve', lw=2.)
+        l2 = ax.plot(estm_x, est_csd, '--', label='kCSD Cross-validation', lw=2.)
+        l3 = ax.plot(estm_x, est_csd_LC, '.', label='kCSD L-Curve', lw=2.)
     else:
-        l2 = ax.plot(estm_x, est_csd, label='kCSD', lw=2.)
+        l2 = ax.plot(estm_x, est_csd, '--', label='kCSD', lw=2.)
     s1 = ax.scatter(ele_pos, np.zeros(len(ele_pos)), 17, 'k', label='Electrodes')
 #    ax.legend(fontsize=10)
     ax.set_xlim([0, 1])
@@ -490,12 +491,12 @@ if __name__ == '__main__':
     TOTAL_ELE = 12
     R = 0.2
     MU = 0.25
-#    method = 'cross-validation'  # L-curve
-    method = 'L-curve'
+    method = 'cross-validation'  # L-curve
+#    method = 'L-curve'
     Rs = np.arange(0.1, 0.4, 0.05)
 #    Rs = np.array([0.2])
     lambdas = np.zeros(1)
 #    generate_figure(R, MU, N_SRC, TRUE_CSD_XLIMS, TOTAL_ELE, SAVE_PATH,
-#                    method, Rs, lambdas=None, noise=10)
+#                    method=method, Rs=Rs, lambdas=lambdas, noise=0)
     generate_figure_CVLC(R, MU, N_SRC, TRUE_CSD_XLIMS, TOTAL_ELE, SAVE_PATH,
                          Rs=Rs, lambdas=None, noise=10)
