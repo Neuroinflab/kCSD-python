@@ -33,25 +33,26 @@ def grid(x, y, z):
 
 
 def point_errors(true_csd, est_csd):
-    epsilon = np.finfo(np.float64).eps
+    #epsilon = np.finfo(np.float64).eps
+    epsilon = 1e-10
     err2 = abs(true_csd.reshape(true_csd.size, 1) -
                           est_csd.reshape(est_csd.size, 1))
     err2 /= abs(true_csd.reshape(true_csd.size, 1)) + \
-    epsilon*np.max(abs(true_csd.reshape(true_csd.size, 1)))
+    epsilon #*np.max(abs(true_csd.reshape(true_csd.size, 1)))
     err = err2.reshape(true_csd.shape)
     err = sigmoid_mean(err)
     return err
 
 
 def sigmoid_mean(error):
-    sig_error = 2*(1./(1 + np.exp((-error))) - 1/2.)
+    sig_error = 2./(1. + np.exp(-error)) - 1.
     return sig_error
 
 
 def point_errors_Ch(true_csd, est_csd):
     nrm_est = est_csd.reshape(est_csd.size, 1) / np.max(np.abs(est_csd))
     nrm_csd = true_csd.reshape(true_csd.size, 1) / np.max(np.abs(true_csd))
-    err = np.linalg.norm(nrm_csd - nrm_est, axis=1).reshape(true_csd.shape)
+    err = abs(nrm_csd - nrm_est).reshape(true_csd.shape)
     return err
 
 
@@ -61,7 +62,7 @@ def calculate_rdm(true_csd, est_csd):
 
 
 def calculate_mag(true_csd, est_csd):
-    mag = abs(est_csd/(true_csd))
+    mag = abs(est_csd)/(abs(true_csd) + epsilon)
     return mag
 
 
