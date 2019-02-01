@@ -1,13 +1,13 @@
 from PyPDF2 import PdfFileMerger
-import glob
 
-prefix = '/home/mkowalska/Marta/kCSD-python/figures/kCSD_properties/large_srcs_minus_5'
-pdfs = [f for f in glob.glob(prefix + "/*.pdf")]
+path = '/home/mkowalska/Marta/kCSD-python/figures/kCSD_properties/'
+name = 'large_srcs_all_ele'
 
 merger = PdfFileMerger()
 
-for pdf in pdfs:
+for i in range(100):
+    pdf = path + name + '/' + str(i) + '.pdf'
     merger.append(open(pdf, 'rb'))
 
-with open(prefix + '/result.pdf', 'wb') as fout:
+with open(path + name + '/' + name + '_err.pdf', 'wb') as fout:
     merger.write(fout)

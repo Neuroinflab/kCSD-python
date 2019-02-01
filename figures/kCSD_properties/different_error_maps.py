@@ -237,8 +237,8 @@ def do_kcsd(CSD_PROFILE, data, csd_seed, prefix, missing_ele):
 if __name__ == '__main__':
     CSD_PROFILE =  CSD.gauss_2d_large #CSD.gauss_2d_small #
     
-    prefix = '/home/mkowalska/Marta/kCSD-python/figures/kCSD_properties/large_srcs_minus_5'
+    prefix = '/home/mkowalska/Marta/kCSD-python/figures/kCSD_properties/large_srcs_all_ele'
     for csd_seed in range(100):
         data = np.load(prefix + '/' + str(csd_seed) + '.npz')
-        do_kcsd(CSD_PROFILE, data, csd_seed, prefix, missing_ele=5)
+        do_kcsd(CSD_PROFILE, data, csd_seed, prefix, missing_ele=0)
         print("Done ", csd_seed)
