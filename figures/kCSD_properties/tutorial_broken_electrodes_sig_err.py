@@ -74,14 +74,14 @@ def electrode_positions(missing_ele=0):
 def point_errors(true_csd, est_csd):
     epsilon = np.finfo(np.float64).eps
     err2 = np.linalg.norm(true_csd.reshape(true_csd.size, 1) -
-                         est_csd.reshape(est_csd.size, 1), axis=1)
+                          est_csd.reshape(est_csd.size, 1), axis=1)
     err2 /= np.linalg.norm(true_csd.reshape(true_csd.size, 1), axis=1) + \
     epsilon*np.max(np.linalg.norm(true_csd.reshape(true_csd.size, 1), axis=1))
     err = err2.reshape(true_csd.shape)
     return err
 
 
-def sigmoid_mean(error):s
+def sigmoid_mean(error):
     sig_error = 2*(1./(1 + np.exp((-error))) - 1/2.)
     error_mean = np.mean(sig_error, axis=0)
     return error_mean
