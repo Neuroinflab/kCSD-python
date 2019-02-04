@@ -101,7 +101,7 @@ class KCSD(CSD):
         self.xmin = kwargs.pop('xmin', np.min(self.ele_pos[:, 0]))
         self.xmax = kwargs.pop('xmax', np.max(self.ele_pos[:, 0]))
         self.gdx = kwargs.pop('gdx', 0.01*(self.xmax - self.xmin))
-        self.own_est = kwargs.pop('own_est', np.array([]))
+        self.own_est = kwargs.pop('own_src', np.array([]))
         self.dist_table_density = kwargs.pop('dist_table_density', 20)
         if self.dim >= 2:
             self.ext_y = kwargs.pop('ext_y', 0.0)
@@ -570,7 +570,6 @@ class KCSD1D(KCSD):
         m *= basis_func(abs(xp), R)  # xp is the distance
         return m
 
-
 class KCSD2D(KCSD):
     """KCSD2D - The 2D variant for the Kernel Current Source Density method.
     This estimates the Current Source Density, for a given configuration of
@@ -680,15 +679,8 @@ class KCSD2D(KCSD):
         ----------
         None
         """
-        if self.own_est.any():
-            src_loc = np.array((self.own_est[0], 
-                                self.own_est[1]))
-            est_loc = np.array((self.own_est[0],
-                                self.own_est[1]))
-            self.n_estm = self.own_est.shape[1]
-        else:
-            src_loc = np.array((self.src_x.ravel(), self.src_y.ravel()))
-            est_loc = np.array((self.estm_x.ravel(), self.estm_y.ravel()))
+        src_loc = np.array((self.src_x.ravel(), self.src_y.ravel()))
+        est_loc = np.array((self.estm_x.ravel(), self.estm_y.ravel()))
         self.src_ele_dists = distance.cdist(src_loc.T, self.ele_pos, 'euclidean')
         self.src_estm_dists = distance.cdist(src_loc.T, est_loc.T, 'euclidean')
         self.dist_max = max(np.max(self.src_ele_dists), np.max(self.src_estm_dists)) + self.R
@@ -985,14 +977,6 @@ class KCSD3D(KCSD):
         ----------
         None
         """
-        if self.own_est.any():
-            src_loc = np.array((self.own_est[0], 
-                                self.own_est[1], 
-                                self.own_est[2]))
-            est_loc = np.array((self.own_est[0],
-                                self.own_est[1],
-                                self.own_est[2]))
-            self.n_estm = self.own_est.shape[1]
         src_loc = np.array((self.src_x.ravel(),
                             self.src_y.ravel(),
                             self.src_z.ravel()))
@@ -1084,6 +1068,55 @@ class KCSD3D(KCSD):
         pot *= basis_func(dist, R)
         return pot
 
+class oKCSD2D(KCSD2D):
+    """oKCSD - The variant for the Kernel Current Source Density method that 
+    allows to reconstruct potential and CSD in given 2D space points.
+    """
+    def __init__(self, ele_pos, pots, **kwargs):
+        super().__init__(ele_pos, pots, **kwargs)
+
+    def estimate_at(self):
+        """Redefines locations where the estimation is wanted
+        Defines:
+        self.n_estm = self.estm_x.size
+        self.estm_x, self.estm_y : Locations at which CSD is requested.
+        Parameters
+        ----------
+        None
+        """
+        self.estm_x = self.own_est[0]
+        self.estm_y = self.own_est[1]
+        self.src_x = self.own_est[0]
+        self.src_y = self.own_est[1]
+        if ele_pos.shape[1] == 3:
+            self.estm_z = self.own_est[2]
+            self.src_z = self.own_est[2]
+        self.n_estm = self.estm_x.size
+        
+class oKCSD3D(KCSD3D):
+    """oKCSD - The variant for the Kernel Current Source Density method that 
+    allows to reconstruct potential and CSD in given 3D space points.
+    """
+    def __init__(self, ele_pos, pots, **kwargs):
+        super().__init__(ele_pos, pots, **kwargs)
+
+    def estimate_at(self):
+        """Redefines locations where the estimation is wanted
+        Defines:
+        self.n_estm = self.estm_x.size
+        self.estm_x, self.estm_y, self.estm_z : Locations at which CSD is 
+        requested.
+        Parameters
+        ----------
+        None
+        """
+        self.estm_x = self.own_est[0]
+        self.estm_y = self.own_est[1]
+        self.src_x = self.own_est[0]
+        self.src_y = self.own_est[1]
+        self.estm_z = self.own_est[2]
+        self.src_z = self.own_est[2]
+        self.n_estm = self.estm_x.size
 
 if __name__ == '__main__':
     print('Checking 1D')
@@ -1122,5 +1155,24 @@ if __name__ == '__main__':
     k = KCSD3D(ele_pos, pots,
                gdx=0.02, gdy=0.02, gdz=0.02,
                n_src_init=1000, src_type='gauss_lim')
+    k.cross_validate()
+    print(k.values())
+
+    print('Checking oKCSD2D')
+    ele_pos = np.array([[-0.2, -0.2], [0, 0], [0, 1], [1, 0], [1, 1],
+                        [0.5, 0.5], [1.2, 1.2]])
+    pots = np.array([[-1], [-1], [-1], [0], [0], [1], [-1.5]])
+    own_src = np.array([[1,2,3,4,5,6,7,8,9,10], [0,0,1,1,2,2,1,1,1,1]])
+    k = oKCSD2D(ele_pos, pots, own_src = own_src)
+    k.cross_validate()
+    print(k.values())
+
+    print('Checking oKCSD3D')
+    ele_pos = np.array([(0, 0, 0), (0, 0, 1), (0, 1, 0), (1, 0, 0),
+                        (0, 1, 1), (1, 1, 0), (1, 0, 1), (1, 1, 1),
+                        (0.5, 0.5, 0.5)])
+    pots = np.array([[-0.5], [0], [-0.5], [0], [0], [0.2], [0], [0], [1]])
+    own_src = np.array([[1,2,3,4,5,6,7,8,9,10], [0,0,1,1,2,2,1,1,1,1], [1,1,1,1,1,5,3,4,2,5]])
+    k = oKCSD3D(ele_pos, pots, own_src = own_src)
     k.cross_validate()
     print(k.values())
