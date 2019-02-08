@@ -33,14 +33,22 @@ def grid(x, y, z):
 
 
 def point_errors(true_csd, est_csd):
-    #epsilon = np.finfo(np.float64).eps
-    epsilon = 1e-10
+    true_csd_r = true_csd.reshape(true_csd.size, 1)
+    est_csd_r = est_csd.reshape(est_csd.size, 1)
+    epsilon = np.linalg.norm(true_csd_r)/np.max(abs(true_csd_r))
+    err = abs(est_csd_r/(np.linalg.norm(est_csd_r)) -
+              true_csd_r/(np.linalg.norm(true_csd_r)))
+    err *= epsilon
+    err2 = err.reshape(true_csd.shape)
+    return err2
+
+def point_errors2(true_csd, est_csd):
+    epsilon = np.max(abs(true_csd.reshape(true_csd.size, 1)))
     err2 = abs(true_csd.reshape(true_csd.size, 1) -
                           est_csd.reshape(est_csd.size, 1))
     err2 /= abs(true_csd.reshape(true_csd.size, 1)) + \
     epsilon #*np.max(abs(true_csd.reshape(true_csd.size, 1)))
     err = err2.reshape(true_csd.shape)
-    err = sigmoid_mean(err)
     return err
 
 
@@ -57,13 +65,16 @@ def point_errors_Ch(true_csd, est_csd):
 
 
 def calculate_rdm(true_csd, est_csd):
-    rdm = abs(est_csd/(np.linalg.norm(est_csd)) - true_csd/(np.linalg.norm(true_csd)))
-    return rdm
+    rdm = abs(est_csd.reshape(est_csd.size, 1)/(np.linalg.norm(est_csd.reshape(est_csd.size, 1))) -
+              true_csd.reshape(true_csd.size, 1)/(np.linalg.norm(true_csd.reshape(true_csd.size, 1))))
+    rdm *= np.linalg.norm(true_csd.reshape(true_csd.size, 1))/np.max(abs(true_csd.reshape(true_csd.size, 1)))
+    return rdm.reshape(true_csd.shape)
 
 
 def calculate_mag(true_csd, est_csd):
-    mag = abs(est_csd)/(abs(true_csd) + epsilon)
-    return mag
+    epsilon = np.max(abs(true_csd.reshape(true_csd.size, 1)))
+    mag = abs(est_csd.reshape(est_csd.size, 1))/(abs(true_csd.reshape(true_csd.size, 1)) + epsilon)
+    return mag.reshape(true_csd.shape)
 
 
 def do_kcsd(CSD_PROFILE, data, csd_seed, prefix, missing_ele):
@@ -164,6 +175,7 @@ def do_kcsd(CSD_PROFILE, data, csd_seed, prefix, missing_ele):
 
     ax = plt.subplot(245)
     error1 = point_errors(true_csd, est_csd_post_cv)
+    print(error1.shape)
     ax.set_aspect('equal')
     t_max = np.max(abs(error1))
     levels_kcsd = np.linspace(0, t_max, 16, endpoint=True)
@@ -238,7 +250,7 @@ def do_kcsd(CSD_PROFILE, data, csd_seed, prefix, missing_ele):
 if __name__ == '__main__':
     CSD_PROFILE =  CSD.gauss_2d_large #CSD.gauss_2d_small #
     
-    prefix = '/home/mkowalska/Marta/kCSD-python/figures/kCSD_properties/large_srcs_all_ele'
+    prefix = '/home/mkowalska/Marta/kCSD-python/figures/kCSD_properties/small_srcs_all_ele'
     for csd_seed in range(100):
         data = np.load(prefix + '/' + str(csd_seed) + '.npz')
         do_kcsd(CSD_PROFILE, data, csd_seed, prefix, missing_ele=0)

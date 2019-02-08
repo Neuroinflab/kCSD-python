@@ -1,7 +1,7 @@
 from PyPDF2 import PdfFileMerger
 
 path = '/home/mkowalska/Marta/kCSD-python/figures/kCSD_properties/'
-name = 'large_srcs_all_ele'
+name = 'small_srcs_all_ele'
 
 merger = PdfFileMerger()
 
