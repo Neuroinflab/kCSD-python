@@ -1175,4 +1175,4 @@ if __name__ == '__main__':
     own_src = np.array([[1,2,3,4,5,6,7,8,9,10], [0,0,1,1,2,2,1,1,1,1], [1,1,1,1,1,5,3,4,2,5]])
     k = oKCSD3D(ele_pos, pots, own_src = own_src)
     k.cross_validate()
-    print(k.values())
+    print('csd: ', k.values())
