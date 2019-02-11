@@ -101,7 +101,6 @@ class KCSD(CSD):
         self.xmin = kwargs.pop('xmin', np.min(self.ele_pos[:, 0]))
         self.xmax = kwargs.pop('xmax', np.max(self.ele_pos[:, 0]))
         self.gdx = kwargs.pop('gdx', 0.01*(self.xmax - self.xmin))
-        self.own_est = kwargs.pop('own_src', np.array([]))
         self.dist_table_density = kwargs.pop('dist_table_density', 20)
         if self.dim >= 2:
             self.ext_y = kwargs.pop('ext_y', 0.0)
@@ -1071,7 +1070,46 @@ class oKCSD2D(KCSD2D):
     allows to reconstruct potential and CSD in given 2D space points.
     """
     def __init__(self, ele_pos, pots, **kwargs):
+        """Initialize oKCSD2D Class.
+        Parameters
+        ----------
+        ele_pos : numpy array
+            positions of electrodes
+        pots : numpy array
+            potentials measured by electrodes
+        **kwargs
+            configuration parameters, that may contain the following keys:
+            src_type : str
+                basis function type ('gauss', 'step', 'gauss_lim')
+                Defaults to 'gauss'
+            sigma : float
+                space conductance of the tissue in S/m
+                Defaults to 1 S/m
+            n_src_init : int
+                requested number of sources
+                Defaults to 1000
+            R_init : float
+                demanded thickness of the basis element
+                Defaults to 0.23
+            h : float
+                thickness of analyzed tissue slice
+                Defaults to 1.
+            own_est: numpy array
+                points coordinates of the basis source centers 
+                and estimation places
+            lambd : float
+                regularization parameter for ridge regression
+                Defaults to 0.
+        Raises
+        ------
+        LinAlgError
+            Could not invert the matrix, try changing the ele_pos slightly
+        KeyError
+            Basis function (src_type) not implemented.
+            See basis_functions.py for available
+        """
         super().__init__(ele_pos, pots, **kwargs)
+        self.own_est = kwargs.pop('own_est', np.array([]))
         self.dim = 'own'
 
     def estimate_at(self):
@@ -1092,7 +1130,46 @@ class oKCSD3D(KCSD3D):
     allows to reconstruct potential and CSD in given 3D space points.
     """
     def __init__(self, ele_pos, pots, **kwargs):
+        """Initialize oKCSD3D Class.
+        Parameters
+        ----------
+        ele_pos : numpy array
+            positions of electrodes
+        pots : numpy array
+            potentials measured by electrodes
+        **kwargs
+            configuration parameters, that may contain the following keys:
+            src_type : str
+                basis function type ('gauss', 'step', 'gauss_lim')
+                Defaults to 'gauss'
+            sigma : float
+                space conductance of the tissue in S/m
+                Defaults to 1 S/m
+            n_src_init : int
+                requested number of sources
+                Defaults to 1000
+            R_init : float
+                demanded thickness of the basis element
+                Defaults to 0.23
+            h : float
+                thickness of analyzed tissue slice
+                Defaults to 1.
+            own_est: numpy array
+                points coordinates of the basis source centers 
+                and estimation places
+            lambd : float
+                regularization parameter for ridge regression
+                Defaults to 0.
+        Raises
+        ------
+        LinAlgError
+            Could not invert the matrix, try changing the ele_pos slightly
+        KeyError
+            Basis function (src_type) not implemented.
+            See basis_functions.py for available
+        """
         super().__init__(ele_pos, pots, **kwargs)
+        self.own_est = kwargs.pop('own_est', np.array([]))
         self.dim = 'own'
 
     def estimate_at(self):
@@ -1146,24 +1223,5 @@ if __name__ == '__main__':
     k = KCSD3D(ele_pos, pots,
                gdx=0.02, gdy=0.02, gdz=0.02,
                n_src_init=1000, src_type='gauss_lim')
-    k.cross_validate()
-    print(k.values())
-
-    print('Checking oKCSD2D')
-    ele_pos = np.array([[-0.2, -0.2], [0, 0], [0, 1], [1, 0], [1, 1],
-                        [0.5, 0.5], [1.2, 1.2]])
-    pots = np.array([[-1], [-1], [-1], [0], [0], [1], [-1.5]])
-    own_src = np.array([[1,2,3,4,5,6,7,8,9,10], [0,0,1,1,2,2,1,1,1,1]])
-    k = oKCSD2D(ele_pos, pots, own_src = own_src)
-    k.cross_validate()
-    print(k.values())
-
-    print('Checking oKCSD3D')
-    ele_pos = np.array([(0, 0, 0), (0, 0, 1), (0, 1, 0), (1, 0, 0),
-                        (0, 1, 1), (1, 1, 0), (1, 0, 1), (1, 1, 1),
-                        (0.5, 0.5, 0.5)])
-    pots = np.array([[-0.5], [0], [-0.5], [0], [0], [0.2], [0], [0], [1]])
-    own_src = np.array([[1,2,3,4,5,6,7,8,9,10], [0,0,1,1,2,2,1,1,1,1], [1,1,1,1,1,5,3,4,2,5]])
-    k = oKCSD3D(ele_pos, pots, own_src = own_src)
     k.cross_validate()
     print(k.values())
