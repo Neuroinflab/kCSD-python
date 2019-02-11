@@ -12,7 +12,7 @@ import unittest
 import numpy as np
 from kcsd import ValidateKCSD1D, ValidateKCSD2D, ValidateKCSD3D
 from kcsd import csd_profile as CSD
-from kcsd import KCSD1D, KCSD2D, MoIKCSD, KCSD3D
+from kcsd import KCSD1D, KCSD2D, MoIKCSD, KCSD3D, oKCSD2D, oKCSD3D
 
 
 class KCSD1D_TestCase(unittest.TestCase):
@@ -146,6 +146,24 @@ class KCSD3D_TestCase(unittest.TestCase):
         cv_params = {'InvalidCVArg': np.array((0.1, 0.25, 0.5))}
         self.assertRaises(TypeError, self.test_kcsd3d_estimate, cv_params)
 
+class oKCSD2D_TestCase(unittest.TestCase):
+    def setUp(self):
+        ele_pos = np.array([[-0.2, -0.2], [0, 0], [0, 1], [1, 0], [1, 1],
+                            [0.5, 0.5], [1.2, 1.2]])
+        pots = np.array([[-1], [-1], [-1], [0], [0], [1], [-1.5]])
+        own_src = np.array([[1,2,3,4,5,6,7,8,9,10], [0,0,1,1,2,2,1,1,1,1]])
+        k = oKCSD2D(ele_pos, pots, own_est = own_src)
+        k.cross_validate()
+
+class oKCSD3D_TestCase(unittest.TestCase):
+    def setUp(self):
+        ele_pos = np.array([(0, 0, 0), (0, 0, 1), (0, 1, 0), (1, 0, 0),
+                            (0, 1, 1), (1, 1, 0), (1, 0, 1), (1, 1, 1),
+                            (0.5, 0.5, 0.5)])
+        pots = np.array([[-0.5], [0], [-0.5], [0], [0], [0.2], [0], [0], [1]])
+        own_src = np.array([[1,2,3,4,5,6,7,8,9,10], [0,0,1,1,2,2,1,1,1,1], [1,1,1,1,1,5,3,4,2,5]])
+        k = oKCSD3D(ele_pos, pots, own_est = own_src)
+        k.cross_validate()
 
 if __name__ == '__main__':
     unittest.main()
