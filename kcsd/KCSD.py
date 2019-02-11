@@ -232,8 +232,6 @@ class KCSD(CSD):
         estimation : np.array
             estimated quantity of shape (ngx, ngy, ngz, nt)
         """
-        if self.own_est.any():
-            return estimation
         if self.dim == 1:
             estimation = estimation.reshape(self.ngx, self.n_time)
         elif self.dim == 2:
@@ -1074,6 +1072,7 @@ class oKCSD2D(KCSD2D):
     """
     def __init__(self, ele_pos, pots, **kwargs):
         super().__init__(ele_pos, pots, **kwargs)
+        self.dim = 'own'
 
     def estimate_at(self):
         """Redefines locations where the estimation is wanted
@@ -1084,21 +1083,17 @@ class oKCSD2D(KCSD2D):
         ----------
         None
         """
-        self.estm_x = self.own_est[0]
-        self.estm_y = self.own_est[1]
-        self.src_x = self.own_est[0]
-        self.src_y = self.own_est[1]
-        if ele_pos.shape[1] == 3:
-            self.estm_z = self.own_est[2]
-            self.src_z = self.own_est[2]
+        self.estm_x, self.estm_y = self.own_est
+        self.src_x, self.src_y = self.own_est
         self.n_estm = self.estm_x.size
-        
+
 class oKCSD3D(KCSD3D):
     """oKCSD - The variant for the Kernel Current Source Density method that 
     allows to reconstruct potential and CSD in given 3D space points.
     """
     def __init__(self, ele_pos, pots, **kwargs):
         super().__init__(ele_pos, pots, **kwargs)
+        self.dim = 'own'
 
     def estimate_at(self):
         """Redefines locations where the estimation is wanted
@@ -1110,12 +1105,8 @@ class oKCSD3D(KCSD3D):
         ----------
         None
         """
-        self.estm_x = self.own_est[0]
-        self.estm_y = self.own_est[1]
-        self.src_x = self.own_est[0]
-        self.src_y = self.own_est[1]
-        self.estm_z = self.own_est[2]
-        self.src_z = self.own_est[2]
+        self.estm_x, self.estm_y, self.estm_z = self.own_est
+        self.src_x, self.src_y, self.src_z = self.own_est
         self.n_estm = self.estm_x.size
 
 if __name__ == '__main__':
@@ -1175,4 +1166,4 @@ if __name__ == '__main__':
     own_src = np.array([[1,2,3,4,5,6,7,8,9,10], [0,0,1,1,2,2,1,1,1,1], [1,1,1,1,1,5,3,4,2,5]])
     k = oKCSD3D(ele_pos, pots, own_src = own_src)
     k.cross_validate()
-    print('csd: ', k.values())
+    print(k.values())
