@@ -147,6 +147,9 @@ class KCSD3D_TestCase(unittest.TestCase):
         self.assertRaises(TypeError, self.test_kcsd3d_estimate, cv_params)
 
 class oKCSD2D_TestCase(unittest.TestCase):
+    '''class 
+    to test 
+    oKCSD2D'''
     def setUp(self):
         ele_pos = np.array([[-0.2, -0.2], [0, 0], [0, 1], [1, 0], [1, 1],
                             [0.5, 0.5], [1.2, 1.2]])
@@ -156,6 +159,9 @@ class oKCSD2D_TestCase(unittest.TestCase):
         k.cross_validate()
 
 class oKCSD3D_TestCase(unittest.TestCase):
+    '''class 
+    to test 
+    oKCSD3D'''
     def setUp(self):
         ele_pos = np.array([(0, 0, 0), (0, 0, 1), (0, 1, 0), (1, 0, 0),
                             (0, 1, 1), (1, 1, 0), (1, 0, 1), (1, 1, 1),
