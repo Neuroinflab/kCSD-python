@@ -28,7 +28,6 @@ class testsKCDcell(unittest.TestCase):
         cls.data.morphology[:,2:6] = cls.data.morphology[:,2:6]/sc
         n_src = 1000
         cls.cell = sKCSDcell(cls.data.morphology,cls.data.ele_pos/sc,n_src)
-        cls.cell.distribute_srcs_3D_morph()
         cls.branch_points = []
         for loop in cls.cell.loops:
             if loop[0] != loop[1]+1 and loop[0] != loop[1]-1:
@@ -40,7 +39,6 @@ class testsKCDcell(unittest.TestCase):
         data = LoadData(os.path.join(sample_data_path, "ball_and_stick_8"))
         data.morphology[:,2:6] = data.morphology[:,2:6]/sc
         cls.cell_small = sKCSDcell(data.morphology,data.ele_pos/sc,10)
-        cls.cell_small.distribute_srcs_3D_morph()
         cls.cell_small_segment_coordinates_loops = cls.cell_small.coordinates_3D_loops()
         cls.small_points = np.zeros((len(cls.cell_small.morphology),))
         dic = cls.cell_small_segment_coordinates_loops
@@ -54,7 +52,6 @@ class testsKCDcell(unittest.TestCase):
         data = LoadData(os.path.join(sample_data_path, "Y_shaped_neuron"))
         data.morphology[:,2:6] = data.morphology[:,2:6]/sc
         cls.cell_y = sKCSDcell(data.morphology,data.ele_pos/sc,10)
-        cls.cell_y.distribute_srcs_3D_morph()
         cls.cell_y_segment_coordinates_loops = cls.cell_y.coordinates_3D_loops()
         cls.y_points = {}
         dic = cls.cell_y_segment_coordinates_loops
