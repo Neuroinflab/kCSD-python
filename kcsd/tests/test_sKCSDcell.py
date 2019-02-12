@@ -38,7 +38,7 @@ class testsKCDcell(unittest.TestCase):
         #ball and stick neuron
         data = LoadData(os.path.join(sample_data_path, "ball_and_stick_8"))
         data.morphology[:,2:6] = data.morphology[:,2:6]/sc
-        cls.cell_small = sKCSDcell(data.morphology,data.ele_pos/sc,10)
+        cls.cell_small = sKCSDcell(data.morphology,data.ele_pos/sc, 100)
         cls.cell_small_segment_coordinates_loops = cls.cell_small.coordinates_3D_loops()
         cls.small_points = np.zeros((len(cls.cell_small.morphology),))
         dic = cls.cell_small_segment_coordinates_loops
@@ -51,18 +51,8 @@ class testsKCDcell(unittest.TestCase):
         #Y-shaped neuron
         data = LoadData(os.path.join(sample_data_path, "Y_shaped_neuron"))
         data.morphology[:,2:6] = data.morphology[:,2:6]/sc
-        cls.cell_y = sKCSDcell(data.morphology,data.ele_pos/sc,10)
+        cls.cell_y = sKCSDcell(data.morphology,data.ele_pos/sc, 200)
         cls.cell_y_segment_coordinates_loops = cls.cell_y.coordinates_3D_loops()
-        cls.y_points = {}
-        dic = cls.cell_y_segment_coordinates_loops
-        for seg in dic:
-            ps = dic[seg]
-            for p in ps:
-                s = '%d%d%d'%(p[0],p[1],p[2])
-                if s not in cls.y_points:
-                    cls.y_points[s] = 1
-                else:
-                    cls.y_points[s] += 1
         cls.cell_y_segment_coordinates = cls.cell_y.coordinates_3D_segments()
 
     def test_if_lost_branch(self):
@@ -306,16 +296,6 @@ class testsKCDcell(unittest.TestCase):
             b = self.cell_small_segment_coordinates[i-1][0][2]
             self.assertTrue(a == b + 1 or a == b-1 )
   
-    def test_coordinates_3D_loops_y_one_count(self):
-        self.assertTrue(self.y_points['64055'] == 1 and self.y_points['0055']==1)
- 
-    def test_coordinates_3D_loops_y_branch(self):
-        self.assertTrue(self.y_points['32023'] == 3)
-
-    def test_coordinates_3D_loops_y_2_counts(self):
-        for key in self.y_points:
-            if key not in ['64055', '0055', '32023']:
-                self.assertTrue(self.y_points[key] == 2)
 
     def test_coordinates_3D_small_length(self):
         l = len(self.cell_small_segment_coordinates)
