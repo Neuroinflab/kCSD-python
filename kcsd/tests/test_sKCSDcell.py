@@ -38,7 +38,7 @@ class testsKCDcell(unittest.TestCase):
         #ball and stick neuron
         data = LoadData(os.path.join(sample_data_path, "ball_and_stick_8"))
         data.morphology[:,2:6] = data.morphology[:,2:6]/sc
-        cls.cell_small = sKCSDcell(data.morphology,data.ele_pos/sc, 100)
+        cls.cell_small = sKCSDcell(data.morphology,data.ele_pos/sc, 104)
         cls.cell_small_segment_coordinates_loops = cls.cell_small.coordinates_3D_loops()
         cls.small_points = np.zeros((len(cls.cell_small.morphology),))
         dic = cls.cell_small_segment_coordinates_loops
@@ -311,7 +311,7 @@ class testsKCDcell(unittest.TestCase):
 
     def test_coordinates_3D_y_last(self):
         l = len(self.cell_y_segment_coordinates)
-        self.assertTrue(len(self.cell_y_segment_coordinates[l-1]) == 2)
+        self.assertTrue(len(self.cell_y_segment_coordinates[l-1]) == 4)
 
     def test_coordinates_3D_small_change(self):
         l = len(self.cell_small_segment_coordinates)
@@ -355,7 +355,7 @@ class testsKCDcell(unittest.TestCase):
             d0 = d[i-1]
             p1 = d[i][-1]
             if len(d0) > 1:
-                p0 = d0[-2]
+                p0 = d0[0]
             else:
                 p0 = d0[-1]
             x0, y0, z0 = p0
