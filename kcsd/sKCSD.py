@@ -289,6 +289,8 @@ class sKCSDcell(object):
         points between p0 and p1 including (last=True) or not including p0
         """
         # bresenhamline only works with 2D vectors with coordinates
+        if p1[0] == p0[0] and p1[1] == p0[1] and p1[2] == p0[2]:
+            return [np.array(p1)]
         new_p1, new_p0 = np.ndarray((1, 3), dtype=np.int), np.ndarray((1, 3), dtype=np.int)
         for i in range(3):
             new_p1[0, i], new_p0[0, i] = p1[i], p0[i]
@@ -376,7 +378,7 @@ class sKCSDcell(object):
                 zero_coords[i] = np.floor((morpho[0, i] - minis[i])/dx)
         return coor_3D, zero_coords
 
-    def coordinates_3D_loops(self, dxs=None):
+    def coordinates_3D_loops(self, dxs1=None):
         """
         Find points of each loop in 3D grid
         (for CSD/potential calculation in 3D).
@@ -392,13 +394,13 @@ class sKCSDcell(object):
            Indices of points of 3D grid for each loop
 
         """
-        coor_3D, p0 = self.point_coordinates(self.source_xyz, dxs=dxs)
+        coor_3D, p0 = self.point_coordinates(self.source_xyz, dxs=dxs1)
         segment_coordinates = {}
-
         for i, p1 in enumerate(coor_3D):
             last = (i+1 == len(coor_3D))
             segment_coordinates[i] = self.points_in_between(p0, p1, last)
             p0 = p1
+            
         return segment_coordinates
 
     def coordinates_3D_segments(self):
