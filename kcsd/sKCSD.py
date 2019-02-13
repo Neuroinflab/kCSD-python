@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 The following people have contributed code and/or ideas to the current version of kCSD
 
