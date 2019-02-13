@@ -1,14 +1,11 @@
 """
-This script is used to generate Current Source Density Estimates,
-using the skCSD method by Cserpan et.al (2017).
+The following people have contributed code and/or ideas to the current version of kCSD
 
-These scripts are based on Grzegorz Parka's,
-Google Summer of Code 2014, INFC/pykCSD
+Chaitanya Chintaluri[1] Marta Kowalska[1] Michal Czerwinski[1] Joanna Jędrzejewska – Szmek[1] Władysław Średniawa[1]
 
-This was written by :dxs
-Joanna Jedrzejewska-Szmek, Jan Maka, Chaitanya Chintaluri
-Laboratory of Neuroinformatics,
-Nencki Institute of Experimental Biology, Warsaw.
+Jan Mąka [1, 3*] Grzegorz Parka[2] Daniel K. Wojcik[1]
+
+[1] Laboratory of Neuroinformatics, Nencki Institute of Experimental Biology, Warsaw, Poland [2] Google Summer of Code 2014, INCF/pykCSD [3] University of Warsaw, Poland
 """
 from __future__ import print_function, division, absolute_import
 import numpy as np
@@ -467,7 +464,6 @@ class sKCSDcell(object):
         n_time = estimated.shape[-1]
         new_dims = list(self.dims) + [n_time]
         result = np.zeros(new_dims)
-
         for i in coor_3D:
             coor = coor_3D[i]
             for p in coor:
@@ -496,7 +492,7 @@ class sKCSDcell(object):
         return result
 
     
-    def draw_cell2D(self, axis=2, resolution=None):
+    def draw_cell2D(self, axis=2, resolution=None, segments=True):
         """
         Cell morphology in 3D grid in projection of axis.
 
@@ -510,7 +506,10 @@ class sKCSDcell(object):
           which is based on the smallest neurite in the morphology,
           is used
         """
-        coor_3D = self.coordinates_3D_segments()
+        if segments == True:
+            coor_3D = self.coordinates_3D_segments()
+        else:
+            coor_3D = self.coordinates_3D_loops()
         if resolution is None:
             dxs = self.dxs
             resolution = self.dims
@@ -907,11 +906,11 @@ class sKCSD(KCSD1D):
             estimated quantity
         '''
         estimated = super(sKCSD, self).values(estimate=estimate)
-        if not transformation:
+        if transformation is None:
             return estimated
-        elif transformation == 'segments':
+        if transformation == 'segments':
             return self.cell.transform_to_segments(estimated)
-        elif transformation == '3D':
+        if transformation == '3D':
             return self.cell.transform_to_3D(estimated, what="loop")
 
         raise Exception("Unknown transformation %s of %s" %
