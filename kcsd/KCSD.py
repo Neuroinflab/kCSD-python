@@ -1108,8 +1108,8 @@ class oKCSD2D(KCSD2D):
             Basis function (src_type) not implemented.
             See basis_functions.py for available
         """
-        super().__init__(ele_pos, pots, **kwargs)
         self.own_est = kwargs.pop('own_est', np.array([]))
+        super(oKCSD2D, self).__init__(ele_pos, pots, **kwargs)
         self.dim = 'own'
 
     def estimate_at(self):
@@ -1168,8 +1168,8 @@ class oKCSD3D(KCSD3D):
             Basis function (src_type) not implemented.
             See basis_functions.py for available
         """
-        super().__init__(ele_pos, pots, **kwargs)
         self.own_est = kwargs.pop('own_est', np.array([]))
+        super(oKCSD3D, self).__init__(ele_pos, pots, **kwargs)
         self.dim = 'own'
 
     def estimate_at(self):
