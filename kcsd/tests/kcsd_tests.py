@@ -147,20 +147,7 @@ class KCSD3D_TestCase(unittest.TestCase):
         self.assertRaises(TypeError, self.test_kcsd3d_estimate, cv_params)
 
 class oKCSD2D_TestCase(unittest.TestCase):
-    '''
-    class 
-    to test 
-    oKCSD2D
-    '''
-    def setUp(self):
-        '''method
-        to test
-        oKCSD2D
-        simulates:
-        elecotrode positions
-        measured LFP 
-        own source distribution - points coordinates
-        '''
+    def test_2D(self):
         ele_pos = np.array([[-0.2, -0.2], [0, 0], [0, 1], [1, 0], [1, 1], [0.5, 0.5], [1.2, 1.2]])
         pots = np.array([[-1], [-1], [-1], [0], [0], [1], [-1.5]])
         own_src = np.array([[1,2,3,4,5,6,7,8,9,10], [0,0,1,1,2,2,1,1,1,1]])
@@ -168,21 +155,9 @@ class oKCSD2D_TestCase(unittest.TestCase):
         k.cross_validate()
 
 class oKCSD3D_TestCase(unittest.TestCase):
-    '''
-    class 
-    to test 
-    oKCSD3D
-    '''
-    def setUp(self):
-        '''method
-        to test
-        oKCSD3D
-        simulates:
-        elecotrode positions
-        measured LFP 
-        own source distribution - points coordinates
-        '''
-        ele_pos = np.array([(0, 0, 0), (0, 0, 1), (0, 1, 0), (1, 0, 0),(0, 1, 1), (1, 1, 0), (1, 0, 1), (1, 1, 1),(0.5, 0.5, 0.5)])
+    def test_3D(self):
+        ele_pos = np.array([(0, 0, 0), (0, 0, 1), (0, 1, 0), (1, 0, 0),
+                            (0, 1, 1), (1, 1, 0), (1, 0, 1), (1, 1, 1),(0.5, 0.5, 0.5)])
         pots = np.array([[-0.5], [0], [-0.5], [0], [0], [0.2], [0], [0], [1]])
         own_src = np.array([[1,2,3,4,5,6,7,8,9,10], [0,0,1,1,2,2,1,1,1,1], [1,1,1,1,1,5,3,4,2,5]])
         k = oKCSD3D(ele_pos, pots, own_est = own_src)
