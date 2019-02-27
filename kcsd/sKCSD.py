@@ -70,7 +70,6 @@ class sKCSDcell(object):
         self.dims = self.get_grid()
         if kwargs:
             raise TypeError('Invalid keyword arguments:', kwargs.keys())
-        self.est_xyz_auto =  False
         self.distribute_srcs_3D_morph()
 
     def add_segment(self, mp1, mp2):
@@ -150,6 +149,7 @@ class sKCSDcell(object):
                                               self.morphology[loop[0], 2:5])
             self.est_pos[i+1] = self.est_pos[i] + length
             self.est_xyz[i+1, :] = self.morphology[loop[1], 2:5]
+        self.loop_pos = self.est_pos[1:]
 
     def distribute_srcs_3D_morph(self):
         """
@@ -217,12 +217,12 @@ class sKCSDcell(object):
         numpy array with distances of the shape (n_src, len(morphology))
         """
         return distance.cdist(self.source_pos,
-                              self.est_pos,
+                              self.loop_pos,
                               'euclidean')
     
     def get_src_estm_dists_pot(self):
         return np.meshgrid(self.source_pos,
-                           self.est_pos,
+                           self.loop_pos,
                            indexing='ij')
     
     def get_xyz(self, v):
@@ -392,7 +392,7 @@ class sKCSDcell(object):
            Indices of points of 3D grid for each loop
 
         """
-        coor_3D, p0 = self.point_coordinates(self.source_xyz, dxs=dxs1)
+        coor_3D, p0 = self.point_coordinates(self.est_xyz, dxs=dxs1)
         segment_coordinates = {}
         for i, p1 in enumerate(coor_3D):
             last = (i+1 == len(coor_3D))
@@ -461,6 +461,7 @@ class sKCSDcell(object):
             coor_3D = self.coordinates_3D_segments()
         else:
             sys.exit('Do not understand morphology %s\n' % what)
+        assert len(coor_3D) == estimated.shape[0]
 
         n_time = estimated.shape[-1]
         new_dims = list(self.dims) + [n_time]
@@ -634,7 +635,6 @@ class sKCSD(KCSD1D):
         self.dim = 'skCSD'
         self.tolerance = kwargs.pop('tolerance', 2e-06)
         self.exact = kwargs.pop('exact', False)
-        self.est_xyz_auto =  False
         if kwargs:
             raise TypeError('Invalid keyword arguments:', kwargs.keys())
 
@@ -654,7 +654,7 @@ class sKCSD(KCSD1D):
         """
         self.cell = sKCSDcell(self.morphology, self.ele_pos,
                               self.n_src_init, tolerance=self.tolerance)
-        self.n_estm = len(self.cell.est_pos)
+        self.n_estm = len(self.cell.loop_pos)
         
     def place_basis(self):
         """Places basis sources of the defined type.
