@@ -333,7 +333,7 @@ if __name__=='__main__':
     total_ele = 32
     names = ['lc', 'cv']
     src_width = 0.001
-    noise_lvl_n = 3
+    noises = 3
     seeds = 3
     inpos = [0.5, 0.1]#od dolu
     lpos = [0.5, 0.9]
