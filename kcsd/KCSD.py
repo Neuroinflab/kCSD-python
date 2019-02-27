@@ -352,7 +352,7 @@ class KCSD(CSD):
         u, s, v = svd(self.k_pot)
         print('min lambda', 10**np.round(np.log10(s[-1]), decimals=0))
         print('max lambda', str.format('{0:.4f}', np.std(np.diag(self.k_pot))))
-        return np.logspace(np.log10(s[-1]), np.log10(np.std(np.diag(self.k_pot)), 20)
+        return np.logspace(np.log10(s[-1]), np.log10(np.std(np.diag(self.k_pot))), 20)
 
     def L_curve(self, estimate='CSD', lambdas=None, Rs=None, n_jobs=1):
         """Method defines the L-curve.
