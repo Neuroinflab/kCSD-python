@@ -82,7 +82,7 @@ def save_sim(path, k):
     k : sKCSD object
       
     """
-    est_csd = k.values('CSD', transformation=None)
+    est_csd = k.values("CSD", transformation=None)
     est_pot = k.values("POT", transformation=None)
     np.save(os.path.join(path, "csd.npy"), est_csd)
     print("Save csd, ", os.path.join(path, "csd.npy"))
