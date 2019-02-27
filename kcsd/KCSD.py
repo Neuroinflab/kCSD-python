@@ -352,7 +352,7 @@ class KCSD(CSD):
         u, s, v = svd(self.k_pot)
         print('min lambda', 10**np.round(np.log10(s[-1]), decimals=0))
         print('max lambda', str.format('{0:.4f}', np.std(np.diag(self.k_pot))))
-        return np.logspace(np.log10(s[-1]), np.std(np.diag(self.k_pot)), 20)
+        return np.logspace(np.log10(s[-1]), np.log10(np.std(np.diag(self.k_pot)), 20)
 
     def L_curve(self, estimate='CSD', lambdas=None, Rs=None, n_jobs=1):
         """Method defines the L-curve.
@@ -1108,7 +1108,9 @@ class oKCSD2D(KCSD2D):
             Basis function (src_type) not implemented.
             See basis_functions.py for available
         """
+        self.own_src = kwargs.pop('own_src', np.array([]))
         self.own_est = kwargs.pop('own_est', np.array([]))
+        if not self.own_est.any(): self.own_est = self.own_src
         super(oKCSD2D, self).__init__(ele_pos, pots, **kwargs)
         self.dim = 'own'
 
@@ -1122,7 +1124,7 @@ class oKCSD2D(KCSD2D):
         None
         """
         self.estm_x, self.estm_y = self.own_est
-        self.src_x, self.src_y = self.own_est
+        self.src_x, self.src_y = self.own_src
         self.n_estm = self.estm_x.size
 
 class oKCSD3D(KCSD3D):
@@ -1168,7 +1170,9 @@ class oKCSD3D(KCSD3D):
             Basis function (src_type) not implemented.
             See basis_functions.py for available
         """
+        self.own_src = kwargs.pop('own_src', np.array([]))
         self.own_est = kwargs.pop('own_est', np.array([]))
+        if not self.own_est.any() : self.own_est = self.own_src
         super(oKCSD3D, self).__init__(ele_pos, pots, **kwargs)
         self.dim = 'own'
 
@@ -1183,7 +1187,7 @@ class oKCSD3D(KCSD3D):
         None
         """
         self.estm_x, self.estm_y, self.estm_z = self.own_est
-        self.src_x, self.src_y, self.src_z = self.own_est
+        self.src_x, self.src_y, self.src_z = self.own_src
         self.n_estm = self.estm_x.size
 
 if __name__ == '__main__':
