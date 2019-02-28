@@ -345,7 +345,7 @@ class CellModel():
             synapse = LFPy.Synapse(self.cell, **self.synapse_parameters)
             synapse.set_spike_times(np.array(pars[syn_idx]))
        
-        TimesStim = np.arange(850)
+        TimesStim = np.arange(tstop)
         stim = np.array(3.6*np.sin(2.*3.141*6.5*TimesStim/1000.))
         for istim in range(tstop):
             pointprocess = {
