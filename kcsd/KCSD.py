@@ -1180,7 +1180,7 @@ class oKCSD3D(KCSD3D):
         """
         self.own_src = kwargs.pop('own_src', np.array([]))
         self.own_est = kwargs.pop('own_est', np.array([]))
-        if not self.own_est.any() : self.own_est = self.own_src
+        if not self.own_est.any(): self.own_est = self.own_src
         if not self.own_est.any() and not self.own_src.any():
             raise KeyError('"own_src" is required argument to use oKCSD3D.' +
                            'If you would like to reconstruct in default ' +
