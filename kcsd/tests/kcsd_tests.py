@@ -154,8 +154,20 @@ class oKCSD2D_TestCase(unittest.TestCase):
         own_est = np.array([[1,2,3,4,5,6,7,8,9,10], [1,2,3,1,2,2,5,1,5,1]])
         k = oKCSD2D(ele_pos, pots, own_src = own_src, own_est = own_est)
         k.cross_validate()
-        k = oKCSD2D(ele_pos, pots, own_src = own_src)
-#        k = oKCSD2D(ele_pos, pots)
+
+    def test_2D_no_est(self):
+        ele_pos = np.array([[-0.2, -0.2], [0, 0], [0, 1], [1, 0], [1, 1], [0.5, 0.5], [1.2, 1.2]])
+        pots = np.array([[-1], [-1], [-1], [0], [0], [1], [-1.5]])
+        own_src = np.array([[1,2,3,4,5,6,7,8,9,10], [0,0,1,1,2,2,1,1,1,1]])
+        oKCSD2D(ele_pos, pots, own_src = own_src)
+
+    def test_2D_wrong_param(self):
+        ele_pos = np.array([[-0.2, -0.2], [0, 0], [0, 1], [1, 0], [1, 1], [0.5, 0.5], [1.2, 1.2]])
+        pots = np.array([[-1], [-1], [-1], [0], [0], [1], [-1.5]])
+        oKCSD2D(ele_pos, pots)
+        
+    def test_inputs(self):
+        self.assertRaises(KeyError, self.test_2D_wrong_param)
 
 class oKCSD3D_TestCase(unittest.TestCase):
     def test_3D(self):
@@ -166,8 +178,21 @@ class oKCSD3D_TestCase(unittest.TestCase):
         own_est = own_src+5
         k = oKCSD3D(ele_pos, pots, own_src = own_src, own_est = own_est)
         k.cross_validate()
-        k = oKCSD3D(ele_pos, pots, own_src = own_src)
-#        k = oKCSD3D(ele_pos, pots)
+
+    def test_3D_no_est(self):
+        ele_pos = np.array([(0, 0, 0), (0, 0, 1), (0, 1, 0), (1, 0, 0),
+                            (0, 1, 1), (1, 1, 0), (1, 0, 1), (1, 1, 1),(0.5, 0.5, 0.5)])
+        pots = np.array([[-0.5], [0], [-0.5], [0], [0], [0.2], [0], [0], [1]])
+        own_src = np.array([[1,2,3,4,5,6,7,8,9,10], [0,0,1,1,2,2,1,1,1,1], [1,1,1,1,1,5,3,4,2,5]])
+        oKCSD3D(ele_pos, pots, own_src = own_src)
+
+    def test_3D_wrong_param(self):
+        ele_pos = np.array([[-0.2, -0.2], [0, 0], [0, 1], [1, 0], [1, 1], [0.5, 0.5], [1.2, 1.2]])
+        pots = np.array([[-1], [-1], [-1], [0], [0], [1], [-1.5]])
+        oKCSD3D(ele_pos, pots)
+
+    def test_inputs(self):
+        self.assertRaises(KeyError, self.test_3D_wrong_param)
 
 if __name__ == '__main__':
     unittest.main()
