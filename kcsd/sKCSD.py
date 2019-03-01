@@ -401,7 +401,7 @@ class sKCSDcell(object):
             
         return segment_coordinates
 
-    def coordinates_3D_segments(self):
+    def coordinates_3D_segments(self, dxs1=None):
         """
         Find points of each segment in 3D grid
         (for CSD/potential calculation in 3D).
@@ -416,7 +416,7 @@ class sKCSDcell(object):
            Indices of points of 3D grid for each segment
 
         """
-        coor_3D, p0 = self.point_coordinates(self.morphology[:, 2:5])
+        coor_3D, p0 = self.point_coordinates(self.morphology[:, 2:5], dxs=dxs1)
         segment_coordinates = {}
 
         parentage = self.morphology[1:, 6]-2
@@ -508,26 +508,27 @@ class sKCSDcell(object):
           which is based on the smallest neurite in the morphology,
           is used
         """
-        if segments == True:
-            coor_3D = self.coordinates_3D_segments()
-        else:
-            coor_3D = self.coordinates_3D_loops()
         if resolution is None:
             dxs = self.dxs
             resolution = self.dims
         else:
             assert resolution[0] > 0
             assert resolution[1] > 0
-            assert resolution[2] >0
+            assert resolution[2] > 0
             dxs = np.zeros((3,))
-            vals = [
+            vals = np.array([
                 [self.xmin, self.xmax],
                 [self.ymin, self.ymax],
                 [self.zmin, self.zmax]
-            ]
+            ])
             for i, dx in enumerate(dxs):
-                dx = np.ceil(((vals[i][1]-vals[i][0]))/resolution[i])
-                
+                dxs[i] = abs(vals[i][1]-vals[i][0])/resolution[i]
+
+        if segments == True:
+            coor_3D = self.coordinates_3D_segments(dxs)
+        else:
+            coor_3D = self.coordinates_3D_loops(dxs)
+
         image_3D = np.zeros(resolution)
         for coor in coor_3D:
             points = coor_3D[coor]
