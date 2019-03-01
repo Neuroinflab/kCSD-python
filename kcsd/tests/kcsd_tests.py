@@ -160,7 +160,7 @@ class oKCSD2D_TestCase(unittest.TestCase):
         pots = np.array([[-1], [-1], [-1], [0], [0], [1], [-1.5]])
         own_src = np.array([[1,2,3,4,5,6,7,8,9,10], [0,0,1,1,2,2,1,1,1,1]])
         k = oKCSD2D(ele_pos, pots, own_src = own_src)
-        print('own_est overwritten with own_src: ', all(k.own_src == k.own_est))
+        print('own_est overwritten with own_src: ', (k.own_src == k.own_est).all())
 
     def test_2D_wrong_param(self):
         ele_pos = np.array([[-0.2, -0.2], [0, 0], [0, 1], [1, 0], [1, 1], [0.5, 0.5], [1.2, 1.2]])
@@ -183,7 +183,7 @@ class oKCSD3D_TestCase(unittest.TestCase):
         pots = np.array([[-0.5], [0], [-0.5], [0], [0], [0.2], [0], [0], [1]])
         own_src = np.array([[1,2,3,4,5,6,7,8,9,10], [0,0,1,1,2,2,1,1,1,1], [1,1,1,1,1,5,3,4,2,5]])
         k = oKCSD3D(ele_pos, pots, own_src = own_src)
-        print('own_est overwritten with own_src: ', all(k.own_src == k.own_est))
+        print('own_est overwritten with own_src: ',(k.own_src == k.own_est).all())
 
     def test_3D_wrong_param(self):
         ele_pos = np.array([[-0.2, -0.2], [0, 0], [0, 1], [1, 0], [1, 1], [0.5, 0.5], [1.2, 1.2]])
