@@ -1095,8 +1095,10 @@ class oKCSD2D(KCSD2D):
                 thickness of analyzed tissue slice
                 Defaults to 1.
             own_est: numpy array
-                points coordinates of the basis source centers 
-                and estimation places
+                points coordinates of estimation places. If not given 
+                estimation places will be taken from own_src
+            own_src: numpy array
+                points coordinates of basis source centers 
             lambd : float
                 regularization parameter for ridge regression
                 Defaults to 0.
@@ -1111,6 +1113,10 @@ class oKCSD2D(KCSD2D):
         self.own_src = kwargs.pop('own_src', np.array([]))
         self.own_est = kwargs.pop('own_est', np.array([]))
         if not self.own_est.any(): self.own_est = self.own_src
+        if not self.own_est.any() and not self.own_src.any():
+            raise KeyError('"own_src" is required argument to use oKCSD2D.' +
+                           'If you would like to reconstruct in default ' +
+                           'region of interest please use KCSD2D')
         super(oKCSD2D, self).__init__(ele_pos, pots, **kwargs)
         self.dim = 'own'
 
@@ -1157,8 +1163,10 @@ class oKCSD3D(KCSD3D):
                 thickness of analyzed tissue slice
                 Defaults to 1.
             own_est: numpy array
-                points coordinates of the basis source centers 
-                and estimation places
+                points coordinates of estimation places. If not given 
+                estimation places will be taken from own_src
+            own_src: numpy array
+                points coordinates of basis source centers 
             lambd : float
                 regularization parameter for ridge regression
                 Defaults to 0.
@@ -1173,6 +1181,10 @@ class oKCSD3D(KCSD3D):
         self.own_src = kwargs.pop('own_src', np.array([]))
         self.own_est = kwargs.pop('own_est', np.array([]))
         if not self.own_est.any() : self.own_est = self.own_src
+        if not self.own_est.any() and not self.own_src.any():
+            raise KeyError('"own_src" is required argument to use oKCSD3D.' +
+                           'If you would like to reconstruct in default ' +
+                           'region of interest please use KCSD3D')
         super(oKCSD3D, self).__init__(ele_pos, pots, **kwargs)
         self.dim = 'own'
 
