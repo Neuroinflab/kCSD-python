@@ -155,7 +155,7 @@ class oKCSD2D_TestCase(unittest.TestCase):
         k = oKCSD2D(ele_pos, pots, own_src = own_src, own_est = own_est)
         k.cross_validate()
         k = oKCSD2D(ele_pos, pots, own_src = own_src)
-        k = oKCSD2D(ele_pos, pots)
+#        k = oKCSD2D(ele_pos, pots)
 
 class oKCSD3D_TestCase(unittest.TestCase):
     def test_3D(self):
@@ -167,7 +167,7 @@ class oKCSD3D_TestCase(unittest.TestCase):
         k = oKCSD3D(ele_pos, pots, own_src = own_src, own_est = own_est)
         k.cross_validate()
         k = oKCSD3D(ele_pos, pots, own_src = own_src)
-        k = oKCSD3D(ele_pos, pots)
+#        k = oKCSD3D(ele_pos, pots)
 
 if __name__ == '__main__':
     unittest.main()
