@@ -757,3 +757,11 @@ class LoadData(object):
             return
         print('Load', path)
         f.close()
+
+
+def check_estimated_shape(to_estimate):
+    if len(to_estimate.shape) == 1:
+        estimated = np.ndarray((to_estimate.shape[0], 1))
+        estimated[:, 0] = to_estimate
+        return estimated
+    return to_estimate

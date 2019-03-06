@@ -438,14 +438,14 @@ class sKCSDcell(object):
             p1 = coor_3D[i]
         return segment_coordinates
 
-    def transform_to_3D(self, estimated, what="loop"):
+    def transform_to_3D(self, to_estimate, what="loop"):
         """
         Transform potential/csd/ground truth values in segment or loop space
         to 3D.
 
         Parameters
         ----------
-        estimated : np.array
+        to_estimate : np.array
         what : string
            "loop" -- estimated is in loop space
            "morpho" -- estimated in in segment space
@@ -454,15 +454,17 @@ class sKCSDcell(object):
         -------
         result : np.array
         """
-
+            
         if what == "loop":
             coor_3D = self.coordinates_3D_loops()
         elif what == "morpho":
             coor_3D = self.coordinates_3D_segments()
         else:
-            sys.exit('Do not understand morphology %s\n' % what)
-        assert len(coor_3D) == estimated.shape[0]
+            sys.exit('Unknown type of neuron morphology %s\n' % what)
 
+        assert len(coor_3D) == to_estimate.shape[0]
+
+        estimated = utils.check_estimated_shape(to_estimate)
         n_time = estimated.shape[-1]
         new_dims = list(self.dims) + [n_time]
         result = np.zeros(new_dims)
