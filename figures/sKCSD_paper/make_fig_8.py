@@ -14,7 +14,7 @@ cmap = plt.cm.bwr_r
 n = 100
 scale_factor = 1000**2
 R = 32e-6
-lambd = 0.000001
+lambd = 0.0001
 if __name__ == '__main__':
     fname_base = "Figure_8"
     fig_name = sKCSD_utils.make_fig_names(fname_base)
@@ -61,9 +61,9 @@ if __name__ == '__main__':
     t0 = np.argmax(somav[int(400./dt):int(600./dt)])+int(400./dt)
  
     cell_itself = sKCSDcell(morphology, ele_pos, n_src, tolerance=tolerance, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
-    ground_truth_3D = cell_itself.transform_to_3D(ground_truth,
+    ground_truth_3D = cell_itself.transform_to_3D(ground_truth[:, t0],
                                                   what="morpho")
-    vmax, vmin = pl.get_min_max(ground_truth_3D[:, :, :, t0].sum(axis=(2)))
+    vmax, vmin = pl.get_min_max(ground_truth_3D[:, :, :].sum(axis=(2)))
     morpho, extent = cell_itself.draw_cell2D(axis=2)
     extent = [extent[-2], extent[-1], extent[0], extent[1]]
     gvmax, gvmin = pl.get_min_max(ground_truth)
@@ -110,11 +110,12 @@ if __name__ == '__main__':
         pass
     
     skcsd, pot, cell_obj = utils.load_sim(path)
-    est_skcsd = cell_itself.transform_to_3D(skcsd)
+    est_skcsd = cell_itself.transform_to_3D(skcsd[:, t0])
    
     skcsd_seg = cell_itself.transform_to_segments(skcsd)
-    skcsd_snapshot = est_skcsd[:, :, :, t0].sum(axis=(2))
-    gt_snapshot = ground_truth_3D[:, :, :, t0].sum(axis=(2))
+    skcsd_snapshot = est_skcsd.sum(axis=(2))[:, :, 0]
+    gt_snapshot = ground_truth_3D.sum(axis=(2))[:, :, 0]
+
     cax = pl.make_map_plot(ax4,
                            gt_snapshot,
                            vmin=vmin,
