@@ -85,11 +85,11 @@ def point_errors(true_csd, est_csd):
     true_csd_r = true_csd.reshape(true_csd.size, 1)
     est_csd_r = est_csd.reshape(est_csd.size, 1)
     epsilon = np.linalg.norm(true_csd_r)/np.max(abs(true_csd_r))
-    err = abs(est_csd_r/(np.linalg.norm(est_csd_r)) -
-              true_csd_r/(np.linalg.norm(true_csd_r)))
-    err *= epsilon
-    err2 = err.reshape(true_csd.shape)
-    return err2
+    err_r = abs(est_csd_r/(np.linalg.norm(est_csd_r)) -
+                true_csd_r/(np.linalg.norm(true_csd_r)))
+    err_r *= epsilon
+    err = err_r.reshape(true_csd.shape)
+    return err
 
 
 def sigmoid_mean(error):
