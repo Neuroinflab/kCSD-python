@@ -12,8 +12,8 @@ import matplotlib.gridspec as gridspec
 
 
 n_src = 2048
-R = 32e-6
-lambd = 0.001
+R = 64e-6
+lambd = 0.00001
 fname = "Figure_complex"
 scaling_factor = 1000**2
 scaling_factor_LFP = 1000
