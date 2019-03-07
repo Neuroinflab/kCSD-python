@@ -43,10 +43,20 @@ def set_axis(ax, letter=None):
         transform=ax.transAxes)
     return ax
 
+#def point_errors(true_csd, est_csd):
+#    nrm_est = est_csd.reshape(est_csd.size, 1) / np.max(np.abs(est_csd))
+#    nrm_csd = true_csd.reshape(true_csd.size, 1) / np.max(np.abs(true_csd))
+#    err = np.linalg.norm(nrm_csd - nrm_est, axis=1).reshape(true_csd.shape)
+#    return err
+
 def point_errors(true_csd, est_csd):
-    nrm_est = est_csd.reshape(est_csd.size, 1) / np.max(np.abs(est_csd))
-    nrm_csd = true_csd.reshape(true_csd.size, 1) / np.max(np.abs(true_csd))
-    err = np.linalg.norm(nrm_csd - nrm_est, axis=1).reshape(true_csd.shape)
+    true_csd_r = true_csd.reshape(true_csd.size, 1)
+    est_csd_r = est_csd.reshape(est_csd.size, 1)
+    epsilon = np.linalg.norm(true_csd_r)/np.max(abs(true_csd_r))
+    err_r = abs(est_csd_r/(np.linalg.norm(est_csd_r)) -
+                true_csd_r/(np.linalg.norm(true_csd_r)))
+    err_r *= epsilon
+    err = err_r.reshape(true_csd.shape)
     return err
 
 
