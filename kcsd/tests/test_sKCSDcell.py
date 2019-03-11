@@ -435,13 +435,13 @@ class testsKCDcell(unittest.TestCase):
 
     def test_get_src_estm_dists_2(self):
         out = self.cell_small.get_src_estm_dists()
-        self.assertTrue(out.shape[1] == len(self.cell_small.est_pos))
+        self.assertTrue(out.shape[1] == len(self.cell_small.est_pos)-1)
     
     def test_get_src_estm_dists_3(self):
         out = self.cell_small.get_src_estm_dists()
         for i in range(len(self.cell_small.source_pos)):
-            for j in range(len(self.cell_small.est_pos)):
-                self.assertTrue(out[i, j ] == abs(self.cell_small.source_pos[i] - self.cell_small.est_pos[j]))
+            for j in range(len(self.cell_small.est_pos)-1):
+                self.assertTrue(out[i, j ] == abs(self.cell_small.source_pos[i] - self.cell_small.est_pos[j+1]))
 
     def test_get_src_estm_dists_pot_1(self):
         out = self.cell_small.get_src_estm_dists_pot()
