@@ -42,7 +42,7 @@ class testsKCD(unittest.TestCase):
         self.assertTrue(len(self.loops.shape) == 2)
         
     def test_values_loops_length(self):
-        self.assertTrue(self.loops.shape[0] == 2*(len(self.data.morphology)-1)+1) #plus 1, because we include 0
+        self.assertTrue(self.loops.shape[0] == 2*(len(self.data.morphology)-1))
 
     def test_values_cartesian_shape(self): 
         self.assertTrue(len(self.cartesian.shape) == 4)
