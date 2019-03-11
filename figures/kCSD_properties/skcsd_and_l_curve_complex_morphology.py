@@ -12,8 +12,8 @@ import matplotlib.gridspec as gridspec
 
 
 n_src = 2048
-R = 64e-6
-lambd = 0.00001
+R = 32e-6
+lambd = 0.01
 fname = "Figure_complex"
 scaling_factor = 1000**2
 scaling_factor_LFP = 1000
@@ -234,11 +234,11 @@ if __name__ == '__main__':
         pass
 
     skcsd, pot, cell_obj = utils.load_sim(path)
-    
+    print(skcsd.max(), skcsd.min(), ground_truth.min(), ground_truth.max())
     csd = cell_obj.transform_to_segments(skcsd)
     draw_ground_truth_skcsd_segments(ax, ground_truth, csd, time, gvmin, gvmax)
-    csd_3D = cell_itself.transform_to_3D(skcsd[:, toplot:toplot+1])
-    gt_3D = cell_itself.transform_to_3D(ground_truth[:, toplot:toplot+1],
+    csd_3D = cell_itself.transform_to_3D(skcsd[:, toplot])
+    gt_3D = cell_itself.transform_to_3D(ground_truth[:, toplot],
                                         what="morpho")
     draw_ground_truth_skcsd_3D(ax, gt_3D, csd_3D, data,
                                 gvmin, gvmax, time[toplot])
