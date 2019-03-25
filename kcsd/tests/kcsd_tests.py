@@ -155,7 +155,7 @@ class oKCSD2D_TestCase(unittest.TestCase):
         k = oKCSD2D(ele_pos, pots, own_src = own_src, own_est = own_est)
         k.cross_validate()
 #        k.L_curve()
-        print('oKCSD2D test done')
+#        print('oKCSD2D test done')
 
     def test_2D_no_est(self):
         ele_pos = np.array([[-0.2, -0.2], [0, 0], [0, 1], [1, 0], [1, 1], [0.5, 0.5], [1.2, 1.2]])
@@ -164,7 +164,7 @@ class oKCSD2D_TestCase(unittest.TestCase):
         k = oKCSD2D(ele_pos, pots, own_src = own_src)
         print('own_est overwritten with own_src: ', (k.own_src == k.own_est).all())
 #        k.L_curve()
-        print('oKCSD2D test done')
+#        print('oKCSD2D test done')
 
     def test_2D_wrong_param(self):
         ele_pos = np.array([[-0.2, -0.2], [0, 0], [0, 1], [1, 0], [1, 1], [0.5, 0.5], [1.2, 1.2]])
@@ -181,7 +181,7 @@ class oKCSD3D_TestCase(unittest.TestCase):
         k = oKCSD3D(ele_pos, pots, own_src = own_src, own_est = own_est)
         k.cross_validate()
 #        k.L_curve()
-        print('oKCSD3D test done')
+#        print('oKCSD3D test done')
 
     def test_3D_no_est(self):
         ele_pos = np.array([(0, 0, 0), (0, 0, 1), (0, 1, 0), (1, 0, 0),
@@ -191,7 +191,7 @@ class oKCSD3D_TestCase(unittest.TestCase):
         k = oKCSD3D(ele_pos, pots, own_src = own_src)
         print('own_est overwritten with own_src: ',(k.own_src == k.own_est).all())
 #        k.L_curve()
-        print('oKCSD3D test done')
+#        print('oKCSD3D test done')
 
     def test_3D_wrong_param(self):
         ele_pos = np.array([[-0.2, -0.2], [0, 0], [0, 1], [1, 0], [1, 1], [0.5, 0.5], [1.2, 1.2]])
