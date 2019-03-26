@@ -527,14 +527,13 @@ class ValidateKCSD(object):
             Normalized error of reconstruction calculated separetly at every
             point of estimation space.
         """
-        epsilon = np.finfo(np.float64).eps
-        point_error = np.linalg.norm(true_csd.reshape(true_csd.size, 1) -
-                                     est_csd.reshape(est_csd.size, 1), axis=1)
-        point_error /= np.linalg.norm(true_csd.reshape(true_csd.size, 1),
-                                      axis=1) + \
-                                      epsilon*np.max(np.linalg.norm(true_csd.reshape(true_csd.size, 1), axis=1))
-        if self.dim != 1:
-            point_error = point_error.reshape(true_csd.shape)
+        true_csd_r = true_csd.reshape(true_csd.size, 1)
+        est_csd_r = est_csd.reshape(est_csd.size, 1)
+        epsilon = np.linalg.norm(true_csd_r)/np.max(abs(true_csd_r))
+        err_r = abs(est_csd_r/(np.linalg.norm(est_csd_r)) -
+                  true_csd_r/(np.linalg.norm(true_csd_r)))
+        err_r *= epsilon
+        point_error = err_r.reshape(true_csd.shape)
         return point_error
 
     def calculate_rdm(self, true_csd, est_csd):

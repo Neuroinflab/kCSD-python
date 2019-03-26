@@ -72,9 +72,13 @@ def electrode_positions(missing_ele=0):
 
 
 def point_errors(true_csd, est_csd):
-    nrm_est = est_csd.reshape(est_csd.size, 1) / np.max(np.abs(est_csd))
-    nrm_csd = true_csd.reshape(true_csd.size, 1) / np.max(np.abs(true_csd))
-    err = np.linalg.norm(nrm_csd - nrm_est, axis=1).reshape(true_csd.shape)
+    true_csd_r = true_csd.reshape(true_csd.size, 1)
+    est_csd_r = est_csd.reshape(est_csd.size, 1)
+    epsilon = np.linalg.norm(true_csd_r)/np.max(abs(true_csd_r))
+    err_r = abs(est_csd_r/(np.linalg.norm(est_csd_r)) -
+                true_csd_r/(np.linalg.norm(true_csd_r)))
+    err_r *= epsilon
+    err = err_r.reshape(true_csd.shape)
     return err
 
 
@@ -144,7 +148,7 @@ def generate_figure():
     csd_x, csd_y = csd_at
     fig = plt.figure(figsize=(20, 12))
     gs = gridspec.GridSpec(2, 4, height_ratios=[1., 0.04], width_ratios=[1]*4)
-    gs.update(top=.96, bottom=0.70)
+    gs.update(top=.95, bottom=0.53)
     ax = plt.subplot(gs[0, 0])
     cax = plt.subplot(gs[1, 0])
     make_subplot(ax, 'err', csd_x, csd_y, errs[0], ele_pos=electrode_positions(missing_ele=0),
@@ -169,7 +173,7 @@ def generate_figure():
     errs = fetch_values('large')
     err_max = 0.21
     gs = gridspec.GridSpec(2, 4, height_ratios=[1., 0.04], width_ratios=[1]*4)
-    gs.update(top=.65, bottom=0.49)
+    gs.update(top=.47, bottom=0.05)
     ax = plt.subplot(gs[0, 0])
     cax = plt.subplot(gs[1, 0])
     make_subplot(ax, 'err', csd_x, csd_y, errs[0], ele_pos=electrode_positions(missing_ele=0),

@@ -224,12 +224,9 @@ if __name__ == '__main__':
                                                              lambdas=lambdas,
                                                              method=method)
     path = os.path.join(os.path.expanduser('~'), 'Dropbox', 'PNI', 'kCSDrev-pics')
-    error_l = np.load(path + '/error_maps_2D/point_error_large_60_bigres_100ele.npy')
-    error_s = np.load(path + '/error_maps_2D/point_error_small_100_bigres_100ele.npy')
-    error_all = np.load(path + '/error_maps_2D/point_error_random_120_bigres_100ele.npy')
-    symm_array_large = matrix_symmetrization(error_l)
-    symm_array_small = matrix_symmetrization(error_s)
+    error_l = np.load(path + '/error_maps_2D/point_error_large_100_all_ele.npy')
+    error_s = np.load(path + '/error_maps_2D/point_error_small_100_all_ele.npy')
+    error_all = np.concatenate((error_l, error_s))
     symm_array_all = matrix_symmetrization(error_all)
 
-    mask = KK.sigmoid_mean(symm_array_all)
-    generate_figure(k, true_csd, ele_pos, pots, mask=mask)
+    generate_figure(k, true_csd, ele_pos, pots, mask=np.mean(symm_array_all, axis=0))

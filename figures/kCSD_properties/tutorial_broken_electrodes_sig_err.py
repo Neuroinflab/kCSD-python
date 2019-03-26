@@ -71,20 +71,49 @@ def electrode_positions(missing_ele=0):
     return ele_pos
 
 
-def point_errors(true_csd, est_csd):
+def point_errors_old(true_csd, est_csd):
     epsilon = np.finfo(np.float64).eps
     err2 = np.linalg.norm(true_csd.reshape(true_csd.size, 1) -
-                         est_csd.reshape(est_csd.size, 1), axis=1)
+                          est_csd.reshape(est_csd.size, 1), axis=1)
     err2 /= np.linalg.norm(true_csd.reshape(true_csd.size, 1), axis=1) + \
     epsilon*np.max(np.linalg.norm(true_csd.reshape(true_csd.size, 1), axis=1))
     err = err2.reshape(true_csd.shape)
+    return sigmoid_mean(err)
+
+
+def point_errors(true_csd, est_csd):
+    true_csd_r = true_csd.reshape(true_csd.size, 1)
+    est_csd_r = est_csd.reshape(est_csd.size, 1)
+    epsilon = np.linalg.norm(true_csd_r)/np.max(abs(true_csd_r))
+    err_r = abs(est_csd_r/(np.linalg.norm(est_csd_r)) -
+                true_csd_r/(np.linalg.norm(true_csd_r)))
+    err_r *= epsilon
+    err = err_r.reshape(true_csd.shape)
     return err
 
 
 def sigmoid_mean(error):
     sig_error = 2*(1./(1 + np.exp((-error))) - 1/2.)
-    error_mean = np.mean(sig_error, axis=0)
-    return error_mean
+#    error_mean = np.mean(sig_error, axis=0)
+    return sig_error
+
+
+def point_errors_Ch(true_csd, est_csd):
+    nrm_est = est_csd.reshape(est_csd.size, 1) / np.max(np.abs(est_csd))
+    nrm_csd = true_csd.reshape(true_csd.size, 1) / np.max(np.abs(true_csd))
+    err = np.linalg.norm(nrm_csd - nrm_est, axis=1).reshape(true_csd.shape)
+    return err
+
+
+def calculate_rdm(true_csd, est_csd):
+    rdm = abs(est_csd.reshape(est_csd.size, 1)/(np.linalg.norm(est_csd.reshape(est_csd.size, 1))) -
+              true_csd.reshape(true_csd.size, 1)/(np.linalg.norm(true_csd.reshape(true_csd.size, 1))))
+    return rdm.reshape(true_csd.shape)
+
+
+def calculate_mag(true_csd, est_csd):
+    mag = abs(est_csd.reshape(est_csd.size, 1)/(true_csd.reshape(true_csd.size, 1)))
+    return sigmoid_mean(mag.reshape(true_csd.shape))
 
 
 def eval_errors(list_dicts, seed_list):
@@ -98,11 +127,13 @@ def eval_errors(list_dicts, seed_list):
             est_csd = ele_data[seed]['post_cv']
             true_csd = ele_data[seed]['true_csd']
             point_errs = point_errors(true_csd, est_csd)
-            sig_error = 2*(1./(1 + np.exp((-point_errs))) - 1/2.)
-            errs[seed] = sig_error
+#            point_errs = point_errors_Ch(true_csd, est_csd)
+#            point_errs = calculate_mag(true_csd, est_csd)
+            errs[seed] = point_errs
+        np.save('point_err_' +str(ii) + '.npy', errs)
+            
 #        err = sum(errs) / len(errs)
         err = np.mean(errs, axis=0)
-#        err = np.mean(sig_error, axis=0)
         list_errs.append(err) # average error
         # list_emax.append(np.max(err))
         # list_levels.append(np.linspace(0, np.max(err), 32))
@@ -120,10 +151,15 @@ def eval_errors_random(list_dicts, seed_list):
             est_csd = ele_data[seed]['post_cv']
             true_csd = ele_data[seed]['true_csd']
             point_errs = point_errors(true_csd, est_csd)
-            sig_error = 2*(1./(1 + np.exp((-point_errs))) - 1/2.)
-            errs[seed] = sig_error
+#            sig_error = 2*(1./(1 + np.exp((-point_errs))) - 1/2.)
+#            errs[seed] = sig_error
+#            point_errs = point_errors_Ch(true_csd, est_csd)
+#            point_errs = calculate_mag(true_csd, est_csd)
+            errs[seed] = point_errs
         
 #        err = np.mean(sig_error, axis=0)
+#        err = np.mean(errs, axis=0)
+        print('err', errs.shape)
         list_errs.append(errs) # average error
         # list_emax.append(np.max(err))
         # list_levels.append(np.linspace(0, np.max(err), 32))
@@ -166,7 +202,7 @@ def fetch_values(csd_type):
     if csd_type =='small':
         seed_list = range(100)
     else:
-        seed_list = range(60)
+        seed_list = range(100)
     fldrs = fetch_folder(csd_type=csd_type)
     list_dicts = load_files(fldrs, seed_list)
     errs = eval_errors(list_dicts, seed_list)
@@ -176,14 +212,15 @@ def fetch_values(csd_type):
 def fetch_values_random(csd_type):
     fldrs_s = fetch_folder(csd_type='small')
     fldrs_l = fetch_folder(csd_type='large')
-    list_dicts_s = load_files(fldrs_s, range(60))
-    list_dicts_l = load_files(fldrs_l, range(60))
-    errs_s = eval_errors_random(list_dicts_s, range(60))
-    errs_l = eval_errors_random(list_dicts_l, range(60))
+    list_dicts_s = load_files(fldrs_s, range(100))
+    list_dicts_l = load_files(fldrs_l, range(100))
+    errs_s = eval_errors_random(list_dicts_s, range(100))
+    errs_l = eval_errors_random(list_dicts_l, range(100))
     print('e_s', errs_s[0].shape)
     errs = []
     for ii in range(len(errs_s)):
         error = np.concatenate((errs_s[ii], errs_l[ii]))
+        print(error.shape, 'random_all')
         errs.append(np.mean(error, axis=0))
     print('e', errs[0].shape)
     return errs
@@ -191,7 +228,7 @@ def fetch_values_random(csd_type):
 
 def generate_figure():
     errs = fetch_values_random('random')
-    err_max = 1.
+    err_max = 0.2
     csd_at = np.mgrid[0.:1.:100j,
                       0.:1.:100j]
     csd_x, csd_y = csd_at
@@ -202,49 +239,50 @@ def generate_figure():
     cax = plt.subplot(gs[1, 0])
     make_subplot(ax, 'err', csd_x, csd_y, errs[0], ele_pos=electrode_positions(missing_ele=0),
                  cax=cax, title='Error CSD', xlabel=True, ylabel=True, letter='A',
-                 t_max=1)
+                 t_max=err_max)
     ax = plt.subplot(gs[0, 1])
     cax = plt.subplot(gs[1, 1])
-    make_subplot(ax, 'err', csd_x, csd_y, abs(errs[1] - errs[0]), ele_pos=electrode_positions(missing_ele=5),
-                 cax=cax, title='Error Diff CSD 5 broken', xlabel=True,  letter='B',
-                 t_max=0.1)
+    make_subplot(ax, 'err', csd_x, csd_y, errs[1], ele_pos=electrode_positions(missing_ele=5),
+                 cax=cax, title='Error CSD 5 broken', xlabel=True,  letter='B',
+                 t_max=err_max)
     ax = plt.subplot(gs[0, 2])
     cax = plt.subplot(gs[1, 2])
-    make_subplot(ax, 'err', csd_x, csd_y, abs(errs[2] - errs[0]), ele_pos=electrode_positions(missing_ele=10),
-                 cax=cax, title='Error Diff CSD 10 broken', xlabel=True, letter='C',
-                 t_max=0.1)
+    make_subplot(ax, 'err', csd_x, csd_y, errs[2], ele_pos=electrode_positions(missing_ele=10),
+                 cax=cax, title='Error CSD 10 broken', xlabel=True, letter='C',
+                 t_max=err_max)
     ax = plt.subplot(gs[0, 3])
     cax = plt.subplot(gs[1, 3])
-    make_subplot(ax, 'err', csd_x, csd_y, abs(errs[3] - errs[0]), ele_pos=electrode_positions(missing_ele=20),
-                 cax=cax, title='Error Diff CSD 20 broken', xlabel=True, letter='D',
-                 t_max=0.1)
+    make_subplot(ax, 'err', csd_x, csd_y, errs[3], ele_pos=electrode_positions(missing_ele=20),
+                 cax=cax, title='Error CSD 20 broken', xlabel=True, letter='D',
+                 t_max=err_max)
 
     errs = fetch_values('small')
+    err_max = 0.2
     gs = gridspec.GridSpec(2, 4, height_ratios=[1., 0.04], width_ratios=[1]*4)
     gs.update(top=.63, bottom=0.37)
     ax = plt.subplot(gs[0, 0])
     cax = plt.subplot(gs[1, 0])
     make_subplot(ax, 'err', csd_x, csd_y, errs[0], ele_pos=electrode_positions(missing_ele=0),
-                 cax=cax, xlabel=True, ylabel=True, letter='E', title='Error CSD',
+                 cax=cax, xlabel=True, ylabel=True, letter='E',
                  t_max=err_max)
     ax = plt.subplot(gs[0, 1])
     cax = plt.subplot(gs[1, 1])
     make_subplot(ax, 'err', csd_x, csd_y, errs[1], ele_pos=electrode_positions(missing_ele=5),
-                 cax=cax, xlabel=True, letter='F', title='Error CSD 5 broken',
+                 cax=cax, xlabel=True, letter='F',
                  t_max=err_max)
     ax = plt.subplot(gs[0, 2])
     cax = plt.subplot(gs[1, 2])
     make_subplot(ax, 'err', csd_x, csd_y, errs[2], ele_pos=electrode_positions(missing_ele=10),
-                 cax=cax, xlabel=True, letter='G', title='Error CSD 10 broken',
+                 cax=cax, xlabel=True, letter='G',
                  t_max=err_max)
     ax = plt.subplot(gs[0, 3])
     cax = plt.subplot(gs[1, 3])
     make_subplot(ax, 'err', csd_x, csd_y, errs[3], ele_pos=electrode_positions(missing_ele=20),
-                 cax=cax, xlabel=True, letter='H', title='Error CSD 20 broken',
+                 cax=cax, xlabel=True, letter='H',
                  t_max=err_max)
 
     errs = fetch_values('large')
-    err_max = 0.4
+    err_max = 0.2
     gs = gridspec.GridSpec(2, 4, height_ratios=[1., 0.04], width_ratios=[1]*4)
     gs.update(top=.31, bottom=0.05)
     ax = plt.subplot(gs[0, 0])
@@ -267,10 +305,95 @@ def generate_figure():
     make_subplot(ax, 'err', csd_x, csd_y, errs[3], ele_pos=electrode_positions(missing_ele=20),
                  cax=cax,  xlabel=True,  letter='L',
                  t_max=err_max)
-    plt.savefig('tutorial_electrode_loss.png', dpi=300)
+    plt.savefig('tutorial_electrode_loss_newRDM_test.png', dpi=300)
     #plt.show()
+
+
+def generate_figure2():
+    errs = fetch_values_random('random')
+    err_max = np.max(abs(errs[3]-errs[0]))
+    csd_at = np.mgrid[0.:1.:100j,
+                      0.:1.:100j]
+    csd_x, csd_y = csd_at
+    fig = plt.figure(figsize=(20, 18))
+    gs = gridspec.GridSpec(2, 4, height_ratios=[1., 0.04], width_ratios=[1]*4)
+    gs.update(top=.95, bottom=0.69)
+    ax = plt.subplot(gs[0, 0])
+    cax = plt.subplot(gs[1, 0])
+    make_subplot(ax, 'err', csd_x, csd_y, errs[0], ele_pos=electrode_positions(missing_ele=0),
+                 cax=cax, title='Error CSD', xlabel=True, ylabel=True, letter='A',
+                 t_max=.2)
+    ax = plt.subplot(gs[0, 1])
+    cax = plt.subplot(gs[1, 1])
+    make_subplot(ax, 'err', csd_x, csd_y, abs(errs[1] - errs[0]), ele_pos=electrode_positions(missing_ele=5),
+                 cax=cax, title='Error Diff CSD 5 broken', xlabel=True,  letter='B',
+                 t_max=err_max)
+    ax = plt.subplot(gs[0, 2])
+    cax = plt.subplot(gs[1, 2])
+    make_subplot(ax, 'err', csd_x, csd_y, abs(errs[2] - errs[0]), ele_pos=electrode_positions(missing_ele=10),
+                 cax=cax, title='Error Diff CSD 10 broken', xlabel=True, letter='C',
+                 t_max=err_max)
+    ax = plt.subplot(gs[0, 3])
+    cax = plt.subplot(gs[1, 3])
+    make_subplot(ax, 'err', csd_x, csd_y, abs(errs[3] - errs[0]), ele_pos=electrode_positions(missing_ele=20),
+                 cax=cax, title='Error Diff CSD 20 broken', xlabel=True, letter='D',
+                 t_max=err_max)
+
+    errs = fetch_values('small')
+    err_max = np.max(abs(errs[3] - errs[0]))
+    gs = gridspec.GridSpec(2, 4, height_ratios=[1., 0.04], width_ratios=[1]*4)
+    gs.update(top=.63, bottom=0.37)
+    ax = plt.subplot(gs[0, 0])
+    cax = plt.subplot(gs[1, 0])
+    make_subplot(ax, 'err', csd_x, csd_y, errs[0], ele_pos=electrode_positions(missing_ele=0),
+                 cax=cax, xlabel=True, ylabel=True, letter='E',
+                 t_max=.2)
+    ax = plt.subplot(gs[0, 1])
+    cax = plt.subplot(gs[1, 1])
+    make_subplot(ax, 'err', csd_x, csd_y, abs(errs[1] - errs[0]), ele_pos=electrode_positions(missing_ele=5),
+                 cax=cax, xlabel=True, letter='F',
+                 t_max=err_max)
+    ax = plt.subplot(gs[0, 2])
+    cax = plt.subplot(gs[1, 2])
+    make_subplot(ax, 'err', csd_x, csd_y, abs(errs[2] - errs[0]), ele_pos=electrode_positions(missing_ele=10),
+                 cax=cax, xlabel=True, letter='G',
+                 t_max=err_max)
+    ax = plt.subplot(gs[0, 3])
+    cax = plt.subplot(gs[1, 3])
+    make_subplot(ax, 'err', csd_x, csd_y, abs(errs[3] - errs[0]), ele_pos=electrode_positions(missing_ele=20),
+                 cax=cax, xlabel=True, letter='H',
+                 t_max=err_max)
+
+    errs = fetch_values('large')
+    err_max = np.max(abs(errs[3] - errs[0]))
+    gs = gridspec.GridSpec(2, 4, height_ratios=[1., 0.04], width_ratios=[1]*4)
+    gs.update(top=.31, bottom=0.05)
+    ax = plt.subplot(gs[0, 0])
+    cax = plt.subplot(gs[1, 0])
+    make_subplot(ax, 'err', csd_x, csd_y, errs[0], ele_pos=electrode_positions(missing_ele=0),
+                 cax=cax, xlabel=True, ylabel=True, letter='I',
+                 t_max=.2)
+    ax = plt.subplot(gs[0, 1])
+    cax = plt.subplot(gs[1, 1])
+    make_subplot(ax, 'err', csd_x, csd_y, abs(errs[1] - errs[0]), ele_pos=electrode_positions(missing_ele=5),
+                 cax=cax,  xlabel=True,  letter='J',
+                 t_max=err_max)
+    ax = plt.subplot(gs[0, 2])
+    cax = plt.subplot(gs[1, 2])
+    make_subplot(ax, 'err', csd_x, csd_y, abs(errs[2] - errs[0]), ele_pos=electrode_positions(missing_ele=10),
+                 cax=cax,  xlabel=True,  letter='K',
+                 t_max=err_max)
+    ax = plt.subplot(gs[0, 3])
+    cax = plt.subplot(gs[1, 3])
+    make_subplot(ax, 'err', csd_x, csd_y, abs(errs[3] - errs[0]), ele_pos=electrode_positions(missing_ele=20),
+                 cax=cax,  xlabel=True,  letter='L',
+                 t_max=err_max)
+    plt.savefig('tutorial_electrode_loss_newRDM_diff_test.png', dpi=300)
+    #plt.show()
+
 
 if __name__ == '__main__':
     generate_figure()
+#    generate_figure2()
 
 
