@@ -215,9 +215,10 @@ class KCSD(CSD):
                               np.identity(self.k_pot.shape[0]))
         estimation = np.zeros((self.n_estm, self.n_time))
         for t in range(self.n_time):
-            beta = np.dot(k_inv, self.pots[:, t])
-            for i in range(self.n_ele):
-                estimation[:, t] += estimation_table[:, i]*beta[i]  # C*(x) Eq 18
+            # C*(x) [Potworowski 2018 Eq 2.18]
+            estimation[:, t] = np.linalg.multi_dot([estimation_table,
+                                                    k_inv,
+                                                    self.pots[:, t]])
         return self.process_estimate(estimation)
 
     def process_estimate(self, estimation):
