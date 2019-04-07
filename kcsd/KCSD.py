@@ -211,13 +211,14 @@ class KCSD(CSD):
             estimation_table = self.k_interp_pot
         else:
             print('Invalid quantity to be measured, pass either CSD or POT')
-        k_inv = np.linalg.inv(self.k_pot + self.lambd *
-                              np.identity(self.k_pot.shape[0]))
+        kernel = self.k_pot + self.lambd * np.identity(self.k_pot.shape[0])
         estimation = np.zeros((self.n_estm, self.n_time))
         for t in range(self.n_time):
-            beta = np.dot(k_inv, self.pots[:, t])
-            for i in range(self.n_ele):
-                estimation[:, t] += estimation_table[:, i]*beta[i]  # C*(x) Eq 18
+            # C*(x) [Potworowski 2018 Eq 2.18]
+            # `inv(K) V` calculated by solving `K X = V` for `X`
+            estimation[:, t] = np.dot(estimation_table,
+                                      np.linalg.solve(kernel,
+                                                      self.pots[:, t]))
         return self.process_estimate(estimation)
 
     def process_estimate(self, estimation):
