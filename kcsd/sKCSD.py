@@ -611,7 +611,7 @@ class sKCSD(KCSD1D):
             See basis_functions.py for available
         """
         self.morphology = morphology
-        super(KCSD1D, self).__init__(ele_pos, pots, **kwargs)
+        super(sKCSD, self).__init__(ele_pos, pots, **kwargs)
 
     def parameters(self, **kwargs):
         self.src_type = kwargs.pop('src_type', 'gauss')
