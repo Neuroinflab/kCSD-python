@@ -2,7 +2,7 @@
 # encoding: utf-8
 from __future__ import print_function, division, absolute_import
 from kcsd import sample_data_path
-from kcsd.utility_functions import LoadData
+from kcsd.sKCSD_utils import LoadData
 import os
 import unittest
 import numpy as np
