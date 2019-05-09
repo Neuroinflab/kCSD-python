@@ -85,7 +85,10 @@ def save_sim(path, k):
 
 def load_sim(path):
     """
-    Load sKCSD estimation results (CSD, potential and cell specifics).
+    Load sKCSD estimation results (CSD, potential and cell specifics). Return 
+    CSD, potential, and three objects necessary for initialization 
+    of a sKCSDcell object: morphology, positions of electrodes, 
+    and number of sources
     
     Parameters
     ----------
@@ -95,7 +98,9 @@ def load_sim(path):
     -------
     est_csd : np.array
     est_pot : np.array
-    cell_obj : sKCSDcell object
+    morphology : np.array
+    ele_pos : np.array
+    n_src : int
     """
     est_csd = np.load(os.path.join(path, "csd.npy"))
     est_pot = np.load(os.path.join(path, "pot.npy"))
@@ -107,7 +112,8 @@ def load_sim(path):
         return est_csd, est_pot, None
     morphology = np.array(cell_data['morphology'])
     ele_pos = np.array(cell_data['ele_pos'])
-    return est_csd, est_pot, cell_obj, morphology, ele_pos, cell_data['n_src']
+    n_src = cell_data['n_src']
+    return est_csd, est_pot, cell_obj, morphology, ele_pos, n_src
 
 
 def load_elpos(path):
