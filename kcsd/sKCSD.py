@@ -17,9 +17,9 @@ from scipy.spatial import distance
 from scipy import special, interpolate, integrate
 from collections import Counter, OrderedDict
 import sys
-from .KCSD import KCSD1D
-from . import utility_functions as utils
+from . import sKCSD_utils as utils
 from . import basis_functions as basis
+from .KCSD import KCSD1D
 
 class sKCSDcell(object):
     """

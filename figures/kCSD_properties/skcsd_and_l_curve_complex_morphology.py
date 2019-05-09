@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sys
 from kcsd import sKCSD
-import kcsd.utility_functions as utils
+from kcsd import sKCSD_utils as utils
 import kcsd.validation.plotting_functions as pl
 sys.path.insert(1, os.path.join(sys.path[0], '../sKCSD_paper'))
 import sKCSD_utils
