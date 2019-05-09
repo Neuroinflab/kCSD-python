@@ -168,6 +168,15 @@ def load_elpos(path):
         raise Exception('Unknown electrode position file format.')
     return ele_pos
 
+
+def check_estimated_shape(to_estimate):
+    if len(to_estimate.shape) == 1:
+        estimated = np.ndarray((to_estimate.shape[0], 1))
+        estimated[:, 0] = to_estimate
+        return estimated
+    return to_estimate
+
+
 def _bresenhamline_nslope(slope):
     """
     Normalize slope for Bresenham's line algorithm.
