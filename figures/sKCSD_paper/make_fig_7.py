@@ -36,7 +36,8 @@ if __name__ == '__main__':
                              electrode_orientation=2,
                              simulate_what='symmetric',
                              dt=dt)
-    data = utils.LoadData(c.return_paths_skCSD_python())
+    new_path = c.return_paths_skCSD_python()
+    data = utils.LoadData(new_path)
     ele_pos = data.ele_pos/scale_factor
     pots = data.LFP/scale_factor_LFP
     morphology = data.morphology
