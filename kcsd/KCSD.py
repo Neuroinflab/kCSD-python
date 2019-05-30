@@ -211,13 +211,14 @@ class KCSD(CSD):
             estimation_table = self.k_interp_pot
         else:
             print('Invalid quantity to be measured, pass either CSD or POT')
-        k_inv = np.linalg.inv(self.k_pot + self.lambd *
-                              np.identity(self.k_pot.shape[0]))
+        kernel = self.k_pot + self.lambd * np.identity(self.k_pot.shape[0])
         estimation = np.zeros((self.n_estm, self.n_time))
         for t in range(self.n_time):
-            beta = np.dot(k_inv, self.pots[:, t])
-            for i in range(self.n_ele):
-                estimation[:, t] += estimation_table[:, i]*beta[i]  # C*(x) Eq 18
+            # C*(x) [Potworowski 2018 Eq 2.18]
+            # `inv(K) V` calculated by solving `K X = V` for `X`
+            estimation[:, t] = np.dot(estimation_table,
+                                      np.linalg.solve(kernel,
+                                                      self.pots[:, t]))
         return self.process_estimate(estimation)
 
     def process_estimate(self, estimation):
@@ -352,7 +353,7 @@ class KCSD(CSD):
         u, s, v = svd(self.k_pot)
         print('min lambda', 10**np.round(np.log10(s[-1]), decimals=0))
         print('max lambda', str.format('{0:.4f}', np.std(np.diag(self.k_pot))))
-        return np.logspace(np.log10(s[-1]), np.std(np.diag(self.k_pot)), 20)
+        return np.logspace(np.log10(s[-1]), np.log10(np.std(np.diag(self.k_pot))), 20)
 
     def L_curve(self, estimate='CSD', lambdas=None, Rs=None, n_jobs=1):
         """Method defines the L-curve.
@@ -566,7 +567,6 @@ class KCSD1D(KCSD):
         m = np.sqrt((x-xp)**2 + h**2) - abs(x-xp)
         m *= basis_func(abs(xp), R)  # xp is the distance
         return m
-
 
 class KCSD2D(KCSD):
     """KCSD2D - The 2D variant for the Kernel Current Source Density method.
@@ -1066,6 +1066,142 @@ class KCSD3D(KCSD):
         pot *= basis_func(dist, R)
         return pot
 
+class oKCSD2D(KCSD2D):
+    """oKCSD - The variant for the Kernel Current Source Density method that 
+    allows to reconstruct potential and CSD in given 2D space points.
+    """
+    def __init__(self, ele_pos, pots, **kwargs):
+        """Initialize oKCSD2D Class.
+        Parameters
+        ----------
+        ele_pos : numpy array
+            positions of electrodes
+        pots : numpy array
+            potentials measured by electrodes
+        **kwargs
+            configuration parameters, that may contain the following keys:
+            src_type : str
+                basis function type ('gauss', 'step', 'gauss_lim')
+                Defaults to 'gauss'
+            sigma : float
+                space conductance of the tissue in S/m
+                Defaults to 1 S/m
+            n_src_init : int
+                requested number of sources
+                Defaults to 1000
+            R_init : float
+                demanded thickness of the basis element
+                Defaults to 0.23
+            h : float
+                thickness of analyzed tissue slice
+                Defaults to 1.
+            own_est: numpy array
+                points coordinates of estimation places. If not given 
+                estimation places will be taken from own_src
+            own_src: numpy array
+                points coordinates of basis source centers 
+            lambd : float
+                regularization parameter for ridge regression
+                Defaults to 0.
+        Raises
+        ------
+        LinAlgError
+            Could not invert the matrix, try changing the ele_pos slightly
+        KeyError
+            Basis function (src_type) not implemented.
+            See basis_functions.py for available
+        """
+        self.own_src = kwargs.pop('own_src', np.array([]))
+        self.own_est = kwargs.pop('own_est', np.array([]))
+        if not self.own_est.any(): self.own_est = self.own_src
+        if not self.own_est.any() and not self.own_src.any():
+            raise KeyError('"own_src" is required argument to use oKCSD2D.' +
+                           'If you would like to reconstruct in default ' +
+                           'region of interest please use KCSD2D')
+        super(oKCSD2D, self).__init__(ele_pos, pots, **kwargs)
+        self.dim = 'own'
+
+    def estimate_at(self):
+        """Redefines locations where the estimation is wanted
+        Defines:
+        self.n_estm = self.estm_x.size
+        self.estm_x, self.estm_y : Locations at which CSD is requested.
+        Parameters
+        ----------
+        None
+        """
+        self.estm_x, self.estm_y = self.own_est
+        self.src_x, self.src_y = self.own_src
+        self.n_estm = self.estm_x.size
+
+class oKCSD3D(KCSD3D):
+    """oKCSD - The variant for the Kernel Current Source Density method that 
+    allows to reconstruct potential and CSD in given 3D space points.
+    """
+    def __init__(self, ele_pos, pots, **kwargs):
+        """Initialize oKCSD3D Class.
+        Parameters
+        ----------
+        ele_pos : numpy array
+            positions of electrodes
+        pots : numpy array
+            potentials measured by electrodes
+        **kwargs
+            configuration parameters, that may contain the following keys:
+            src_type : str
+                basis function type ('gauss', 'step', 'gauss_lim')
+                Defaults to 'gauss'
+            sigma : float
+                space conductance of the tissue in S/m
+                Defaults to 1 S/m
+            n_src_init : int
+                requested number of sources
+                Defaults to 1000
+            R_init : float
+                demanded thickness of the basis element
+                Defaults to 0.23
+            h : float
+                thickness of analyzed tissue slice
+                Defaults to 1.
+            own_est: numpy array
+                points coordinates of estimation places. If not given 
+                estimation places will be taken from own_src
+            own_src: numpy array
+                points coordinates of basis source centers 
+            lambd : float
+                regularization parameter for ridge regression
+                Defaults to 0.
+        Raises
+        ------
+        LinAlgError
+            Could not invert the matrix, try changing the ele_pos slightly
+        KeyError
+            Basis function (src_type) not implemented.
+            See basis_functions.py for available
+        """
+        self.own_src = kwargs.pop('own_src', np.array([]))
+        self.own_est = kwargs.pop('own_est', np.array([]))
+        if not self.own_est.any(): self.own_est = self.own_src
+        if not self.own_est.any() and not self.own_src.any():
+            raise KeyError('"own_src" is required argument to use oKCSD3D.' +
+                           'If you would like to reconstruct in default ' +
+                           'region of interest please use KCSD3D')
+        super(oKCSD3D, self).__init__(ele_pos, pots, **kwargs)
+        self.dim = 'own'
+
+    def estimate_at(self):
+        """Redefines locations where the estimation is wanted
+        Defines:
+        self.n_estm = self.estm_x.size
+        self.estm_x, self.estm_y, self.estm_z : Locations at which CSD is 
+        requested.
+        Parameters
+        ----------
+        None
+        """
+        self.estm_x, self.estm_y, self.estm_z = self.own_est
+        self.src_x, self.src_y, self.src_z = self.own_src
+        self.n_estm = self.estm_x.size
 
 if __name__ == '__main__':
     print('Checking 1D')

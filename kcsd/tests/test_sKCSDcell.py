@@ -6,8 +6,7 @@ import unittest
 import numpy as np
 
 from kcsd import sKCSDcell, sample_data_path
-from kcsd import utility_functions as utils
-from kcsd.utility_functions import LoadData
+from kcsd.sKCSD_utils import LoadData
 
 try:
     basestring

@@ -17,9 +17,9 @@ from scipy.spatial import distance
 from scipy import special, interpolate, integrate
 from collections import Counter, OrderedDict
 import sys
-from .KCSD import KCSD1D
-from . import utility_functions as utils
+from . import sKCSD_utils as utils
 from . import basis_functions as basis
+from .KCSD import KCSD1D
 
 class sKCSDcell(object):
     """
@@ -611,7 +611,7 @@ class sKCSD(KCSD1D):
             See basis_functions.py for available
         """
         self.morphology = morphology
-        super(KCSD1D, self).__init__(ele_pos, pots, **kwargs)
+        super(sKCSD, self).__init__(ele_pos, pots, **kwargs)
 
     def parameters(self, **kwargs):
         self.src_type = kwargs.pop('src_type', 'gauss')

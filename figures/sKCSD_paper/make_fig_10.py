@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import sys
 import os
 from kcsd import sKCSD, sKCSDcell, KCSD3D
-import kcsd.utility_functions as utils
+from kcsd import sKCSD_utils as utils
 import kcsd.validation.plotting_functions as pl
 import sKCSD_utils
 import run_LFP
@@ -141,7 +141,8 @@ if __name__ == '__main__':
             pass
 
     
-        skcsd, pot, cell_obj = utils.load_sim(path)
+        skcsd, pot, morphology, ele_pos, n_src = utils.load_sim(path)
+        cell_obj =  sKCSDcell(morphology, ele_pos, n_src)
         skcsd = cell_itself.transform_to_3D(skcsd)
             
         ax[(i+1)//3, (i+1)%3].imshow(morpho,
