@@ -244,3 +244,5 @@ fig.colorbar(im,
              orientation='vertical',
              #format='%.2g',
              ticks=colorbar_ticks)
+
+fig.savefig('error_propagation.pdf')
