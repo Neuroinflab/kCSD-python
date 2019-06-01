@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 ### BEGIN colorblind_friendly.py ###
 # Based on
 # Color Universal Design (CUD)
