@@ -108,11 +108,11 @@ VAR = np.dot(E.T, E)[np.eye(E.shape[1], dtype=bool)].reshape(int(np.sqrt(E.shape
 
 FIG_WIDTH = 17.0
 FIG_HEIGHT = 6.0
-FIG_WSPACE = 5.0
+FIG_WSPACE = 2.0
 FIG_TOP = 0.9
 FIG_BOTTOM = 0.15
-FIG_LEFT = 0.05
-FIG_RIGHT = 0.95
+FIG_LEFT = 0.125
+FIG_RIGHT = 0.875
 
 
 def maxabs(values):
@@ -188,8 +188,8 @@ for y in range(3):
         if x == 0:
             ax.set_ylabel('Y (mm)')
             if y == 2:
-                ax.text(-0.05,
-                        1.15,
+                ax.text(-0.16,
+                        1.16,
                         'A',
                         fontsize=20,
                         weight='bold',
@@ -224,8 +224,10 @@ ax = fig.add_subplot(gs2[:3, :3])
 
 ax.set_aspect('equal')
 ax.set_xticks(ticks)
+ax.set_xticklabels(ticklabels)
 ax.set_xticks(ticks_minor, minor=True)
 ax.set_yticks(ticks)
+ax.set_yticklabels(ticklabels)
 ax.set_yticks(ticks_minor, minor=True)
 ax.set_ylabel('Y (mm)')
 ax.set_xlabel('X (mm)')
