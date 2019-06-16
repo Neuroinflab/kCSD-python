@@ -14,14 +14,17 @@ Health Report
 -------------
 
 Continuous Integration (Travis):
+
 .. image:: https://travis-ci.org/Neuroinflab/kCSD-python.png?branch=master
    :target: https://travis-ci.org/Neuroinflab/kCSD-python
 
 Test Coverage :	   
+
 .. image:: https://coveralls.io/repos/github/Neuroinflab/kCSD-python/badge.png?branch=master
    :target: https://coveralls.io/github/Neuroinflab/kCSD-python?branch=master
 
 Documentation Status:
+
 .. image:: https://readthedocs.org/projects/kcsd-python/badge/?version=latest
    :target: https://kcsd-python.readthedocs.io/en/latest/?badge=latest
 
@@ -39,7 +42,7 @@ Also included here are installation instructions, authors and their
 contributions, citation policy, contacts etc.,
 
 
-:doc: `./docs/source/TUTORIAL`.
+.. include:: ./docs/source/TUTORIALS.rst
 
 	    
 Earlier Stable versions
