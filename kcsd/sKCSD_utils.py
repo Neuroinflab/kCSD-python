@@ -3,13 +3,6 @@
 These are some useful functions used in CSD methods,
 They include CSD source profiles to be used as ground truths,
 placement of electrodes in 1D, 2D and 3D., etc
-These scripts are based on Grzegorz Parka's,
-Google Summer of Code 2014, INFC/pykCSD
-This was written by :
-Michal Czerwinski, Chaitanya Chintaluri, Joanna Jędrzejewska-Szmek
-Laboratory of Neuroinformatics,
-Nencki Institute of Experimental Biology, Warsaw.
-
 
 N-D Bresenham line algo Copyright 2012 Vikas Dhiman
 
@@ -53,6 +46,7 @@ def load_swc(path):
     Returns
     -------
     morphology : np.array
+
     """
     morphology = np.loadtxt(path)
     return morphology
@@ -101,6 +95,7 @@ def load_sim(path):
     morphology : np.array
     ele_pos : np.array
     n_src : int
+
     """
     est_csd = np.load(os.path.join(path, "csd.npy"))
     est_pot = np.load(os.path.join(path, "pot.npy"))
@@ -130,6 +125,7 @@ def load_elpos(path):
     Returns
     -------
     ele_pos : np.array
+
     """
     raw_ele_pos = np.loadtxt(path)
     if len(raw_ele_pos.shape) == 1:

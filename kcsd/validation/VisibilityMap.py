@@ -1,5 +1,5 @@
-"""
-@author: mkowalska
+"""These are useful for VisibilityMap estimates in kCSD
+
 """
 from __future__ import print_function
 from __future__ import division
@@ -39,9 +39,6 @@ class VisibilityMap1D(ValidateKCSD1D):
         **kwargs
             Configuration parameters.
 
-        Returns
-        -------
-        None
         """
         super(VisibilityMap1D, self).__init__(1, **kwargs)
         self.total_ele = total_ele
@@ -83,6 +80,7 @@ class VisibilityMap1D(ValidateKCSD1D):
         point_error: numpy array
             Error of reconstruction calculated at every point of reconstruction
             space.
+
         """
         if PARALLEL_AVAILABLE:
             err = Parallel(n_jobs=NUM_CORES)(delayed
@@ -144,6 +142,7 @@ class VisibilityMap1D(ValidateKCSD1D):
         point_error: numpy array
             Error of reconstruction calculated at every point of reconstruction
             space.
+
         """
         ele_pos, pots = self.electrode_config(csd_profile, csd_seed,
                                               self.total_ele, self.ele_lims,
@@ -171,9 +170,6 @@ class VisibilityMap1D(ValidateKCSD1D):
         ele_pos: numpy array
             Positions of electrodes.
 
-        Returns
-        -------
-        None
         """
         mean_err = self.sigmoid_mean(point_error)
         plt.figure(figsize=(10, 6))
@@ -205,9 +201,6 @@ class VisibilityMap2D(ValidateKCSD2D):
         **kwargs
             Configuration parameters.
 
-        Returns
-        -------
-        None
         """
         super(VisibilityMap2D, self).__init__(1, **kwargs)
         self.total_ele = total_ele
@@ -247,6 +240,7 @@ class VisibilityMap2D(ValidateKCSD2D):
         point_error: numpy array
             Error of reconstruction calculated at every point of reconstruction
             space.
+
         """
         ele_pos, pots = self.electrode_config(csd_profile, csd_seed,
                                               self.total_ele, self.ele_lims,
@@ -298,6 +292,7 @@ class VisibilityMap2D(ValidateKCSD2D):
         point_error: numpy array
             Error of reconstruction calculated at every point of reconstruction
             space.
+
         """
         tic = time.time()
         if PARALLEL_AVAILABLE:
@@ -344,6 +339,7 @@ class VisibilityMap2D(ValidateKCSD2D):
         -------
         mean_error: numpy array
             Accuracy mask.
+
         """
         ele_x, ele_y = ele_pos[:, 0], ele_pos[:, 1]
         x, y = np.mgrid[self.kcsd_xlims[0]:self.kcsd_xlims[1]:
@@ -379,9 +375,6 @@ class VisibilityMap3D(ValidateKCSD3D):
         **kwargs
             Configuration parameters.
 
-        Returns
-        -------
-        None
         """
         super(VisibilityMap3D, self).__init__(1, **kwargs)
         self.total_ele = total_ele
@@ -421,6 +414,7 @@ class VisibilityMap3D(ValidateKCSD3D):
         point_error: numpy array
             Error of reconstruction calculated at every point of reconstruction
             space.
+
         """
         ele_pos, pots = self.electrode_config(csd_profile, csd_seed,
                                               self.total_ele, self.ele_lims,
@@ -470,6 +464,7 @@ class VisibilityMap3D(ValidateKCSD3D):
         point_error: numpy array
             Error of reconstruction calculated at every point of reconstruction
             space.
+
         """
         tic = time.time()
         if PARALLEL_AVAILABLE:
@@ -515,6 +510,7 @@ class VisibilityMap3D(ValidateKCSD3D):
         -------
         mean_error: numpy array
             Accuracy mask.
+
         """
 #        ele_x, ele_y, ele_z = ele_pos[0], ele_pos[1], ele_pos[2]
         x, y, z = np.mgrid[self.kcsd_xlims[0]:self.kcsd_xlims[1]:

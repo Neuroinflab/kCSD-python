@@ -32,9 +32,12 @@
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = ['sphinx.ext.autodoc',
-    'sphinx.ext.coverage',
-    'sphinx.ext.viewcode']
+              'sphinx.ext.coverage',
+              'sphinx.ext.viewcode',
+              'sphinx.ext.autosummary',
+              'numpydoc',]
 
+# numpydoc_show_class_members = False
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
@@ -49,8 +52,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'kCSD-python'
-copyright = '2019, Chintaluri et.al.'
-author = 'Chintaluri et.al.'
+copyright = '2019, Chintaluri et.al'
+author = 'Chintaluri et.al'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -172,3 +175,10 @@ texinfo_documents = [
 
 
 
+def skip(app, what, name, obj, would_skip, options):
+    if name == "__init__":
+        return False
+    return would_skip
+
+def setup(app):
+    app.connect("autodoc-skip-member", skip)

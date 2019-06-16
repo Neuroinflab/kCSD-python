@@ -9,38 +9,45 @@ KCSD Methods
 
 .. automodule:: kcsd.KCSD
    :members:
+   :inherited-members:
 
 .. autoclass:: kcsd.sKCSD
    :members:
-      
+   :inherited-members:      
       
 Spectral Structure
 ~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: kcsd.validation.ValidateKCSD.SpectralStructure
    :members:
+   :inherited-members:            
       
 Validation
 ~~~~~~~~~~
 
 .. autoclass:: kcsd.validation.ValidateKCSD.ValidateKCSD
    :members:
+   :inherited-members:            
    
 .. autoclass:: kcsd.validation.ValidateKCSD.ValidateKCSD1D
    :members:
+   :inherited-members:      
 		
 .. autoclass:: kcsd.validation.ValidateKCSD.ValidateKCSD2D
    :members:
-		
+   :inherited-members:
+      
 .. autoclass:: kcsd.validation.ValidateKCSD.ValidateKCSD3D
    :members:
-
+   :inherited-members:
+      
 Reliability Maps
 ~~~~~~~~~~~~~~~~
 
 .. automodule:: kcsd.validation.VisibilityMap
    :members:
-
+   :inherited-members:
+      
 Basis functions
 ~~~~~~~~~~~~~~~
 
