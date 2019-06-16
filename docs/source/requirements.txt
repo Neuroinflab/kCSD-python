@@ -3,4 +3,4 @@ scipy
 numpy>=1.8.2
 numpydoc
 sphinx
--e git+https://github.com/Neuroinflab/kCSD-python.git
+
