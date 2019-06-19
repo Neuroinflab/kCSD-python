@@ -314,10 +314,10 @@ class ValidateKCSD(object):
         ele_lims: list
             Electrodes limits.
             Default: None.
-        h : float
+        h: float
             Thickness of analyzed cylindrical slice.
-        sigma : float
-                Space conductance of the medium.
+        sigma: float
+            Space conductance of the medium.
         noise: float
             Determines the level of noise in the data.
             Default: 0.
@@ -357,10 +357,10 @@ class ValidateKCSD(object):
             Positions (coordinates) at which CSD is generated.
         ele_pos: numpy array
             Locations of electrodes.
-        h : float
+        h: float
             Thickness of analyzed cylindrical slice.
-        sigma : float
-                Space conductance of the medium.
+        sigma: float
+            Space conductance of the medium.
 
         Returns
         -------
@@ -413,7 +413,7 @@ class ValidateKCSD(object):
             Coordinates of ground truth data.
         ele_pos: numpy array
             Locations of electrodes.
-        h : float
+        h: float
             Thickness of analyzed cylindrical slice.
 
         Returns
@@ -446,7 +446,7 @@ class ValidateKCSD(object):
             Values of csd (ground truth) at csd_at positions.
         ele_loc: float (1D) or list (2D and 3D)
             Single electrode location/position.
-        h : float
+        h: float
             Thickness of analyzed cylindrical slice.
         csd_lims: list
             Limits of true source space
@@ -951,6 +951,7 @@ class ValidateKCSD2D(ValidateKCSD):
                        pots, title)
         SpectralStructure(k)
         point_error = self.calculate_point_error(test_csd, est_csd[:, :, 0])
+        print(k.n_src)
         return k, rms, point_error
 
     def make_plot(self, csd_at, true_csd, test_csd, kcsd, est_csd, ele_pos,
@@ -1551,6 +1552,7 @@ class SpectralStructure(object):
                               'slightly')
         idx = eigenvalues.argsort()[::-1]
         eigenvalues = eigenvalues[idx]
+        print(eigenvalues.shape)
         eigenvectors = eigenvectors[:, idx]
 #        self.plot_evd_sigma(eigenvalues)
 #        self.plot_evd_sigma_lambd(eigenvalues)
@@ -1697,31 +1699,31 @@ if __name__ == '__main__':
     N_SRC_INIT = 100
     ELE_LIMS = [0.05, 0.95]  # range of electrodes space
     method = 'cross-validation'
-    Rs = np.arange(0.2, 0.5, 0.1)
+    Rs = np.arange(0.2, 0.3, 0.1)
     lambdas = None
     noise = 0
-#
-#    KK = ValidateKCSD1D(CSD_SEED, n_src_init=N_SRC_INIT, h=0.25, R_init=0.23,
-#                        ele_lims=ELE_LIMS, true_csd_xlims=[0., 1.], sigma=0.3,
-#                        src_type='gauss')
-#
-#    KK.make_reconstruction(CSD_PROFILE, CSD_SEED, total_ele=16, noise=noise,
-#                           Rs=Rs, lambdas=lambdas, method=method)
+
+    KK = ValidateKCSD1D(CSD_SEED, n_src_init=N_SRC_INIT, h=0.25, R_init=0.23,
+                        ele_lims=ELE_LIMS, true_csd_xlims=[0., 1.], sigma=0.3,
+                        src_type='gauss')
+
+    KK.make_reconstruction(CSD_PROFILE, CSD_SEED, total_ele=16, noise=noise,
+                           Rs=Rs, lambdas=lambdas, method=method)
 
     print('Checking 2D')
     CSD_PROFILE = CSD.gauss_2d_large
     CSD_SEED = 5
 
-    KK = ValidateKCSD2D(CSD_SEED, h=50., sigma=1., n_src_init=400)
+    KK = ValidateKCSD2D(CSD_SEED, h=50., sigma=1., n_src_init=4)
     KK.make_reconstruction(CSD_PROFILE, CSD_SEED, total_ele=100, noise=noise,
                            Rs=Rs, lambdas=lambdas, method=method)
 
-#    print('Checking 3D')
-#    CSD_PROFILE = CSD.gauss_3d_small
-#    CSD_SEED = 20  # 0-49 are small sources, 50-99 are large sources
-#    TIC = time.time()
-#    KK = ValidateKCSD3D(CSD_SEED, h=50, sigma=1)
-#    KK.make_reconstruction(CSD_PROFILE, CSD_SEED, total_ele=125, noise=noise,
-#                           Rs=Rs, lambdas=lambdas, method=method)
-#    TOC = time.time() - TIC
-#    print('time', TOC)
+    print('Checking 3D')
+    CSD_PROFILE = CSD.gauss_3d_small
+    CSD_SEED = 20  # 0-49 are small sources, 50-99 are large sources
+    TIC = time.time()
+    KK = ValidateKCSD3D(CSD_SEED, h=50, sigma=1)
+    KK.make_reconstruction(CSD_PROFILE, CSD_SEED, total_ele=125, noise=noise,
+                           Rs=Rs, lambdas=lambdas, method=method)
+    TOC = time.time() - TIC
+    print('time', TOC)
