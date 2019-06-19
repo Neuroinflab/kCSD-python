@@ -151,14 +151,12 @@ def get_src_params_2D(Lx, Ly, n_src):
     ds : float
         spacing between the sources
     """
-    coeff = [Ly, Lx - Ly, -Lx * n_src]
-    rts = np.roots(coeff)
-    r = [r for r in rts if type(r) is not complex and r > 0]
-    nx = r[0]
-    ny = n_src / nx
+    S = Lx * Ly
+    S_unit = S / n_src
+    L_unit = S_unit**(1. / 2.)
+    nx = np.ceil(Lx / L_unit)
+    ny = np.ceil(Ly / L_unit)
     ds = Lx / (nx - 1)
-    nx = np.floor(nx) + 1
-    ny = np.floor(ny) + 1
     Lx_n = (nx - 1) * ds
     Ly_n = (ny - 1) * ds
     return (nx, ny, Lx_n, Ly_n, ds)
