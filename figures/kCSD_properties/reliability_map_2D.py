@@ -11,7 +11,7 @@ from matplotlib import gridspec
 from kcsd import csd_profile as CSD
 from kcsd import ValidateKCSD2D
 from figure_properties import *
-from figure7_kCSD2d import make_reconstruction, matrix_symmetrization
+from kcsd_with_reliability_map_2D import make_reconstruction, matrix_symmetrization
 
 
 def set_axis(ax, letter=None):

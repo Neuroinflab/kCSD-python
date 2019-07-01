@@ -22,8 +22,7 @@ def _html(r, g, b):
 
 
 def stability_M(csd_profile, n_src, ele_lims, true_csd_xlims,
-                total_ele, ele_pos, pots,
-                method='cross-validation', Rs=None, lambdas=None, R_init=0.23):
+                total_ele, ele_pos, pots, R_init=0.23):
     """
     Investigates stability of reconstruction for different number of basis
     sources
@@ -44,15 +43,9 @@ def stability_M(csd_profile, n_src, ele_lims, true_csd_xlims,
         Electrodes positions.
     pots: numpy array
         Values of potentials at ele_pos.
-    method: string
-        Determines the method of regularization.
-        Default: cross-validation.
-    Rs: numpy 1D array
-        Basis source parameter for crossvalidation.
-        Default: None.
-    lambdas: numpy 1D array
-        Regularization parameter for crossvalidation.
-        Default: None.
+    R_init: float
+        Initial value of R parameter - width of basis source
+        Default: 0.23.
 
     Returns
     -------
@@ -115,8 +108,7 @@ def set_axis(ax, x, y, letter=None):
 
 
 def generate_figure(csd_profile, R, MU, true_csd_xlims, total_ele, ele_lims,
-                    save_path, method='cross-validation', Rs=None,
-                    lambdas=None, noise=0, R_init=0.23):
+                    save_path, noise=0, R_init=0.23):
     """
     Generates figure for spectral structure decomposition.
 
@@ -138,18 +130,12 @@ def generate_figure(csd_profile, R, MU, true_csd_xlims, total_ele, ele_lims,
         Electrodes limits.
     save_path: string
         Directory.
-    method: string
-        Determines the method of regularization.
-        Default: cross-validation.
-    Rs: numpy 1D array
-        Basis source parameter for crossvalidation.
-        Default: None.
-    lambdas: numpy 1D array
-        Regularization parameter for crossvalidation.
-        Default: None.
     noise: float
         Determines the level of noise in the data.
         Default: 0.
+    R_init: float
+        Initial value of R parameter - width of basis source
+        Default: 0.23.
 
     Returns
     -------
@@ -165,8 +151,7 @@ def generate_figure(csd_profile, R, MU, true_csd_xlims, total_ele, ele_lims,
     OBJ_M, eigenval_M, eigenvec_M = stability_M(csd_profile, n_src_M,
                                                 ele_lims, true_csd_xlims,
                                                 total_ele, ele_pos, pots,
-                                                method=method, Rs=Rs,
-                                                lambdas=lambdas, R_init=R_init)
+                                                R_init=R_init)
 
     plt_cord = [(2, 0), (2, 2), (2, 4),
                 (3, 0), (3, 2), (3, 4),
@@ -244,7 +229,7 @@ def generate_figure(csd_profile, R, MU, true_csd_xlims, total_ele, ele_lims,
             ax.spines['right'].set_visible(False)
             ax.spines['top'].set_visible(False)
     fig.legend(ht, lh, loc='lower center', ncol=5, frameon=False)
-    fig.savefig(os.path.join(save_path, 'vectors_' + method + '_noise_' +
+    fig.savefig(os.path.join(save_path, 'vectors_' + '_noise_' +
                              str(noise) + 'R0_2' + '.png'), dpi=300)
 
     plt.show()
@@ -265,9 +250,6 @@ if __name__ == '__main__':
     CSD_PROFILE = tb.csd_profile
     R = 0.2
     MU = 0.25
-    Rs = np.array([0.05])
     R_init = 0.2
-    lambdas = np.zeros([1])
     generate_figure(CSD_PROFILE, R, MU, TRUE_CSD_XLIMS, TOTAL_ELE, ELE_LIMS,
-                    SAVE_PATH, method='cross-validation',
-                    Rs=Rs, lambdas=lambdas, noise=None, R_init=R_init)
+                    SAVE_PATH, noise=None, R_init=R_init)

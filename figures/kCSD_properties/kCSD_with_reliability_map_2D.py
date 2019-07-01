@@ -56,6 +56,8 @@ def make_reconstruction(KK, csd_profile, csd_seed, total_ele,
 
     Parameters
     ----------
+    KK: instance of the class
+        Instance of class ValidateKCSD1D.
     csd_profile: function
         Function to produce csd profile.
     csd_seed: int
