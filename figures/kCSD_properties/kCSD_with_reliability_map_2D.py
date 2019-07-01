@@ -20,6 +20,24 @@ from figure_properties import *
 
 
 def set_axis(ax, letter=None):
+    """
+    Formats the plot's caption.
+
+    Parameters
+    ----------
+    ax: Axes object.
+    x: float
+        X-position of caption.
+    y: float
+        Y-position of caption.
+    letter: string
+        Caption of the plot.
+        Default: None.
+
+    Returns
+    -------
+    ax: modyfied Axes object.
+    """
     ax.text(
         -0.05,
         1.05,

@@ -13,7 +13,6 @@ from matplotlib import gridspec
 
 from kcsd import ValidateKCSD1D, ValidateKCSD2D, ValidateKCSD3D
 from kcsd import csd_profile as CSD
-from kcsd import KCSD1D, KCSD2D, KCSD3D
 
 try:
     from joblib import Parallel, delayed
