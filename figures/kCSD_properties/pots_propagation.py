@@ -132,7 +132,7 @@ def generate_figure(true_csd_xlims, total_ele, ele_lims,
                                 plt_cord[i][1]:plt_cord[i][1]+2])
         ax.plot(np.linspace(0, 1, 100), est_csd[i], lw=2, c='red',
                 label='kCSD')
-        ax.scatter(ele_pos, np.zeros(len(ele_pos)), c='k', label='Electordes')
+        ax.scatter(ele_pos, np.zeros(len(ele_pos)), c='k', label='Electrodes')
         ax2 = ax.twinx()
         ax2.plot(np.linspace(0, 1, 100), OBJ_M[i].values('POT'), c='green',
                  label='Potentials')
