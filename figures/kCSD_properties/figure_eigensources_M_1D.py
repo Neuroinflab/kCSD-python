@@ -21,22 +21,15 @@ def _html(r, g, b):
     return "#{:02X}{:02X}{:02X}".format(r, g, b)
 
 
-def stability_M(csd_profile, n_src, ele_lims, true_csd_xlims,
-                total_ele, ele_pos, pots, R_init=0.23):
+def stability_M(n_src, total_ele, ele_pos, pots, R_init=0.23):
     """
     Investigates stability of reconstruction for different number of basis
     sources
 
     Parameters
     ----------
-    csd_profile: function
-        Function to produce csd profile.
     n_src: int
         Number of basis sources.
-    ele_lims: list
-        Boundaries for electrodes placement.
-    true_csd_xlims: list
-        Boundaries for ground truth space.
     total_ele: int
         Number of electrodes.
     ele_pos: numpy array
@@ -148,8 +141,7 @@ def generate_figure(csd_profile, R, MU, true_csd_xlims, total_ele, ele_lims,
                                                             noise=noise)
 
     n_src_M = [2, 4, 8, 16, 32, 64, 128, 256, 512]
-    OBJ_M, eigenval_M, eigenvec_M = stability_M(csd_profile, n_src_M,
-                                                ele_lims, true_csd_xlims,
+    OBJ_M, eigenval_M, eigenvec_M = stability_M(n_src_M,
                                                 total_ele, ele_pos, pots,
                                                 R_init=R_init)
 

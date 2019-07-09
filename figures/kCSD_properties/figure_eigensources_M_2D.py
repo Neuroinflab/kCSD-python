@@ -4,6 +4,7 @@
 import os
 from os.path import expanduser
 import numpy as np
+from numpy.linalg import LinAlgError
 import matplotlib.pyplot as plt
 from figure_properties import *
 import matplotlib.gridspec as gridspec
@@ -11,7 +12,7 @@ import matplotlib.cm as cm
 import datetime
 import time
 
-from kcsd import SpectralStructure, KCSD2D, ValidateKCSD2D
+from kcsd import KCSD2D, ValidateKCSD2D
 from kcsd import csd_profile as CSD
 
 __abs_file__ = os.path.abspath(__file__)
@@ -21,36 +22,24 @@ def _html(r, g, b):
     return "#{:02X}{:02X}{:02X}".format(r, g, b)
 
 
-def stability_M(csd_profile, n_src, ele_lims,
-                total_ele, ele_pos, pots,
-                method='cross-validation', Rs=None, lambdas=None):
+def stability_M(n_src, total_ele, ele_pos, pots, R_init=0.23):
     """
     Investigates stability of reconstruction for different number of basis
     sources
 
     Parameters
     ----------
-    csd_profile: function
-        Function to produce csd profile.
     n_src: int
         Number of basis sources.
-    ele_lims: list
-        Boundaries for electrodes placement.
     total_ele: int
         Number of electrodes.
     ele_pos: numpy array
         Electrodes positions.
     pots: numpy array
         Values of potentials at ele_pos.
-    method: string
-        Determines the method of regularization.
-        Default: cross-validation.
-    Rs: numpy 1D array
-        Basis source parameter for crossvalidation.
-        Default: None.
-    lambdas: numpy 1D array
-        Regularization parameter for crossvalidation.
-        Default: None.
+    R_init: float
+        Initial value of R parameter - width of basis source
+        Default: 0.23.
 
     Returns
     -------
@@ -67,18 +56,19 @@ def stability_M(csd_profile, n_src, ele_lims,
         pots = pots.reshape((len(ele_pos), 1))
         obj = KCSD2D(ele_pos, pots, src_type='gauss', sigma=1., h=50.,
                      gdx=0.01, gdy=0.01, n_src_init=n_src[i], xmin=0, xmax=1,
-                     ymax=1, ymin=0)
-        if method == 'cross-validation':
-            obj.cross_validate(Rs=Rs, lambdas=lambdas)
-        elif method == 'L-curve':
-            obj.L_curve(Rs=Rs, lambdas=lambdas)
-        ss = SpectralStructure(obj)
-        eigenvectors[i], eigenvalues[i] = ss.evd()
-
+                     ymax=1, ymin=0, R_init=R_init)
+        try:
+            eigenvalue, eigenvector = np.linalg.eigh(obj.k_pot +
+                                                     obj.lambd *
+                                                     np.identity
+                                                     (obj.k_pot.shape[0]))
+        except LinAlgError:
+            raise LinAlgError('EVD is failing - try moving the electrodes'
+                              'slightly')
+        idx = eigenvalue.argsort()[::-1]
+        eigenvalues[i] = eigenvalue[idx]
+        eigenvectors[i] = eigenvector[:, idx]
         obj_all.append(obj)
-    np.save('obj_all.npy', obj_all)
-    np.save('eigenvalues.npy', eigenvalues)
-    np.save('eigenvectors.npy', eigenvectors)
     return obj_all, eigenvalues, eigenvectors
 
 
@@ -112,8 +102,7 @@ def set_axis(ax, x, y, letter=None):
 
 
 def generate_figure(csd_profile, csd_seed, ele_pos, pots, total_ele, ele_lims,
-                    save_path, method='cross-validation', Rs=None,
-                    lambdas=None, noise=0):
+                    save_path, noise=0, R_init=0.23):
     """
     Generates figure for spectral structure decomposition.
 
@@ -133,18 +122,12 @@ def generate_figure(csd_profile, csd_seed, ele_pos, pots, total_ele, ele_lims,
         Electrodes limits.
     save_path: string
         Directory.
-    method: string
-        Determines the method of regularization.
-        Default: cross-validation.
-    Rs: numpy 1D array
-        Basis source parameter for crossvalidation.
-        Default: None.
-    lambdas: numpy 1D array
-        Regularization parameter for crossvalidation.
-        Default: None.
     noise: float
         Determines the level of noise in the data.
         Default: 0.
+    R_init: float
+        Initial value of R parameter - width of basis source
+        Default: 0.23.
 
     Returns
     -------
@@ -155,14 +138,11 @@ def generate_figure(csd_profile, csd_seed, ele_pos, pots, total_ele, ele_lims,
     x, y = csd_at
 
     n_src_M = [4, 9, 16, 27, 64, 81, 128, 256, 512, 729, 1024]
-    OBJ_M = np.load('obj_all.npy')
-    eigenval_M = np.load('eigenvalues.npy')
-    eigenvec_M = np.load('eigenvectors.npy')
-#    OBJ_M, eigenval_M, eigenvec_M = stability_M(csd_profile, n_src_M,
-#                                                ele_lims,
-#                                                total_ele, ele_pos, pots,
-#                                                method=method, Rs=Rs,
-#                                                lambdas=lambdas)
+#    OBJ_M = np.load('obj_all.npy')
+#    eigenval_M = np.load('eigenvalues.npy')
+#    eigenvec_M = np.load('eigenvectors.npy')
+    OBJ_M, eigenval_M, eigenvec_M = stability_M(n_src_M,
+                                                total_ele, ele_pos, pots)
 
     plt_cord = [(3, 0), (3, 2), (3, 4),
                 (5, 0), (5, 2), (5, 4),
@@ -259,18 +239,14 @@ if __name__ == '__main__':
     CSD_PROFILE = CSD.gauss_2d_large
     N_SRC_INIT = 1000
     ELE_LIMS = [0.118, 0.882]  # range of electrodes space
-    method = 'cross-validation'
-    Rs = np.linspace(0.1, 1.5, 15)
-    lambdas = np.zeros(1)
-    noise = 0
     CSD_SEED = 16
-    TRUE_CSD_XLIMS = [0., 1.]
     home = expanduser('~')
     DAY = datetime.datetime.now()
     DAY = DAY.strftime('%Y%m%d')
     TIMESTR = time.strftime("%H%M%S")
     SAVE_PATH = home + "/kCSD_results/" + DAY + '/' + TIMESTR
     total_ele = 9
+    R_init = 0.23
 
     KK = ValidateKCSD2D(CSD_SEED, h=50., sigma=1., n_src_init=N_SRC_INIT,
                         ele_lims=ELE_LIMS, est_xres=0.01, est_yres=0.01)
@@ -278,5 +254,4 @@ if __name__ == '__main__':
                                         ele_lims=ELE_LIMS, h=50., sigma=1.)
 
     generate_figure(CSD_PROFILE, CSD_SEED, ele_pos, pots, total_ele, ELE_LIMS,
-                    SAVE_PATH, method='cross-validation', Rs=Rs,
-                    lambdas=lambdas)
+                    SAVE_PATH, R_init=R_init)
