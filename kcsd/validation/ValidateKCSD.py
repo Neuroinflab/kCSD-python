@@ -276,19 +276,19 @@ class ValidateKCSD(object):
             if ele_lims is None:
                 ele_x, ele_y, ele_z = np.mgrid[
                     self.ele_lims[0]:self.ele_lims[1]:
-                    np.complex(0, int((total_ele)**(1./3))),
+                    np.complex(0, int(round((total_ele)**(1./3), 1))),
                     self.ele_lims[0]:self.ele_lims[1]:
-                    np.complex(0, int((total_ele)**(1./3))),
+                    np.complex(0, int(round((total_ele)**(1./3), 1))),
                     self.ele_lims[0]:self.ele_lims[1]:
-                    np.complex(0, int((total_ele)**(1./3)))]
+                    np.complex(0, int(round((total_ele)**(1./3), 1)))]
             else:
                 ele_x, ele_y, ele_z = np.mgrid[
                     ele_lims[0]:ele_lims[1]:
-                    np.complex(0, int((total_ele)**(1./3))),
+                    np.complex(0, int(round((total_ele)**(1./3), 1))),
                     ele_lims[0]:ele_lims[1]:
-                    np.complex(0, int((total_ele)**(1./3))),
+                    np.complex(0, int(round((total_ele)**(1./3), 1))),
                     ele_lims[0]:ele_lims[1]:
-                    np.complex(0, int((total_ele)**(1./3)))]
+                    np.complex(0, int(round((total_ele)**(1./3), 1)))]
             ele_pos = np.vstack((ele_x.flatten(), ele_y.flatten(),
                                  ele_z.flatten())).T
         if nr_broken_ele is not None:
