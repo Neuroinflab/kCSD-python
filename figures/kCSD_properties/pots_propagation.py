@@ -153,7 +153,7 @@ def generate_figure(true_csd_xlims, total_ele, ele_lims,
         else:
             ax.set_yticks(())
         if (i+1) % 3 == 0:
-            ax2.set_ylabel('Potentials ($mA$)')
+            ax2.set_ylabel('Potentials ($mV$)')
             ax2.set_yticks((-1, 0, 1))
             ax2.set_yticklabels(('-1', '0', '1'))
         else:
