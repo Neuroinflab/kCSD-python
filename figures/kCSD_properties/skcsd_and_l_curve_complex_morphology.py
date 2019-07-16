@@ -175,8 +175,8 @@ def draw_ground_truth_skcsd_segments(ax1, gtruth, skcsd, time, gvmin, gvmax):
 
 def draw_ground_truth_skcsd_3D(ax1, gtruth, skcsd, data,
                                 gvmin, gvmax, t_plot):
-    ax1[2].set_title('Ground truth in t = %1.1f ms' %t_plot)
-    ax1[3].set_title('CSD in t = %1.1f ms' %t_plot)
+    ax1[2].set_title('Ground truth at t = %1.1f ms' %t_plot)
+    ax1[3].set_title('CSD at t = %1.1f ms' %t_plot)
     for i in [2, 3]:
         ax1[i].set_ylabel('x (um)')
         ax1[i].set_xlabel('y (um)')
