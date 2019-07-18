@@ -1,13 +1,11 @@
 import os
 import numpy as np
-from kcsd import csd_profile as CSD
-from kcsd import KCSD2D
-from scipy.integrate import simps
 from scipy.interpolate import griddata
 from figure_properties import *
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import matplotlib.gridspec as gridspec
+
 
 def fetch_folder(csd_type='small'):
     if csd_type == 'small':
@@ -63,22 +61,12 @@ def electrode_positions(missing_ele=0):
     ele_x, ele_y = np.mgrid[0.05: 0.95: 10j,
                             0.05: 0.95: 10j]
     ele_pos = np.vstack((ele_x.flatten(), ele_y.flatten())).T
-    #Remove some electrodes
+    # Remove some electrodes
     remove_num = missing_ele
     rstate = np.random.RandomState(42)  # just a random seed
     rmv = rstate.choice(ele_pos.shape[0], remove_num, replace=False)
     ele_pos = np.delete(ele_pos, rmv, 0)
     return ele_pos
-
-
-def point_errors_old(true_csd, est_csd):
-    epsilon = np.finfo(np.float64).eps
-    err2 = np.linalg.norm(true_csd.reshape(true_csd.size, 1) -
-                          est_csd.reshape(est_csd.size, 1), axis=1)
-    err2 /= np.linalg.norm(true_csd.reshape(true_csd.size, 1), axis=1) + \
-    epsilon*np.max(np.linalg.norm(true_csd.reshape(true_csd.size, 1), axis=1))
-    err = err2.reshape(true_csd.shape)
-    return sigmoid_mean(err)
 
 
 def point_errors(true_csd, est_csd):
@@ -94,7 +82,6 @@ def point_errors(true_csd, est_csd):
 
 def sigmoid_mean(error):
     sig_error = 2*(1./(1 + np.exp((-error))) - 1/2.)
-#    error_mean = np.mean(sig_error, axis=0)
     return sig_error
 
 
@@ -105,21 +92,8 @@ def point_errors_Ch(true_csd, est_csd):
     return err
 
 
-def calculate_rdm(true_csd, est_csd):
-    rdm = abs(est_csd.reshape(est_csd.size, 1)/(np.linalg.norm(est_csd.reshape(est_csd.size, 1))) -
-              true_csd.reshape(true_csd.size, 1)/(np.linalg.norm(true_csd.reshape(true_csd.size, 1))))
-    return rdm.reshape(true_csd.shape)
-
-
-def calculate_mag(true_csd, est_csd):
-    mag = abs(est_csd.reshape(est_csd.size, 1)/(true_csd.reshape(true_csd.size, 1)))
-    return sigmoid_mean(mag.reshape(true_csd.shape))
-
-
 def eval_errors(list_dicts, seed_list):
     list_errs = []
-    # list_levels = []
-    # list_emax = []
     for ii, ele_data in enumerate(list_dicts):
         errs = np.zeros((len(seed_list), ele_data[0]['post_cv'].shape[0],
                          ele_data[0]['post_cv'].shape[1]))
@@ -127,23 +101,15 @@ def eval_errors(list_dicts, seed_list):
             est_csd = ele_data[seed]['post_cv']
             true_csd = ele_data[seed]['true_csd']
             point_errs = point_errors(true_csd, est_csd)
-#            point_errs = point_errors_Ch(true_csd, est_csd)
-#            point_errs = calculate_mag(true_csd, est_csd)
             errs[seed] = point_errs
         np.save('point_err_' +str(ii) + '.npy', errs)
-            
-#        err = sum(errs) / len(errs)
         err = np.mean(errs, axis=0)
-        list_errs.append(err) # average error
-        # list_emax.append(np.max(err))
-        # list_levels.append(np.linspace(0, np.max(err), 32))
+        list_errs.append(err)  # average error
     return list_errs
 
 
 def eval_errors_random(list_dicts, seed_list):
     list_errs = []
-    # list_levels = []
-    # list_emax = []
     for ii, ele_data in enumerate(list_dicts):
         errs = np.zeros((len(seed_list), ele_data[0]['post_cv'].shape[0],
                          ele_data[0]['post_cv'].shape[1]))
@@ -151,18 +117,8 @@ def eval_errors_random(list_dicts, seed_list):
             est_csd = ele_data[seed]['post_cv']
             true_csd = ele_data[seed]['true_csd']
             point_errs = point_errors(true_csd, est_csd)
-#            sig_error = 2*(1./(1 + np.exp((-point_errs))) - 1/2.)
-#            errs[seed] = sig_error
-#            point_errs = point_errors_Ch(true_csd, est_csd)
-#            point_errs = calculate_mag(true_csd, est_csd)
             errs[seed] = point_errs
-        
-#        err = np.mean(sig_error, axis=0)
-#        err = np.mean(errs, axis=0)
-        print('err', errs.shape)
-        list_errs.append(errs) # average error
-        # list_emax.append(np.max(err))
-        # list_levels.append(np.linspace(0, np.max(err), 32))
+        list_errs.append(errs)  # average error
     return list_errs
 
 
@@ -198,6 +154,7 @@ def make_subplot(ax, val_type, xs, ys, values, cax, title=None, ele_pos=None,
     set_axis(ax, letter=letter)
     return ax, cax
 
+
 def fetch_values(csd_type):
     if csd_type =='small':
         seed_list = range(100)
@@ -216,13 +173,10 @@ def fetch_values_random(csd_type):
     list_dicts_l = load_files(fldrs_l, range(100))
     errs_s = eval_errors_random(list_dicts_s, range(100))
     errs_l = eval_errors_random(list_dicts_l, range(100))
-    print('e_s', errs_s[0].shape)
     errs = []
     for ii in range(len(errs_s)):
         error = np.concatenate((errs_s[ii], errs_l[ii]))
-        print(error.shape, 'random_all')
         errs.append(np.mean(error, axis=0))
-    print('e', errs[0].shape)
     return errs
 
 
@@ -393,7 +347,7 @@ def generate_figure2():
 
 
 if __name__ == '__main__':
-    generate_figure()
-#    generate_figure2()
+#    generate_figure()
+    generate_figure2()
 
 

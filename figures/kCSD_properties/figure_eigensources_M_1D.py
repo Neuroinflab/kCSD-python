@@ -2,14 +2,11 @@
 @author: mkowalska
 """
 import os
-from os.path import expanduser
 import numpy as np
 from numpy.linalg import LinAlgError
 import matplotlib.pyplot as plt
 from figure_properties import *
 import matplotlib.gridspec as gridspec
-import datetime
-import time
 
 from kcsd import KCSD1D
 import targeted_basis as tb
@@ -101,7 +98,7 @@ def set_axis(ax, x, y, letter=None):
 
 
 def generate_figure(csd_profile, R, MU, true_csd_xlims, total_ele, ele_lims,
-                    save_path, noise=0, R_init=0.23):
+                    noise=0, R_init=0.23):
     """
     Generates figure for spectral structure decomposition.
 
@@ -121,8 +118,6 @@ def generate_figure(csd_profile, R, MU, true_csd_xlims, total_ele, ele_lims,
         Number of electrodes.
     ele_lims: list
         Electrodes limits.
-    save_path: string
-        Directory.
     noise: float
         Determines the level of noise in the data.
         Default: 0.
@@ -221,21 +216,13 @@ def generate_figure(csd_profile, R, MU, true_csd_xlims, total_ele, ele_lims,
             ax.spines['right'].set_visible(False)
             ax.spines['top'].set_visible(False)
     fig.legend(ht, lh, loc='lower center', ncol=5, frameon=False)
-    fig.savefig(os.path.join(save_path, 'vectors_' + '_noise_' +
+    fig.savefig(os.path.join('vectors_' + '_noise_' +
                              str(noise) + 'R0_2' + '.png'), dpi=300)
 
     plt.show()
 
 
 if __name__ == '__main__':
-    home = expanduser('~')
-    DAY = datetime.datetime.now()
-    DAY = DAY.strftime('%Y%m%d')
-    TIMESTR = time.strftime("%H%M%S")
-    SAVE_PATH = home + "/kCSD_results/" + DAY + '/' + TIMESTR
-    tb.makemydir(SAVE_PATH)
-    tb.save_source_code(SAVE_PATH, time.strftime("%Y%m%d-%H%M%S"))
-
     ELE_LIMS = [0, 1.]
     TRUE_CSD_XLIMS = [0., 1.]
     TOTAL_ELE = 12
@@ -244,4 +231,4 @@ if __name__ == '__main__':
     MU = 0.25
     R_init = 0.2
     generate_figure(CSD_PROFILE, R, MU, TRUE_CSD_XLIMS, TOTAL_ELE, ELE_LIMS,
-                    SAVE_PATH, noise=None, R_init=R_init)
+                    noise=None, R_init=R_init)

@@ -3,7 +3,6 @@ from __future__ import division
 from __future__ import unicode_literals
 from __future__ import absolute_import
 
-import os
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
@@ -11,7 +10,7 @@ from matplotlib import gridspec
 from kcsd import csd_profile as CSD
 from kcsd import ValidateKCSD2D
 from figure_properties import *
-from kcsd_with_reliability_map_2D import make_reconstruction, matrix_symmetrization
+from kCSD_with_reliability_map_2D import make_reconstruction, matrix_symmetrization
 
 
 def set_axis(ax, letter=None):
@@ -116,9 +115,9 @@ if __name__ == '__main__':
                                                              Rs=Rs,
                                                              lambdas=lambdas,
                                                              method=method)
-    path = os.path.join(os.path.expanduser('~'), 'Dropbox', 'kCSDrev-pics')
-    error_l = np.load(path + '/error_maps_2D/point_error_large_100_all_ele.npy')
-    error_s = np.load(path + '/error_maps_2D/point_error_small_100_all_ele.npy')
+
+    error_l = np.load('error_maps_2D/point_error_large_100_all_ele.npy')
+    error_s = np.load('error_maps_2D/point_error_small_100_all_ele.npy')
     error_all = np.concatenate((error_l, error_s))
     symm_array_large = matrix_symmetrization(error_l)
     symm_array_small = matrix_symmetrization(error_s)

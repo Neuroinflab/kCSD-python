@@ -2,16 +2,12 @@
 @author: mkowalska
 """
 import os
-from os.path import expanduser
 import numpy as np
 import matplotlib.pyplot as plt
 from figure_properties import *
 import matplotlib.gridspec as gridspec
-import datetime
-import time
 
 from kcsd import KCSD1D
-import targeted_basis as tb
 
 __abs_file__ = os.path.abspath(__file__)
 
@@ -87,8 +83,7 @@ def set_axis(ax, x, y, letter=None):
     return ax
 
 
-def generate_figure(true_csd_xlims, total_ele, ele_lims,
-                    save_path, R_init=0.23):
+def generate_figure(true_csd_xlims, total_ele, ele_lims, R_init=0.23):
     """
     Generates figure for potential propagation. Shows kCSD recostruction
     for unitary potential on one electrode.
@@ -101,8 +96,6 @@ def generate_figure(true_csd_xlims, total_ele, ele_lims,
         Number of electrodes.
     ele_lims: list
         Electrodes limits.
-    save_path: string
-        Directory.
     R_init: float
         Initial value of R parameter.
 
@@ -167,46 +160,15 @@ def generate_figure(true_csd_xlims, total_ele, ele_lims,
     ht2, lh2 = ax2.get_legend_handles_labels()
 
     fig.legend(ht1+ht2, lh1+lh2, loc='lower center', ncol=3, frameon=False)
-    fig.savefig(os.path.join(save_path, 'vectors_' + 'R0_2' + '.png'), dpi=300)
+    fig.savefig(os.path.join('potential_propagation_R0_2' + '.png'), dpi=300)
     plt.show()
 
 
-#def align_yaxis(ax1, v1, ax2, v2):
-#    """
-#    Adjust ax2 ylimit so that v2 in ax2 is aligned to v1 in ax1
-#
-#    Parametres
-#    ----------
-#    ax1
-#    v1
-#    ax2
-#    v2
-#
-#    Returns
-#    -------
-#    None
-#    """
-#    _, y1 = ax1.transData.transform((0, v1))
-#    _, y2 = ax2.transData.transform((0, v2))
-#    inv = ax2.transData.inverted()
-#    _, dy = inv.transform((0, 0)) - inv.transform((0, y1-y2))
-#    miny, maxy = ax2.get_ylim()
-#    ax2.set_ylim(miny+dy, maxy+dy)
-
-
 if __name__ == '__main__':
-    home = expanduser('~')
-    DAY = datetime.datetime.now()
-    DAY = DAY.strftime('%Y%m%d')
-    TIMESTR = time.strftime("%H%M%S")
-    SAVE_PATH = home + "/kCSD_results/" + DAY + '/' + TIMESTR
-    tb.makemydir(SAVE_PATH)
-    tb.save_source_code(SAVE_PATH, time.strftime("%Y%m%d-%H%M%S"))
-
     ELE_LIMS = [0, 1.]
     TRUE_CSD_XLIMS = [0., 1.]
     TOTAL_ELE = 12
     R_init = 0.2
     lambdas = np.zeros([1])
     generate_figure(TRUE_CSD_XLIMS, TOTAL_ELE, ELE_LIMS,
-                    SAVE_PATH, R_init=R_init)
+                    R_init=R_init)
