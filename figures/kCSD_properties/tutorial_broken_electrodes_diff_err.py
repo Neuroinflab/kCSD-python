@@ -82,7 +82,6 @@ def point_errors(true_csd, est_csd):
 
 def sigmoid_mean(error):
     sig_error = 2*(1./(1 + np.exp((-error))) - 1/2.)
-#    error_mean = np.mean(sig_error, axis=0)
     return sig_error
 
 
