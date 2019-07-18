@@ -18,7 +18,7 @@ figure_Tbasis.py
 ~~~~~~~~~~~~~~~~~~~~~~~
 Figure 3 and 4 - Noisy electrodes / Basis source placement
 
-figure_Tbasis.py
+figure_Tbasis_noise.py
 
 ~~~~~~~~~~~~~~~~~~~~~~~
 Figure 5 - L-curve method for regularization
