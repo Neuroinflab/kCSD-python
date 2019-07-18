@@ -134,7 +134,7 @@ def fetch_values(csd_type):
     if csd_type =='small':
         seed_list = range(100)
     else:
-        seed_list = range(60)
+        seed_list = range(100)
     fldrs = fetch_folder(csd_type=csd_type)
     list_dicts = load_files(fldrs, seed_list)
     errs = eval_errors(list_dicts, seed_list)
