@@ -42,6 +42,10 @@ Also included here are installation instructions, authors and their
 contributions, citation policy, contacts etc.,
 
 
+Also included are `Tutorials!`_
+
+.. _Tutorials!: /docs/source/TUTORIALS.rst
+
 .. include:: ./docs/source/TUTORIALS.rst
 
 	    
