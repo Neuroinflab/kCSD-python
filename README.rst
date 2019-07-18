@@ -1,7 +1,7 @@
 Kernel Current Source Density
 =============================
 
-This is v2.0rc version of kCSD inverse method proposed in
+This is the 2.0 version of kCSD inverse method proposed in
 
 J. Potworowski, W. Jakuczun, S. Łęski, D. K. Wójcik
 "Kernel Current Source Density Method"
