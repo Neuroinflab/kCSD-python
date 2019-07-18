@@ -88,8 +88,6 @@ def make_subplot(ax, true_csd, est_csd, estm_x, title=None, ele_pos=None,
         l3 = ax.plot(estm_x, est_csd_LC, '.', label='kCSD L-Curve', lw=2.)
     else:
         l2 = ax.plot(estm_x, est_csd, '--', label='kCSD', lw=2.)
-    s1 = ax.scatter(ele_pos, np.zeros(len(ele_pos)), 17, 'k', label='Electrodes')
-#    ax.legend(fontsize=10)
     ax.set_xlim([0, 1])
     if xlabel:
         ax.set_xlabel('Depth ($mm$)')
@@ -99,8 +97,23 @@ def make_subplot(ax, true_csd, est_csd, estm_x, title=None, ele_pos=None,
         ax.set_title(title)
     if np.max(est_csd) < 1.2:
         ax.set_ylim(-0.2, 1.2)
-    elif np.max(est_csd) > 500:
-        ax.set_yticks([-5000, 0, 5000], [-5000, 0, 5000])
+        s1 = ax.scatter(ele_pos, np.zeros(len(ele_pos))-0.2, 17, 'k', label='Electrodes')
+        s1.set_clip_on(False)
+    elif np.max(est_csd) < 1.7:
+        ax.set_ylim(-10000, 10000)
+        s3 = ax.scatter(ele_pos, np.zeros(len(ele_pos))-10000, 17, 'k', label='Electrodes')
+        s3.set_clip_on(False)
+        ax.set_yticks([-7000, 0, 7000])
+    if np.max(est_csd) > 500:
+        ax.set_ylim(-7000, 7000)
+        s3 = ax.scatter(ele_pos, np.zeros(len(ele_pos))-7000, 17, 'k', label='Electrodes')
+        s3.set_clip_on(False)
+        ax.set_yticks([-5000, 0, 5000])
+    elif np.max(est_csd) > 50:
+        ax.set_ylim(-100, 100)
+        s2 = ax.scatter(ele_pos, np.zeros(len(ele_pos))-100, 17, 'k', label='Electrodes')
+        s2.set_clip_on(False)
+        ax.set_yticks([-70, 0, 70])
     ax.set_xticks([0, 0.5, 1])
     set_axis(ax, letter=letter)
     # ax.legend(frameon=False, loc='upper center', ncol=3)
@@ -493,10 +506,10 @@ if __name__ == '__main__':
     MU = 0.25
     method = 'cross-validation'  # L-curve
 #    method = 'L-curve'
-    Rs = np.arange(0.1, 0.4, 0.05)
-#    Rs = np.array([0.2])
+#    Rs = np.arange(0.1, 0.4, 0.05)
+    Rs = np.array([0.2])
     lambdas = np.zeros(1)
-#    generate_figure(R, MU, N_SRC, TRUE_CSD_XLIMS, TOTAL_ELE, SAVE_PATH,
-#                    method=method, Rs=Rs, lambdas=lambdas, noise=0)
-    generate_figure_CVLC(R, MU, N_SRC, TRUE_CSD_XLIMS, TOTAL_ELE, SAVE_PATH,
-                         Rs=Rs, lambdas=None, noise=10)
+    generate_figure(R, MU, N_SRC, TRUE_CSD_XLIMS, TOTAL_ELE, SAVE_PATH,
+                    method=method, Rs=Rs, lambdas=lambdas, noise=0)
+#    generate_figure_CVLC(R, MU, N_SRC, TRUE_CSD_XLIMS, TOTAL_ELE, SAVE_PATH,
+#                         Rs=Rs, lambdas=None, noise=10)
