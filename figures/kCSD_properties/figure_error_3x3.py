@@ -11,7 +11,7 @@ from __future__ import absolute_import
 import os
 import numpy as np
 from figure_properties import *
-from kcsd_with_reliability_map_2D import matrix_symmetrization
+from kCSD_with_reliability_map_2D import matrix_symmetrization
 from reliability_map_2D import generate_reliability_map
 
 
