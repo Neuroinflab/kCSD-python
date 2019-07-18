@@ -8,7 +8,6 @@ from __future__ import absolute_import
 
 from builtins import range
 
-import os
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
@@ -174,7 +173,6 @@ def grid(x, y, z, resX=100, resY=100):
     z = z.flatten()
     xi, yi = np.mgrid[min(x):max(x):np.complex(0, resX),
                       min(y):max(y):np.complex(0, resY)]
-    print(x.shape, y.shape, z.shape)
     zi = griddata((x, y), z, (xi, yi), method='linear')
     return xi, yi, zi
 
@@ -210,7 +208,7 @@ def generate_figure(k, true_csd, ele_pos, pots, mask=False):
                  letter='D',
                  t_max=np.max(abs(true_csd-k.values('CSD')[:, :, 0])),
                  level=np.linspace(0, np.max(abs(true_csd-k.values('CSD')[:, :, 0])), 16))
-    plt.savefig('figure_7.png', dpi=300)
+    plt.savefig('kCSD_with_reliability_map_2D.png', dpi=300)
     plt.show()
 
 
@@ -247,9 +245,8 @@ if __name__ == '__main__':
                                                              Rs=Rs,
                                                              lambdas=lambdas,
                                                              method=method)
-    path = os.path.join(os.path.expanduser('~'), 'Dropbox', 'kCSDrev-pics')
-    error_l = np.load(path + '/error_maps_2D/point_error_large_100_all_ele.npy')
-    error_s = np.load(path + '/error_maps_2D/point_error_small_100_all_ele.npy')
+    error_l = np.load('error_maps_2D/point_error_large_100_all_ele.npy')
+    error_s = np.load('error_maps_2D/point_error_small_100_all_ele.npy')
     error_all = np.concatenate((error_l, error_s))
     symm_array_all = matrix_symmetrization(error_all)
     generate_figure(k, true_csd, ele_pos, pots,

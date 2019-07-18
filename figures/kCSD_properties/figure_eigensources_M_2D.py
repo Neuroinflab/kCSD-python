@@ -102,7 +102,7 @@ def set_axis(ax, x, y, letter=None):
 
 
 def generate_figure(csd_profile, csd_seed, ele_pos, pots, total_ele, ele_lims,
-                    save_path, noise=0, R_init=0.23):
+                    noise=0, R_init=0.23):
     """
     Generates figure for spectral structure decomposition.
 
@@ -120,8 +120,6 @@ def generate_figure(csd_profile, csd_seed, ele_pos, pots, total_ele, ele_lims,
         Number of electrodes.
     ele_lims: list
         Electrodes limits.
-    save_path: string
-        Directory.
     noise: float
         Determines the level of noise in the data.
         Default: 0.
@@ -240,11 +238,6 @@ if __name__ == '__main__':
     N_SRC_INIT = 1000
     ELE_LIMS = [0.118, 0.882]  # range of electrodes space
     CSD_SEED = 16
-    home = expanduser('~')
-    DAY = datetime.datetime.now()
-    DAY = DAY.strftime('%Y%m%d')
-    TIMESTR = time.strftime("%H%M%S")
-    SAVE_PATH = home + "/kCSD_results/" + DAY + '/' + TIMESTR
     total_ele = 9
     R_init = 0.23
 
@@ -254,4 +247,4 @@ if __name__ == '__main__':
                                         ele_lims=ELE_LIMS, h=50., sigma=1.)
 
     generate_figure(CSD_PROFILE, CSD_SEED, ele_pos, pots, total_ele, ELE_LIMS,
-                    SAVE_PATH, R_init=R_init)
+                    R_init=R_init)
