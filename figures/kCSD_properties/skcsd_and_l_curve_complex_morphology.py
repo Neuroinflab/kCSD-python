@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import
 import os
 import numpy as np
@@ -110,8 +112,8 @@ def read_in_data(ddir):
 def draw_morpho(ax, morpho, extent, electrode_positions, title=False):
     if title is not False:
         ax.set_title('Cell morphology')
-    ax.set_ylabel('x (um)')
-    ax.set_xlabel('y (um)')    
+    ax.set_ylabel(u'x (μm)')
+    ax.set_xlabel(u'y (μm)')
     ax.imshow(morphology,
               origin="lower",
               interpolation="spline36",
