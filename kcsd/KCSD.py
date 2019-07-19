@@ -377,7 +377,7 @@ class KCSD(CSD):
         print('max lambda', str.format('{0:.4f}', np.std(np.diag(self.k_pot))))
         return np.logspace(np.log10(s[-1]), np.log10(np.std(np.diag(self.k_pot))), 20)
 
-    def L_curve(self, estimate='CSD', lambdas=None, Rs=None, n_jobs=1):
+    def L_curve(self, lambdas=None, Rs=None, n_jobs=1):
         """Method defines the L-curve.
 
         By default calculates L-curve over lambda,
@@ -406,7 +406,7 @@ class KCSD(CSD):
             Rs = np.array((self.R)).flatten()
         else:
             Rs = np.array((Rs)).flatten()
-        self.lcurve_axis = np.zeros((2,len(Rs),len(lambdas)))
+        self.lcurve_axis = np.zeros((2, len(Rs), len(lambdas)))
         self.curve_surf = np.zeros((len(Rs), len(lambdas)))
         for R_idx, R in enumerate(Rs):
             self.update_R(R)
@@ -419,11 +419,11 @@ class KCSD(CSD):
             curveseq = res_log[0] * (norm_log - norm_log[-1]) + res_log * (norm_log[-1] - norm_log[0]) \
                 + res_log[-1] * (norm_log[0] - norm_log)
             self.curve_surf[R_idx] = curveseq
-            self.lcurve_axis[0,R_idx]=modelnormseq#norm_log
-            self.lcurve_axis[1,R_idx]=residualseq#res_log
+            self.lcurve_axis[0,R_idx] = modelnormseq#norm_log
+            self.lcurve_axis[1,R_idx] = residualseq#res_log
         best_R_ind = np.argmax(np.max(self.curve_surf, axis=1))
-        self.m_norm = self.lcurve_axis[0,best_R_ind]
-        self.m_resi = self.lcurve_axis[1,best_R_ind]
+        self.m_norm = self.lcurve_axis[0, best_R_ind]
+        self.m_resi = self.lcurve_axis[1, best_R_ind]
         self.update_R(Rs[best_R_ind])
         self.update_lambda(lambdas[np.argmax(self.curve_surf, axis=1)[best_R_ind]])
         print("Best lambda and R = ", self.lambd, ', ',
