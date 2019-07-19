@@ -114,7 +114,7 @@ def draw_morpho(ax, morpho, extent, electrode_positions, title=False):
         ax.set_title('Cell morphology')
     ax.set_ylabel(u'x (μm)')
     ax.set_xlabel(u'y (μm)')
-    ax.imshow(morphology,
+    ax.imshow(morpho,
               origin="lower",
               interpolation="spline36",
               aspect="auto",
@@ -235,7 +235,8 @@ if __name__ == '__main__':
     except NameError:
         pass
 
-    skcsd, pot, cell_obj = utils.load_sim(path)
+    skcsd, pot, morphology_file, ele_pos, n_src  = utils.load_sim(path)
+    cell_obj = sKCSDcell(morphology_file, ele_pos, n_src)
     csd = cell_obj.transform_to_segments(skcsd)
     draw_ground_truth_skcsd_segments(ax, ground_truth, csd, time, gvmin, gvmax)
     csd_3D = cell_itself.transform_to_3D(skcsd[:, toplot])
