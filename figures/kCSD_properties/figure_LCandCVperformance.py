@@ -75,8 +75,8 @@ def make_plot_perf(sim_results):
     fig.savefig('stats.png')
 
 if __name__=='__main__':
-    os.chdir("./LCurve/")
+#    os.chdir("./LCurve/")
     noises = 9
     noise_lvl = np.linspace(0, 0.5, noises)
-    sim_results = np.load('sim_results.npy')
-    make_plot_perf(sim_results)
+#    sim_results = np.load('sim_results.npy')
+#    make_plot_perf(sim_results)

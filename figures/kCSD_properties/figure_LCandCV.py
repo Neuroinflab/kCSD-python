@@ -62,12 +62,12 @@ def plot_surface(curve_surf, errsy, save_as):
     fig.savefig(save_as+'.png')
 
 if __name__=='__main__':
-    os.chdir("./LCurve/")
+#    os.chdir("./LCurve/")
     noises = 3
     noise_lvl = np.linspace(0, 0.5, noises)
-    df = np.load('LC2/data_fig4_and_fig13_lc_noise25.0.npz')
+#    df = np.load('LC2/data_fig4_and_fig13_lc_noise25.0.npz')
     Rs = np.linspace(0.025, 8*0.025, 8)
     title = ['nazwa_pliku']
     save_as = 'noise'
-    plot_surface(df['curve_surf'], df['errsy'], save_as+'surf')
+#    plot_surface(df['curve_surf'], df['errsy'], save_as+'surf')
     plt.close('all')
