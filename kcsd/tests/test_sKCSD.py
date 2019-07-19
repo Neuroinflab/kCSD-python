@@ -5,7 +5,7 @@ import os
 import unittest
 
 from kcsd import sKCSD, sample_data_path
-from kcsd.utility_functions import LoadData
+from kcsd.sKCSD_utils import LoadData
 
 try:
     basestring
