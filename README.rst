@@ -46,7 +46,6 @@ Also included are `Tutorials!`_
 
 .. _Tutorials!: /docs/source/TUTORIALS.rst
 
-.. include:: ./docs/source/TUTORIALS.rst
 
 	    
 Earlier Stable versions
