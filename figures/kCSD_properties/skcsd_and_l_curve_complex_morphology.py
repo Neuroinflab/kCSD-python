@@ -213,15 +213,15 @@ if __name__ == '__main__':
     morphology, extent = cell_itself.draw_cell2D()
     extent = [ex*1e6 for ex in extent]
     draw_somav(ax_somav, time, somav)
-    # k = sKCSD(data.ele_pos,
-    #           data.LFP,
-    #           data.morphology,
-    #           n_src_init=n_src,
-    #           src_type='gauss',
-    #           lambd=lambd,
-    #           exact=True,
-    #           R_init=R,
-    #           sigma=0.3)
+    k = sKCSD(data.ele_pos,
+              data.LFP,
+              data.morphology,
+              n_src_init=n_src,
+              src_type='gauss',
+              lambd=lambd,
+              exact=True,
+              R_init=R,
+              sigma=0.3)
     path = os.path.join(data_dir, 'lambda_%f_R_%f_n_src_%d' % (lambd, R, n_src))
     if sys.version_info < (3, 0):
         path = os.path.join(path, "preprocessed_data/Python_2")
