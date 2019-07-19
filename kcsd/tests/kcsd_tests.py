@@ -126,9 +126,9 @@ class KCSD2D_TestCase(unittest.TestCase):
         self.assertLess(rms, 0.5, msg='RMS ' + str(rms) +
                         'between trueCSD and estimate > 0.5')
 
-    def test_method_generic_lim(self):
-        self.test_params.update({'src_type': 'gauss_lim'})
-        self.test_kcsd2d_estimate()
+    # def test_method_generic_lim(self):
+    #     self.test_params.update({'src_type': 'gauss_lim'})
+    #     self.test_kcsd2d_estimate()
 
     # def test_method_generic_step(self):
     #     self.test_params.update({'src_type': 'step'})
@@ -177,9 +177,9 @@ class KCSD3D_TestCase(unittest.TestCase):
         self.assertLess(rms, 0.5, msg='RMS ' + str(rms) +
                         'between trueCSD and estimate > 0.5')
 
-    def test_method_generic_lim(self):
-        self.test_params.update({'src_type': 'gauss_lim'})
-        self.test_kcsd3d_estimate()
+    # def test_method_generic_lim(self):
+    #     self.test_params.update({'src_type': 'gauss_lim'})
+    #     self.test_kcsd3d_estimate()
     
     # def test_method_generic_step(self):
     #     self.test_params.update({'src_type': 'step'})
