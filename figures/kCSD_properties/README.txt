@@ -11,22 +11,28 @@ Figure 2 - 1D spectral properties of kCSD method
 figure_eigensources_M_1D.py
 
 ~~~~~~~~~~~~~~~~~~~~~~~
-Figure 3 and 4 - Noise-free Electrode / Basis source placement
+Figure 3 - Noise-free Electrode / Basis source placement
 
 figure_Tbasis.py
 
 ~~~~~~~~~~~~~~~~~~~~~~~
-Figure 3 and 4 - Noisy electrodes / Basis source placement
+Figure 4 - Noisy electrodes / Basis source placement
 
 figure_Tbasis_noise.py
 
 ~~~~~~~~~~~~~~~~~~~~~~~
 Figure 5 - L-curve method for regularization
 
+You will need to run L_curve_simulation.py first or download files from here:
+...
+figure_LC.py
+
 ~~~~~~~~~~~~~~~~~~~~~~~
 Figure 6 - L-curve versus Cross-validation
 
-fig2_cv_vs_lc.py
+You will need to run L_curve_simulation.py first or download files from here:
+...
+figure_LCandCVperformance.py
 
 ~~~~~~~~~~~~~~~~~~~~~~~
 Figure 7 - Error propagation map
@@ -83,6 +89,9 @@ tutorial_broken_electrodes.py
 ~~~~~~~~~~~~~~~~~~~~~~~~
 Figure 14 - L-Curve and CV landscape
 
+You will need to run L_curve_simulation.py first or download files from here:
+...
+figure_LCandCV.py
 
 =====================
 Supplementary Figures

@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 
 plt.rcParams.update({
-    
+
     'xtick.labelsize': 15,
     'xtick.major.size': 10,
     'ytick.labelsize': 15,
