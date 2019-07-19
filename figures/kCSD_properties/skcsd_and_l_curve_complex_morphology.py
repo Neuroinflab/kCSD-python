@@ -234,7 +234,6 @@ if __name__ == '__main__':
         pass
 
     skcsd, pot, cell_obj = utils.load_sim(path)
-    print(skcsd.max(), skcsd.min(), ground_truth.min(), ground_truth.max())
     csd = cell_obj.transform_to_segments(skcsd)
     draw_ground_truth_skcsd_segments(ax, ground_truth, csd, time, gvmin, gvmax)
     csd_3D = cell_itself.transform_to_3D(skcsd[:, toplot])
