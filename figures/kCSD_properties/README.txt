@@ -114,5 +114,4 @@ tutorial_basic_3d.py
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 Figure S4 / 18 - sKCSD example
 
-
-
+skcsd_and_l_curve_complex_morphology.py
