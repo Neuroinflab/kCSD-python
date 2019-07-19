@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import sys
 import os
 from kcsd import sKCSD, sKCSDcell, KCSD3D
-import kcsd.utility_functions as utils
+import kcsd.sKCSD_utils as utils
 import kcsd.validation.plotting_functions as pl
 import sKCSD_utils
 import run_LFP

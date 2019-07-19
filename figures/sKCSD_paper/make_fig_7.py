@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import sys
 import os
 from kcsd import sKCSD
-import kcsd.utility_functions as utils
+import kcsd.sKCSD_utils as utils
 import kcsd.validation.plotting_functions as pl
 import sKCSD_utils
 dt = 0.5

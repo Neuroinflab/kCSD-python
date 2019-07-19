@@ -16,7 +16,7 @@ else:
 import numpy as np
 import matplotlib.pyplot as plt
 from kcsd import sKCSD
-import kcsd.utility_functions as utils
+import kcsd.sKCSD_utils as utils
 import sKCSD_utils
 from kcsd.validation import plotting_functions as pl
 
