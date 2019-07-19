@@ -25,13 +25,11 @@ OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from __future__ import print_function, division, absolute_import
+import os
+import json
+
 import numpy as np
 from scipy.spatial import distance
-import os
-import pickle
-from scipy import interpolate
-import json
-import sys
 
 
 def load_swc(path):
