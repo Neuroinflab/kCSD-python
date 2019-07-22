@@ -35,10 +35,7 @@ from __future__ import print_function, division, absolute_import
 import numpy as np
 from scipy.spatial import distance
 import os
-import pickle
-from scipy import interpolate
 import json
-import sys
 import kcsd
     
 raise_errror = """Unknown electrode position file format.
