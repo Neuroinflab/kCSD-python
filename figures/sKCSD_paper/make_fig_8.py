@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import sys
 import os
 from kcsd import sKCSD, sKCSDcell, KCSD3D
-import kcsd.sKCSD_utils as utils
+from kcsd import sKCSD_utils as utils
 import kcsd.validation.plotting_functions as pl
 import sKCSD_utils
 n_src = 1024
@@ -108,10 +108,9 @@ if __name__ == '__main__':
         utils.save_sim(path, ker)
     except NameError:
         pass
-    
-    skcsd, pot, cell_obj = utils.load_sim(path)
-    est_skcsd = cell_itself.transform_to_3D(skcsd[:, t0])
-   
+    skcsd, pot, morphology, ele_pos, n_src = utils.load_sim(path)
+    cell_object = sKCSDcell(morphology, ele_pos, n_src)
+    est_skcsd = cell_itself.transform_to_3D(skcsd)
     skcsd_seg = cell_itself.transform_to_segments(skcsd)
     skcsd_snapshot = est_skcsd.sum(axis=(2))[:, :, 0]
     gt_snapshot = ground_truth_3D.sum(axis=(2))[:, :, 0]

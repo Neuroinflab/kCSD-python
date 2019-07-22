@@ -1,5 +1,5 @@
-"""
-@author: mkowalska
+"""These are useful for VisibilityMap estimates in kCSD
+
 """
 from __future__ import print_function
 from __future__ import division
@@ -13,7 +13,6 @@ from matplotlib import gridspec
 
 from kcsd import ValidateKCSD1D, ValidateKCSD2D, ValidateKCSD3D
 from kcsd import csd_profile as CSD
-from kcsd import KCSD1D, KCSD2D, KCSD3D
 
 try:
     from joblib import Parallel, delayed
@@ -39,9 +38,6 @@ class VisibilityMap1D(ValidateKCSD1D):
         **kwargs
             Configuration parameters.
 
-        Returns
-        -------
-        None
         """
         super(VisibilityMap1D, self).__init__(1, **kwargs)
         self.total_ele = total_ele
@@ -83,6 +79,7 @@ class VisibilityMap1D(ValidateKCSD1D):
         point_error: numpy array
             Error of reconstruction calculated at every point of reconstruction
             space.
+
         """
         if PARALLEL_AVAILABLE:
             err = Parallel(n_jobs=NUM_CORES)(delayed
@@ -144,6 +141,7 @@ class VisibilityMap1D(ValidateKCSD1D):
         point_error: numpy array
             Error of reconstruction calculated at every point of reconstruction
             space.
+
         """
         ele_pos, pots = self.electrode_config(csd_profile, csd_seed,
                                               self.total_ele, self.ele_lims,
@@ -171,9 +169,6 @@ class VisibilityMap1D(ValidateKCSD1D):
         ele_pos: numpy array
             Positions of electrodes.
 
-        Returns
-        -------
-        None
         """
         mean_err = self.sigmoid_mean(point_error)
         plt.figure(figsize=(10, 6))
@@ -205,9 +200,6 @@ class VisibilityMap2D(ValidateKCSD2D):
         **kwargs
             Configuration parameters.
 
-        Returns
-        -------
-        None
         """
         super(VisibilityMap2D, self).__init__(1, **kwargs)
         self.total_ele = total_ele
@@ -247,13 +239,13 @@ class VisibilityMap2D(ValidateKCSD2D):
         point_error: numpy array
             Error of reconstruction calculated at every point of reconstruction
             space.
+
         """
         ele_pos, pots = self.electrode_config(csd_profile, csd_seed,
                                               self.total_ele, self.ele_lims,
                                               self.h, self.sigma,
                                               noise=noise,
                                               nr_broken_ele=nr_broken_ele)
-
         k, est_csd = self.do_kcsd(pots, ele_pos, method=method, Rs=Rs,
                                   lambdas=lambdas)
         test_csd = csd_profile([k.estm_x, k.estm_y], csd_seed)
@@ -298,6 +290,7 @@ class VisibilityMap2D(ValidateKCSD2D):
         point_error: numpy array
             Error of reconstruction calculated at every point of reconstruction
             space.
+
         """
         tic = time.time()
         if PARALLEL_AVAILABLE:
@@ -344,6 +337,7 @@ class VisibilityMap2D(ValidateKCSD2D):
         -------
         mean_error: numpy array
             Accuracy mask.
+
         """
         ele_x, ele_y = ele_pos[:, 0], ele_pos[:, 1]
         x, y = np.mgrid[self.kcsd_xlims[0]:self.kcsd_xlims[1]:
@@ -353,9 +347,9 @@ class VisibilityMap2D(ValidateKCSD2D):
         mean_error = self.sigmoid_mean(point_error)
         plt.figure(figsize=(12, 7))
         ax1 = plt.subplot(111, aspect='equal')
-        levels = np.linspace(0, 1., 25)
+#        levels = np.linspace(0, 1., 25)
         im = ax1.contourf(x, y, mean_error, cmap='Greys')
-        plt.colorbar(im)#im, fraction=0.046, pad=0.06)
+        plt.colorbar(im)
         plt.scatter(ele_x, ele_y, 10, c='k')
         ax1.set_xlabel('Depth x [mm]')
         ax1.set_ylabel('Depth y [mm]')
@@ -379,9 +373,6 @@ class VisibilityMap3D(ValidateKCSD3D):
         **kwargs
             Configuration parameters.
 
-        Returns
-        -------
-        None
         """
         super(VisibilityMap3D, self).__init__(1, **kwargs)
         self.total_ele = total_ele
@@ -421,6 +412,7 @@ class VisibilityMap3D(ValidateKCSD3D):
         point_error: numpy array
             Error of reconstruction calculated at every point of reconstruction
             space.
+
         """
         ele_pos, pots = self.electrode_config(csd_profile, csd_seed,
                                               self.total_ele, self.ele_lims,
@@ -470,6 +462,7 @@ class VisibilityMap3D(ValidateKCSD3D):
         point_error: numpy array
             Error of reconstruction calculated at every point of reconstruction
             space.
+
         """
         tic = time.time()
         if PARALLEL_AVAILABLE:
@@ -515,6 +508,7 @@ class VisibilityMap3D(ValidateKCSD3D):
         -------
         mean_error: numpy array
             Accuracy mask.
+
         """
 #        ele_x, ele_y, ele_z = ele_pos[0], ele_pos[1], ele_pos[2]
         x, y, z = np.mgrid[self.kcsd_xlims[0]:self.kcsd_xlims[1]:
@@ -555,23 +549,23 @@ if __name__ == '__main__':
     CSD_PROFILE = CSD.gauss_1d_mono
     ELE_LIMS = [0.1, 0.9]  # range of electrodes space
     TRUE_CSD_XLIMS = [0., 1.]
-#    k = VisibilityMap1D(total_ele=10, h=0.25, R_init=0.3, ele_lims=ELE_LIMS,
-#                        true_csd_xlims=TRUE_CSD_XLIMS, sigma=0.3,
-#                        src_type='gauss', n_src_init=100, ext_x=0.1)
-#    rms, point_error = k.calculate_error_map(CSD_PROFILE,
-#                                             Rs=np.arange(0.2, 0.5, 0.1))
-#    ele_pos = np.linspace(ELE_LIMS[0], ELE_LIMS[1], 32)
+    k = VisibilityMap1D(total_ele=10, h=0.25, R_init=0.3, ele_lims=ELE_LIMS,
+                        true_csd_xlims=TRUE_CSD_XLIMS, sigma=0.3,
+                        src_type='gauss', n_src_init=100, ext_x=0.1)
+    rms, point_error = k.calculate_error_map(CSD_PROFILE,
+                                             Rs=np.arange(0.2, 0.5, 0.1))
 
     print('Checking 2D')
-    ELE_LIMS = [0.05, 0.95]
+    ELE_LIMS = [0.118, 0.882]
     CSD_PROFILE = CSD.gauss_2d_large
-    a = VisibilityMap2D(total_ele=100, h=50., sigma=1., n_src_init=400,
+    a = VisibilityMap2D(total_ele=9, h=50., sigma=1., n_src_init=1000,
                         ele_lims=ELE_LIMS, true_csd_xlims=TRUE_CSD_XLIMS,
                         est_xres=0.01, est_yres=0.01)
-    rms, point_error = a.calculate_error_map(CSD_PROFILE, Rs=np.arange(0.05, 0.5, 0.05),
-                                             lambdas=np.array(0), n=70)
+    rms, point_error = a.calculate_error_map(CSD_PROFILE,
+                                             Rs=np.arange(0.05, 0.5, 0.05),
+                                             lambdas=np.array(0), n=2)
 
-#    print('Checking 3D')
-#    CSD_PROFILE = CSD.gauss_3d_small
-#    a = VisibilityMap3D(total_ele=64, h=50., sigma=1., n_src_init=729)
-#    a.calculate_error_map(CSD_PROFILE)
+    print('Checking 3D')
+    CSD_PROFILE = CSD.gauss_3d_small
+    a = VisibilityMap3D(total_ele=64, h=50., sigma=1., n_src_init=729)
+    a.calculate_error_map(CSD_PROFILE)

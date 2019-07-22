@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import sys
 import os
 from kcsd import sKCSD, KCSD3D, sKCSDcell
-import kcsd.sKCSD_utils as utils
+from  kcsd import sKCSD_utils as utils
 import kcsd.validation.plotting_functions as pl
 import sKCSD_utils
 
@@ -154,6 +154,23 @@ if __name__ == '__main__':
                       sigma=0.3)
         est_kcsd = kcsd.values(estimate='CSD')
         est_kcsd_pot = kcsd.values(estimate='POT')
+        if sys.version_info < (3, 0):
+            path = os.path.join(fname_base % i, "preprocessed_data/Python_2")
+        else:
+            path = os.path.join(fname_base % i, "preprocessed_data/Python_3")
+
+        if not os.path.exists(path):
+            print("Creating", path)
+            os.makedirs(path)
+        
+        try:
+            est_skcsd = ker.values(estimate='CSD')
+        except NameError:
+            skcsd, pot, morphology, ele_pos, n_src = utils.load_sim(path)
+            cell_object = sKCSDcell(morphology, ele_pos, n_src)
+            est_skcsd = cell_itself[i].transform_to_3D(skcsd)
+
+
         est_skcsd_t1 = est_skcsd[:, :, :, t1].sum(axis=1)
         est_skcsd_t2 = est_skcsd[:, :, :, t2].sum(axis=1)
         

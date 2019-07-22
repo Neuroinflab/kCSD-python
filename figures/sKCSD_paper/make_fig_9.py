@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import sys
 import os
 from kcsd import sKCSD, sKCSDcell
-import kcsd.sKCSD_utils as utils
+from  kcsd import sKCSD_utils as utils
 import kcsd.validation.plotting_functions as pl
 import sKCSD_utils
 import numpy.random
@@ -125,7 +125,8 @@ if __name__ == '__main__':
             pass
       
         
-        est_skcsd, est_pot, cell_obj = utils.load_sim(path)
+        est_skcsd, est_pot, morphology, ele_pos, n_src = utils.load_sim(path)
+        cell_object = sKCSDcell(morphology, ele_pos, n_src)
         est_skcsd = cell.transform_to_3D(est_skcsd)
         L1.append(sKCSD_utils.L1_error(ground_truth_grid, est_skcsd))
         if nl == 0:

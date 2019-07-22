@@ -4,11 +4,14 @@ import os
 from distutils.spawn import find_executable, spawn
 import shutil
 import subprocess
+from kcsd import sample_data_path
 if find_executable('nrnivmodl') is not None:
     for path in ['x86_64', 'i686', 'powerpc']:
         if os.path.isdir(path):
             shutil.rmtree(path)
     spawn([find_executable('nrnivmodl')])
+    sinsyn_loc = os.path.join(sample_data_path, "sinsyn.mod")
+    subprocess.call(["cp", sinsyn_loc, os.getcwd()])
     subprocess.call(["nrnivmodl", "sinsyn.mod"])
 else:
     print("""nrnivmodl script not found in PATH, thus NEURON .mod files could
@@ -16,7 +19,7 @@ else:
 import numpy as np
 import matplotlib.pyplot as plt
 from kcsd import sKCSD
-import kcsd.sKCSD_utils as utils
+from kcsd import sKCSD_utils as utils
 import sKCSD_utils
 from kcsd.validation import plotting_functions as pl
 

@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-The following people have contributed code and/or ideas to the current version of kCSD
+Following people have contributed code and/or ideas to the current version of kCSD
 
 Chaitanya Chintaluri[1] Marta Kowalska[1] Michal Czerwinski[1] Joanna Jędrzejewska – Szmek[1] Władysław Średniawa[1]
 
 Jan Mąka [1, 3*] Grzegorz Parka[2] Daniel K. Wojcik[1]
 
 [1] Laboratory of Neuroinformatics, Nencki Institute of Experimental Biology, Warsaw, Poland [2] Google Summer of Code 2014, INCF/pykCSD [3] University of Warsaw, Poland
+
 """
 from __future__ import print_function, division, absolute_import
 import numpy as np
@@ -15,9 +16,9 @@ from scipy.spatial import distance
 from scipy import special, interpolate, integrate
 from collections import Counter, OrderedDict
 import sys
-from .KCSD import KCSD1D
 from . import sKCSD_utils as utils
 from . import basis_functions as basis
+from .KCSD import KCSD1D
 
 class sKCSDcell(object):
     """
@@ -28,9 +29,11 @@ class sKCSDcell(object):
     CSDestimates/potential estimates from loop/segment space to 3D.
     The method implented here is based on the original paper
     by Dorottya Cserpan et al., 2017.
+
     """
     def __init__(self, morphology, ele_pos, n_src, **kwargs):
-        """
+        """ Initialize sKCSDcell class
+        
         Parameters
         ----------
         morphology : np.array
@@ -41,6 +44,7 @@ class sKCSDcell(object):
             number of sources
         tolerance : float
             minimum size of dendrite used to calculate 3 D grid parameters
+
         """
         self.morphology = morphology  # morphology file
         self.ele_pos = ele_pos  # electrode_positions
@@ -73,8 +77,9 @@ class sKCSDcell(object):
         self.distribute_srcs_3D_morph()
 
     def add_segment(self, mp1, mp2):
-        """Add indices (mp1, mp2) of morphology points defining a segment
+        """Add indices of morphology points defining a segment
         to a dictionary of segments.
+
         This dictionary is used for CSD/potential trasformation from
         loops to segments.
 
@@ -110,9 +115,6 @@ class sKCSDcell(object):
     def morphology_loop(self):
         """Cover the morphology of the cell with loops.
 
-        Parameters
-        ----------
-        None
         """
         # loop over morphology
         self.loops = []
@@ -152,20 +154,15 @@ class sKCSDcell(object):
         self.loop_pos = self.est_pos[1:]
 
     def distribute_srcs_3D_morph(self):
-        """
-        Calculate 3D coordinates of sources placed on the morphology loop.
+        """Calculate 3D coordinates of sources placed on the morphology loop.
 
-        Parameters
-        ----------
-        None
         """
         for i, x in enumerate(self.source_pos):
             self.source_xyz[i] = self.get_xyz(x)
         return self.source_pos
     
     def get_src_ele_mesh(self, electrode_no):
-        """
-        Calculate mesh with coordinates of sources and electrodes number
+        """Calculate mesh with coordinates of sources and electrodes number
         for exact b_pot calculation.
 
         Parameters
@@ -176,6 +173,7 @@ class sKCSDcell(object):
         -------
         list, where list[0]: 1D source coordinates on the morphology loop,
         list[1]: electrode number
+
         """
         return np.meshgrid(self.source_pos,
                            electrode_no,
@@ -454,7 +452,6 @@ class sKCSDcell(object):
         -------
         result : np.array
         """
-            
         if what == "loop":
             coor_3D = self.coordinates_3D_loops()
         elif what == "morpho":
@@ -487,6 +484,7 @@ class sKCSDcell(object):
         Returns
         -------
         result : np.array
+
         """
         result = np.zeros((self.morphology.shape[0]-1, estimated.shape[1]))
         for i, loop in enumerate(self.loops):
@@ -567,7 +565,8 @@ class sKCSD(KCSD1D):
     using the skCSD method Cserpan et.al (2017).
     """
     def __init__(self, ele_pos, pots, morphology, **kwargs):
-        """Initialize sKCSD Class.
+        """
+        Initialize sKCSD Class.
 
         Parameters
         ----------
@@ -611,10 +610,6 @@ class sKCSD(KCSD1D):
                  complicated morphology)
                 Defaults to False
 
-        Returns
-        -------
-        None
-
         Raises
         ------
         LinAlgError
@@ -623,9 +618,10 @@ class sKCSD(KCSD1D):
         KeyError
             Basis function (src_type) not implemented.
             See basis_functions.py for available
+
         """
         self.morphology = morphology
-        super(KCSD1D, self).__init__(ele_pos, pots, **kwargs)
+        super(sKCSD, self).__init__(ele_pos, pots, **kwargs)
 
     def parameters(self, **kwargs):
         self.src_type = kwargs.pop('src_type', 'gauss')
@@ -647,13 +643,6 @@ class sKCSD(KCSD1D):
         Defines:
         self.n_estm = len(self.cell.estm_x)
 
-        Parameters
-        ----------
-        None
-
-        Returns
-        -------
-        None
         """
         self.cell = sKCSDcell(self.morphology, self.ele_pos,
                               self.n_src_init, tolerance=self.tolerance)
@@ -669,13 +658,6 @@ class sKCSD(KCSD1D):
         self.src_x: Locations at which basis sources are placed.
         self.n_src: amount of placed basis sources
 
-        Parameters
-        ----------
-        None
-
-        Returns
-        -------
-        None
         """
         self.R = self.R_init
         source_type = self.src_type
@@ -696,13 +678,6 @@ class sKCSD(KCSD1D):
     def create_src_dist_tables(self):
         """Creates distance tables between sources, electrode and estm points
 
-        Parameters
-        ----------
-        None
-
-        Returns
-        -------
-        None
         """
 
         self.src_estm_dists = self.cell.get_src_estm_dists()
@@ -712,6 +687,7 @@ class sKCSD(KCSD1D):
     
     def forward_model_1D(self, src, dist, R, sigma, src_type):
         """FWD model functions
+
         Evaluates potential at point (x,0) by a basis source located at (0,0)
 
         Parameters
@@ -725,6 +701,7 @@ class sKCSD(KCSD1D):
         -------
         pot : float
             value of potential at specified distance from the source
+
         """
         pot, err = integrate.quad(self.int_pot_1D,
                                   -2*R*np.sqrt(2),
@@ -736,6 +713,7 @@ class sKCSD(KCSD1D):
     
     def forward_model_3D(self, src, dist, R,  sigma, src_type):
         """FWD model functions
+
         Evaluates potential at point (x,0) by a basis source located at (0,0)
  
         Parameters
@@ -749,6 +727,7 @@ class sKCSD(KCSD1D):
         -------
         pot : float
             value of potential at specified distance from the source
+
         """
         pot, err = integrate.quad(self.int_pot_3D,
                                   -2*R*np.sqrt(2),
@@ -809,6 +788,7 @@ class sKCSD(KCSD1D):
         Parameters
         ----------
         R : float
+
         """
         self.R = R
         self.dist_max = np.max(self.src_x) + self.R
@@ -826,9 +806,6 @@ class sKCSD(KCSD1D):
         by self.create_lookup() is used, otherwise the potential
         is calculated for every source and electrode position.
 
-        Parameters
-        ----------
-        None
         """
         if not self.exact:
             dims = (self.n_src, len(self.ele_pos))
@@ -855,9 +832,6 @@ class sKCSD(KCSD1D):
         Updates b_interp_pot
         Updates k_interp_pot
 
-        Parameters
-        ----------
-        None
         """
         shape = self.src_estm_dists_pot[0].shape
         src = self.src_estm_dists_pot[0].reshape(shape[0]*shape[1])
@@ -872,14 +846,11 @@ class sKCSD(KCSD1D):
         """
         Reconstruction from CSD of potentials measured at the electrodes
 
-        Parameters
-        ----------
-        None
-
         Returns
         -------
         estimation : np.array
             Potential generated by the CSD measured at the electrodes
+
         """
         estimation = np.zeros((self.n_ele, self.n_time))
         k_inv = np.linalg.inv(self.k_pot + self.lambd *
@@ -908,6 +879,7 @@ class sKCSD(KCSD1D):
         -------
         estimation : np.array
             estimated quantity
+
         '''
         estimated = super(sKCSD, self).values(estimate=estimate)
         if transformation is None:
@@ -942,6 +914,7 @@ class sKCSD(KCSD1D):
         Returns
         -------
         pot : float
+
         """
         xp_coor = self.cell.get_xyz(self.cell.corrected_x(xp))
         new_x = [x, y, z]
@@ -972,6 +945,7 @@ class sKCSD(KCSD1D):
         Returns
         -------
         pot : float
+
         """
         xp_coor = self.cell.get_xyz(self.cell.corrected_x(xp))
         x_coor = self.cell.get_xyz(self.cell.corrected_x(x))

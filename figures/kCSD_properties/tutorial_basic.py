@@ -43,13 +43,14 @@ def set_axis(ax, letter=None):
         transform=ax.transAxes)
     return ax
 
-def make_subplot(ax, val_type, xs, ys, values, cax, title=None, ele_pos=None, xlabel=False, ylabel=False, letter=''):
+def make_subplot(ax, val_type, xs, ys, values, cax, title=None, ele_pos=None, xlabel=False, ylabel=False, letter='', t_max=None):
     if val_type == 'csd':
         cmap = cm.bwr
     elif val_type == 'pot':
         cmap = cm.PRGn
     ax.set_aspect('equal')
-    t_max = np.max(np.abs(values))
+    if t_max is None:
+        t_max = np.max(np.abs(values))
     levels = np.linspace(-1 * t_max, t_max, 32)
     im = ax.contourf(xs, ys, values,
                      levels=levels, cmap=cmap)
@@ -70,6 +71,7 @@ def make_subplot(ax, val_type, xs, ys, values, cax, title=None, ele_pos=None, xl
     set_axis(ax, letter=letter)
     return ax, cax
     
+
 def do_kcsd(CSD_PROFILE, csd_seed):
     if CSD_PROFILE.__name__ == 'gauss_2d_small':
         R_init = 1.
@@ -111,7 +113,8 @@ def do_kcsd(CSD_PROFILE, csd_seed):
     est_csd_pre_cv = k.values('CSD')
     #k.cross_validate(Rs=np.linspace(0.03, 0.12, 10))
     #k.cross_validate()
-    k.cross_validate(lambdas=None, Rs=np.array(R_final).reshape(1))
+#    k.cross_validate(lambdas=None, Rs=np.array(R_final).reshape(1))
+    k.cross_validate(lambdas=None, Rs=np.linspace(0.05, 1., 20))
     est_csd_post_cv = k.values('CSD')
     return csd_x, csd_y, true_csd, ele_pos, pot_X, pot_Y, pot_Z, k, est_csd_pre_cv, est_csd_post_cv
 
@@ -123,32 +126,34 @@ def generate_figure(small_seed, large_seed):
     gs.update(top=.95, bottom=0.53)
     ax = plt.subplot(gs[0, 0])
     cax = plt.subplot(gs[1, 0])
-    make_subplot(ax, 'csd', csd_x, csd_y, true_csd, cax, 'True CSD', xlabel=True, ylabel=True, letter='A')
+    t_max_1 = 0.50
+    make_subplot(ax, 'csd', csd_x, csd_y, true_csd, cax, 'True CSD', xlabel=True, ylabel=True, letter='A', t_max=t_max_1)
     ax = plt.subplot(gs[0, 1])
     cax = plt.subplot(gs[1, 1])
     make_subplot(ax, 'pot', pot_X, pot_Y, pot_Z, cax, 'Interpolated potentials', xlabel=True, ele_pos=ele_pos, letter='B')
     ax = plt.subplot(gs[0, 2])
     cax = plt.subplot(gs[1, 2])
-    make_subplot(ax, 'csd', k.estm_x, k.estm_y, est_csd_pre_cv[:, :, 0], cax, 'Estimated CSD pre CV', xlabel=True, letter='C')
+    make_subplot(ax, 'csd', k.estm_x, k.estm_y, est_csd_pre_cv[:, :, 0], cax, 'Estimated CSD pre CV', xlabel=True, letter='C', t_max=t_max_1)
     ax = plt.subplot(gs[0, 3])
     cax = plt.subplot(gs[1, 3])
-    make_subplot(ax, 'csd', k.estm_x, k.estm_y, est_csd_post_cv[:, :, 0], cax, 'Estimated CSD post CV', xlabel=True, letter='D')
+    make_subplot(ax, 'csd', k.estm_x, k.estm_y, est_csd_post_cv[:, :, 0], cax, 'Estimated CSD post CV', xlabel=True, letter='D', t_max=t_max_1)
 
     csd_x, csd_y, true_csd, ele_pos, pot_X, pot_Y, pot_Z, k, est_csd_pre_cv, est_csd_post_cv = do_kcsd(CSD.gauss_2d_large, large_seed)
     gs = gridspec.GridSpec(2, 4, height_ratios=[1., 0.04], width_ratios=[1]*4)
     gs.update(top=.47, bottom=0.05)
     ax = plt.subplot(gs[0, 0])
     cax = plt.subplot(gs[1, 0])
-    make_subplot(ax, 'csd', csd_x, csd_y, true_csd, cax,  ylabel=True, xlabel=True, letter='E')
+    t_max_2 = 0.52
+    make_subplot(ax, 'csd', csd_x, csd_y, true_csd, cax,  ylabel=True, xlabel=True, letter='E', t_max=t_max_2)
     ax = plt.subplot(gs[0, 1])
     cax = plt.subplot(gs[1, 1])
     make_subplot(ax, 'pot', pot_X, pot_Y, pot_Z, cax,  xlabel=True, ele_pos=ele_pos, letter='F')
     ax = plt.subplot(gs[0, 2])
     cax = plt.subplot(gs[1, 2])
-    make_subplot(ax, 'csd', k.estm_x, k.estm_y, est_csd_pre_cv[:, :, 0], cax, xlabel=True, letter='G')
+    make_subplot(ax, 'csd', k.estm_x, k.estm_y, est_csd_pre_cv[:, :, 0], cax, xlabel=True, letter='G', t_max=t_max_2)
     ax = plt.subplot(gs[0, 3])
     cax = plt.subplot(gs[1, 3])
-    make_subplot(ax, 'csd', k.estm_x, k.estm_y, est_csd_post_cv[:, :, 0], cax, xlabel=True, letter='H')
+    make_subplot(ax, 'csd', k.estm_x, k.estm_y, est_csd_post_cv[:, :, 0], cax, xlabel=True, letter='H', t_max=t_max_2)
     #plt.tight_layout()
     plt.savefig('tutorial_basic_function.png', dpi=300)
     #plt.close()

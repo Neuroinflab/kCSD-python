@@ -119,11 +119,11 @@ def make_subplot(ax, true_csd, est_csd, estm_x, title=None, ele_pos=None,
     return ax
 
 
-def generate_figure(R, MU, n_src, true_csd_xlims, total_ele,
-                    method='cross-validation', Rs=None, lambdas=None,
-                    noise=0):
+def generate_figure_CVLC(R, MU, n_src, true_csd_xlims, total_ele,
+                         Rs=None, lambdas=None, noise=0):
     """
-    Generates figure for targeted basis investigation.
+    Generates figure for targeted basis investigation including results from
+    both cross-validation and L-curve.
 
     Parameters
     ----------
@@ -141,9 +141,6 @@ def generate_figure(R, MU, n_src, true_csd_xlims, total_ele,
         Number of electrodes.
     save_path: string
         Directory.
-    method: string
-        Determines the method of regularization.
-        Default: cross-validation.
     Rs: numpy 1D array
         Basis source parameter for crossvalidation.
         Default: None.
@@ -159,6 +156,9 @@ def generate_figure(R, MU, n_src, true_csd_xlims, total_ele,
     None
     """
 
+    m_cv = 'cross-validation'
+    m_lc = 'L-curve'
+    method = 'CV_LC'
     ele_lims = [0, 1.]
     csd_at, true_csd, ele_pos, pots, val = tb.simulate_data(tb.csd_profile,
                                                             true_csd_xlims, R,
@@ -176,34 +176,45 @@ def generate_figure(R, MU, n_src, true_csd_xlims, total_ele,
     xmin = 0
     xmax = 1
     ext_x = 0
-    obj = tb.modified_bases(val, pots, ele_pos, n_src, h=0.25,
-                            sigma=0.3, gdx=0.01, ext_x=ext_x, xmin=xmin,
-                            xmax=xmax, method=method, Rs=Rs, lambdas=lambdas)
-    make_subplot(ax, true_csd, obj.values('CSD'), obj.estm_x, ele_pos=ele_pos,
-                 title='Basis limits = [0, 1]', xlabel=False, ylabel=True,
-                 letter='A')
+    obj_CV = tb.modified_bases(val, pots, ele_pos, n_src, h=0.25,
+                               sigma=0.3, gdx=0.01, ext_x=ext_x, xmin=xmin,
+                               xmax=xmax, method=m_cv, Rs=Rs, lambdas=lambdas)
+    obj_LC = tb.modified_bases(val, pots, ele_pos, n_src, h=0.25,
+                               sigma=0.3, gdx=0.01, ext_x=ext_x, xmin=xmin,
+                               xmax=xmax, method=m_lc, Rs=Rs, lambdas=lambdas)
+    make_subplot(ax, true_csd, obj_CV.values('CSD'), obj_CV.estm_x,
+                 ele_pos=ele_pos, title='Basis limits = [0, 1]', xlabel=False,
+                 ylabel=True, letter='A', est_csd_LC=obj_LC.values('CSD'))
 
     ax = fig.add_subplot(gs[0, 1])
     xmin = -0.5
     xmax = 1
     ext_x = -0.5
-    obj = tb.modified_bases(val, pots, ele_pos, n_src, h=0.25,
-                            sigma=0.3, gdx=0.01, ext_x=ext_x, xmin=xmin,
-                            xmax=xmax, method=method, Rs=Rs, lambdas=lambdas)
-    make_subplot(ax, true_csd, obj.values('CSD'), obj.estm_x, ele_pos=ele_pos,
-                 title='Basis limits = [0, 0.5]', xlabel=False, ylabel=False,
-                 letter='B')
+    obj_CV = tb.modified_bases(val, pots, ele_pos, n_src, h=0.25,
+                               sigma=0.3, gdx=0.01, ext_x=ext_x, xmin=xmin,
+                               xmax=xmax, method=m_cv, Rs=Rs, lambdas=lambdas)
+    obj_LC = tb.modified_bases(val, pots, ele_pos, n_src, h=0.25,
+                               sigma=0.3, gdx=0.01, ext_x=ext_x, xmin=xmin,
+                               xmax=xmax, method=m_lc, Rs=Rs, lambdas=lambdas)
+    make_subplot(ax, true_csd, obj_CV.values('CSD'), obj_CV.estm_x,
+                 ele_pos=ele_pos, title='Basis limits = [0, 0.5]',
+                 xlabel=False, ylabel=False, letter='B',
+                 est_csd_LC=obj_LC.values('CSD'))
 
     ax = fig.add_subplot(gs[0, 2])
     xmin = 0
     xmax = 1.5
     ext_x = -0.5
-    obj = tb.modified_bases(val, pots, ele_pos, n_src,  h=0.25,
-                            sigma=0.3, gdx=0.01, ext_x=ext_x, xmin=xmin,
-                            xmax=xmax, method=method, Rs=Rs, lambdas=lambdas)
-    make_subplot(ax, true_csd, obj.values('CSD'), obj.estm_x, ele_pos=ele_pos,
-                 title='Basis limits = [0.5, 1]', xlabel=False, ylabel=False,
-                 letter='C')
+    obj_CV = tb.modified_bases(val, pots, ele_pos, n_src, h=0.25,
+                               sigma=0.3, gdx=0.01, ext_x=ext_x, xmin=xmin,
+                               xmax=xmax, method=m_cv, Rs=Rs, lambdas=lambdas)
+    obj_LC = tb.modified_bases(val, pots, ele_pos, n_src, h=0.25,
+                               sigma=0.3, gdx=0.01, ext_x=ext_x, xmin=xmin,
+                               xmax=xmax, method=m_lc, Rs=Rs, lambdas=lambdas)
+    make_subplot(ax, true_csd, obj_CV.values('CSD'), obj_CV.estm_x,
+                 ele_pos=ele_pos, title='Basis limits = [0.5, 1]',
+                 xlabel=False, ylabel=False, letter='C',
+                 est_csd_LC=obj_LC.values('CSD'))
 
     ele_lims = [0, 0.5]
 #    total_ele = 6
@@ -216,31 +227,43 @@ def generate_figure(R, MU, n_src, true_csd_xlims, total_ele,
     xmin = 0
     xmax = 1
     ext_x = 0
-    obj = tb.modified_bases(val, pots, ele_pos, n_src, h=0.25,
-                            sigma=0.3, gdx=0.01, ext_x=ext_x, xmin=xmin,
-                            xmax=xmax, method=method, Rs=Rs, lambdas=lambdas)
-    make_subplot(ax, true_csd, obj.values('CSD'), obj.estm_x, ele_pos=ele_pos,
-                 title=None, xlabel=False, ylabel=True, letter='D')
+    obj_CV = tb.modified_bases(val, pots, ele_pos, n_src, h=0.25,
+                               sigma=0.3, gdx=0.01, ext_x=ext_x, xmin=xmin,
+                               xmax=xmax, method=m_cv, Rs=Rs, lambdas=lambdas)
+    obj_LC = tb.modified_bases(val, pots, ele_pos, n_src, h=0.25,
+                               sigma=0.3, gdx=0.01, ext_x=ext_x, xmin=xmin,
+                               xmax=xmax, method=m_lc, Rs=Rs, lambdas=lambdas)
+    make_subplot(ax, true_csd, obj_CV.values('CSD'), obj_CV.estm_x,
+                 ele_pos=ele_pos, title=None, xlabel=False, ylabel=True,
+                 letter='D', est_csd_LC=obj_LC.values('CSD'))
 
     ax = fig.add_subplot(gs[1, 1])
     xmin = -0.5
     xmax = 1
     ext_x = -0.5
-    obj = tb.modified_bases(val, pots, ele_pos, n_src, h=0.25,
-                            sigma=0.3, gdx=0.01, ext_x=ext_x, xmin=xmin,
-                            xmax=xmax, method=method, Rs=Rs, lambdas=lambdas)
-    make_subplot(ax, true_csd, obj.values('CSD'), obj.estm_x, ele_pos=ele_pos,
-                 title=None, xlabel=False, ylabel=False, letter='E')
+    obj_CV = tb.modified_bases(val, pots, ele_pos, n_src, h=0.25,
+                               sigma=0.3, gdx=0.01, ext_x=ext_x, xmin=xmin,
+                               xmax=xmax, method=m_cv, Rs=Rs, lambdas=lambdas)
+    obj_LC = tb.modified_bases(val, pots, ele_pos, n_src, h=0.25,
+                               sigma=0.3, gdx=0.01, ext_x=ext_x, xmin=xmin,
+                               xmax=xmax, method=m_lc, Rs=Rs, lambdas=lambdas)
+    make_subplot(ax, true_csd, obj_CV.values('CSD'), obj_CV.estm_x,
+                 ele_pos=ele_pos, title=None, xlabel=False, ylabel=False,
+                 letter='E', est_csd_LC=obj_LC.values('CSD'))
 
     ax = fig.add_subplot(gs[1, 2])
     xmin = 0
     xmax = 1.5
     ext_x = -0.5
-    obj = tb.modified_bases(val, pots, ele_pos, n_src, h=0.25,
-                            sigma=0.3, gdx=0.01, ext_x=ext_x, xmin=xmin,
-                            xmax=xmax, method=method, Rs=Rs, lambdas=lambdas)
-    make_subplot(ax, true_csd, obj.values('CSD'), obj.estm_x, ele_pos=ele_pos,
-                 title=None, xlabel=False, ylabel=False, letter='F')
+    obj_CV = tb.modified_bases(val, pots, ele_pos, n_src, h=0.25,
+                               sigma=0.3, gdx=0.01, ext_x=ext_x, xmin=xmin,
+                               xmax=xmax, method=m_cv, Rs=Rs, lambdas=lambdas)
+    obj_LC = tb.modified_bases(val, pots, ele_pos, n_src, h=0.25,
+                               sigma=0.3, gdx=0.01, ext_x=ext_x, xmin=xmin,
+                               xmax=xmax, method=m_lc, Rs=Rs, lambdas=lambdas)
+    make_subplot(ax, true_csd, obj_CV.values('CSD'), obj_CV.estm_x,
+                 ele_pos=ele_pos, title=None, xlabel=False, ylabel=False,
+                 letter='F', est_csd_LC=obj_LC.values('CSD'))
 
     ele_lims = [0.5, 1.]
     csd_at, true_csd, ele_pos, pots, val = tb.simulate_data(tb.csd_profile,
@@ -252,34 +275,45 @@ def generate_figure(R, MU, n_src, true_csd_xlims, total_ele,
     xmin = 0
     xmax = 1
     ext_x = 0
-    obj = tb.modified_bases(val, pots, ele_pos, n_src, h=0.25,
-                            sigma=0.3, gdx=0.01, ext_x=ext_x, xmin=xmin,
-                            xmax=xmax, method=method, Rs=Rs, lambdas=lambdas)
-    make_subplot(ax, true_csd, obj.values('CSD'), obj.estm_x, ele_pos=ele_pos,
-                 title=None, xlabel=True, ylabel=True, letter='G')
+    obj_CV = tb.modified_bases(val, pots, ele_pos, n_src, h=0.25,
+                               sigma=0.3, gdx=0.01, ext_x=ext_x, xmin=xmin,
+                               xmax=xmax, method=m_cv, Rs=Rs, lambdas=lambdas)
+    obj_LC = tb.modified_bases(val, pots, ele_pos, n_src, h=0.25,
+                               sigma=0.3, gdx=0.01, ext_x=ext_x, xmin=xmin,
+                               xmax=xmax, method=m_lc, Rs=Rs, lambdas=lambdas)
+    make_subplot(ax, true_csd, obj_CV.values('CSD'), obj_CV.estm_x,
+                 ele_pos=ele_pos, title=None, xlabel=True, ylabel=True,
+                 letter='G', est_csd_LC=obj_LC.values('CSD'))
 
     ax = fig.add_subplot(gs[2, 1])
     xmin = -0.5
     xmax = 1
     ext_x = -0.5
-    obj = tb.modified_bases(val, pots, ele_pos, n_src, h=0.25,
-                            sigma=0.3, gdx=0.01, ext_x=ext_x, xmin=xmin,
-                            xmax=xmax, method=method, Rs=Rs, lambdas=lambdas)
-    make_subplot(ax, true_csd, obj.values('CSD'), obj.estm_x, ele_pos=ele_pos,
-                 title=None, xlabel=True, ylabel=False, letter='H')
+    obj_CV = tb.modified_bases(val, pots, ele_pos, n_src, h=0.25,
+                               sigma=0.3, gdx=0.01, ext_x=ext_x, xmin=xmin,
+                               xmax=xmax, method=m_cv, Rs=Rs, lambdas=lambdas)
+    obj_LC = tb.modified_bases(val, pots, ele_pos, n_src, h=0.25,
+                               sigma=0.3, gdx=0.01, ext_x=ext_x, xmin=xmin,
+                               xmax=xmax, method=m_lc, Rs=Rs, lambdas=lambdas)
+    make_subplot(ax, true_csd, obj_CV.values('CSD'), obj_CV.estm_x,
+                 ele_pos=ele_pos, title=None, xlabel=True, ylabel=False,
+                 letter='H', est_csd_LC=obj_LC.values('CSD'))
 
     ax = fig.add_subplot(gs[2, 2])
     xmin = 0
     xmax = 1.5
     ext_x = -0.5
-    obj = tb.modified_bases(val, pots, ele_pos, n_src, h=0.25,
-                            sigma=0.3, gdx=0.01, ext_x=ext_x, xmin=xmin,
-                            xmax=xmax, method=method, Rs=Rs, lambdas=lambdas)
-    ax = make_subplot(ax, true_csd, obj.values('CSD'), obj.estm_x,
+    obj_CV = tb.modified_bases(val, pots, ele_pos, n_src, h=0.25,
+                               sigma=0.3, gdx=0.01, ext_x=ext_x, xmin=xmin,
+                               xmax=xmax, method=m_cv, Rs=Rs, lambdas=lambdas)
+    obj_LC = tb.modified_bases(val, pots, ele_pos, n_src, h=0.25,
+                               sigma=0.3, gdx=0.01, ext_x=ext_x, xmin=xmin,
+                               xmax=xmax, method=m_lc, Rs=Rs, lambdas=lambdas)
+    ax = make_subplot(ax, true_csd, obj_CV.values('CSD'), obj_CV.estm_x,
                       ele_pos=ele_pos, title=None, xlabel=True, ylabel=False,
-                      letter='I')
+                      letter='I', est_csd_LC=obj_LC.values('CSD'))
     handles, labels = ax.get_legend_handles_labels()
-    fig.legend(handles, labels, loc='lower center', ncol=3, frameon=False)
+    fig.legend(handles, labels, loc='lower center', ncol=4, frameon=False)
 
     fig.savefig(os.path.join('targeted_basis_' + method +
                              '_noise_' + str(noise) + '.png'), dpi=300)
@@ -292,10 +326,6 @@ if __name__ == '__main__':
     TOTAL_ELE = 12
     R = 0.2
     MU = 0.25
-    method = 'cross-validation'  # L-curve
-#    method = 'L-curve'
-    Rs = np.array([0.2])
-    lambdas = np.zeros(1)
-    generate_figure(R, MU, N_SRC, TRUE_CSD_XLIMS, TOTAL_ELE,
-                    method=method, Rs=Rs, lambdas=lambdas, noise=0)
-
+    Rs = np.arange(0.1, 0.4, 0.05)
+    generate_figure_CVLC(R, MU, N_SRC, TRUE_CSD_XLIMS, TOTAL_ELE,
+                         Rs=Rs, lambdas=None, noise=10)

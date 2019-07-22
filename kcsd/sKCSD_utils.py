@@ -1,15 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-These are some useful functions used in CSD methods,
-They include CSD source profiles to be used as ground truths,
-placement of electrodes in 1D, 2D and 3D., etc
-These scripts are based on Grzegorz Parka's,
-Google Summer of Code 2014, INFC/pykCSD
+These are some useful functions used in sKCSD methods,
 This was written by :
 Michal Czerwinski, Chaitanya Chintaluri, Joanna Jędrzejewska-Szmek
 Laboratory of Neuroinformatics,
 Nencki Institute of Experimental Biology, Warsaw.
-
 
 N-D Bresenham line algo Copyright 2012 Vikas Dhiman
 
@@ -32,16 +27,11 @@ OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from __future__ import print_function, division, absolute_import
-import numpy as np
-from scipy.spatial import distance
 import os
 import json
-import kcsd
-    
-raise_errror = """Unknown electrode position file format.
-Load either one column file (or a one row file) with x positions,
-y positions, z positions, or a 3 column file with x and y and z positions.
-"""
+
+import numpy as np
+from scipy.spatial import distance
 
 def load_swc(path):
     """Load swc morphology from file
@@ -72,7 +62,7 @@ def save_sim(path, k):
     k : sKCSD object
       
     """
-    est_csd = k.values("CSD", transformation=None)
+    est_csd = k.values('CSD', transformation=None)
     est_pot = k.values("POT", transformation=None)
     np.save(os.path.join(path, "csd.npy"), est_csd)
     print("Save csd, ", os.path.join(path, "csd.npy"))
@@ -87,8 +77,11 @@ def save_sim(path, k):
 
 def load_sim(path):
     """
-    Load sKCSD estimation results (CSD, potential and cell specifics).
-    
+    Load sKCSD estimation results (CSD, potential and cell specifics). Return 
+    CSD, potential, and three objects necessary for initialization 
+    of a sKCSDcell object: morphology, positions of electrodes, 
+    and number of sources
+   
     Parameters
     ----------
     path: str
@@ -97,7 +90,9 @@ def load_sim(path):
     -------
     est_csd : np.array
     est_pot : np.array
-    cell_obj : sKCSDcell object
+    morphology : np.array
+    ele_pos : np.array
+    n_src : int
     """
     est_csd = np.load(os.path.join(path, "csd.npy"))
     est_pot = np.load(os.path.join(path, "pot.npy"))
@@ -109,8 +104,8 @@ def load_sim(path):
         return est_csd, est_pot, None
     morphology = np.array(cell_data['morphology'])
     ele_pos = np.array(cell_data['ele_pos'])
-    cell_obj = kcsd.sKCSDcell(morphology, ele_pos, cell_data['n_src'])
-    return est_csd, est_pot, cell_obj
+    n_src = cell_data['n_src']
+    return est_csd, est_pot, cell_obj, morphology, ele_pos, n_src
 
 
 def load_elpos(path):
@@ -127,6 +122,7 @@ def load_elpos(path):
     Returns
     -------
     ele_pos : np.array
+
     """
     raw_ele_pos = np.loadtxt(path)
     if len(raw_ele_pos.shape) == 1:
@@ -164,6 +160,16 @@ def load_elpos(path):
     else:
         raise Exception('Unknown electrode position file format.')
     return ele_pos
+
+  
+def check_estimated_shape(to_estimate):
+    if len(to_estimate.shape) == 1:
+        estimated = np.ndarray((to_estimate.shape[0], 1))
+        estimated[:, 0] = to_estimate
+        return estimated
+    return to_estimate
+
+
 def _bresenhamline_nslope(slope):
     """
     Normalize slope for Bresenham's line algorithm.
@@ -302,8 +308,6 @@ class LoadData(object):
     data1.assign('mophology', path_to_morphology_file)
     data1.assign('electrode_positions', path_to_electrode_positions_file)
     data1.assign('LFP', path_to_LFP_file)
-
-
     """
     def __init__(self, path):
         """
@@ -454,10 +458,3 @@ class LoadData(object):
         print('Load', path)
         f.close()
 
-
-def check_estimated_shape(to_estimate):
-    if len(to_estimate.shape) == 1:
-        estimated = np.ndarray((to_estimate.shape[0], 1))
-        estimated[:, 0] = to_estimate
-        return estimated
-    return to_estimate
