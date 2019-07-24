@@ -1,5 +1,12 @@
-"""This script is used to generate Current Source Density Estimates,
-using the skCSD method by Cserpan et.al (2017).
+# -*- coding: utf-8 -*-
+"""
+Following people have contributed code and/or ideas to the current version of kCSD
+
+Chaitanya Chintaluri[1] Marta Kowalska[1] Michal Czerwinski[1] Joanna Jędrzejewska – Szmek[1] Władysław Średniawa[1]
+
+Jan Mąka [1, 3*] Grzegorz Parka[2] Daniel K. Wojcik[1]
+
+[1] Laboratory of Neuroinformatics, Nencki Institute of Experimental Biology, Warsaw, Poland [2] Google Summer of Code 2014, INCF/pykCSD [3] University of Warsaw, Poland
 
 """
 from __future__ import print_function, division, absolute_import
@@ -67,7 +74,7 @@ class sKCSDcell(object):
         self.dims = self.get_grid()
         if kwargs:
             raise TypeError('Invalid keyword arguments:', kwargs.keys())
-        self.est_xyz_auto =  False
+        self.distribute_srcs_3D_morph()
 
     def add_segment(self, mp1, mp2):
         """Add indices of morphology points defining a segment
@@ -144,6 +151,7 @@ class sKCSDcell(object):
                                               self.morphology[loop[0], 2:5])
             self.est_pos[i+1] = self.est_pos[i] + length
             self.est_xyz[i+1, :] = self.morphology[loop[1], 2:5]
+        self.loop_pos = self.est_pos[1:]
 
     def distribute_srcs_3D_morph(self):
         """Calculate 3D coordinates of sources placed on the morphology loop.
@@ -207,12 +215,12 @@ class sKCSDcell(object):
         numpy array with distances of the shape (n_src, len(morphology))
         """
         return distance.cdist(self.source_pos,
-                              self.est_pos,
+                              self.loop_pos,
                               'euclidean')
     
     def get_src_estm_dists_pot(self):
         return np.meshgrid(self.source_pos,
-                           self.est_pos,
+                           self.loop_pos,
                            indexing='ij')
     
     def get_xyz(self, v):
@@ -277,6 +285,8 @@ class sKCSDcell(object):
         points between p0 and p1 including (last=True) or not including p0
         """
         # bresenhamline only works with 2D vectors with coordinates
+        if p1[0] == p0[0] and p1[1] == p0[1] and p1[2] == p0[2]:
+            return [np.array(p1)]
         new_p1, new_p0 = np.ndarray((1, 3), dtype=np.int), np.ndarray((1, 3), dtype=np.int)
         for i in range(3):
             new_p1[0, i], new_p0[0, i] = p1[i], p0[i]
@@ -299,14 +309,13 @@ class sKCSDcell(object):
         dxs: np.array of 3 floats
 
         """
-        dxs = np.zeros((3, ))
+        differences = []
         for i in range(self.est_xyz.shape[1]):
             dx = abs(self.est_xyz[1:, i] - self.est_xyz[:-1, i])
-            try:
-                dxs[i] = min(dx[dx > self.tolerance])
-            except ValueError:
-                pass
-        return dxs
+            differences += list(dx[dx > self.tolerance])
+        if len(differences) == 0:
+            sys.exit('tolerance = %f, which is the minimum pixel width for 3D visiualizations, is too low. Exiting')
+        return min(differences)*np.ones((3,))
 
     def get_grid(self):
         """Calculate size of the 3D grid used to transform CSD
@@ -335,7 +344,7 @@ class sKCSDcell(object):
                 dims[i] += np.floor((vals[i][1] - vals[i][0])/dx)
         return dims
 
-    def point_coordinates(self, morpho):
+    def point_coordinates(self, morpho, dxs=None):
         """
         Calculate indices of points in morpho in the 3D grid calculated
         using self.get_grid()
@@ -344,7 +353,9 @@ class sKCSDcell(object):
         ----------
         morpho : np.array
            array with a morphology (either segements or morphology loop)
-
+        dxs : sequence of length 3
+           size of the voxel
+           
         Returns
         -------
         coor_3D : np.array
@@ -355,20 +366,23 @@ class sKCSDcell(object):
         zero_coords = np.zeros((3, ), dtype=int)
         coor_3D = np.zeros((morpho.shape[0] - 1, morpho.shape[1]),
                            dtype=np.int)
-        for i, dx in enumerate(self.dxs):
+        if dxs is None:
+            dxs = self.dxs
+        for i, dx in enumerate(dxs):
             if dx:
                 coor_3D[:, i] = np.floor((morpho[1:, i] - minis[i])/dx)
                 zero_coords[i] = np.floor((morpho[0, i] - minis[i])/dx)
         return coor_3D, zero_coords
 
-    def coordinates_3D_loops(self):
+    def coordinates_3D_loops(self, dxs1=None):
         """
         Find points of each loop in 3D grid
         (for CSD/potential calculation in 3D).
 
         Parameters
         ----------
-        None
+        dxs : sequence of length 3
+           size of the voxel
 
         Returns
         -------
@@ -376,16 +390,16 @@ class sKCSDcell(object):
            Indices of points of 3D grid for each loop
 
         """
-        coor_3D, p0 = self.point_coordinates(self.est_xyz)
+        coor_3D, p0 = self.point_coordinates(self.est_xyz, dxs=dxs1)
         segment_coordinates = {}
-
         for i, p1 in enumerate(coor_3D):
             last = (i+1 == len(coor_3D))
             segment_coordinates[i] = self.points_in_between(p0, p1, last)
             p0 = p1
+            
         return segment_coordinates
 
-    def coordinates_3D_segments(self):
+    def coordinates_3D_segments(self, dxs1=None):
         """
         Find points of each segment in 3D grid
         (for CSD/potential calculation in 3D).
@@ -400,7 +414,7 @@ class sKCSDcell(object):
            Indices of points of 3D grid for each segment
 
         """
-        coor_3D, p0 = self.point_coordinates(self.morphology[:, 2:5])
+        coor_3D, p0 = self.point_coordinates(self.morphology[:, 2:5], dxs=dxs1)
         segment_coordinates = {}
 
         parentage = self.morphology[1:, 6]-2
@@ -410,6 +424,7 @@ class sKCSDcell(object):
         while True:
             last = (i+1 == len(coor_3D))
             segment_coordinates[i] = self.points_in_between(p0, p1, last)
+            
             if i + 1 == len(coor_3D):
                 break
             if i:
@@ -421,14 +436,14 @@ class sKCSDcell(object):
             p1 = coor_3D[i]
         return segment_coordinates
 
-    def transform_to_3D(self, estimated, what="loop"):
+    def transform_to_3D(self, to_estimate, what="loop"):
         """
         Transform potential/csd/ground truth values in segment or loop space
         to 3D.
 
         Parameters
         ----------
-        estimated : np.array
+        to_estimate : np.array
         what : string
            "loop" -- estimated is in loop space
            "morpho" -- estimated in in segment space
@@ -436,19 +451,20 @@ class sKCSDcell(object):
         Returns
         -------
         result : np.array
-
         """
         if what == "loop":
             coor_3D = self.coordinates_3D_loops()
         elif what == "morpho":
             coor_3D = self.coordinates_3D_segments()
         else:
-            sys.exit('Do not understand morphology %s\n' % what)
+            sys.exit('Unknown type of neuron morphology %s\n' % what)
 
+        assert len(coor_3D) == to_estimate.shape[0]
+
+        estimated = utils.check_estimated_shape(to_estimate)
         n_time = estimated.shape[-1]
         new_dims = list(self.dims) + [n_time]
         result = np.zeros(new_dims)
-
         for i in coor_3D:
             coor = coor_3D[i]
             for p in coor:
@@ -477,7 +493,8 @@ class sKCSDcell(object):
             result[seg_no, :] += estimated[i, :]
         return result
 
-    def draw_cell2D(self, axis=2, resolution=None):
+    
+    def draw_cell2D(self, axis=2, resolution=None, segments=True):
         """
         Cell morphology in 3D grid in projection of axis.
 
@@ -485,55 +502,59 @@ class sKCSDcell(object):
         ----------
         axis : int
           0: x axis, 1: y axis, 2: z axis
-
+        resolution : sequence of length 3
+          size of the 2D image depicting the morphology
+          default None, in such case default neuron resolution, 
+          which is based on the smallest neurite in the morphology,
+          is used
         """
         if resolution is None:
+            dxs = self.dxs
             resolution = self.dims
-        xgrid = np.linspace(self.xmin, self.xmax, resolution[0])
-        ygrid = np.linspace(self.ymin, self.ymax, resolution[1])
-        zgrid = np.linspace(self.zmin, self.zmax, resolution[2])
+        else:
+            assert resolution[0] > 0
+            assert resolution[1] > 0
+            assert resolution[2] > 0
+            dxs = np.zeros((3,))
+            vals = np.array([
+                [self.xmin, self.xmax],
+                [self.ymin, self.ymax],
+                [self.zmin, self.zmax]
+            ])
+            for i, dx in enumerate(dxs):
+                dxs[i] = abs(vals[i][1]-vals[i][0])/resolution[i]
+
+        if segments == True:
+            coor_3D = self.coordinates_3D_segments(dxs)
+        else:
+            coor_3D = self.coordinates_3D_loops(dxs)
+
+        image_3D = np.zeros(resolution)
+        for coor in coor_3D:
+            points = coor_3D[coor]
+            for point in points:
+                x, y, z = point
+                image_3D[x, y, z] = 1
+        image = image_3D.sum(axis=axis)
+
         if axis == 0:
-            image = np.ones(shape=(resolution[1],
-                                   resolution[2], 4), dtype=np.uint8) * 255
-            extent = [1e6*self.zmin, 1e6*self.zmax,
-                      1e6*self.ymin, 1e6*self.ymax]
+            extent = [self.ymin, self.ymax,
+                      self.zmin, self.zmax]
         elif axis == 1:
-            image = np.ones(shape=(resolution[0],
-                                   resolution[2], 4), dtype=np.uint8) * 255
-            extent = [1e6*self.zmin, 1e6*self.zmax,
-                      1e6*self.xmin, 1e6*self.xmax]
+            extent = [self.xmin, self.xmax,
+                      self.zmin, self.zmax]
         elif axis == 2:
-            image = np.ones(shape=(resolution[0],
-                                   resolution[1], 4), dtype=np.uint8) * 255
-            extent = [1e6*self.ymin, 1e6*self.ymax,
-                      1e6*self.xmin, 1e6*self.xmax]
+            extent = [self.xmin, self.xmax,
+                      self.ymin, self.ymax]
         else:
             sys.exit('In drawing 2D morphology unknown axis %d' % axis)
-        image[:, :, 3] = 0
-        xs = []
-        ys = []
-        x0, y0 = 0, 0
-        for p in self.source_xyz:
-            x = (np.abs(xgrid-p[0])).argmin()
-            y = (np.abs(ygrid-p[1])).argmin()
-            z = (np.abs(zgrid-p[2])).argmin()
-            if axis == 0:
-                xi, yi = y, z
-            elif axis == 1:
-                xi, yi = x, z
-            elif axis == 2:
-                xi, yi = x, y
-            xs.append(xi)
-            ys.append(yi)
-            image[xi, yi, :] = np.array([0, 0, 0, 1])
-            if x0 != 0:
-                idx_arr = self.points_in_between([xi, yi, 0], [x0, y0, 0], 1)
-                for i in range(len(idx_arr)):
-                    image[idx_arr[i, 0] - 1:idx_arr[i, 0] + 1,
-                          idx_arr[i, 1] - 1:idx_arr[i, 1] + 1, :] = np.array(
-                              [0, 0, 0, 255])
-            x0, y0 = xi, yi
-        return image, extent
+        rgb_image = np.ones(shape=(image.shape[0], image.shape[1], 4), dtype=np.uint8)*255
+        rgb_image[:, :, 3] = 0
+        indices = np.where(image >= 1)
+        for i, x in enumerate(indices[0]):
+            y = indices[1][i]
+            rgb_image[x, y, :] = [0, 0, 0, 255]
+        return rgb_image, extent
 
 
 class sKCSD(KCSD1D):
@@ -613,7 +634,6 @@ class sKCSD(KCSD1D):
         self.dim = 'skCSD'
         self.tolerance = kwargs.pop('tolerance', 2e-06)
         self.exact = kwargs.pop('exact', False)
-        self.est_xyz_auto =  False
         if kwargs:
             raise TypeError('Invalid keyword arguments:', kwargs.keys())
 
@@ -626,7 +646,7 @@ class sKCSD(KCSD1D):
         """
         self.cell = sKCSDcell(self.morphology, self.ele_pos,
                               self.n_src_init, tolerance=self.tolerance)
-        self.n_estm = len(self.cell.est_pos)
+        self.n_estm = len(self.cell.loop_pos)
         
     def place_basis(self):
         """Places basis sources of the defined type.
@@ -647,7 +667,7 @@ class sKCSD(KCSD1D):
             print('Invalid source_type for basis! available are:',
                   basis.basis_1D.keys())
             raise KeyError
-        self.src_x = self.cell.distribute_srcs_3D_morph()
+        self.src_x = self.cell.source_pos
         self.n_src = self.cell.n_src
 
     def get_src_ele_dists(self):
@@ -862,11 +882,11 @@ class sKCSD(KCSD1D):
 
         '''
         estimated = super(sKCSD, self).values(estimate=estimate)
-        if not transformation:
+        if transformation is None:
             return estimated
-        elif transformation == 'segments':
+        if transformation == 'segments':
             return self.cell.transform_to_segments(estimated)
-        elif transformation == '3D':
+        if transformation == '3D':
             return self.cell.transform_to_3D(estimated, what="loop")
 
         raise Exception("Unknown transformation %s of %s" %
@@ -896,8 +916,7 @@ class sKCSD(KCSD1D):
         pot : float
 
         """
-        xp = self.cell.corrected_x(xp)
-        xp_coor = self.cell.get_xyz(xp)
+        xp_coor = self.cell.get_xyz(self.cell.corrected_x(xp))
         new_x = [x, y, z]
         dist = utils.calculate_distance(xp_coor, new_x)
         pot = basis_func(xp-src, R)/dist
@@ -928,10 +947,8 @@ class sKCSD(KCSD1D):
         pot : float
 
         """
-        xp = self.cell.corrected_x(xp)
-        x = self.cell.corrected_x(x)
-        xp_coor = self.cell.get_xyz(xp)
-        x_coor = self.cell.get_xyz(x)
+        xp_coor = self.cell.get_xyz(self.cell.corrected_x(xp))
+        x_coor = self.cell.get_xyz(self.cell.corrected_x(x))
         dist = utils.calculate_distance(xp_coor, x_coor)
         pot = basis_func(xp-src, R)/dist
         return pot

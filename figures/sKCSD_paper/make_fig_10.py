@@ -97,15 +97,15 @@ if __name__ == '__main__':
                             xmax=1000e-6,
                             ymin=-1000e-6,
                             ymax=1000e-6)
-    cell_itself.distribute_srcs_3D_morph()
     ground_truth_3D = cell_itself.transform_to_3D(ground_truth,
                                                   what="morpho")
     ground_truth_t0 = ground_truth_3D[:, :, :, t0].sum(axis=2)
     vmax, vmin = pl.get_min_max(ground_truth_t0)
     morpho, extent = cell_itself.draw_cell2D(axis=2)
+    extent = [extent[-2], extent[-1], extent[0], extent[1]]
     lambd = l/(2*(2*np.pi)**3*R**2*n_src)
     fig, ax = plt.subplots(3, 3, figsize=(8, 20))
-    pl.make_map_plot(ax[0, 0], morpho, extent=extent)
+    pl.make_map_plot(ax[0, 0], morpho, extent=extent, circles=False)
     pl.make_map_plot(ax[0, 0], ground_truth_t0, extent=extent, title="Ground truth", vmin=vmin, vmax=vmax, alpha=.75)
     vmax, vmin = pl.get_min_max(ground_truth_t0)
     
@@ -124,7 +124,8 @@ if __name__ == '__main__':
                     R_init=R,
                     tolerance=tolerance,
                     dist_table_density=20,
-                    exact=True)
+                    exact=True,
+                    sigma=0.3)
     
             
         path = os.path.join('simulation', '%s_lambda_%f_R_%f' % (fname_base, l, R))
@@ -169,6 +170,4 @@ if __name__ == '__main__':
                 bbox_inches='tight',
                 transparent=True,
                 pad_inches=0.1)
-                
-    plt.show()
  

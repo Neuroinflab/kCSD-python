@@ -34,11 +34,6 @@ except ImportError:
     PARALLEL_AVAILABLE = False
 
     
-raise_errror = """Unknown electrode position file format.
-Load either one column file (or a one row file) with x positions,
-y positions, z positions, or a 3 column file with x and y and z positions.
-"""
-
 def check_for_duplicated_electrodes(elec_pos):
     """Checks for duplicate electrodes
 

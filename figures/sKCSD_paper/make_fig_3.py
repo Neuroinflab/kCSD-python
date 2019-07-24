@@ -70,7 +70,8 @@ if __name__ == '__main__':
                   src_type='gauss',
                   lambd=lambd,
                   R_init=R,
-                  exact=True)
+                  exact=True,
+                  sigma=0.3)
         csd = k.values(transformation='segments')
         
         cax = ax[1, i].imshow(csd,
