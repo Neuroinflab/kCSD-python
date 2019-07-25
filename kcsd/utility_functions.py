@@ -3,13 +3,6 @@
 These are some useful functions used in CSD methods,
 They include CSD source profiles to be used as ground truths,
 placement of electrodes in 1D, 2D and 3D., etc
-These scripts are based on Grzegorz Parka's,
-Google Summer of Code 2014, INFC/pykCSD
-This was written by :
-Michal Czerwinski, Chaitanya Chintaluri, Joanna Jędrzejewska-Szmek
-Laboratory of Neuroinformatics,
-Nencki Institute of Experimental Biology, Warsaw.
-
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the "Software"),
@@ -28,15 +21,11 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
 DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT
 OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 """
 from __future__ import print_function, division, absolute_import
 import numpy as np
-from scipy.spatial import distance
-import os
-import pickle
 from scipy import interpolate
-import json
-import sys
 
 try:
     from joblib.parallel import Parallel, delayed
@@ -45,16 +34,9 @@ except ImportError:
     PARALLEL_AVAILABLE = False
 
     
-raise_errror = """Unknown electrode position file format.
-Load either one column file (or a one row file) with x positions,
-y positions, z positions, or a 3 column file with x and y and z positions.
-"""
-
-
-
-
 def check_for_duplicated_electrodes(elec_pos):
     """Checks for duplicate electrodes
+
     Parameters
     ----------
     elec_pos : np.array
@@ -62,6 +44,7 @@ def check_for_duplicated_electrodes(elec_pos):
     Returns
     -------
     has_duplicated_elec : Boolean
+
     """
     unique_elec_pos = np.vstack(list({tuple(row) for row in elec_pos}))
     has_duplicated_elec = unique_elec_pos.shape == elec_pos.shape
@@ -70,6 +53,7 @@ def check_for_duplicated_electrodes(elec_pos):
 
 def distribute_srcs_1D(X, n_src, ext_x, R_init):
     """Distribute sources in 1D equally spaced
+
     Parameters
     ----------
     X : np.arrays
@@ -80,12 +64,14 @@ def distribute_srcs_1D(X, n_src, ext_x, R_init):
         how much should the sources extend the area X
     R_init : float
         Same as R in 1D case
+
     Returns
     -------
     X_src : np.arrays
         positions of the sources
     R : float
         effective radius of the basis element
+
     """
     X_src = np.mgrid[(np.min(X) - ext_x):(np.max(X) + ext_x):
                      np.complex(0, n_src)]
@@ -95,6 +81,7 @@ def distribute_srcs_1D(X, n_src, ext_x, R_init):
 
 def distribute_srcs_2D(X, Y, n_src, ext_x, ext_y, R_init):
     """Distribute n_src's in the given area evenly
+
     Parameters
     ----------
     X, Y : np.arrays
@@ -105,6 +92,7 @@ def distribute_srcs_2D(X, Y, n_src, ext_x, ext_y, R_init):
         how should the sources extend the area X, Y
     R_init : float
         demanded radius of the basis element
+
     Returns
     -------
     X_src, Y_src : np.arrays
@@ -114,6 +102,7 @@ def distribute_srcs_2D(X, Y, n_src, ext_x, ext_y, R_init):
         new n_src = nx * ny may not be equal to the demanded number of sources
     R : float
         effective radius of the basis element
+
     """
     Lx = np.max(X) - np.min(X)
     Ly = np.max(Y) - np.min(Y)
@@ -133,6 +122,7 @@ def distribute_srcs_2D(X, Y, n_src, ext_x, ext_y, R_init):
 
 def get_src_params_2D(Lx, Ly, n_src):
     """Distribute n_src sources evenly in a rectangle of size Lx * Ly
+
     Parameters
     ----------
     Lx, Ly : floats
@@ -150,15 +140,14 @@ def get_src_params_2D(Lx, Ly, n_src):
         updated lengths in the directions x, y
     ds : float
         spacing between the sources
+
     """
-    coeff = [Ly, Lx - Ly, -Lx * n_src]
-    rts = np.roots(coeff)
-    r = [r for r in rts if type(r) is not complex and r > 0]
-    nx = r[0]
-    ny = n_src / nx
+    S = Lx * Ly
+    S_unit = S / n_src
+    L_unit = S_unit**(1. / 2.)
+    nx = np.ceil(Lx / L_unit)
+    ny = np.ceil(Ly / L_unit)
     ds = Lx / (nx - 1)
-    nx = np.floor(nx) + 1
-    ny = np.floor(ny) + 1
     Lx_n = (nx - 1) * ds
     Ly_n = (ny - 1) * ds
     return (nx, ny, Lx_n, Ly_n, ds)
@@ -166,6 +155,7 @@ def get_src_params_2D(Lx, Ly, n_src):
 
 def distribute_srcs_3D(X, Y, Z, n_src, ext_x, ext_y, ext_z, R_init):
     """Distribute n_src sources evenly in a rectangle of size Lx * Ly * Lz
+
     Parameters
     ----------
     X, Y, Z : np.arrays
@@ -188,6 +178,7 @@ def distribute_srcs_3D(X, Y, Z, n_src, ext_x, ext_y, ext_z, R_init):
 
     R : float
         updated radius of the basis element
+
     """
     Lx = np.max(X) - np.min(X)
     Ly = np.max(Y) - np.min(Y)
@@ -215,6 +206,7 @@ def distribute_srcs_3D(X, Y, Z, n_src, ext_x, ext_y, ext_z, R_init):
 
 def get_src_params_3D(Lx, Ly, Lz, n_src):
     """Helps to evenly distribute n_src sources in a cuboid of size Lx * Ly * Lz
+
     Parameters
     ----------
     Lx, Ly, Lz : floats
@@ -222,6 +214,7 @@ def get_src_params_3D(Lx, Ly, Lz, n_src):
         the sources should be placed
     n_src : int
         demanded number of sources to be included in the model
+
     Returns
     -------
     nx, ny, nz : ints
@@ -232,6 +225,7 @@ def get_src_params_3D(Lx, Ly, Lz, n_src):
         updated lengths in the directions x, y, z
     ds : float
         spacing between the sources (grid nodes)
+
     """
     V = Lx * Ly * Lz
     V_unit = V / n_src
@@ -250,16 +244,19 @@ def get_estm_places(wsp_plot, gdx, gdy, gdz):
     """Distribute sources under virtual electrode surface
     default method for electrode surface interpolation is "nearest"
     form scipy.interpolate.griddata function
+
     Parameters
     ----------
     wsp_plot : np.arrays
         electrode XYZ coordinates
     gdx, gdy, gdz : ints
         distance beetwen estimation/source points 
+
     Returns
     -------
     est_xyz : np.array
         coordinates of points where we want to estimate CSD (under electordes)
+
     """
     xmin = np.min(wsp_plot[0])
     xmax = np.max(wsp_plot[0])
@@ -298,12 +295,14 @@ def get_estm_places(wsp_plot, gdx, gdy, gdz):
 
 def L_model_fast(k_pot, pots, lamb, i):
     """Method for Fast L-curve computation
+
     Parameters
     ----------
     k_pot : np.array
     pots : list
     lambd : list
     i : int
+
     Returns
     -------
     modelnorm : float
@@ -327,6 +326,7 @@ def parallel_search(k_pot, pots, lambdas, n_jobs=4):
     k_pot : np.array
     pots : list
     lambdas : list
+
     Returns
     -------
     modelnormseq : list

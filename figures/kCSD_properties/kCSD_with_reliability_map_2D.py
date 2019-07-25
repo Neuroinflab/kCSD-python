@@ -8,7 +8,6 @@ from __future__ import absolute_import
 
 from builtins import range
 
-import os
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
@@ -20,6 +19,24 @@ from figure_properties import *
 
 
 def set_axis(ax, letter=None):
+    """
+    Formats the plot's caption.
+
+    Parameters
+    ----------
+    ax: Axes object.
+    x: float
+        X-position of caption.
+    y: float
+        Y-position of caption.
+    letter: string
+        Caption of the plot.
+        Default: None.
+
+    Returns
+    -------
+    ax: modyfied Axes object.
+    """
     ax.text(
         -0.05,
         1.05,
@@ -38,6 +55,8 @@ def make_reconstruction(KK, csd_profile, csd_seed, total_ele,
 
     Parameters
     ----------
+    KK: instance of the class
+        Instance of class ValidateKCSD1D.
     csd_profile: function
         Function to produce csd profile.
     csd_seed: int
@@ -67,11 +86,14 @@ def make_reconstruction(KK, csd_profile, csd_seed, total_ele,
     -------
     k: instance of the class
         Instance of class KCSD1D.
-    rms: float
-        Error of reconstruction.
-    point_error: numpy array
-        Error of reconstruction calculated at every point of reconstruction
-        space.
+    csd_at: numpy array
+        Where to generate CSD.
+    true_csd: numpy array
+        CSD at csd_at positions.
+    ele_pos: numpy array
+        Electrodes positions.
+    pots: numpy array
+        Potentials measured (calculated) on electrodes.
     """
     csd_at, true_csd = KK.generate_csd(csd_profile, csd_seed)
     ele_pos, pots = KK.electrode_config(csd_profile, csd_seed, total_ele,
@@ -103,13 +125,14 @@ def make_subplot(ax, val_type, xs, ys, values, cax, title=None, ele_pos=None,
         im = ax.contourf(X, Y, Z, levels=levels, cmap=cmap, alpha=1)
     else:
         im = ax.contourf(xs, ys, values,
-                         levels=levels, cmap=cmap, alpha=1, extent=(0, 0.5, 0, 0.5))
+                         levels=levels, cmap=cmap, alpha=1,
+                         extent=(0, 0.5, 0, 0.5))
     if mask is not False:
         CS = ax.contour(xs, ys, mask, cmap='Greys')
         ax.clabel(CS,  # label every second level
-           inline=1,
-           fmt='%1.2f',
-           fontsize=9)
+                  inline=1,
+                  fmt='%1.2f',
+                  fontsize=9)
     if val_type == 'pot':
         ax.scatter(ele_pos[:, 0], ele_pos[:, 1], 10, c='k')
     ax.set_xlim([0, 1])
@@ -119,7 +142,6 @@ def make_subplot(ax, val_type, xs, ys, values, cax, title=None, ele_pos=None,
     if ylabel:
         ax.set_ylabel('Y (mm)')
     if title is not None:
-#        ax.set_title(title, fontsize=17, pad=30)
         ax.set_title(title)
     ax.set_xticks([0, 0.5, 1])
     ax.set_yticks([0, 0.5, 1])
@@ -151,17 +173,15 @@ def grid(x, y, z, resX=100, resY=100):
     z = z.flatten()
     xi, yi = np.mgrid[min(x):max(x):np.complex(0, resX),
                       min(y):max(y):np.complex(0, resY)]
-    print(x.shape, y.shape, z.shape)
     zi = griddata((x, y), z, (xi, yi), method='linear')
     return xi, yi, zi
 
 
 def generate_figure(k, true_csd, ele_pos, pots, mask=False):
-#    errs = fetch_values('large')
     csd_at = np.mgrid[0.:1.:100j,
                       0.:1.:100j]
     csd_x, csd_y = csd_at
-    fig = plt.figure(figsize=(17, 6))
+    plt.figure(figsize=(17, 6))
     gs = gridspec.GridSpec(2, 4, height_ratios=[1., 0.04], width_ratios=[1]*4)
 #    gs.update(top=.95, bottom=0.53)
     ax = plt.subplot(gs[0, 0])
@@ -171,22 +191,24 @@ def generate_figure(k, true_csd, ele_pos, pots, mask=False):
                  t_max=np.max(abs(true_csd)))
     ax = plt.subplot(gs[0, 1])
     cax = plt.subplot(gs[1, 1])
-    make_subplot(ax, 'pot', ele_pos[:, 0], ele_pos[:, 1], pots, cax=cax, ele_pos=ele_pos,
-                 title='Potentials', xlabel=True,  letter='B',
+    make_subplot(ax, 'pot', ele_pos[:, 0], ele_pos[:, 1], pots, cax=cax,
+                 ele_pos=ele_pos, title='Potentials', xlabel=True, letter='B',
                  t_max=np.max(abs(pots)))
     ax = plt.subplot(gs[0, 2])
     cax = plt.subplot(gs[1, 2])
-    make_subplot(ax, 'csd', k.estm_x, k.estm_y, k.values('CSD')[:, :, 0], cax=cax, ele_pos=ele_pos,
-                 title='kCSD with Reliability Map', xlabel=True, letter='C',
-                 t_max=np.max(abs(true_csd)), mask=mask)
+    make_subplot(ax, 'csd', k.estm_x, k.estm_y, k.values('CSD')[:, :, 0],
+                 cax=cax, ele_pos=ele_pos, title='kCSD with Reliability Map',
+                 xlabel=True, letter='C', t_max=np.max(abs(true_csd)),
+                 mask=mask)
     ax = plt.subplot(gs[0, 3])
     cax = plt.subplot(gs[1, 3])
-    make_subplot(ax, 'diff', csd_x, csd_y, abs(true_csd-k.values('CSD')[:, :, 0]), cax=cax, ele_pos=ele_pos,
-                 title='|True CSD - kCSD|', xlabel=True, letter='D',
-                 t_max=np.max(abs(true_csd-k.values('CSD')[:, :, 0])), level=np.linspace(0, np.max(abs(true_csd-k.values('CSD')[:, :, 0])), 16))
-
-
-    plt.savefig('figure_7.png', dpi=300)
+    make_subplot(ax, 'diff', csd_x, csd_y,
+                 abs(true_csd-k.values('CSD')[:, :, 0]), cax=cax,
+                 ele_pos=ele_pos, title='|True CSD - kCSD|', xlabel=True,
+                 letter='D',
+                 t_max=np.max(abs(true_csd-k.values('CSD')[:, :, 0])),
+                 level=np.linspace(0, np.max(abs(true_csd-k.values('CSD')[:, :, 0])), 16))
+    plt.savefig('kCSD_with_reliability_map_2D.png', dpi=300)
     plt.show()
 
 
@@ -214,8 +236,8 @@ if __name__ == '__main__':
     lambdas = None
     noise = 0
 
-    KK = ValidateKCSD2D(CSD_SEED, h=50., sigma=1., n_src_init=400, est_xres=0.01,
-                        est_yres=0.01, ele_lims=ELE_LIMS)
+    KK = ValidateKCSD2D(CSD_SEED, h=50., sigma=1., n_src_init=400,
+                        est_xres=0.01, est_yres=0.01, ele_lims=ELE_LIMS)
     k, csd_at, true_csd, ele_pos, pots = make_reconstruction(KK, CSD_PROFILE,
                                                              CSD_SEED,
                                                              total_ele=100,
@@ -223,10 +245,9 @@ if __name__ == '__main__':
                                                              Rs=Rs,
                                                              lambdas=lambdas,
                                                              method=method)
-    path = os.path.join(os.path.expanduser('~'), 'Dropbox', 'PNI', 'kCSDrev-pics')
-    error_l = np.load(path + '/error_maps_2D/point_error_large_100_all_ele.npy')
-    error_s = np.load(path + '/error_maps_2D/point_error_small_100_all_ele.npy')
+    error_l = np.load('error_maps_2D/point_error_large_100_all_ele.npy')
+    error_s = np.load('error_maps_2D/point_error_small_100_all_ele.npy')
     error_all = np.concatenate((error_l, error_s))
     symm_array_all = matrix_symmetrization(error_all)
-
-    generate_figure(k, true_csd, ele_pos, pots, mask=np.mean(symm_array_all, axis=0))
+    generate_figure(k, true_csd, ele_pos, pots,
+                    mask=np.mean(symm_array_all, axis=0))

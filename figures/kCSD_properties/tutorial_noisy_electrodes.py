@@ -43,11 +43,6 @@ def set_axis(ax, letter=None):
         transform=ax.transAxes)
     return ax
 
-#def point_errors(true_csd, est_csd):
-#    nrm_est = est_csd.reshape(est_csd.size, 1) / np.max(np.abs(est_csd))
-#    nrm_csd = true_csd.reshape(true_csd.size, 1) / np.max(np.abs(true_csd))
-#    err = np.linalg.norm(nrm_csd - nrm_est, axis=1).reshape(true_csd.shape)
-#    return err
 
 def point_errors(true_csd, est_csd):
     true_csd_r = true_csd.reshape(true_csd.size, 1)
@@ -95,10 +90,12 @@ def make_subplot(ax, val_type, xs, ys, values, cax, title=None, ele_pos=None, xl
 def do_kcsd(CSD_PROFILE, csd_seed, noise_level):
     if CSD_PROFILE.__name__ == 'gauss_2d_small':
         R_init = 1.
-        R_final = np.linspace(0.01, 0.15, 15)
+#        R_final = np.linspace(0.01, 0.15, 15)
+        R_final = np.linspace(0.05, 1., 20)
     elif CSD_PROFILE.__name__ == 'gauss_2d_large':
         R_init = 0.1
-        R_final = np.linspace(0.1, 1.5, 15)
+#        R_final = np.linspace(0.1, 1.5, 15)
+        R_final = np.linspace(0.05, 1., 20)
     # True CSD_PROFILE
     csd_at = np.mgrid[0.:1.:100j,
                       0.:1.:100j]
@@ -150,29 +147,30 @@ def generate_figure(small_seed, large_seed):
     gs = gridspec.GridSpec(2, 4, height_ratios=[1., 0.04], width_ratios=[1]*4)
     gs.update(top=.95, bottom=0.53)
 
+    t_max_1 = 0.75
     csd_x, csd_y, err, ele_pos = do_kcsd(CSD.gauss_2d_small, csd_seed=small_seed, noise_level=0)
     ax = plt.subplot(gs[0, 0])
     cax = plt.subplot(gs[1, 0])
     make_subplot(ax, 'err', csd_x, csd_y, err, ele_pos=ele_pos,
-                 cax=cax, title='Error CSD', xlabel=True, ylabel=True, letter='A')
+                 cax=cax, title='Error CSD', xlabel=True, ylabel=True, letter='A', t_max=t_max_1)
     
     csd_x, csd_y, err, ele_pos = do_kcsd(CSD.gauss_2d_small, csd_seed=small_seed, noise_level=5)
     ax = plt.subplot(gs[0, 1])
     cax = plt.subplot(gs[1, 1])
     make_subplot(ax, 'err', csd_x, csd_y, err, ele_pos=ele_pos,
-                 cax=cax, title='Error CSD 5% noise', xlabel=True, ylabel=True, letter='B')
+                 cax=cax, title='Error CSD 5% noise', xlabel=True, ylabel=True, letter='B', t_max=t_max_1)
 
     csd_x, csd_y, err, ele_pos = do_kcsd(CSD.gauss_2d_small, csd_seed=small_seed, noise_level=10)
     ax = plt.subplot(gs[0, 2])
     cax = plt.subplot(gs[1, 2])
     make_subplot(ax, 'err', csd_x, csd_y, err, ele_pos=ele_pos,
-                 cax=cax, title='Error CSD 10% noise', xlabel=True, letter='C')
+                 cax=cax, title='Error CSD 10% noise', xlabel=True, letter='C', t_max=t_max_1)
     
     csd_x, csd_y, err, ele_pos = do_kcsd(CSD.gauss_2d_small, csd_seed=small_seed, noise_level=30)
     ax = plt.subplot(gs[0, 3])
     cax = plt.subplot(gs[1, 3])
     make_subplot(ax, 'err', csd_x, csd_y, err, ele_pos=ele_pos,
-                 cax=cax, title='Error CSD 30% noise', xlabel=True, letter='D')
+                 cax=cax, title='Error CSD 30% noise', xlabel=True, letter='D', t_max=t_max_1)
 
 
     gs = gridspec.GridSpec(2, 4, height_ratios=[1., 0.04], width_ratios=[1]*4)
@@ -181,25 +179,25 @@ def generate_figure(small_seed, large_seed):
     ax = plt.subplot(gs[0, 0])
     cax = plt.subplot(gs[1, 0])
     make_subplot(ax, 'err', csd_x, csd_y, err, ele_pos=ele_pos,
-                 cax=cax, xlabel=True, ylabel=True, letter='E')
+                 cax=cax, xlabel=True, ylabel=True, letter='E', t_max=0.55)
     
     csd_x, csd_y, err, ele_pos = do_kcsd(CSD.gauss_2d_large, csd_seed=large_seed, noise_level=5)
     ax = plt.subplot(gs[0, 1])
     cax = plt.subplot(gs[1, 1])
     make_subplot(ax, 'err', csd_x, csd_y, err, ele_pos=ele_pos,
-                 cax=cax,  xlabel=True,  letter='F')
+                 cax=cax,  xlabel=True,  letter='F', t_max=0.55)
 
     csd_x, csd_y, err, ele_pos = do_kcsd(CSD.gauss_2d_large, csd_seed=large_seed, noise_level=10)
     ax = plt.subplot(gs[0, 2])
     cax = plt.subplot(gs[1, 2])
     make_subplot(ax, 'err', csd_x, csd_y, err, ele_pos=ele_pos,
-                 cax=cax,  xlabel=True,  letter='G')
+                 cax=cax,  xlabel=True,  letter='G', t_max=0.55)
 
     csd_x, csd_y, err, ele_pos = do_kcsd(CSD.gauss_2d_large, csd_seed=large_seed, noise_level=30)   
     ax = plt.subplot(gs[0, 3])
     cax = plt.subplot(gs[1, 3])
     make_subplot(ax, 'err', csd_x, csd_y, err, ele_pos=ele_pos,
-                 cax=cax,  xlabel=True,  letter='H')
+                 cax=cax,  xlabel=True,  letter='H', t_max=0.55)
     plt.savefig('tutorial_noise.png', dpi=300)
     plt.show()
 

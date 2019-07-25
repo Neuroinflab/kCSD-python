@@ -345,7 +345,7 @@ class CellModel():
             synapse = LFPy.Synapse(self.cell, **self.synapse_parameters)
             synapse.set_spike_times(np.array(pars[syn_idx]))
        
-        TimesStim = np.arange(850)
+        TimesStim = np.arange(tstop)
         stim = np.array(3.6*np.sin(2.*3.141*6.5*TimesStim/1000.))
         for istim in range(tstop):
             pointprocess = {
@@ -358,6 +358,42 @@ class CellModel():
                 }
             stimulus = LFPy.StimIntElectrode(self.cell, **pointprocess)
 
+    def distal_cosine_current_injection(self, tstop=850):
+        pre_syn_sptimes = self.stationary_poisson(nsyn=self.n_pre_syn,
+                                                  lambd=2,
+                                                  tstart=0,
+                                                  tstop=400)
+        l = np.arange(self.n_pre_syn)
+        pre_syn_pick = np.random.permutation(l)[0:self.n_synapses]
+        pars = {}
+        for i_syn in range(self.n_synapses):
+            syn_idx = int(self.cell.get_rand_idx_area_norm())
+            spike_times = pre_syn_sptimes[pre_syn_pick[i_syn]]
+            if syn_idx in pars:
+                pars[syn_idx].extend(list(spike_times))
+            else:
+                pars[syn_idx] = list(spike_times)
+        for syn_idx in pars:
+            self.synapse_parameters.update({'idx': syn_idx})
+            synapse = LFPy.Synapse(self.cell, **self.synapse_parameters)
+            synapse.set_spike_times(np.array(pars[syn_idx]))
+       
+        TimesStim = np.arange(850)
+        stim = np.array(3.6*np.sin(2.*3.141*6.5*TimesStim/1000.))
+        all_idxs = self.cell.get_idx()
+        
+        for istim in range(tstop):
+            pointprocess = {
+                'idx' : max(all_idxs),
+                'pptype': 'IClamp',
+                'record_current' : True,
+                'amp': stim[istim],
+                'dur' : 1.,
+                'delay': istim,
+                }
+            stimulus = LFPy.StimIntElectrode(self.cell, **pointprocess)
+
+            
     def random_synaptic_input(self,
                               lambd=2,
                               tstart=0,
@@ -424,7 +460,9 @@ class CellModel():
         elif self.stimulus == 'symmetric':
             self.y_shaped_symmetric_input()
         elif self.stimulus == 'oscillatory':
-            self.cosine_current_injection()
+            self.cosine_current_injection(tstop=self.cell_parameters['tstop'])
+        elif self.stimulus == 'distal_oscillatory':
+            self.distal_cosine_current_injection(tstop=self.cell_parameters['tstop'])
         self.cell.simulate(**self.simulation_parameters)
 
     def save_LFP(self, directory=''):
@@ -444,18 +482,34 @@ class CellModel():
         if not os.path.exists(elcoord_x_y_x_path):
             print("Creating", elcoord_x_y_x_path)
             os.makedirs(elcoord_x_y_x_path)
-        fname = os.path.join(elcoord_x_y_x_path, 'elcoord_x_y_x')
+        fname = os.path.join(elcoord_x_y_x_path, 'elcoord_x_y_z')
         np.savetxt(fname, electr)
 
-    def save_for_R_kernel(self, directory=''):
-        self.save_LFP(directory)
-        self.save_electrode_pos(directory)
+
+    def save_somav(self, directory=''):
         if directory:
             new_path = directory
         else:
             new_path = self.new_path
         np.savetxt(os.path.join(new_path, 'somav.txt'),
                    self.cell.somav)
+
+    def save_tvec(self, directory=''):
+        if directory:
+            new_path = directory
+        else:
+            new_path = self.new_path
+        np.savetxt(os.path.join(new_path, 'tvec.txt'),
+                   self.cell.tvec)
+ 
+    def save_for_R_kernel(self, directory=''):
+        if directory:
+            new_path = directory
+        else:
+            new_path = self.new_path
+        self.save_LFP(directory)
+        self.save_electrode_pos(directory)
+        self.save_somav(directory)
         coords = np.hstack((self.cell.xmid,
                             self.cell.ymid,
                             self.cell.zmid))

@@ -148,8 +148,13 @@ def do_kcsd(CSD_PROFILE, csd_seed, prefix, missing_ele):
              true_csd=true_csd, pots=pots, post_cv=est_csd_post_cv, R=k.R)
 
 if __name__ == '__main__':
-    CSD_PROFILE =  CSD.gauss_2d_large #CSD.gauss_2d_small #
-    prefix = '/home/chaitanya/kCSD-python/figures/kCSD_properties/large_srcs_minus_20'
+    CSD_PROFILE =  CSD.gauss_2d_large
+    prefix = '/home/chaitanya/kCSD-python/figures/kCSD_properties/large_srcs_all_ele'
     for csd_seed in range(100):
-        do_kcsd(CSD_PROFILE, csd_seed, prefix, missing_ele=20)
+        do_kcsd(CSD_PROFILE, csd_seed, prefix, missing_ele=0)
+        print("Done ", csd_seed)
+    CSD_PROFILE =  CSD.gauss_2d_small
+    prefix = '/home/chaitanya/kCSD-python/figures/kCSD_properties/small_srcs_all_ele'
+    for csd_seed in range(100):
+        do_kcsd(CSD_PROFILE, csd_seed, prefix, missing_ele=0)
         print("Done ", csd_seed)

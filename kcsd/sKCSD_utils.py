@@ -1,15 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-These are some useful functions used in CSD methods,
-They include CSD source profiles to be used as ground truths,
-placement of electrodes in 1D, 2D and 3D., etc
-These scripts are based on Grzegorz Parka's,
-Google Summer of Code 2014, INFC/pykCSD
+These are some useful functions used in sKCSD methods,
 This was written by :
 Michal Czerwinski, Chaitanya Chintaluri, Joanna Jędrzejewska-Szmek
 Laboratory of Neuroinformatics,
 Nencki Institute of Experimental Biology, Warsaw.
-
 
 N-D Bresenham line algo Copyright 2012 Vikas Dhiman
 
@@ -32,14 +27,11 @@ OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from __future__ import print_function, division, absolute_import
+import os
+import json
+
 import numpy as np
 from scipy.spatial import distance
-import os
-import pickle
-from scipy import interpolate
-import json
-import sys
-
 
 def load_swc(path):
     """Load swc morphology from file
@@ -89,7 +81,7 @@ def load_sim(path):
     CSD, potential, and three objects necessary for initialization 
     of a sKCSDcell object: morphology, positions of electrodes, 
     and number of sources
-    
+   
     Parameters
     ----------
     path: str
@@ -130,6 +122,7 @@ def load_elpos(path):
     Returns
     -------
     ele_pos : np.array
+
     """
     raw_ele_pos = np.loadtxt(path)
     if len(raw_ele_pos.shape) == 1:
@@ -168,7 +161,7 @@ def load_elpos(path):
         raise Exception('Unknown electrode position file format.')
     return ele_pos
 
-
+  
 def check_estimated_shape(to_estimate):
     if len(to_estimate.shape) == 1:
         estimated = np.ndarray((to_estimate.shape[0], 1))
@@ -237,6 +230,7 @@ def _bresenhamlines(start, end, max_iter):
     # Approximate to nearest int
     return np.array(np.rint(bline), dtype=start.dtype)
 
+
 def bresenhamline(start, end, max_iter=5):
     """
     Returns a list of points from (start, end] by ray tracing a line b/w the
@@ -304,10 +298,16 @@ class LoadData(object):
     1 column with x postions for each electrode followed by y postions 
     for each electrodes followed by z positions of each electrode; 
     or a textfile with 3 columns with x, y, z electrode postions. 
-    LFPs should be a text file with appropriate numbers.
+    LFPs should be a text file with appropriate numbers of the shape 
+    of n_electrodes x n_timesamples.
 
     LoadData allows for initialization of an empty object and reading 
-    in arbitrary data files from specific location using specified function.
+    in arbitrary data files from specific location using assign function, 
+    for example:
+    data1 = LoadData()
+    data1.assign('mophology', path_to_morphology_file)
+    data1.assign('electrode_positions', path_to_electrode_positions_file)
+    data1.assign('LFP', path_to_LFP_file)
     """
     def __init__(self, path):
         """
@@ -457,3 +457,4 @@ class LoadData(object):
             return
         print('Load', path)
         f.close()
+

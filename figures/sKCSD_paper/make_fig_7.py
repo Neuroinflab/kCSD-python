@@ -15,7 +15,7 @@ if __name__ == '__main__':
     scale_factor = 1000**2
     scale_factor_LFP = 1000
     R_inits = np.array([(2**(i - .5))/scale_factor for i in range(3, 7)])
-    lambdas = np.array([(10**(-i))for i in range(5, 0, -1)])
+    lambdas = np.array([(10**(-i))for i in range(5, -5, -1)])
     n_srcs = np.array([32, 64, 128, 512, 1024])
     x_ticklabels = [2**i for i in range(3, 7)]
     y_ticklabels = [str(lambd) for lambd in lambdas]
@@ -42,7 +42,7 @@ if __name__ == '__main__':
     pots = data.LFP/scale_factor_LFP
     morphology = data.morphology
     morphology[:, 2:6] = morphology[:, 2:6]/scale_factor
-    
+    new_path = c.return_paths_skCSD_python()
     ground_truth = np.loadtxt(os.path.join(new_path,
                                            'membcurr'))
     seglen = np.loadtxt(os.path.join(new_path,
@@ -52,7 +52,7 @@ if __name__ == '__main__':
     for i, n_src in enumerate(n_srcs):
         for j, l in enumerate(lambdas):
             for k, R in enumerate(R_inits):
-                lambd = l/(16*np.pi**3*R**2*n_src)
+                lambd = l
                 ker = sKCSD(ele_pos,
                             pots,
                             morphology,
@@ -60,14 +60,15 @@ if __name__ == '__main__':
                             src_type='gauss',
                             lambd=lambd,
                             R_init=R,
-                            exact=True)
+                            exact=True,
+                            sigma=0.3)
                 est_skcsd = ker.values(estimate='CSD',
                                        transformation='segments')
           
                 outs[i, j, k] = sKCSD_utils.L1_error(ground_truth,
                                                      est_skcsd)
                 print(outs[i, j, k], est_skcsd.min(), est_skcsd.max(), ground_truth.min(), ground_truth.max(), n_src, l, R)
-    fig, ax = plt.subplots(1, 4, sharey=True)
+    fig, ax = plt.subplots(1, len(n_srcs), sharey=True)
     vmax = outs.max()
     vmin = outs.min()
     for i, ax_i in enumerate(ax):
@@ -81,7 +82,7 @@ if __name__ == '__main__':
                     vmax=vmax,
                     title=title,
                     cmap='gray')
-        elif i < 3:
+        elif i < len(n_srcs) - 1:
             pl.make_map_plot(ax_i,
                     outs[i],
                     xticklabels=x_ticklabels,

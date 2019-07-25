@@ -1,11 +1,6 @@
 """This script is used to generate Current Source Density Estimates, using the
 kCSD method Jan et.al (2012).
-This was written by :
-[1]Chaitanya Chintaluri,
-[2]Michal Czerwinski,
-Laboratory of Neuroinformatics,
-Nencki Institute of Exprimental Biology, Warsaw.
-KCSD1D[1][2], KCSD2D[1], KCSD3D[1], MoIKCSD[1]
+
 """
 from __future__ import division, print_function, absolute_import
 
@@ -29,12 +24,14 @@ class CSD(object):
 
     def validate(self, ele_pos, pots):
         """Basic checks to see if inputs are okay
+
         Parameters
         ----------
         ele_pos : numpy array
             positions of electrodes
         pots : numpy array
             potentials measured by electrodes
+
         """
         if ele_pos.shape[0] != pots.shape[0]:
             raise Exception("Number of measured potentials is not equal "
@@ -46,16 +43,20 @@ class CSD(object):
             raise Exception("Error! Duplicated electrode!")
 
     def sanity(self, true_csd, pos_csd):
-        """Useful for comparing TrueCSD with reconstructed CSD. Computes, the RMS error
-        between the true_csd and the reconstructed csd at pos_csd using the
-        method defined.
+        """Useful for comparing TrueCSD with reconstructed CSD. 
+
+        Computes, the RMS error between the true_csd and the reconstructed csd at 
+        pos_csd using the method defined.
+
         Parameters
         ----------
         true_csd : csd values used to generate potentials
         pos_csd : csd estimatation from the method
+
         Returns
         -------
         RMSE : root mean squared difference
+
         """
         csd = self.values(pos_csd)
         RMSE = np.sqrt(np.mean(np.square(true_csd - csd)))
@@ -64,10 +65,12 @@ class CSD(object):
 
 class KCSD(CSD):
     """KCSD - The base class for all the KCSD variants.
+
     This estimates the Current Source Density, for a given configuration of
     electrod positions and recorded potentials, electrodes.
     The method implented here is based on the original paper
     by Jan Potworowski et.al. 2012.
+
     """
     def __init__(self, ele_pos, pots, **kwargs):
         super(KCSD, self).__init__(ele_pos, pots)
@@ -79,17 +82,17 @@ class KCSD(CSD):
 
     def parameters(self, **kwargs):
         """Defining the default values of the method passed as kwargs
+
         Parameters
         ----------
         **kwargs
             Same as those passed to initialize the Class
-        Returns
-        -------
-        None
+
         Raises
         ------
         TypeError
             If invalid keyword arguments inserted into **kwargs.
+
         """
         self.src_type = kwargs.pop('src_type', 'gauss')
         self.sigma = kwargs.pop('sigma', 1.0)
@@ -117,11 +120,10 @@ class KCSD(CSD):
 
     def method(self):
         """Actual sequence of methods called for KCSD
+
         Defines:
         self.k_pot and self.k_interp_cross matrices
-        Parameters
-        ----------
-        None
+
         """
         self.create_lookup()                                # Look up table
         self.update_b_pot()                                 # update kernel
@@ -130,14 +132,17 @@ class KCSD(CSD):
 
     def create_lookup(self):
         """Creates a table for easy potential estimation from CSD.
+
         Updates and Returns the potentials due to a
         given basis source like a lookup
         table whose shape=(dist_table_density,)
+
         Parameters
         ----------
         dist_table_density : int
             number of distance points at which potentials are computed.
             Default 100
+
         """
         xs = np.logspace(0., np.log10(self.dist_max+1.), self.dist_table_density)
         xs = xs - 1.0  # starting from 0
@@ -153,14 +158,13 @@ class KCSD(CSD):
 
     def update_b_pot(self):
         """Updates the b_pot  - array is (#_basis_sources, #_electrodes)
+
         Updates the  k_pot - array is (#_electrodes, #_electrodes) K(x,x')
         Eq9,Jan2012
         Calculates b_pot - matrix containing the values of all
         the potential basis functions in all the electrode positions
         (essential for calculating the cross_matrix).
-        Parameters
-        ----------
-        None
+
         """
         self.b_pot = self.interpolate_pot_at(self.src_ele_dists)
         self.k_pot = np.dot(self.b_pot.T, self.b_pot)  # K(x,x') Eq9,Jan2012
@@ -168,13 +172,12 @@ class KCSD(CSD):
 
     def update_b_src(self):
         """Updates the b_src in the shape of (#_est_pts, #_basis_sources)
+
         Updates the k_interp_cross - K_t(x,y) Eq17
         Calculate b_src - matrix containing containing the values of
         all the source basis functions in all the points at which we want to
         calculate the solution (essential for calculating the cross_matrix)
-        Parameters
-        ----------
-        None
+
         """
         self.b_src = self.basis(self.src_estm_dists, self.R).T
         self.k_interp_cross = np.dot(self.b_src, self.b_pot)  # K_t(x,y) Eq17
@@ -195,15 +198,18 @@ class KCSD(CSD):
 
     def values(self, estimate='CSD'):
         """Computes the values of the quantity of interest
+
         Parameters
         ----------
         estimate : 'CSD' or 'POT'
             What quantity is to be estimated
             Defaults to 'CSD'
+
         Returns
         -------
         estimation : np.array
             estimated quantity of shape (ngx, ngy, ngz, nt)
+
         """
         if estimate == 'CSD':  # Maybe used for estimating the potentials also.
             estimation_table = self.k_interp_cross
@@ -224,13 +230,16 @@ class KCSD(CSD):
     def process_estimate(self, estimation):
         """Function used to rearrange estimation according to dimension, to be
         used by the fuctions values
+
         Parameters
         ----------
         estimation : np.array
+
         Returns
         -------
         estimation : np.array
             estimated quantity of shape (ngx, ngy, ngz, nt)
+
         """
         if self.dim == 1:
             estimation = estimation.reshape(self.ngx, self.n_time)
@@ -243,9 +252,11 @@ class KCSD(CSD):
 
     def update_R(self, R):
         """Update the width of the basis fuction - Used in Cross validation
+
         Parameters
         ----------
         R : float
+
         """
         self.R = R
         self.dist_max = max(np.max(self.src_ele_dists),
@@ -254,27 +265,33 @@ class KCSD(CSD):
 
     def update_lambda(self, lambd):
         """Update the lambda parameter of regularization, Used in Cross validation
+
         Parameters
         ----------
         lambd : float
+
         """
         self.lambd = lambd
 
     def cross_validate(self, lambdas=None, Rs=None):
         """Method defines the cross validation.
+
         By default only cross_validates over lambda,
         When no argument is passed, it takes
         lambdas = np.logspace(-2,-25,25,base=10.)
         and Rs = np.array(self.R).flatten()
         otherwise pass necessary numpy arrays
+
         Parameters
         ----------
         lambdas : numpy array
         Rs : numpy array
+
         Returns
         -------
         R : post cross validation
         Lambda : post cross validation
+
         """
         if lambdas is None:                           # when None
             print('No lambda given, using defaults')
@@ -308,18 +325,22 @@ class KCSD(CSD):
 
     def compute_cverror(self, lambd, index_generator):
         """Useful for Cross validation error calculations
+
         Parameters
         ----------
         lambd : float
         index_generator : list
+
         Returns
         -------
         err : float
             the sum of the error computed.
+
         Raises
         ------
         LinAlgError
             If the matrix is not numerically invertible.
+
         """
         err = 0
         for idx_train, idx_test in index_generator:
@@ -342,21 +363,23 @@ class KCSD(CSD):
         return err
 
     def suggest_lambda(self):
-        """Computes the lambda parameter range for regularization,
+        """Computes the lambda parameter range for regularization, 
+
         Used in Cross validation and L-curve
-        Parameters
-        ----------
+
         Returns
         -------
         Lambdas : list
+
         """
         u, s, v = svd(self.k_pot)
         print('min lambda', 10**np.round(np.log10(s[-1]), decimals=0))
         print('max lambda', str.format('{0:.4f}', np.std(np.diag(self.k_pot))))
         return np.logspace(np.log10(s[-1]), np.log10(np.std(np.diag(self.k_pot))), 20)
 
-    def L_curve(self, estimate='CSD', lambdas=None, Rs=None, n_jobs=1):
+    def L_curve(self, lambdas=None, Rs=None, n_jobs=1):
         """Method defines the L-curve.
+
         By default calculates L-curve over lambda,
         When no argument is passed, it takes
         lambdas = np.logspace(-10,-1,100,base=10)
@@ -368,9 +391,11 @@ class KCSD(CSD):
         L-curve plotting: default True
         lambdas : numpy array
         Rs : numpy array
+
         Returns
         -------
         curve_surf : post cross validation
+
         """
         if lambdas is None:
             print('No lambda given, using defaults')
@@ -381,7 +406,7 @@ class KCSD(CSD):
             Rs = np.array((self.R)).flatten()
         else:
             Rs = np.array((Rs)).flatten()
-        self.lcurve_axis = np.zeros((2,len(Rs),len(lambdas)))
+        self.lcurve_axis = np.zeros((2, len(Rs), len(lambdas)))
         self.curve_surf = np.zeros((len(Rs), len(lambdas)))
         for R_idx, R in enumerate(Rs):
             self.update_R(R)
@@ -394,11 +419,11 @@ class KCSD(CSD):
             curveseq = res_log[0] * (norm_log - norm_log[-1]) + res_log * (norm_log[-1] - norm_log[0]) \
                 + res_log[-1] * (norm_log[0] - norm_log)
             self.curve_surf[R_idx] = curveseq
-            self.lcurve_axis[0,R_idx]=modelnormseq#norm_log
-            self.lcurve_axis[1,R_idx]=residualseq#res_log
+            self.lcurve_axis[0,R_idx] = modelnormseq#norm_log
+            self.lcurve_axis[1,R_idx] = residualseq#res_log
         best_R_ind = np.argmax(np.max(self.curve_surf, axis=1))
-        self.m_norm = self.lcurve_axis[0,best_R_ind]
-        self.m_resi = self.lcurve_axis[1,best_R_ind]
+        self.m_norm = self.lcurve_axis[0, best_R_ind]
+        self.m_resi = self.lcurve_axis[1, best_R_ind]
         self.update_R(Rs[best_R_ind])
         self.update_lambda(lambdas[np.argmax(self.curve_surf, axis=1)[best_R_ind]])
         print("Best lambda and R = ", self.lambd, ', ',
@@ -406,14 +431,17 @@ class KCSD(CSD):
 
 
 class KCSD1D(KCSD):
-    """KCSD1D - The 1D variant for the Kernel Current Source Density method.
+    """The 1D variant for the Kernel Current Source Density method.
+
     This estimates the Current Source Density, for a given configuration of
     electrod positions and recorded potentials, in the case of 1D recording
     electrodes (laminar probes). The method implented here is based on the
     original paper by Jan Potworowski et.al. 2012.
+
     """
     def __init__(self, ele_pos, pots, **kwargs):
         """Initialize KCSD1D Class.
+
         Parameters
         ----------
         ele_pos : numpy array
@@ -452,24 +480,25 @@ class KCSD1D(KCSD):
             dist_table_density : int
                 size of the potential interpolation table
                 Defaults to 20
+
         Raises
         ------
         LinAlgError
             If the matrix is not numerically invertible.
         KeyError
             Basis function (src_type) not implemented. See basis_functions.py for available
+
         """
         super(KCSD1D, self).__init__(ele_pos, pots, **kwargs)
 
     def estimate_at(self):
         """Defines locations where the estimation is wanted
+
         Defines:
         self.n_estm = self.estm_x.size
         self.ngx = self.estm_x.shape
         self.estm_x : Locations at which CSD is requested.
-        Parameters
-        ----------
-        None
+
         """
         nx = (self.xmax - self.xmin)/self.gdx
         self.estm_x = np.mgrid[self.xmin:self.xmax:np.complex(0, nx)]
@@ -479,6 +508,7 @@ class KCSD1D(KCSD):
         
     def place_basis(self):
         """Places basis sources of the defined type.
+
         Checks if a given source_type is defined, if so then defines it
         self.basis, This function gives locations of the basis sources,
         Defines
@@ -487,9 +517,7 @@ class KCSD1D(KCSD):
         self.dist_max as maximum distance between electrode and basis
         self.nsx = self.src_x.shape
         self.src_x : Locations at which basis sources are placed.
-        Parameters
-        ----------
-        None
+
         """
         source_type = self.src_type
         try:
@@ -506,9 +534,7 @@ class KCSD1D(KCSD):
 
     def create_src_dist_tables(self):
         """Creates distance tables between sources, electrode and estm points
-        Parameters
-        ----------
-        None
+
         """
         src_loc = np.array((self.src_x.ravel()))
         src_loc = src_loc.reshape((len(src_loc), 1))
@@ -520,9 +546,11 @@ class KCSD1D(KCSD):
                             np.max(self.src_estm_dists)) + self.R
 
     def forward_model(self, x, R, h, sigma, src_type):
-        """FWD model functions
+        """Forward model functions
+
         Evaluates potential at point (x,0) by a basis source located at (0,0)
         Eq 26 kCSD by Jan,2012
+
         Parameters
         ----------
         x : float
@@ -530,10 +558,12 @@ class KCSD1D(KCSD):
         h : float
         sigma : float
         src_type : basis_1D.key
+
         Returns
         -------
         pot : float
             value of potential at specified distance from the source
+
         """
         pot, err = integrate.quad(self.int_pot_1D,
                                   -R, R,
@@ -542,12 +572,14 @@ class KCSD1D(KCSD):
         return pot
 
     def int_pot_1D(self, xp, x, R, h, basis_func):
-        """FWD model function.
+        """Forward model function for 1D.
+
         Returns contribution of a point xp,yp, belonging to a basis source
         support centered at (0,0) to the potential measured at (x,0),
         integrated over xp,yp gives the potential generated by a
         basis source element centered at (0,0) at point (x,0)
         Eq 26 kCSD by Jan,2012
+
         Parameters
         ----------
         xp : floats or np.arrays
@@ -560,23 +592,28 @@ class KCSD1D(KCSD):
             thickness of slice
         basis_func : method
             Fuction of the basis source
+
         Returns
         -------
         pot : float
+
         """
         m = np.sqrt((x-xp)**2 + h**2) - abs(x-xp)
         m *= basis_func(abs(xp), R)  # xp is the distance
         return m
 
 class KCSD2D(KCSD):
-    """KCSD2D - The 2D variant for the Kernel Current Source Density method.
+    """The 2D variant for the Kernel Current Source Density method.
+
     This estimates the Current Source Density, for a given configuration of
     electrod positions and recorded potentials, in the case of 2D recording
     electrodes. The method implented here is based on the original paper
     by Jan Potworowski et.al. 2012.
+
     """
     def __init__(self, ele_pos, pots, **kwargs):
         """Initialize KCSD2D Class.
+
         Parameters
         ----------
         ele_pos : numpy array
@@ -615,24 +652,25 @@ class KCSD2D(KCSD):
             lambd : float
                 regularization parameter for ridge regression
                 Defaults to 0.
+
         Raises
         ------
         LinAlgError
             Could not invert the matrix, try changing the ele_pos slightly
         KeyError
             Basis function (src_type) not implemented. See basis_functions.py for available
+
         """
         super(KCSD2D, self).__init__(ele_pos, pots, **kwargs)
 
     def estimate_at(self):
         """Defines locations where the estimation is wanted
+
         Defines:
         self.n_estm = self.estm_x.size
         self.ngx, self.ngy = self.estm_x.shape
         self.estm_x, self.estm_y : Locations at which CSD is requested.
-        Parameters
-        ----------
-        None
+
         """
         nx = (self.xmax - self.xmin)/self.gdx
         ny = (self.ymax - self.ymin)/self.gdy
@@ -644,6 +682,7 @@ class KCSD2D(KCSD):
 
     def place_basis(self):
         """Places basis sources of the defined type.
+
         Checks if a given source_type is defined, if so then defines it
         self.basis, This function gives locations of the basis sources,
         Defines
@@ -652,9 +691,7 @@ class KCSD2D(KCSD):
         self.dist_max as maximum distance between electrode and basis
         self.nsx, self.nsy = self.src_x.shape
         self.src_x, self.src_y : Locations at which basis sources are placed.
-        Parameters
-        ----------
-        None
+
         """
         source_type = self.src_type
         try:
@@ -673,9 +710,7 @@ class KCSD2D(KCSD):
 
     def create_src_dist_tables(self):
         """Creates distance tables between sources, electrode and estm points
-        Parameters
-        ----------
-        None
+
         """
         src_loc = np.array((self.src_x.ravel(), self.src_y.ravel()))
         est_loc = np.array((self.estm_x.ravel(), self.estm_y.ravel()))
@@ -685,8 +720,10 @@ class KCSD2D(KCSD):
 
     def forward_model(self, x, R, h, sigma, src_type):
         """FWD model functions
+
         Evaluates potential at point (x,0) by a basis source located at (0,0)
         Eq 22 kCSD by Jan,2012
+
         Parameters
         ----------
         x : float
@@ -694,10 +731,12 @@ class KCSD2D(KCSD):
         h : float
         sigma : float
         src_type : basis_2D.key
+
         Returns
         -------
         pot : float
             value of potential at specified distance from the source
+
         """
         pot, err = integrate.dblquad(self.int_pot_2D,
                                      -R, R,
@@ -709,10 +748,12 @@ class KCSD2D(KCSD):
 
     def int_pot_2D(self, xp, yp, x, R, h, basis_func):
         """FWD model function.
+
         Returns contribution of a point xp,yp, belonging to a basis source
         support centered at (0,0) to the potential measured at (x,0),
         integrated over xp,yp gives the potential generated by a
         basis source element centered at (0,0) at point (x,0)
+
         Parameters
         ----------
         xp, yp : floats or np.arrays
@@ -725,9 +766,11 @@ class KCSD2D(KCSD):
             thickness of slice
         basis_func : method
             Fuction of the basis source
+
         Returns
         -------
         pot : float
+
         """
         y = ((x-xp)**2 + yp**2)**(0.5)
         if y < 0.00001:
@@ -739,14 +782,17 @@ class KCSD2D(KCSD):
 
 class MoIKCSD(KCSD2D):
     """MoIKCSD - CSD while including the forward modeling effects of saline.
+
     This estimates the Current Source Density, for a given configuration of
     electrod positions and recorded potentials, in the case of 2D recording
     electrodes from an MEA electrode plane using the Method of Images.
     The method implented here is based on kCSD method by Jan Potworowski
     et.al. 2012, which was extended in Ness, Chintaluri 2015 for MEA.
+
     """
     def __init__(self, ele_pos, pots, **kwargs):
         """Initialize MoIKCSD Class.
+
         Parameters
         ----------
         ele_pos : numpy array
@@ -791,6 +837,7 @@ class MoIKCSD(KCSD2D):
             MoI_iters : int
                 Number of interations in method of images.
                 Default is 20
+
         """
         self.MoI_iters = kwargs.pop('MoI_iters', 20)
         self.sigma_S = kwargs.pop('sigma_S', 5.0)
@@ -802,8 +849,10 @@ class MoIKCSD(KCSD2D):
 
     def forward_model(self, x, R, h, sigma, src_type):
         """FWD model functions
+
         Evaluates potential at point (x,0) by a basis source located at (0,0)
         Eq 22 kCSD by Jan,2012
+
         Parameters
         ----------
         x : float
@@ -811,10 +860,12 @@ class MoIKCSD(KCSD2D):
         h : float
         sigma : float
         src_type : basis_2D.key
+
         Returns
         -------
         pot : float
             value of potential at specified distance from the source
+
         """
         pot, err = integrate.dblquad(self.int_pot_2D_moi, -R, R,
                                      lambda x: -R,
@@ -825,11 +876,13 @@ class MoIKCSD(KCSD2D):
 
     def int_pot_2D_moi(self, xp, yp, x, R, h, basis_func):
         """FWD model function. Incorporates the Method of Images.
+
         Returns contribution of a point xp,yp, belonging to a basis source
         support centered at (0,0) to the potential measured at (x,0),
         integrated over xp,yp gives the potential generated by a
         basis source element centered at (0,0) at point (x,0)
         #Eq 20, Ness(2015)
+
         Parameters
         ----------
         xp, yp : floats or np.arrays
@@ -842,9 +895,11 @@ class MoIKCSD(KCSD2D):
             thickness of slice
         basis_func : method
             Fuction of the basis source
+
         Returns
         -------
         pot : float
+
         """
         L = ((x-xp)**2 + yp**2)**(0.5)
         if L < 0.00001:
@@ -862,9 +917,11 @@ class KCSD3D(KCSD):
     electrod positions and recorded potentials, in the case of 2D recording
     electrodes. The method implented here is based on the original paper
     by Jan Potworowski et.al. 2012.
+
     """
     def __init__(self, ele_pos, pots, **kwargs):
         """Initialize KCSD3D Class.
+
         Parameters
         ----------
         ele_pos : numpy array
@@ -906,6 +963,7 @@ class KCSD3D(KCSD):
             lambd : float
                 regularization parameter for ridge regression
                 Defaults to 0.
+
         Raises
         ------
         LinAlgError
@@ -913,6 +971,7 @@ class KCSD3D(KCSD):
         KeyError
             Basis function (src_type) not implemented.
             See basis_functions.py for available
+
         """
         super(KCSD3D, self).__init__(ele_pos, pots, **kwargs)
 
@@ -922,9 +981,7 @@ class KCSD3D(KCSD):
         self.n_estm = self.estm_x.size
         self.ngx, self.ngy, self.ngz = self.estm_x.shape
         self.estm_x, self.estm_y, self.estm_z : Pts. at which CSD is requested
-        Parameters
-        ----------
-        None
+
         """
         nx = (self.xmax - self.xmin)/self.gdx
         ny = (self.ymax - self.ymin)/self.gdy
@@ -939,6 +996,7 @@ class KCSD3D(KCSD):
 
     def place_basis(self):
         """Places basis sources of the defined type.
+
         Checks if a given source_type is defined, if so then defines it
         self.basis, This function gives locations of the basis sources,
         Defines
@@ -947,9 +1005,7 @@ class KCSD3D(KCSD):
         self.dist_max as maximum distance between electrode and basis
         self.nsx, self.nsy, self.nsz = self.src_x.shape
         self.src_x, self.src_y, self.src_z : Locations at which basis sources are placed.
-        Parameters
-        ----------
-        None
+
         """
         source_type = self.src_type
         try:
@@ -971,9 +1027,7 @@ class KCSD3D(KCSD):
 
     def create_src_dist_tables(self):
         """Creates distance tables between sources, electrode and estm points
-        Parameters
-        ----------
-        None
+
         """
         src_loc = np.array((self.src_x.ravel(),
                             self.src_y.ravel(),
@@ -988,9 +1042,11 @@ class KCSD3D(KCSD):
 
     def forward_model(self, x, R, h, sigma, src_type):
         """FWD model functions
+
         Evaluates potential at point (x,0) by a basis source located at (0,0)
         Utlizies sk monaco monte carlo method if available, otherwise defaults
         to scipy integrate
+
         Parameters
         ----------
         x : float
@@ -998,10 +1054,12 @@ class KCSD3D(KCSD):
         h : float
         sigma : float
         src_type : basis_3D.key
+
         Returns
         -------
         pot : float
             value of potential at specified distance from the source
+
         """
         if src_type.__name__ == "gauss_3D":
             if x == 0: x=0.0001
@@ -1038,10 +1096,12 @@ class KCSD3D(KCSD):
 
     def int_pot_3D(self, xp, yp, zp, x, R, h, basis_func):
         """FWD model function.
+
         Returns contribution of a point xp,yp, belonging to a basis source
         support centered at (0,0) to the potential measured at (x,0),
         integrated over xp,yp gives the potential generated by a
         basis source element centered at (0,0) at point (x,0)
+
         Parameters
         ----------
         xp, yp, zp : floats or np.arrays
@@ -1054,9 +1114,11 @@ class KCSD3D(KCSD):
             thickness of slice
         basis_func : method
             Fuction of the basis source
+
         Returns
         -------
         pot : float
+
         """
         y = ((x-xp)**2 + yp**2 + zp**2)**0.5
         if y < 0.00001:
@@ -1072,6 +1134,7 @@ class oKCSD2D(KCSD2D):
     """
     def __init__(self, ele_pos, pots, **kwargs):
         """Initialize oKCSD2D Class.
+
         Parameters
         ----------
         ele_pos : numpy array
@@ -1103,6 +1166,7 @@ class oKCSD2D(KCSD2D):
             lambd : float
                 regularization parameter for ridge regression
                 Defaults to 0.
+
         Raises
         ------
         LinAlgError
@@ -1110,6 +1174,7 @@ class oKCSD2D(KCSD2D):
         KeyError
             Basis function (src_type) not implemented.
             See basis_functions.py for available
+
         """
         self.own_src = kwargs.pop('own_src', np.array([]))
         self.own_est = kwargs.pop('own_est', np.array([]))
@@ -1123,12 +1188,11 @@ class oKCSD2D(KCSD2D):
 
     def estimate_at(self):
         """Redefines locations where the estimation is wanted
+
         Defines:
         self.n_estm = self.estm_x.size
         self.estm_x, self.estm_y : Locations at which CSD is requested.
-        Parameters
-        ----------
-        None
+
         """
         self.estm_x, self.estm_y = self.own_est
         self.src_x, self.src_y = self.own_src
@@ -1140,6 +1204,7 @@ class oKCSD3D(KCSD3D):
     """
     def __init__(self, ele_pos, pots, **kwargs):
         """Initialize oKCSD3D Class.
+
         Parameters
         ----------
         ele_pos : numpy array
@@ -1171,6 +1236,7 @@ class oKCSD3D(KCSD3D):
             lambd : float
                 regularization parameter for ridge regression
                 Defaults to 0.
+
         Raises
         ------
         LinAlgError
@@ -1178,6 +1244,7 @@ class oKCSD3D(KCSD3D):
         KeyError
             Basis function (src_type) not implemented.
             See basis_functions.py for available
+
         """
         self.own_src = kwargs.pop('own_src', np.array([]))
         self.own_est = kwargs.pop('own_est', np.array([]))
@@ -1195,9 +1262,7 @@ class oKCSD3D(KCSD3D):
         self.n_estm = self.estm_x.size
         self.estm_x, self.estm_y, self.estm_z : Locations at which CSD is 
         requested.
-        Parameters
-        ----------
-        None
+
         """
         self.estm_x, self.estm_y, self.estm_z = self.own_est
         self.src_x, self.src_y, self.src_z = self.own_src
