@@ -7,9 +7,9 @@ J. Potworowski, W. Jakuczun, S. Łęski, D. K. Wójcik
 "Kernel Current Source Density Method"
 Neural Computation 24 (2012), 541–575
 
-This is as-seen-in of the `bioArxiv pre-print`_
+For details see the `bioRxiv pre-print`_
 
-.. _bioArxiv pre-print : https://doi.org/10.1101/708511 
+.. _bioRxiv pre-print : https://doi.org/10.1101/708511 
 
 
 Health Report
