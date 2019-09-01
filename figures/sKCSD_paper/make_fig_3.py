@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import sys
 import os
 from kcsd import sKCSD
-import kcsd.utility_functions as utils
+from kcsd import sKCSD_utils as utils
 import kcsd.validation.plotting_functions as pl
 import sKCSD_utils
 n_src = 512
@@ -70,7 +70,8 @@ if __name__ == '__main__':
                   src_type='gauss',
                   lambd=lambd,
                   R_init=R,
-                  exact=True)
+                  exact=True,
+                  sigma=0.3)
         csd = k.values(transformation='segments')
         
         cax = ax[1, i].imshow(csd,

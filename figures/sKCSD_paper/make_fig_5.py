@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import sys
 import os
 from kcsd import sKCSD, KCSD3D, sKCSDcell
-import kcsd.utility_functions as utils
+from  kcsd import sKCSD_utils as utils
 import kcsd.validation.plotting_functions as pl
 import sKCSD_utils
 
@@ -26,8 +26,6 @@ if __name__ == '__main__':
     xmax = [100, 500]
     ymax = [500, 100]
     cell_itself = []
-    morpho = []
-    extent = []
     
     for i, electrode_orientation in enumerate([1, 2]):
         fname = fname_base
@@ -71,12 +69,12 @@ if __name__ == '__main__':
                                          ymax=200e-6,
                                          zmin=-150e-6,
                                          zmax=550e-6))
-        
-
-        cell_itself[i].distribute_srcs_3D_morph()
         morpho, extent = cell_itself[i].draw_cell2D(axis=1)
+        extent = [extent[-2], extent[-1], extent[0], extent[1]]
         if i == 0:
             morpho_kcsd, extent_kcsd = cell_itself[i].draw_cell2D(axis=0, resolution=[50, 50, 50])
+            extent_kcsd = [extent_kcsd[-2], extent_kcsd[-1],
+                           extent_kcsd[0], extent_kcsd[1]]
 
     seglen = np.loadtxt(os.path.join(data_dir[0], 'seglength'))
     ground_truth = np.loadtxt(os.path.join(data_dir[0], 'membcurr'))
@@ -109,8 +107,24 @@ if __name__ == '__main__':
                     src_type='gauss',
                     lambd=lambd,
                     R_init=R,
-                    exact=True)
-        utils.save_sim(path, ker)
+                    exact=True,
+                    sigma=0.3)
+        if sys.version_info < (3, 0):
+            path = os.path.join(fname_base % i, "preprocessed_data/Python_2")
+        else:
+            path = os.path.join(fname_base % i, "preprocessed_data/Python_3")
+
+        if not os.path.exists(path):
+            print("Creating", path)
+            os.makedirs(path)
+            
+        try:
+            utils.save_sim(path, ker)
+            est_skcsd = ker.values(estimate='CSD')
+        except NameError:
+            skcsd, pot, cell_obj = utils.load_sim(path)
+            est_skcsd = cell_itself[i].transform_to_3D(skcsd)
+
         xmin = cell_itself[i].xmin
         xmax = cell_itself[i].xmax
         ymin = -200e-6
@@ -136,7 +150,8 @@ if __name__ == '__main__':
                       zmax=zmax,
                       gdx=gdx,
                       gdy=gdy,
-                      gdz=gdz)
+                      gdz=gdz,
+                      sigma=0.3)
         est_kcsd = kcsd.values(estimate='CSD')
         est_kcsd_pot = kcsd.values(estimate='POT')
         if sys.version_info < (3, 0):
@@ -151,7 +166,8 @@ if __name__ == '__main__':
         try:
             est_skcsd = ker.values(estimate='CSD')
         except NameError:
-            skcsd, pot, cell_obj = utils.load_sim(path)
+            skcsd, pot, morphology, ele_pos, n_src = utils.load_sim(path)
+            cell_object = sKCSDcell(morphology, ele_pos, n_src)
             est_skcsd = cell_itself[i].transform_to_3D(skcsd)
 
 
@@ -161,70 +177,96 @@ if __name__ == '__main__':
         if i == 0:  # wrong plane
             for j in [1, 2]:
                 for k in [2, 3]:
-                    ax[j, k].imshow(morpho, extent=extent, origin='lower', aspect="auto", alpha=0.95)
+                    ax[j, k].imshow(morpho, extent=extent, origin='lower', aspect="auto", alpha=1.)
                     for z in ele_pos:
-                        pos_x, pos_y = 1e6*z[2], 1e6*z[0]
+                        pos_x, pos_y = z[2], z[0]
                         ax[j, k].text(pos_x, pos_y, '*',
                                       ha="center", va="center", color="k", fontsize=3)
             cax = pl.make_map_plot(ax[1, 2], ground_truth_t1, extent=extent, alpha=.95, vmin=vmin, vmax=vmax)
             cax = pl.make_map_plot(ax[2, 2], ground_truth_t2, extent=extent, alpha=.95, vmin=vmin, vmax=vmax)
             cax = pl.make_map_plot(ax[1, 3], est_skcsd_t1, extent=extent, vmin=vmin, vmax=vmax)
             cax = pl.make_map_plot(ax[2, 3], est_skcsd_t2, extent=extent, vmin=vmin, vmax=vmax)  # ok
-            
             for j in [1, 2]:
                 for k in [0, 1]:
-                    ax[j, k].imshow(morpho_kcsd, extent=extent_kcsd, origin='lower', aspect="auto", alpha=0.95)
+                    ax[j, k].imshow(morpho_kcsd, extent=extent_kcsd, origin='lower', aspect="auto", alpha=1)
                     for z in ele_pos:
-                        pos_x, pos_y = 1e6*z[2], 1e6*z[1]
+                        pos_x, pos_y = z[2], z[1]
                         ax[j, k].text(pos_x, pos_y, '*',
                                       ha="center", va="center", color="k", fontsize=3)
+           
             ax[1, 0].imshow(est_kcsd_pot[:, :, :, t1].sum(axis=0),
                             cmap=plt.cm.viridis,
                             extent=extent_kcsd,
                             origin='lower',
                             aspect='auto',
+                            interpolation="none",
                             alpha=0.5)
-            
+            ax[1, 0].set_xticklabels([])
+            ax[1, 0].set_yticklabels([])
+                        
             ax[1, 1].imshow(est_kcsd[:, :, :, t1].sum(axis=0),
                             extent=extent_kcsd,
                             cmap=plt.cm.bwr_r,
                             origin='lower',
+                            interpolation="none",
                             aspect='auto', vmin=vmin, vmax=vmax,
                             alpha=0.5)
+            ax[1, 1].set_xticklabels([])
+            ax[1, 1].set_yticklabels([])
             
             ax[2, 0].imshow(est_kcsd_pot[:, :, :, t2].sum(axis=0),
                             extent=extent_kcsd,
                             cmap=plt.cm.viridis,
                             origin='lower',
                             aspect='auto',
+                            interpolation="none",
                             alpha=0.5)
-                            
+            ax[2, 0].set_xticklabels([])
+            ax[2, 0].set_yticklabels([])
+
             ax[2, 1].imshow(est_kcsd[:, :, :, t2].sum(axis=0),
                             extent=extent_kcsd,
                             cmap=plt.cm.bwr_r,
                             origin='lower',
                             aspect='auto', vmin=vmin, vmax=vmax,
+                            interpolation="none",
                             alpha=0.5)
+            ax[2, 1].set_xticklabels([])
+            ax[2, 1].set_yticklabels([])
+
         else:
             
             for j in [0, 1, 2, 3]:
-                    ax[0, j].imshow(morpho, extent=extent, origin='lower', aspect="auto", alpha=.95)
+                    ax[0, j].imshow(morpho, extent=extent, origin='lower', aspect="auto", alpha=1)
                     for z in ele_pos:
-                        pos_x, pos_y = 1e6*z[2], 1e6*z[0]
+                        pos_x, pos_y = z[2], z[0]
                         ax[0, j].text(pos_x, pos_y, '*',
                                       ha="center", va="center", color="k", fontsize=3)
             
             cax = pl.make_map_plot(ax[0, 2], ground_truth_t1, extent=extent, alpha=.95, vmin=vmin, vmax=vmax)
             cax = pl.make_map_plot(ax[0, 3], est_skcsd_t1, extent=extent, vmin=vmin, vmax=vmax)
-            cax = pl.make_map_plot(ax[0, 0],
-                                   est_kcsd_pot[:, :, :, t1].sum(axis=1),
-                                   cmap=plt.cm.viridis,
-                                   extent=extent,
-                                   alpha=0.5)
-            cax = pl.make_map_plot(ax[0, 1],
-                                   est_kcsd[:, :, :, t1].sum(axis=1),
-                                   extent=extent, vmin=vmin, vmax=vmax,
-                                   alpha=0.5)
+
+            ax[0, 0].imshow(est_kcsd_pot[:, :, :, t1].sum(axis=1),
+                            origin='lower',
+                            aspect='auto',
+                            cmap=plt.cm.viridis,
+                            interpolation="none",
+                            extent=extent,
+                            alpha=0.5)
+            
+            ax[0, 0].set_xticklabels([])
+            ax[0, 0].set_yticklabels([])
+            ax[0, 1].imshow(est_kcsd[:, :, :, t1].sum(axis=1),
+                            origin='lower',
+                            aspect='auto',
+                            interpolation="none",
+                            cmap=plt.cm.bwr_r,
+                            extent=extent, vmin=vmin, vmax=vmax,
+                            alpha=0.5)
+            ax[0, 1].set_xticklabels([])
+            ax[0, 1].set_yticklabels([])
+            
+            
             
     for i in range(3):
         for j in range(4):
@@ -237,8 +279,8 @@ if __name__ == '__main__':
             elif j == 3:
                 ax[i, j].set_title('sKCSD')
                 
-    # fig.savefig(fig_name,
-    #             bbox_inches='tight',
-    #             transparent=True,
-    #             pad_inches=0.1)
-    plt.show()
+    fig.savefig(fig_name,
+                bbox_inches='tight',
+                transparent=True,
+                pad_inches=0.1)
+

@@ -1,3 +1,58 @@
+#!/usr/bin/python3
+### BEGIN colorblind_friendly.py ###
+# Based on
+# Color Universal Design (CUD)
+# - How to make figures and presentations that are friendly to Colorblind people
+#
+#
+# Masataka Okabe
+# Jikei Medial School (Japan)
+#
+# Kei Ito
+# University of Tokyo, Institute for Molecular and Cellular Biosciences (Japan)
+# (both are strong protanopes)
+# 11.20.2002 (modified on 2.15.2008, 9.24.2008)
+# http://jfly.iam.u-tokyo.ac.jp/color/#pallet
+
+import collections
+from matplotlib import colors
+
+
+_Color = collections.namedtuple('_Color', ['red', 'green', 'blue'])
+
+def _html(r, g, b):
+    return "#{:02X}{:02X}{:02X}".format(r, g, b)
+
+
+_BLACK     = _Color(  0,   0,   0)
+_ORANGE    = _Color(230, 159,   0)
+_SKY_BLUE  = _Color( 86, 180, 233)
+_GREEN     = _Color(  0, 158, 115)
+_YELLOW    = _Color(240, 228,  66)
+_BLUE      = _Color(  0, 114, 178)
+_VERMILION = _Color(213,  94,   0)
+_PURPLE    = _Color(204, 121, 167)
+
+BLACK     = _html(*_BLACK)
+ORANGE    = _html(*_ORANGE)
+SKY_BLUE  = _html(*_SKY_BLUE)
+GREEN     = _html(*_GREEN)
+YELLOW    = _html(*_YELLOW)
+BLUE      = _html(*_BLUE)
+VERMILION = _html(*_VERMILION)
+PURPLE    = _html(*_PURPLE)
+
+def _BipolarColormap(name, negative, positive):
+    return colors.LinearSegmentedColormap(
+                      name,
+                      {k: [(0.0,) + (getattr(negative, k) / 255.,) * 2,
+                           (0.5, 1.0, 1.0),
+                           (1.0,) + (getattr(positive, k) / 255.,) * 2,]
+                       for k in ['red', 'green', 'blue']})
+
+bwr = _BipolarColormap('cbf.bwr', _BLUE, _VERMILION)
+PRGn = _BipolarColormap('cbf.PRGn', _PURPLE, _GREEN)
+### END colorblind_friendly.py ###
 
 import matplotlib.pyplot as plt
 from matplotlib.cm import Greys, bwr
@@ -12,8 +67,6 @@ plt.rcParams.update({
     'xtick.minor.size': 10 - 6.18,
     'ytick.minor.size': 10 - 6.18,
 })
-
-from colorblind_friendly import VERMILION #, bwr
 
 
 xmin = 0.0
@@ -55,11 +108,11 @@ VAR = np.dot(E.T, E)[np.eye(E.shape[1], dtype=bool)].reshape(int(np.sqrt(E.shape
 
 FIG_WIDTH = 17.0
 FIG_HEIGHT = 6.0
-FIG_WSPACE = 5.0
+FIG_WSPACE = 2.0
 FIG_TOP = 0.9
 FIG_BOTTOM = 0.15
-FIG_LEFT = 0.05
-FIG_RIGHT = 0.95
+FIG_LEFT = 0.125
+FIG_RIGHT = 0.875
 
 
 def maxabs(values):
@@ -135,8 +188,8 @@ for y in range(3):
         if x == 0:
             ax.set_ylabel('Y (mm)')
             if y == 2:
-                ax.text(-0.05,
-                        1.15,
+                ax.text(-0.16,
+                        1.16,
                         'A',
                         fontsize=20,
                         weight='bold',
@@ -171,8 +224,10 @@ ax = fig.add_subplot(gs2[:3, :3])
 
 ax.set_aspect('equal')
 ax.set_xticks(ticks)
+ax.set_xticklabels(ticklabels)
 ax.set_xticks(ticks_minor, minor=True)
 ax.set_yticks(ticks)
+ax.set_yticklabels(ticklabels)
 ax.set_yticks(ticks_minor, minor=True)
 ax.set_ylabel('Y (mm)')
 ax.set_xlabel('X (mm)')
@@ -192,3 +247,5 @@ fig.colorbar(im,
              orientation='vertical',
              #format='%.2g',
              ticks=colorbar_ticks)
+
+fig.savefig('error_propagation.pdf')

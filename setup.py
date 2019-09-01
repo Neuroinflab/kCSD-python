@@ -13,11 +13,11 @@ def readme():
 
 
 setup(name='kcsd',
-      version='1.2',
+      version='2.0',
       description='kernel current source density methods',
       long_description=readme(),
       classifiers=[
-          'Development Status :: 3 - Alpha',
+          'Development Status :: 4 - Beta',
           'License :: OSI Approved :: BSD License',
           'Natural Language :: English',
           'Programming Language :: Python :: 2',

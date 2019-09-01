@@ -12,7 +12,7 @@ import matplotlib.gridspec as gridspec
 import os
 import sys
 import argparse
-import kcsd.utility_functions as utils
+import kcsd.sKCSD_utils as sKCSD_utils
 import glob
 from matplotlib.patches import Circle
 from matplotlib.collections import PatchCollection
@@ -146,7 +146,7 @@ def load_data(data_dir):
     cell_obj : sKCSDcell object
     """
     try:
-        data = utils.LoadData(data_dir)
+        data = sKCSD_utils.LoadData(data_dir)
     except KeyError:
         print('Could not load %s LFP from' % data_dir)
         data = None
@@ -156,15 +156,17 @@ def load_data(data_dir):
         pots = None
 
     try:
-        est_csd, est_pot, cell_obj = utils.load_sim(data_dir)
+        est_csd, est_pot, morphology, ele_pos, n_src = sKCSD_utils.load_sim(data_dir)
+        cell_object = kcsd.sKCSDcell(morphology, ele_pos, n_src)
     except IOError:
         if sys.version_info < (3, 0):
             path = os.path.join(data_dir, "preprocessed_data/Python_2")
         else:
             path = os.path.join(data_dir, "preprocessed_data/Python_3")
 
-        est_csd, est_pot, cell_obj = utils.load_sim(path)
-
+        est_csd, est_pot, morphology, ele_pos, n_src = sKCSD_utils.load_sim(path)
+        cell_object = kcsd.sKCSDcell(morphology, ele_pos, n_src)
+        
     return (pots, est_csd, est_pot, cell_obj)
 
 
@@ -377,7 +379,7 @@ def make_map_plot(ax_i, what, **kwargs):
                            origin='lower',
                            aspect='auto',
                            interpolation='none',
-                           extent=extent)
+                           extent=extent, alpha=alpha)
     
     cax = ax_i.imshow(what, origin='lower', aspect='auto', interpolation='none',
                       vmin=vxmin,
@@ -418,7 +420,7 @@ def make_map_plot(ax_i, what, **kwargs):
     
     if isinstance(ele_pos, np.ndarray):
         for i in range(ele_pos.shape[0]):
-            pos_x, pos_y = 1e6*ele_pos[i, 0], 1e6*ele_pos[i, 1]
+            pos_x, pos_y = ele_pos[i, 0], ele_pos[i, 1]
             text = ax_i.text(pos_x, pos_y, '*',
                              ha="center", va="center", color="k")
             

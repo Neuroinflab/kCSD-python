@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import sys
 import os
 from kcsd import sKCSD, sKCSDcell
-import kcsd.utility_functions as utils
+from  kcsd import sKCSD_utils as utils
 import kcsd.validation.plotting_functions as pl
 import sKCSD_utils
 import numpy.random
@@ -69,13 +69,12 @@ if __name__ == '__main__':
                       tolerance=2e-6,
                       xmin=-120e-6, xmax=120e-6,
                       zmin=-50e-6, zmax=550e-6)
-    cell.distribute_srcs_3D_morph()
     ground_truth_grid = cell.transform_to_3D(ground_truth, what="morpho")
     vmax, vmin = pl.get_min_max(ground_truth_grid[:, :, :, t1].sum(axis=1))
     gdt1 = ground_truth_grid[:,:,:,t1].sum(axis=1)
     morpho, extent = cell.draw_cell2D(axis=1)
-
-   
+    extent = [extent[-2], extent[-1], extent[0], extent[1]]
+    new_ele_pos = np.array([ele_pos[:, 2], ele_pos[:, 0]]).T
     pl.make_map_plot(ax[0, 0],
                      gdt1,
                      vmin=vmin,
@@ -83,9 +82,10 @@ if __name__ == '__main__':
                      extent=extent,
                      alpha=.9,
                      morphology=morpho,
-                     ele_pos=ele_pos)
+                     ele_pos=new_ele_pos)
     snrs = []
-    L1 = []  
+    L1 = []
+    
     for i, nl in enumerate(noise_levels):
         if nl:
             noise = numpy.random.normal(scale=std/nl, size=shape)
@@ -108,7 +108,8 @@ if __name__ == '__main__':
                   src_type='gauss',
                   lambd=lambd,
                   R_init=R,
-                  exact=True)
+                  exact=True,
+                  sigma=0.3)
         
         if sys.version_info < (3, 0):
             path = os.path.join(fname_base % nl, "preprocessed_data/Python_2")
@@ -124,7 +125,8 @@ if __name__ == '__main__':
             pass
       
         
-        est_skcsd, est_pot, cell_obj = utils.load_sim(path)
+        est_skcsd, est_pot, morphology, ele_pos, n_src = utils.load_sim(path)
+        cell_object = sKCSDcell(morphology, ele_pos, n_src)
         est_skcsd = cell.transform_to_3D(est_skcsd)
         L1.append(sKCSD_utils.L1_error(ground_truth_grid, est_skcsd))
         if nl == 0:
@@ -134,9 +136,9 @@ if __name__ == '__main__':
                              vmax=vmax,
                              extent=extent,
                              title="No noise",
-                             alpha=.8,
+                             alpha=.9,
                              morphology=morpho,
-                             ele_pos=ele_pos)
+                             ele_pos=new_ele_pos)
         else:
             pl.make_map_plot(ax[1, i-1],
                              est_skcsd[:,:,:,t1].sum(axis=1),
@@ -146,7 +148,7 @@ if __name__ == '__main__':
                              title='SNR %f' % snr,
                              alpha=.9,
                              morphology=morpho,
-                             ele_pos=ele_pos)
+                             ele_pos=new_ele_pos)
 
     ax[0, 2].plot([i for i in range(len(snrs))], L1, 'dk')
     ax[0, 2].set_xticks([i for i in range(len(snrs))])
@@ -160,4 +162,3 @@ if __name__ == '__main__':
                 transparent=True,
                 pad_inches=0.1)
     
-    plt.show()

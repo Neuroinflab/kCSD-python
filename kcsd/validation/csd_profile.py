@@ -1,13 +1,6 @@
-'''
-This script is used to generate dummy CSD sources,
+'''This script is used to generate dummy CSD sources,
 to test the various kCSD methods
 
-This script is in alpha phase.
-
-This was written by :
-Michal Czerwinski, Chaitanya Chintaluri,
-Laboratory of Neuroinformatics,
-Nencki Institute of Exprimental Biology, Warsaw.
 '''
 import numpy as np
 from numpy import exp, isfinite

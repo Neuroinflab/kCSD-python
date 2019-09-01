@@ -6,8 +6,7 @@ import unittest
 import numpy as np
 
 from kcsd import sKCSDcell, sample_data_path
-from kcsd import utility_functions as utils
-from kcsd.utility_functions import LoadData
+from kcsd.sKCSD_utils import LoadData
 
 try:
     basestring
@@ -28,20 +27,17 @@ class testsKCDcell(unittest.TestCase):
         cls.data.morphology[:,2:6] = cls.data.morphology[:,2:6]/sc
         n_src = 1000
         cls.cell = sKCSDcell(cls.data.morphology,cls.data.ele_pos/sc,n_src)
-        cls.cell.distribute_srcs_3D_morph()
         cls.branch_points = []
         for loop in cls.cell.loops:
             if loop[0] != loop[1]+1 and loop[0] != loop[1]-1:
                 cls.branch_points.append(loop.tolist())
-
         cls.morpho = cls.cell.morphology[:,2:5]
         cls.coor3D, cls.zero = cls.cell.point_coordinates(cls.morpho)
 
         #ball and stick neuron
         data = LoadData(os.path.join(sample_data_path, "ball_and_stick_8"))
         data.morphology[:,2:6] = data.morphology[:,2:6]/sc
-        cls.cell_small = sKCSDcell(data.morphology,data.ele_pos/sc,10)
-        cls.cell_small.distribute_srcs_3D_morph()
+        cls.cell_small = sKCSDcell(data.morphology,data.ele_pos/sc, 104)
         cls.cell_small_segment_coordinates_loops = cls.cell_small.coordinates_3D_loops()
         cls.small_points = np.zeros((len(cls.cell_small.morphology),))
         dic = cls.cell_small_segment_coordinates_loops
@@ -54,19 +50,8 @@ class testsKCDcell(unittest.TestCase):
         #Y-shaped neuron
         data = LoadData(os.path.join(sample_data_path, "Y_shaped_neuron"))
         data.morphology[:,2:6] = data.morphology[:,2:6]/sc
-        cls.cell_y = sKCSDcell(data.morphology,data.ele_pos/sc,10)
-        cls.cell_y.distribute_srcs_3D_morph()
+        cls.cell_y = sKCSDcell(data.morphology,data.ele_pos/sc, 200)
         cls.cell_y_segment_coordinates_loops = cls.cell_y.coordinates_3D_loops()
-        cls.y_points = {}
-        dic = cls.cell_y_segment_coordinates_loops
-        for seg in dic:
-            ps = dic[seg]
-            for p in ps:
-                s = '%d%d%d'%(p[0],p[1],p[2])
-                if s not in cls.y_points:
-                    cls.y_points[s] = 1
-                else:
-                    cls.y_points[s] += 1
         cls.cell_y_segment_coordinates = cls.cell_y.coordinates_3D_segments()
 
     def test_if_lost_branch(self):
@@ -81,12 +66,12 @@ class testsKCDcell(unittest.TestCase):
                 pass
             elif self.cell.morphology[b[0],6] == b[1]+1:
                 pass
+            elif self.cell.morphology[b[1],6] == b[0]+1:
+                pass
             elif self.cell.morphology[b[0],6] == -1:
                 pass
             else:
                 bad_points += 1
-            
-    
         self.assertTrue(bad_points==0)
 
     def test_all_connections_forward_and_backwards(self):
@@ -237,10 +222,10 @@ class testsKCDcell(unittest.TestCase):
             self.assertTrue(self.cell.dims[1] == 1)
     
     def test_get_grid_large_x(self):
-        if self.cell.dxs[2]:
+        if self.cell.dxs[0]:
             self.assertTrue(self.cell.dims[0] == 1 + np.floor((self.cell.xmax-self.cell.xmin)/self.cell.dxs[0]))
         else:
-            self.assertTrue(self.cell.dims[0] == 1)
+            self.assertTrue(self.cell.dims[0] == 0)
     
     def test_dxs_small_x(self):
         self.assertTrue(self.cell_small.dxs[0]>self.cell_small.tolerance or self.cell_small.dxs[0] == 0)
@@ -258,8 +243,11 @@ class testsKCDcell(unittest.TestCase):
         self.assertTrue(self.zero[1] == np.floor((self.morpho[0,1]-self.cell.ymin)/self.cell.dxs[1]))
         
     def test_point_coordinates_morpho_z(self):
-        self.assertTrue(self.zero[2] == np.floor((self.morpho[0,2]-self.cell.zmin)/self.cell.dxs[2]))
-    
+        if self.cell.dxs[2]:
+            self.assertTrue(self.zero[2] == np.floor((self.morpho[0,2]-self.cell.zmin)/self.cell.dxs[2]))
+        else:
+             self.assertTrue(self.zero[2] == 0)
+            
     def test_point_coordinates_morpho_x_max(self):
         self.assertTrue(max(self.coor3D[:,0]) < self.cell.dims[0])
 
@@ -307,16 +295,6 @@ class testsKCDcell(unittest.TestCase):
             b = self.cell_small_segment_coordinates[i-1][0][2]
             self.assertTrue(a == b + 1 or a == b-1 )
   
-    def test_coordinates_3D_loops_y_one_count(self):
-        self.assertTrue(self.y_points['64055'] == 1 and self.y_points['0055']==1)
- 
-    def test_coordinates_3D_loops_y_branch(self):
-        self.assertTrue(self.y_points['32023'] == 3)
-
-    def test_coordinates_3D_loops_y_2_counts(self):
-        for key in self.y_points:
-            if key not in ['64055', '0055', '32023']:
-                self.assertTrue(self.y_points[key] == 2)
 
     def test_coordinates_3D_small_length(self):
         l = len(self.cell_small_segment_coordinates)
@@ -332,7 +310,7 @@ class testsKCDcell(unittest.TestCase):
 
     def test_coordinates_3D_y_last(self):
         l = len(self.cell_y_segment_coordinates)
-        self.assertTrue(len(self.cell_y_segment_coordinates[l-1]) == 2)
+        self.assertTrue(len(self.cell_y_segment_coordinates[l-1]) == 4)
 
     def test_coordinates_3D_small_change(self):
         l = len(self.cell_small_segment_coordinates)
@@ -376,7 +354,7 @@ class testsKCDcell(unittest.TestCase):
             d0 = d[i-1]
             p1 = d[i][-1]
             if len(d0) > 1:
-                p0 = d0[-2]
+                p0 = d0[0]
             else:
                 p0 = d0[-1]
             x0, y0, z0 = p0
@@ -456,13 +434,13 @@ class testsKCDcell(unittest.TestCase):
 
     def test_get_src_estm_dists_2(self):
         out = self.cell_small.get_src_estm_dists()
-        self.assertTrue(out.shape[1] == len(self.cell_small.est_pos))
+        self.assertTrue(out.shape[1] == len(self.cell_small.est_pos)-1)
     
     def test_get_src_estm_dists_3(self):
         out = self.cell_small.get_src_estm_dists()
         for i in range(len(self.cell_small.source_pos)):
-            for j in range(len(self.cell_small.est_pos)):
-                self.assertTrue(out[i, j ] == abs(self.cell_small.source_pos[i] - self.cell_small.est_pos[j]))
+            for j in range(len(self.cell_small.est_pos)-1):
+                self.assertTrue(out[i, j ] == abs(self.cell_small.source_pos[i] - self.cell_small.est_pos[j+1]))
 
     def test_get_src_estm_dists_pot_1(self):
         out = self.cell_small.get_src_estm_dists_pot()

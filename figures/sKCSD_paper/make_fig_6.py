@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import sys
 import os
 from kcsd import sKCSD
-import kcsd.utility_functions as utils
+from kcsd import sKCSD_utils as utils
 import kcsd.validation.plotting_functions as pl
 import sKCSD_utils
 n_src = 512
@@ -80,10 +80,10 @@ if __name__ == '__main__':
                   lambd=lambd,
                   R_init=R,
                   dist_table_density=20,
-                  exact=True)
+                  exact=True,
+                  sigma=0.3)
         est_skcsd = k.values(estimate='CSD',
                              transformation='segments')
-        est_skcsd /= seglen[:, None]
         if i % 2:
             skcsd_random.append(est_skcsd)
         else:
