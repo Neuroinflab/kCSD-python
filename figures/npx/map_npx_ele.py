@@ -1,9 +1,11 @@
 import numpy as np
+from kcsd import KCSD2D
 from pathlib import Path
 from openpyxl import load_workbook
 from DemoReadSGLXData.readSGLX import readMeta, SampRate, makeMemMapRaw, GainCorrectIM, GainCorrectNI, ExtractDigital
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
+
 
 def eles_to_rows(eles):
     rows = []
@@ -71,6 +73,7 @@ def fetch_channels(eles):
 # File with the data
 # binFullPath = Path('./data/08_refGND_APx500_LFPx125_ApfiltON_corr_banks_stim50V_g0_t0.imec0.lf.bin')
 binFullPath = Path('/mnt/zasoby/data/neuropixel/Neuropixel data from Ewa Kublik/SOV_12/data/08_refGND_APx500_LFPx125_ApfiltON_corr_banks_stim50V_g0_t0.imec0.lf.bin')
+# binFullPath = Path('/home/chaitanya/LFP/SOV_12/data/08_refGND_APx500_LFPx125_ApfiltON_corr_banks_stim50V_g0_t0.imec0.lf.bin')
 
 tStart = 0        # in seconds
 tEnd = 1
@@ -79,6 +82,7 @@ tEnd = 1
 eleList = np.arange(0, 959)
 
 chanList, eleList = fetch_channels(eleList)
+
 
 
 # Which digital word to read. 
@@ -107,44 +111,67 @@ else:
 tDat = np.arange(firstSamp, lastSamp+1)
 tDat = 1000*tDat/sRate      # plot time axis in msec
 
-# ax = plt.subplot(121)
-# for ii, chan in enumerate(chanList):
-#     ax.plot(tDat, convData[ii, :], label=str(chan)+' Ele'+str(chan_dict[chan]))
-# plt.legend()
-# ax = plt.subplot(122)
-# for i in range(0, len(dLineList)):
-#     ax.plot(tDat, digArray[i, :])
 
-rowList = eles_to_rows(eleList)
-num_rows = max(rowList) - min(rowList) + 1
-print(num_rows)
-fig = plt.figure(figsize=(4, num_rows))
-gs = gridspec.GridSpec(nrows=num_rows, ncols=4, wspace=0, hspace=0)
-all_maxy = -100
-axs = []
+
+ele_pos = eles_to_coords(eleList)
+print(ele_pos)
+csd_at_time = 0.04
+pots = []
 for ii, chann in enumerate(chanList):
-    ee = chan_ele_dict[chann]
-    rr = eles_to_rows([ee])[0] - min(rowList) # last row first
-    rr = num_rows - rr - 1
-    print(rr, ee, num_rows-rr)
-    off = ee%4
-    if off == 0:
-        ax = fig.add_subplot(gs[rr, 3])
-    elif off == 1:
-        ax = fig.add_subplot(gs[rr, 0])
-    elif off == 2:
-        ax = fig.add_subplot(gs[rr, 2])
-    else:
-        ax = fig.add_subplot(gs[rr, 1])
-    ax.plot(tDat, convData[ii, :])
-    all_maxy = max(all_maxy, max(convData[ii, :]))
-    ax.spines['right'].set_visible(False)
-    ax.spines['top'].set_visible(False)
-    # ax.spines['left'].set_visible(False)
-    # ax.set_yticklabels([])
-    # ax.set_yticks([])
-    ax.set_title('E('+str(ee)+')')
-    axs.append(ax)
-print(all_maxy)
-plt.show()
+    pots.append(convData[ii, int(sRate*csd_at_time)])
+
+pots = np.array(pots)
+# print(pots.shape)
+pots = pots.reshape((len(chanList), 1))
+R_init = 0.3
+h = 50.
+sigma = 0.3
+k = KCSD2D(ele_pos, pots, h=h, sigma=sigma,
+           xmin=-35, xmax=35,
+           ymin=1100, ymax=2000,
+           gdx=10, gdy=10,
+           R_init=R_init, n_src_init=1000,
+           src_type='gauss')   # rest of the parameters are set at default
+k.cross_validate(Rs=np.linspace(0.1, 1.001, 20), lambdas=None)
+
+# # ax = plt.subplot(121)
+# # for ii, chan in enumerate(chanList):
+# #     ax.plot(tDat, convData[ii, :], label=str(chan)+' Ele'+str(chan_dict[chan]))
+# # plt.legend()
+# # ax = plt.subplot(122)
+# # for i in range(0, len(dLineList)):
+# #     ax.plot(tDat, digArray[i, :])
+
+# rowList = eles_to_rows(eleList)
+# num_rows = max(rowList) - min(rowList) + 1
+# print(num_rows)
+# fig = plt.figure(figsize=(4, num_rows))
+# gs = gridspec.GridSpec(nrows=num_rows, ncols=4, wspace=0, hspace=0)
+# all_maxy = -100
+# axs = []
+# for ii, chann in enumerate(chanList):
+#     ee = chan_ele_dict[chann]
+#     rr = eles_to_rows([ee])[0] - min(rowList) # last row first
+#     rr = num_rows - rr - 1
+#     print(rr, ee, num_rows-rr)
+#     off = ee%4
+#     if off == 0:
+#         ax = fig.add_subplot(gs[rr, 3])
+#     elif off == 1:
+#         ax = fig.add_subplot(gs[rr, 0])
+#     elif off == 2:
+#         ax = fig.add_subplot(gs[rr, 2])
+#     else:
+#         ax = fig.add_subplot(gs[rr, 1])
+#     ax.plot(tDat, convData[ii, :])
+#     all_maxy = max(all_maxy, max(convData[ii, :]))
+#     ax.spines['right'].set_visible(False)
+#     ax.spines['top'].set_visible(False)
+#     # ax.spines['left'].set_visible(False)
+#     # ax.set_yticklabels([])
+#     # ax.set_yticks([])
+#     ax.set_title('E('+str(ee)+')')
+#     axs.append(ax)
+# print(all_maxy)
+# plt.show()
 
