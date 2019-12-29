@@ -71,8 +71,11 @@ def fetch_channels(eles):
 
 
 # File with the data
+# old
 # binFullPath = Path('./data/08_refGND_APx500_LFPx125_ApfiltON_corr_banks_stim50V_g0_t0.imec0.lf.bin')
+# Daniel
 binFullPath = Path('/mnt/zasoby/data/neuropixel/Neuropixel data from Ewa Kublik/SOV_12/data/08_refGND_APx500_LFPx125_ApfiltON_corr_banks_stim50V_g0_t0.imec0.lf.bin')
+# Chaitanya
 # binFullPath = Path('/home/chaitanya/LFP/SOV_12/data/08_refGND_APx500_LFPx125_ApfiltON_corr_banks_stim50V_g0_t0.imec0.lf.bin')
 
 tStart = 0        # in seconds

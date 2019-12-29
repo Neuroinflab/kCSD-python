@@ -64,7 +64,7 @@ def SampRate(meta):
 
 
 # Return a multiplicative factor for converting 16-bit file data
-# to volatge. This does not take gain into account. The full
+# to voltage. This does not take gain into account. The full
 # conversion with gain is:
 #         dataVolts = dataInt * fI2V / gain
 # Note that each channel may have its own gain.
