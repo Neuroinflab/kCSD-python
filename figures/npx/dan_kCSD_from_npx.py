@@ -10,9 +10,9 @@ import matplotlib.cm as cm
 # from matplotlib import gridspec
 
 
-def make_plot(xx, yy, zz, title='True CSD', cmap=cm.bwr):
-    fig = plt.figure(figsize=(7, 7))
-    ax = plt.subplot(111)
+def make_plot(ax, xx, yy, zz, title='True CSD', cmap=cm.bwr):
+    # fig = plt.figure(figsize=(7, 7))
+    # ax = plt.subplot(111)
     ax.set_aspect('equal')
     t_max = np.max(np.abs(zz))
     levels = np.linspace(-1 * t_max, t_max, 32)
@@ -20,9 +20,30 @@ def make_plot(xx, yy, zz, title='True CSD', cmap=cm.bwr):
     ax.set_xlabel('X (mm)')
     ax.set_ylabel('Y (mm)')
     ax.set_title(title)
-    ticks = np.linspace(-1 * t_max, t_max, 3, endpoint=True)
-    plt.colorbar(im, orientation='horizontal', format='%.2f', ticks=ticks)
+    # ticks = np.linspace(-1 * t_max, t_max, 3, endpoint=True)
+    # plt.colorbar(im, orientation='horizontal', format='%.2f', ticks=ticks)
     return ax
+
+
+def dan_make_plot(k):
+    fig = plt.figure(figsize=(7, 7))
+    ax1 = plt.subplot(121)
+    
+    est_csd = k.values('CSD')
+    est_csd = est_csd.reshape(7, 90)
+    est_pots = k.values('POT')
+    est_pots = est_pots.reshape(7, 90)
+
+    make_plot(ax1, k.estm_x, k.estm_y, est_csd[:, :], 
+          title='Estimated CSD', cmap=cm.bwr)
+    
+    ax2 = plt.subplot(122)
+    make_plot(ax2, k.estm_x, k.estm_y, est_pots[:, :],
+          title='Estimated POT', cmap=cm.PRGn)
+    fig.suptitle('lambda = %f, R = %f' % (k.lambd, k.R))
+    
+    return fig
+
 
 
 # Specific to Ewas experimental setup
@@ -59,16 +80,16 @@ def dan_fetch_electrodes(meta):
     return(electrode, channel)
     
 
-def fetch_channels(eles):
-    chans = []
-    exist_ele = []
-    for ii in eles:
-        try:
-            chans.append(ele_chan_dict[ii])
-            exist_ele.append(ii)
-        except KeyError:
-            print('Not recording from ele', ii)
-    return chans, exist_ele
+# def fetch_channels(eles):
+#     chans = []
+#     exist_ele = []
+#     for ii in eles:
+#         try:
+#             chans.append(ele_chan_dict[ii])
+#             exist_ele.append(ii)
+#         except KeyError:
+#             print('Not recording from ele', ii)
+#     return chans, exist_ele
 
 def eles_to_rows(eles):
     rows = []
@@ -189,31 +210,55 @@ print(pots.shape)
 
 
 pots = pots.reshape((len(channels), 1))
-R_init = 5. # 0.3
+R = 5. # 0.3
+lambd = 0.
 h = 20.   # 50
 sigma = 0.3
+
 k = KCSD2D(ele_pos, pots, h=h, sigma=sigma,
-           xmin=-35, xmax=35,
-           ymin=1100, ymax=2000,
-           # ymin=1000, ymax=10000,
-           gdx=10, gdy=10,
-           R_init=R_init, n_src_init=1000,
-           src_type='gauss')   # rest of the parameters are set at default
-k.cross_validate(Rs=np.logspace(-1., 1., 10), lambdas=None)
+               xmin=-35, xmax=35,
+               ymin=1100, ymax=2000,
+               # ymin=1000, ymax=10000,
+               gdx=10, gdy=10, lambd=lambd,
+               R_init=R, n_src_init=10000,
+               src_type='gauss')   # rest of the parameters are set at default
+
+k.L_curve(Rs=np.logspace(-1., 2., 31), lambdas=np.logspace(-5., 1., 11))
+plt.imshow(k.curve_surf)
+
+# k.cross_validate(Rs=np.logspace(0., 2., 21), lambdas=np.logspace(-5., 1., 11))
 # k.cross_validate(Rs=np.linspace(0.1, 1.001, 2), lambdas=None)
 # 2 -> 20
 
+dan_make_plot(k)
 
-est_csd = k.values('CSD')
-est_csd = est_csd.reshape(7, 90)
-est_pots = k.values('POT')
-est_pots = est_pots.reshape(7, 90)
 
-make_plot(k.estm_x, k.estm_y, est_csd[:, :],
-          title='Estimated CSD without CV', cmap=cm.bwr)
+# =============================================================================
+# for R in np.logspace(0., 2., 21):
+#     for lambd in np.logspace(-5., 1., 11):
+#         k = KCSD2D(ele_pos, pots, h=h, sigma=sigma,
+#                xmin=-35, xmax=35,
+#                ymin=1100, ymax=2000,
+#                # ymin=1000, ymax=10000,
+#                gdx=10, gdy=10, lambd=lambd,
+#                R_init=R, n_src_init=1000,
+#                src_type='gauss')   # rest of the parameters are set at default
+#     
+#         est_csd = k.values('CSD')
+#         est_csd = est_csd.reshape(7, 90)
+#         est_pots = k.values('POT')
+#         est_pots = est_pots.reshape(7, 90)
+#         
+#         dan_make_plot(k)
+# 
+# =============================================================================
 
-make_plot(k.estm_x, k.estm_y, est_pots[:, :],
-          title='Estimated POT without CV', cmap=cm.PRGn)
+
+# make_plot(k.estm_x, k.estm_y, est_csd[:, :],
+#           title='Estimated CSD without CV', cmap=cm.bwr)
+
+# make_plot(k.estm_x, k.estm_y, est_pots[:, :],
+#           title='Estimated POT without CV', cmap=cm.PRGn)
 
 
 # # ax = plt.subplot(121)
