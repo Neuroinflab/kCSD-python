@@ -29,11 +29,9 @@ def dan_make_plot(k):
     fig = plt.figure(figsize=(7, 7))
     ax1 = plt.subplot(121)
     
-    est_csd = k.values('CSD')
-    est_csd = est_csd.reshape(7, 90)
-    est_pots = k.values('POT')
-    est_pots = est_pots.reshape(7, 90)
-
+    est_csd = k.values('CSD').squeeze()
+    est_pots = k.values('POT').squeeze()
+    
     make_plot(ax1, k.estm_x, k.estm_y, est_csd[:, :], 
           title='Estimated CSD', cmap=cm.bwr)
     
@@ -135,7 +133,7 @@ binFullPath = Path('/mnt/zasoby/data/neuropixel/Neuropixel data from Ewa Kublik/
 meta = readSGLX.readMeta(binFullPath)
 sRate = readSGLX.SampRate(meta)
 
-tStart, tEnd = 500., 600.  # 0., 1.        # in seconds
+tStart, tEnd = 0., 600.    # 500., 600.  # 0., 1.        # in seconds
 
 firstSamp = int(sRate*tStart)
 lastSamp = int(sRate*tEnd)
@@ -199,7 +197,7 @@ tDat = 1000*tDat/sRate      # plot time axis in msec
 
 ele_pos = eles_to_coords(electrodes)
 print(ele_pos)
-csd_at_time = 30.
+csd_at_time = 0.3
 pots = []
 for ii, chann in enumerate(channels):
     print(ii, chann)
@@ -209,21 +207,36 @@ pots = np.array(pots)
 print(pots.shape)
 
 
+
+electrode_order = np.argsort(ele_pos[:,1])
+temp_pots = convData[electrode_order, :]
+ax = plt.subplot(111)
+plt.imshow(temp_pots[:, 0:38400])
+ax.set_aspect(100)
+
+
+
+
 pots = pots.reshape((len(channels), 1))
 R = 5. # 0.3
 lambd = 0.
-h = 20.   # 50
+h = 1.   # 50
 sigma = 0.3
 
 k = KCSD2D(ele_pos, pots, h=h, sigma=sigma,
-               xmin=-35, xmax=35,
-               ymin=1100, ymax=2000,
+               xmin=-400, xmax=400,
+               # ymin=1100, ymax=2000,
                # ymin=1000, ymax=10000,
+               ymin=500, ymax=3000,
                gdx=10, gdy=10, lambd=lambd,
                R_init=R, n_src_init=10000,
                src_type='gauss')   # rest of the parameters are set at default
+dan_make_plot(k)
 
-k.L_curve(Rs=np.logspace(-1., 2., 31), lambdas=np.logspace(-5., 1., 11))
+
+k.L_curve(Rs=np.logspace(-1., 2., 5), lambdas = None)
+# k.L_curve(Rs=np.logspace(-1., 2., 11), lambdas=np.logspace(-5., 1., 11))
+# k.L_curve(Rs=np.logspace(-1., 2., 11), lambdas=np.logspace(-5., 1., 31))
 plt.imshow(k.curve_surf)
 
 # k.cross_validate(Rs=np.logspace(0., 2., 21), lambdas=np.logspace(-5., 1., 11))
@@ -232,17 +245,30 @@ plt.imshow(k.curve_surf)
 
 dan_make_plot(k)
 
+for h in 1., 4., 16., 32., 64., 128.:
+    k = KCSD2D(ele_pos, pots, h=h, sigma=sigma,
+               xmin=-400, xmax=400,
+               # ymin=1100, ymax=2000,
+               # ymin=1000, ymax=10000,
+               ymin=500, ymax=3000,
+               gdx=10, gdy=10, lambd=lambd, 
+               R_init=R, n_src_init=10000,
+               src_type='gauss')   # rest of the parameters are set at default
+    k.L_curve(Rs=np.logspace(-1., 2., 11))
+    plt.imshow(k.curve_surf)
+    dan_make_plot(k)
+
 
 # =============================================================================
-# for R in np.logspace(0., 2., 21):
+# for R in np.logspace(0., 2., 11):
 #     for lambd in np.logspace(-5., 1., 11):
 #         k = KCSD2D(ele_pos, pots, h=h, sigma=sigma,
-#                xmin=-35, xmax=35,
-#                ymin=1100, ymax=2000,
-#                # ymin=1000, ymax=10000,
-#                gdx=10, gdy=10, lambd=lambd,
-#                R_init=R, n_src_init=1000,
-#                src_type='gauss')   # rest of the parameters are set at default
+#                 xmin=-35, xmax=35,
+#                 ymin=1100, ymax=2000,
+#                 # ymin=1000, ymax=10000,
+#                 gdx=10, gdy=10, lambd=lambd,
+#                 R_init=R, n_src_init=1000,
+#                 src_type='gauss')   # rest of the parameters are set at default
 #     
 #         est_csd = k.values('CSD')
 #         est_csd = est_csd.reshape(7, 90)
