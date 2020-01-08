@@ -2,14 +2,18 @@
 Python implementation of kernel Current Source Density method
 """
 from setuptools import setup, find_packages
-
+import sys
 
 def readme():
     """
     Used for README
     """
-    with open('README.rst') as f:
-        return f.read()
+    if sys.version_info.major < 3:
+        with open('README.rst') as f:
+            return f.read().decode('utf-8')
+    else:
+        with open('README.rst', encoding='utf-8') as f:
+            return f.read()
 
 
 setup(name='kcsd',
