@@ -75,6 +75,7 @@ def dan_fetch_electrodes(meta):
     
     # Channel N => Electrode (1+N+384*A), where N = 0:383, A=0:2
     electrode = 1 + channel + 384 * bank
+    
     return(electrode, channel)
     
 
@@ -127,13 +128,16 @@ def eles_to_coords(eles):
 # binFullPath = Path('./data/08_refGND_APx500_LFPx125_ApfiltON_corr_banks_stim50V_g0_t0.imec0.lf.bin')
 # Daniel
 binFullPath = Path('/mnt/zasoby/data/neuropixel/Neuropixel data from Ewa Kublik/SOV_12/data/08_refGND_APx500_LFPx125_ApfiltON_corr_banks_stim50V_g0_t0.imec0.lf.bin')
+# binFullPath = Path('/mnt/zasoby/data/neuropixel/Neuropixel data from Ewa Kublik/SOV_12/data/09_refGND_APx500_LFPx125_ApfiltON_corr_banks_stim25V_g0_t0.imec0.lf.bin')
+
+
 # Chaitanya
 # binFullPath = Path('/home/chaitanya/LFP/SOV_12/data/08_refGND_APx500_LFPx125_ApfiltON_corr_banks_stim50V_g0_t0.imec0.lf.bin')
 
 meta = readSGLX.readMeta(binFullPath)
 sRate = readSGLX.SampRate(meta)
 
-tStart, tEnd = 0., 600.    # 500., 600.  # 0., 1.        # in seconds
+tStart, tEnd = 0., 600.    # 0., 600.  # 0., 1.        # in seconds
 
 firstSamp = int(sRate*tStart)
 lastSamp = int(sRate*tEnd)
@@ -211,9 +215,16 @@ print(pots.shape)
 electrode_order = np.argsort(ele_pos[:,1])
 temp_pots = convData[electrode_order, :]
 ax = plt.subplot(111)
-plt.imshow(temp_pots[:, 0:38400])
-ax.set_aspect(100)
+plt.imshow(temp_pots[:, 192000:194000], aspect='auto')
+# ax.set_aspect(100000)
 
+plt.imshow(convData[:, 192000:194000], aspect='auto')
+
+
+plt.figure()
+ax = plt.subplot(111)
+for n in range(384):
+    plt.plot(100*n+convData[n, 700000:799999])
 
 
 
