@@ -373,8 +373,9 @@ class KCSD(CSD):
 
         """
         u, s, v = svd(self.k_pot)
+        self.diag_std = np.std(np.diag(self.k_pot))
         print('min lambda', 10**np.round(np.log10(s[-1]), decimals=0))
-        print('max lambda', str.format('{0:.4f}', np.std(np.diag(self.k_pot))))
+        print('max lambda', "%.2E" % self.diag_std)
         return np.logspace(np.log10(s[-1]), np.log10(np.std(np.diag(self.k_pot))), 20)
 
     def L_curve(self, lambdas=None, Rs=None, n_jobs=1):
@@ -403,6 +404,7 @@ class KCSD(CSD):
         else:
             lambdas = lambdas.flatten()
         if Rs is None:
+            # self.R = np.array(ele_pos[])
             Rs = np.array((self.R)).flatten()
         else:
             Rs = np.array((Rs)).flatten()

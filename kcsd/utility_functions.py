@@ -309,8 +309,9 @@ def L_model_fast(k_pot, pots, lamb, i):
     residual : float
 
     """
-    k_inv = np.linalg.inv(k_pot + lamb*np.identity(k_pot.shape[0]))
-    beta_new = np.dot(k_inv, pots)
+    kernel =  k_pot + lamb*np.identity(k_pot.shape[0])
+    beta_new = np.linalg.solve(kernel, pots)
+    # beta_new = np.dot(k_inv, pots)
     V_est = np.dot(k_pot, beta_new)
     modelnorm = np.einsum('ij,ji->i', beta_new.T, V_est)
     residual = np.linalg.norm(V_est - pots)
