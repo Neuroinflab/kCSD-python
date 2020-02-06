@@ -412,7 +412,7 @@ class KCSD(CSD):
         self.curve_surf = np.zeros((len(Rs), len(lambdas)))
         for R_idx, R in enumerate(Rs):
             self.update_R(R)
-            # self.suggest_lambda()
+            self.suggest_lambda()
             print('l-curve (all lambda): ', np.round(R, decimals=3))
             modelnormseq, residualseq = utils.parallel_search(self.k_pot, self.pots, lambdas,
                                                               n_jobs=n_jobs)
