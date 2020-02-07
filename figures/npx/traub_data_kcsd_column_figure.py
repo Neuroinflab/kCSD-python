@@ -506,4 +506,3 @@ if __name__ == '__main__':
     true_csd = calculate_smoothed_csd(all_x, all_y, all_z, all_val)
     make_column_plot(h, pop_names, time_pts, time_pt_interest, elec_pos_list,
                       all_x, all_y, all_z, all_val, true_csd)
-    
