@@ -7,8 +7,8 @@ import numpy as np
 import h5py as h5
 import matplotlib.pyplot as plt
 import os
-from traub_data_kcsd_figure import (prepare_electrodes, prepare_pots, do_kcsd,
-                                    set_axis)
+from traub_data_kcsd_column_figure import (prepare_electrodes, prepare_pots,
+                                           do_kcsd, set_axis)
 
 
 def make_plot_spacetime(ax, val, cut=9, title='True CSD',

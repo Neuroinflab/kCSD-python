@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import os
 from kcsd import KCSD2D
 from numpy.linalg import LinAlgError
-from traub_data_kcsd_figure import (prepare_electrodes, prepare_pots,
+from traub_data_kcsd_column_figure import (prepare_electrodes, prepare_pots,
                                     set_axis)
 
 
