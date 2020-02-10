@@ -32,11 +32,11 @@ def do_kcsd_evd(pot, ele_pos, xmin, xmax, ymin, ymax, n_src_init=1000,
     return k, eigenvalues, eigenvectors
 
 
-def plot_eigensources(k, v):
+def plot_eigensources(k, v, start=0, stop=6):
     letters = ['A', 'B', 'C', 'D', 'E', 'F']
     fig = plt.figure(figsize=(15, 16))
-    for i in range(6):
-        ax = plt.subplot(231+i, aspect='equal')
+    for idx, i in enumerate(list(range(start, stop))):
+        ax = plt.subplot(231+idx, aspect='equal')
         a = v[:,  i].reshape(k.estm_x.shape)
         max_a = np.max(np.abs(a))
         levels = np.linspace(-max_a, max_a, 200)
@@ -44,8 +44,9 @@ def plot_eigensources(k, v):
         ax.set_xlabel('X ($\mu$m)')
         ax.set_ylabel('Y ($\mu$m)')
         ax.set_title(r"$\tilde{K} \cdot{v_{{%(i)d}}}$" % {'i': i+1}, fontsize=20)
-        set_axis(ax, letter=letters[i])
-    fig.savefig(os.path.join('Eigensources' + '.png'), dpi=300)
+        set_axis(ax, letter=letters[idx])
+    fig.savefig(os.path.join('Eigensources_' + str(start) + '_' + str(stop)
+                             + '.png'), dpi=300)
 
 
 if __name__ == '__main__':
@@ -67,4 +68,4 @@ if __name__ == '__main__':
                                                 -400, 400, -2000, 500,
                                                 R_init=30, n_src_init=5000)
     v = np.dot(k.k_interp_cross, eigenvectors)
-    plot_eigensources(k, v)
+    plot_eigensources(k, v, start=0, stop=6)
