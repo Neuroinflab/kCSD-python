@@ -68,7 +68,7 @@ def do_kcsd(ele_pos_for_csd, pots_for_csd, ele_limit):
     plt.figure()
     plt.imshow(k.curve_surf)#, vmin=-k.curve_surf.max(), vmax=k.curve_surf.max(), cmap='BrBG_r')
     plt.colorbar()
-    return k, k.values('CSD'), k.values('POT'), ele_position
+    return k, k.values('CSD'), ele_position
 #%%
 if __name__ == '__main__':
     # dir_path=  '/Users/Wladek/Dysk Google/kCSD_lcurve/validation/Steinmetz_data/'
@@ -76,13 +76,29 @@ if __name__ == '__main__':
     # bin_path = 'Hopkins_20160722_g0_t0.imec.lf.bin'
     # bin_path = '08_refGND_APx500_LFPx125_ApfiltON_corr_banks_stim50V_g0_t0.imec0.lf.bin'
     bin_path = '15_3800_bank0_defauld PnoFIltr_OLD_headsage_OLD_electrode_g0_t0.imec0.ap.bin'
-    time_start = 20
-    time_stop = 30
+    time_start = 46.55
+    time_stop = 46.6
     data, ele_pos, channels, meta, ref = get_npx(dir_path+bin_path, time_start, time_stop)
+    Fs = int(float(meta['imSampRate']))
+    downsample = 1
+    Fs = int(Fs/downsample)
+    data = data[:, ::downsample]
+    b,a = butter(3, [10/(Fs/2),100/(Fs/2)], btype = 'bandpass')
+    data = filtfilt(b,a, data)
+    b,a = butter(3, 500/(Fs/2), btype = 'highpass')
+    filtdata = filtfilt(b,a, data)
+    filtdata = np.delete(filtdata, 191, axis=0)
+    data = np.delete(data, 191, axis=0)
+#%%
+    k, est_csd, ele_pos = do_kcsd(ele_pos, data, ele_limit = 320)
+#%%
     plt.figure()
-    b,a = butter(3,  )
-    py.subplot(121)
-    plt.imshow(data, aspect = 'auto', vmin=-1, vmax=1, cmap='PRGn')
-    py.subplot(121)
-    plt.imshow(data, aspect = 'auto', vmin=-1, vmax=1, cmap='PRGn')
-    k, est_csd, est_pots, ele_pos = do_kcsd(ele_pos, pots_for_csd, ele_limit = (0,320))
+    plt.subplot(121)
+    # plt.imshow(abs(filtdata)[::-1], aspect='auto', extent=[0,data.shape[1]/Fs, 4000, 0],
+               # vmin=0, vmax =0.05 , cmap='Greys')
+    plt.imshow(est_csd[15][::-1], aspect='auto', extent=[0,data.shape[1]/Fs, 4000, 0],
+               vmin=-est_csd[15].max(), vmax =est_csd[15].max(), cmap='bwr', alpha= 1)
+    plt.subplot(122)
+    plt.imshow(data[::-1], aspect='auto', extent=[0,data.shape[1]/Fs, 4000, 0],
+               vmin=-2, vmax =2 , cmap='PRGn')
+    plt.colorbar()
