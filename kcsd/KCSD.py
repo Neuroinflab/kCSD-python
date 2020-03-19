@@ -219,13 +219,11 @@ class KCSD(CSD):
             print('Invalid quantity to be measured, pass either CSD or POT')
         kernel = self.k_pot + self.lambd * np.identity(self.k_pot.shape[0])
         estimation = np.zeros((self.n_estm, self.n_time))
-        for t in range(self.n_time):
-            # C*(x) [Potworowski 2018 Eq 2.18]
-            # `inv(K) V` calculated by solving `K X = V` for `X`
-            estimation[:, t] = np.dot(estimation_table,
-                                      np.linalg.solve(kernel,
-                                                      self.pots[:, t]))
+        beta_new = np.dot(np.linalg.inv(kernel), self.pots)
+        estimation = np.dot(estimation_table, beta_new)
+        
         return self.process_estimate(estimation)
+
 
     def process_estimate(self, estimation):
         """Function used to rearrange estimation according to dimension, to be
@@ -373,11 +371,12 @@ class KCSD(CSD):
 
         """
         u, s, v = svd(self.k_pot)
+        self.diag_std = np.std(np.diag(self.k_pot))
         print('min lambda', 10**np.round(np.log10(s[-1]), decimals=0))
-        print('max lambda', str.format('{0:.4f}', np.std(np.diag(self.k_pot))))
-        return np.logspace(np.log10(s[-1]), np.log10(np.std(np.diag(self.k_pot))), 20)
+        print('max lambda', 10**np.round(np.log10(self.diag_std)))
+        return np.logspace(np.log10(s[-1]), np.log10(self.diag_std), 20)
 
-    def L_curve(self, lambdas=None, Rs=None, n_jobs=1):
+    def L_curve(self, estimate='CSD', lambdas=None, Rs=None, n_jobs=1):
         """Method defines the L-curve.
 
         By default calculates L-curve over lambda,
@@ -406,24 +405,24 @@ class KCSD(CSD):
             Rs = np.array((self.R)).flatten()
         else:
             Rs = np.array((Rs)).flatten()
-        self.lcurve_axis = np.zeros((2, len(Rs), len(lambdas)))
+        self.lcurve_axis = np.zeros((2,len(Rs),len(lambdas)))
         self.curve_surf = np.zeros((len(Rs), len(lambdas)))
         for R_idx, R in enumerate(Rs):
             self.update_R(R)
             self.suggest_lambda()
             print('l-curve (all lambda): ', np.round(R, decimals=3))
-            modelnormseq, residualseq = utils.parallel_search(self.k_pot, self.pots, lambdas,
-                                                              n_jobs=n_jobs)
+            modelnormseq, residualseq, self.V_est2 = utils.parallel_search(self.k_pot, self.pots, lambdas,
+                                                                          n_jobs=n_jobs)
             norm_log = np.log(modelnormseq + np.finfo(np.float64).eps)
             res_log = np.log(residualseq + np.finfo(np.float64).eps)
             curveseq = res_log[0] * (norm_log - norm_log[-1]) + res_log * (norm_log[-1] - norm_log[0]) \
                 + res_log[-1] * (norm_log[0] - norm_log)
             self.curve_surf[R_idx] = curveseq
-            self.lcurve_axis[0,R_idx] = modelnormseq#norm_log
-            self.lcurve_axis[1,R_idx] = residualseq#res_log
+            self.lcurve_axis[0,R_idx]=modelnormseq#norm_log
+            self.lcurve_axis[1,R_idx]=residualseq#res_log
         best_R_ind = np.argmax(np.max(self.curve_surf, axis=1))
-        self.m_norm = self.lcurve_axis[0, best_R_ind]
-        self.m_resi = self.lcurve_axis[1, best_R_ind]
+        self.m_norm = self.lcurve_axis[0,best_R_ind]
+        self.m_resi = self.lcurve_axis[1,best_R_ind]
         self.update_R(Rs[best_R_ind])
         self.update_lambda(lambdas[np.argmax(self.curve_surf, axis=1)[best_R_ind]])
         print("Best lambda and R = ", self.lambd, ', ',
