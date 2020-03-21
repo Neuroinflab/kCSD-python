@@ -3,8 +3,7 @@ from kcsd import KCSD2D
 from pathlib import Path
 import DemoReadSGLXData.readSGLX as readSGLX
 import matplotlib.pyplot as plt
-import draw_utils as du
-from scipy.signal import filtfilt, butter, argrelmax
+from scipy.signal import butter, filtfilt 
 #%%    
 def fetch_electrodes(meta):
     imroList = meta['imroTbl'].split(sep=')')
@@ -57,17 +56,13 @@ def get_npx(path, time_start, time_stop):
     return rawData, ele_pos_def, channels, meta, reference_electrode
 
 def do_kcsd(ele_pos_for_csd, pots_for_csd, ele_limit):
-    ele_position = ele_pos_for_csd[:ele_limit[1]][2::20]
-    csd_pots = pots_for_csd[:ele_limit[1]][2::20]
+    ele_position = ele_pos_for_csd[:ele_limit]
+    csd_pots = pots_for_csd[:ele_limit]
     k = KCSD2D(ele_position, csd_pots,
                h=1, sigma=1, 
-               # xmin= -42, xmax=42, gdx=4,
-               xmin=0, xmax=4000, gdx=4) 
-    k.L_curve(Rs=np.linspace(30, 90, 1), lambdas=np.logspace(-9, -7, 1))
-    # k.cross_validate(Rs=np.linspace(20, 30, 1), lambdas=np.logspace(-5, -3, 20))
-    plt.figure()
-    plt.imshow(k.curve_surf)#, vmin=-k.curve_surf.max(), vmax=k.curve_surf.max(), cmap='BrBG_r')
-    plt.colorbar()
+               xmin= -42, xmax=42, gdx=4,
+               ymin=0, ymax=4000, gdy=4) 
+    k.L_curve(Rs=np.linspace(60, 90, 1), lambdas=np.logspace(-9, -7, 1))
     return k, k.values('CSD'), ele_position
 #%%
 if __name__ == '__main__':
@@ -76,26 +71,19 @@ if __name__ == '__main__':
     # bin_path = 'Hopkins_20160722_g0_t0.imec.lf.bin'
     # bin_path = '08_refGND_APx500_LFPx125_ApfiltON_corr_banks_stim50V_g0_t0.imec0.lf.bin'
     bin_path = '15_3800_bank0_defauld PnoFIltr_OLD_headsage_OLD_electrode_g0_t0.imec0.ap.bin'
-    time_start = 46.55
-    time_stop = 46.6
+    time_start = 46.5
+    time_stop = 46.7
     data, ele_pos, channels, meta, ref = get_npx(dir_path+bin_path, time_start, time_stop)
     Fs = int(float(meta['imSampRate']))
-    downsample = 1
-    Fs = int(Fs/downsample)
-    data = data[:, ::downsample]
-    b,a = butter(3, [10/(Fs/2),100/(Fs/2)], btype = 'bandpass')
-    data = filtfilt(b,a, data)
-    b,a = butter(3, 500/(Fs/2), btype = 'highpass')
-    filtdata = filtfilt(b,a, data)
-    filtdata = np.delete(filtdata, 191, axis=0)
     data = np.delete(data, 191, axis=0)
+    
+    b,a = butter(3, 5/(Fs/2), btype='highpass')
+    filtdata = filtfilt(b,a, data)
 #%%
-    k, est_csd, ele_pos = do_kcsd(ele_pos, data, ele_limit = 320)
-#%%
+    k, est_csd, ele_pos = do_kcsd(ele_pos, filtdata, ele_limit = 320)
+
     plt.figure()
     plt.subplot(121)
-    # plt.imshow(abs(filtdata)[::-1], aspect='auto', extent=[0,data.shape[1]/Fs, 4000, 0],
-               # vmin=0, vmax =0.05 , cmap='Greys')
     plt.imshow(est_csd[15][::-1], aspect='auto', extent=[0,data.shape[1]/Fs, 4000, 0],
                vmin=-est_csd[15].max(), vmax =est_csd[15].max(), cmap='bwr', alpha= 1)
     plt.subplot(122)
