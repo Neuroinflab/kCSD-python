@@ -437,7 +437,7 @@ def make_column_plot(h, pop_names, time_pts, time_pt_interest, elec_pos_list,
         ele_pos = elec_pos_list[i]
         name = names_list[i]
         pot = prepare_pots(ele_pos, name, h, pop_names, time_pts)
-        kcsd, est_pot, x, y = do_kcsd(pot, ele_pos[:, :2], xmin, xmax, ymin, ymax,
+        kcsd, est_pot, x, y, k = do_kcsd(pot, ele_pos[:, :2], xmin, xmax, ymin, ymax,
                                       n_src_init=5000)
         plot_csd_smooth(ax_list[i], xmin, xmax, ymin, ymax, kcsd[:, :, 750], x, y,
                         letter=letter_list[i], ele_pos=ele_pos)
@@ -468,7 +468,7 @@ def do_kcsd(pot, ele_pos, xmin, xmax, ymin, ymax, n_src_init=1000):
     #                   Rs=np.array([80]))
     kcsd = k.values('CSD')
     est_pot = k.values('POT')
-    return kcsd, est_pot, k.estm_x, k.estm_y
+    return kcsd, est_pot, k.estm_x, k.estm_y, k
 
 
 def prepare_pots(ele_pos, name, h, pop_names, time_pts):
