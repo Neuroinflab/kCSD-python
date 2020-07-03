@@ -62,7 +62,7 @@ if __name__ == '__main__':
     elec_pos_list, names_list = prepare_electrodes()
 
     pot_np = prepare_pots(elec_pos_list[1], names_list[1], h, pop_names, time_pts)
-    kcsd, est_pot, x, y = do_kcsd(pot_np, elec_pos_list[1][:, :2], -40, 40, -3500, 500)
+    kcsd, est_pot, x, y, k = do_kcsd(pot_np, elec_pos_list[1][:, :2], -40, 40, -3500, 500)
     
     time_pts_ds = int(time_pts/4)
     cut = 9
