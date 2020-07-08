@@ -7,6 +7,7 @@ import matplotlib.gridspec as gridspec
 from figure_properties import *
 import os
 from sklearn import preprocessing
+from kcsd import oKCSD1D
 
 
 def calculate_eigensources(obj):        
@@ -104,6 +105,61 @@ def plot_projection(ax, projection, estm_x, title=None, ele_pos=None,
     return ax
 
 
+def modified_bases(val, pots, ele_pos, n_src, own_est, own_src, title=None, h=0.25, sigma=0.3,
+                   R=0.2, MU=0.25,
+                   method='cross-validation', Rs=None, lambdas=None):
+    '''
+    Parameters
+    ----------
+    val: object of the class ValidateKCSD1D
+    pots: numpy array
+        Potentials measured (calculated) on electrodes.
+    ele_pos: numpy array
+        Locations of electrodes.
+    n_src: int
+        Number of basis sources.
+    own_est: numpy array
+        Locations of estimation points.
+    own_src: numpy array
+        Locations of basis sources
+    title: string
+        Title of the plot.
+    h: float
+        Thickness of analyzed cylindrical slice.
+        Default: 0.25.
+    sigma: float
+        Space conductance of the medium.
+        Default: 0.3.
+    R: float
+        Thickness of the groundtruth source.
+        Default: 0.2.
+    MU: float
+        Central position of Gaussian source
+        Default: 0.25.
+    method: string
+        Determines the method of regularization.
+        Default: cross-validation.
+    Rs: numpy 1D array
+        Basis source parameter for crossvalidation.
+        Default: None.
+    lambdas: numpy 1D array
+        Regularization parameter for crossvalidation.
+        Default: None.
+
+    Returns
+    -------
+    obj_m: object of the class oKCSD1D
+    '''
+    pots = pots.reshape((len(ele_pos), 1))
+    obj_m = oKCSD1D(ele_pos, pots, src_type='gauss', sigma=sigma, h=h,
+                   n_src_init=n_src, own_est=own_est, own_src=own_src)
+    if method == 'cross-validation':
+        obj_m.cross_validate(Rs=Rs, lambdas=lambdas)
+    elif method == 'L-curve':
+        obj_m.L_curve(Rs=Rs, lambdas=lambdas)
+    return obj_m
+
+
 def generate_figure_projection(R, MU, n_src, true_csd_xlims, total_ele,
                     method='cross-validation', Rs=None, lambdas=None,
                     noise=0):
@@ -143,7 +199,7 @@ def generate_figure_projection(R, MU, n_src, true_csd_xlims, total_ele,
     -------
     None
     """
-    true_csd_projection = tb.csd_profile(np.linspace(-0.5, 1, 150), [R, MU])
+    true_csd_projection = tb.csd_profile(np.linspace(0, 1, 100), [R, MU])
     ele_lims = [0, 0.5]
     csd_at, true_csd, ele_pos, pots, val = tb.simulate_data(tb.csd_profile,
                                                             true_csd_xlims, R,
@@ -158,12 +214,11 @@ def generate_figure_projection(R, MU, n_src, true_csd_xlims, total_ele,
                            hspace=0.45, wspace=0.3)
 
 
-    xmin = -0.5
-    xmax = 1
-    ext_x = -0.5
-    obj = tb.modified_bases(val, pots, ele_pos, n_src, h=0.25,
-                            sigma=0.3, gdx=0.01, ext_x=ext_x, xmin=xmin,
-                            xmax=xmax, method=method, Rs=Rs, lambdas=lambdas)
+    #estimation [0, 1], sources[0, 0.5]
+    own_est = np.linspace(0, 1, 100)
+    own_src = np.linspace(0, 0.5, n_src)
+    obj = modified_bases(val, pots, ele_pos, n_src, own_est, own_src, h=0.25,
+                            sigma=0.3, method=method, Rs=Rs, lambdas=lambdas)
     
     ax = fig.add_subplot(gs[0, 0])
     fb.make_subplot(ax, true_csd, obj.values('CSD'), obj.estm_x, ele_pos=ele_pos,
@@ -171,7 +226,7 @@ def generate_figure_projection(R, MU, n_src, true_csd_xlims, total_ele,
     
     eigensources = calculate_eigensources(obj)
     projection = csd_into_eigensource_projection(true_csd_projection, eigensources)
-    anihilator = true_csd_projection - projection#obj.values('CSD')[:, 0]
+    anihilator = true_csd_projection - projection
     
     ax = fig.add_subplot(gs[0, 1])
     plot_projection(ax, projection, obj.estm_x, ele_pos=ele_pos,
@@ -193,12 +248,11 @@ def generate_figure_projection(R, MU, n_src, true_csd_xlims, total_ele,
                                                             ele_lims,
                                                             noise=noise)
     
-    xmin = -0.5
-    xmax = 1
-    ext_x = -0.5
-    obj = tb.modified_bases(val, pots, ele_pos, n_src, h=0.25,
-                            sigma=0.3, gdx=0.01, ext_x=ext_x, xmin=xmin,
-                            xmax=xmax, method=method, Rs=Rs, lambdas=lambdas)
+    #estimation [0, 1], sources[0, 0.5]
+    own_est = np.linspace(0., 1., 100)
+    own_src = np.linspace(0., 0.5, n_src)
+    obj = modified_bases(val, pots, ele_pos, n_src, own_est, own_src, h=0.25,
+                            sigma=0.3, method=method, Rs=Rs, lambdas=lambdas)
     
     ax = fig.add_subplot(gs[1, 0])
     fb.make_subplot(ax, true_csd, obj.values('CSD'), obj.estm_x, ele_pos=ele_pos,
@@ -206,7 +260,7 @@ def generate_figure_projection(R, MU, n_src, true_csd_xlims, total_ele,
     
     eigensources = calculate_eigensources(obj)
     projection = csd_into_eigensource_projection(true_csd_projection, eigensources)
-    anihilator = true_csd_projection - projection#obj.values('CSD')[:, 0]
+    anihilator = true_csd_projection - projection
     
     ax = fig.add_subplot(gs[1, 1])
     plot_projection(ax, projection, obj.estm_x, ele_pos=ele_pos,
@@ -221,21 +275,18 @@ def generate_figure_projection(R, MU, n_src, true_csd_xlims, total_ele,
                  title=None, xlabel=False, ylabel=False, letter='H')
 
     
-    true_csd_projection2 = tb.csd_profile(np.linspace(0, 1.5, 150), [R, MU])
-    xmin = 0
-    xmax = 1.5
-    ext_x = -0.5
-    obj = tb.modified_bases(val, pots, ele_pos, n_src, h=0.25,
-                            sigma=0.3, gdx=0.01, ext_x=ext_x, xmin=xmin,
-                            xmax=xmax, method=method, Rs=Rs, lambdas=lambdas)
-
+    #estimation [0, 1], sources[0.5, 1]
+    own_est3 = np.linspace(0., 1., 100)
+    own_src3 = np.linspace(0.5, 1., n_src)
+    obj = modified_bases(val, pots, ele_pos, n_src, own_est3, own_src3, h=0.25,
+                            sigma=0.3, method=method, Rs=Rs, lambdas=lambdas)
     ax1 = fig.add_subplot(gs[2, 0])
     ax1 = fb.make_subplot(ax1, true_csd, obj.values('CSD'), obj.estm_x, ele_pos=ele_pos,
                  title=None, xlabel=True, ylabel=True, letter='I')
     
     eigensources = calculate_eigensources(obj)
-    projection = csd_into_eigensource_projection(true_csd_projection2, eigensources)
-    anihilator = true_csd_projection2 - projection#obj.values('CSD')[:, 0]
+    projection = csd_into_eigensource_projection(true_csd_projection, eigensources)
+    anihilator = true_csd_projection - projection
     
     ax2 = fig.add_subplot(gs[2, 1])
     ax2 = plot_projection(ax2, projection, obj.estm_x, ele_pos=ele_pos,
@@ -255,18 +306,18 @@ def generate_figure_projection(R, MU, n_src, true_csd_xlims, total_ele,
     
     fig.legend(handles, labels, loc='lower center', ncol=6, frameon=False)
 
-    fig.savefig(os.path.join('Projection_targeted_basis_noise_' + str(noise) + 'normalized2.png'), dpi=300)
+    fig.savefig(os.path.join('Projection_targeted_basis_noise_' + str(noise) + 'normalized2_oKCSD1D.png'), dpi=300)
     plt.show()
 
 
-N_SRC = 64
-TRUE_CSD_XLIMS = [0., 1.]
-TOTAL_ELE = 12
-R = 0.2
-MU = 0.25
-method = 'cross-validation'  # L-curve
-#method = 'L-curve'
-Rs = np.array([0.2])
-lambdas = np.zeros(1)
-generate_figure_projection(R, MU, N_SRC, TRUE_CSD_XLIMS, TOTAL_ELE,
-                method=method, Rs=Rs, lambdas=lambdas, noise=0)
+if __name__ == '__main__':
+    N_SRC = 64
+    TRUE_CSD_XLIMS = [0., 1.]
+    TOTAL_ELE = 12
+    R = 0.2
+    MU = 0.25
+    method = 'cross-validation'  # L-curve
+    Rs = np.array([0.2])
+    lambdas = np.zeros(1)
+    generate_figure_projection(R, MU, N_SRC, TRUE_CSD_XLIMS, TOTAL_ELE,
+                    method=method, Rs=Rs, lambdas=lambdas, noise=0)
