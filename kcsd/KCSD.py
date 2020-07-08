@@ -500,8 +500,8 @@ class KCSD1D(KCSD):
         self.estm_x : Locations at which CSD is requested.
 
         """
-        nx = (self.xmax - self.xmin)/self.gdx
-        self.estm_x = np.mgrid[self.xmin:self.xmax:np.complex(0, nx)]
+        nx = int(np.rint((self.xmax - self.xmin)/self.gdx)) + 1
+        self.estm_x = np.linspace(self.xmin, self.xmax, nx)
         self.n_estm = self.estm_x.size
         self.ngx = self.estm_x.shape[0]
         self.estm_pos = self.estm_x.reshape(self.n_estm, 1)
@@ -672,10 +672,10 @@ class KCSD2D(KCSD):
         self.estm_x, self.estm_y : Locations at which CSD is requested.
 
         """
-        nx = (self.xmax - self.xmin)/self.gdx
-        ny = (self.ymax - self.ymin)/self.gdy
-        self.estm_pos = np.mgrid[self.xmin:self.xmax:np.complex(0, nx), 
-                                 self.ymin:self.ymax:np.complex(0, ny)]
+        nx = int(np.rint((self.xmax - self.xmin)/self.gdx)) + 1
+        ny = int(np.rint((self.ymax - self.ymin)/self.gdy)) + 1
+        self.estm_pos = np.meshgrid(np.linspace(self.xmin, self.xmax, nx),
+                                    np.linspace(self.ymin, self.ymax, ny))
         self.estm_x, self.estm_y = self.estm_pos
         self.n_estm = self.estm_x.size
         self.ngx, self.ngy = self.estm_x.shape
@@ -983,13 +983,12 @@ class KCSD3D(KCSD):
         self.estm_x, self.estm_y, self.estm_z : Pts. at which CSD is requested
 
         """
-        nx = (self.xmax - self.xmin)/self.gdx
-        ny = (self.ymax - self.ymin)/self.gdy
-        nz = (self.zmax - self.zmin)/self.gdz
-
-        self.estm_pos = np.mgrid[self.xmin:self.xmax:np.complex(0, nx), 
-                                 self.ymin:self.ymax:np.complex(0, ny),
-                                 self.zmin:self.zmax:np.complex(0, nz)]
+        nx = int(np.rint((self.xmax - self.xmin)/self.gdx)) + 1
+        ny = int(np.rint((self.ymax - self.ymin)/self.gdy)) + 1
+        nz = int(np.rint((self.zmax - self.zmin)/self.gdz)) + 1
+        self.estm_pos = np.meshgrid(np.linspace(self.xmin, self.xmax, nx),
+                                    np.linspace(self.ymin, self.ymax, ny),
+                                    np.linspace(self.zmin, self.zmax, nz))
         self.estm_x, self.estm_y, self.estm_z = self.estm_pos
         self.n_estm = self.estm_x.size
         self.ngx, self.ngy, self.ngz = self.estm_x.shape
