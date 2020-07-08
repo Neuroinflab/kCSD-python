@@ -208,10 +208,10 @@ def extract_csd_timepoint(h, pop_names, time_pts, field_name):
     return np.array(all_x), np.array(all_y), np.array(all_z), np.array(all_val)
 
 
-def calculate_smoothed_csd(X, Y, Z, Val, l=3009):
-    resX, resY = 25, 25
-    nX = int(800/resX)
-    nY = int(2500/resY)
+def calculate_smoothed_csd(X, Y, Z, Val, nX=32, nY=100, l=3009):
+    #resX, resY = 25, 25
+    nX = nX #int(800/resX)
+    nY = nY #int(2500/resY)
 
     if len(Val.shape) == 2:
         nT = Val.shape[1]
@@ -402,8 +402,8 @@ def plot_csd_smooth(ax, xmin, xmax, ymin, ymax, csd, XX, YY, letter='',
     set_axis(ax, letter=letter)
 
 
-def make_column_plot(h, pop_names, time_pts, time_pt_interest, elec_pos_list,
-                     all_x, all_y, all_z, all_val, true_csd,
+def make_column_plot(h, pop_names, time_pts, time_pt_interest, elec_pos_list, names_list,
+                     all_x, all_y, all_z, all_val, true_csd, true_csd_p,
                      fig_title='Traubs_column'):
     fig = plt.figure(figsize=(15, 16))
 
@@ -411,38 +411,47 @@ def make_column_plot(h, pop_names, time_pts, time_pt_interest, elec_pos_list,
     ymax = 500  # 550
     xmin = -400  # -450
     xmax = 400  # 450
-    ax1 = plt.subplot(231, aspect='equal')
+    ax1 = plt.subplot(241, aspect='equal')
     plot_all_currents(ax1, xmin, xmax, ymin, ymax, all_x, all_y, all_z,
                       all_val, letter='A')
 
-    ax2 = plt.subplot(232, aspect='equal')
+    ax2 = plt.subplot(242, aspect='equal')
     plot_csd_slice(ax2, xmin, xmax, ymin, ymax, all_x, all_y, all_z, all_val,
                    letter='B')
 
-    ax3 = plt.subplot(233, aspect='equal')
+    ax3 = plt.subplot(243, aspect='equal')
     plot_dense_potentials(ax3, h, pop_names, time_pts, time_pt_interest,
                           letter='C', filt=False)
     
-    ax4 = plt.subplot(234, aspect='equal')
+    ax4 = plt.subplot(244, aspect='equal')
     xx, yy = np.mgrid[xmin:xmax:np.complex(0, true_csd.shape[0]),
                       ymin:ymax:np.complex(0, true_csd.shape[1])]
     plot_csd_smooth(ax4, xmin, xmax, ymin, ymax, true_csd[:, :],
                     xx, yy, letter='D')
 
-    ax5 = plt.subplot(235, aspect='equal')
-    ax6 = plt.subplot(236, aspect='equal')
-    ax_list = [ax5, ax6]
-    letter_list = ['E', 'F']
+    ax5 = plt.subplot(245, aspect='equal')
+    ax6 = plt.subplot(246, aspect='equal')
+    ax7 = plt.subplot(247, aspect='equal')
+    ax8 = plt.subplot(248, aspect='equal')
+    ax_list1 = [ax5, ax6]
+    ax_list2 = [ax7, ax8]
+    letter_list1 = ['E', 'F']
+    letter_list2 = ['G', 'H']
     for i in range(len(elec_pos_list)):
         ele_pos = elec_pos_list[i]
         name = names_list[i]
         pot = prepare_pots(ele_pos, name, h, pop_names, time_pts)
         kcsd, est_pot, x, y, k = do_kcsd(pot, ele_pos[:, :2], xmin, xmax, ymin, ymax,
-                                      n_src_init=5000)
-        plot_csd_smooth(ax_list[i], xmin, xmax, ymin, ymax, kcsd[:, :, 750], x, y,
-                        letter=letter_list[i], ele_pos=ele_pos)
+                                             n_src_init=5000)
+        plot_csd_smooth(ax_list1[i], xmin, xmax, ymin, ymax, kcsd[:, :, 750], x, y,
+                            letter=letter_list1[i], ele_pos=ele_pos)
+        
+        eigensources = calculate_eigensources(k)
+        projection = csd_into_eigensource_projection(true_csd_p.flatten(), eigensources)
+        plot_csd_smooth(ax_list2[i], xmin, xmax, ymin, ymax, projection.reshape(true_csd_p.shape), x, y,
+                        letter=letter_list2[i])
 
-    fig.savefig(os.path.join(fig_title + '.png'), dpi=300)
+    fig.savefig(os.path.join(fig_title + '_script.png'), dpi=300)
 
 
 def butter_bandpass(lowcut, highcut, fs, order=5):
@@ -485,6 +494,29 @@ def prepare_pots(ele_pos, name, h, pop_names, time_pts):
     return pot
 
 
+def calculate_eigensources(obj):        
+    try:
+        eigenvalue, eigenvector = np.linalg.eigh(obj.k_pot +
+                                                 obj.lambd *
+                                                 np.identity
+                                                 (obj.k_pot.shape[0]))
+    except LinAlgError:
+        raise LinAlgError('EVD is failing - try moving the electrodes'
+                          'slightly')
+    idx = eigenvalue.argsort()[::-1]
+    eigenvalues = eigenvalue[idx]
+    eigenvectors = eigenvector[:, idx]
+    eigensources = np.dot(obj.k_interp_cross, eigenvectors)
+    return eigensources
+
+
+def csd_into_eigensource_projection(csd, eigensources):
+    print(eigensources.shape)
+    orthn = scipy.linalg.orth(eigensources)
+    print('orthn', orthn.shape)
+    return np.matmul(np.matmul(csd, orthn), orthn.T)
+
+
 if __name__ == '__main__':
     time_pt_interest = 3000
     time_pts = 6000  # number of all time frames
@@ -503,6 +535,10 @@ if __name__ == '__main__':
     ### calculate sources values for a single time frame (it may take a while)
     all_x, all_y, all_z, all_val = extract_csd_timepoint(h, pop_names,
                                                           time_pt_interest, 'i')
+    #true_csd = calculate_smoothed_csd(all_x, all_y, all_z, all_val)
+    #make_column_plot(h, pop_names, time_pts, time_pt_interest, elec_pos_list,
+    #                  all_x, all_y, all_z, all_val, true_csd)
     true_csd = calculate_smoothed_csd(all_x, all_y, all_z, all_val)
-    make_column_plot(h, pop_names, time_pts, time_pt_interest, elec_pos_list,
-                      all_x, all_y, all_z, all_val, true_csd)
+    true_csd_p = calculate_smoothed_csd(all_x, all_y, all_z, all_val, nX=200, nY=625)
+    make_column_plot(h, pop_names, time_pts, time_pt_interest, elec_pos_list, names_list,
+                     all_x, all_y, all_z, all_val, true_csd, true_csd_p)
