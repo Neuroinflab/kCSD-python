@@ -6,17 +6,19 @@ from scipy.signal import filtfilt, butter
 from figure_properties import *
 plt.close('all')
 #%%
-def make_plot_spacetime(ax, xx, yy, zz, title='True CSD', cmap=cm.bwr_r, ymin=0, ymax=10000):
+def make_plot_spacetime(ax, xx, yy, zz, Fs, title='True CSD', cmap=cm.bwr_r, ymin=0, ymax=10000, ylabel=True):
     im = ax.imshow(zz,extent=[0, zz.shape[1]/Fs*1000,-3500, 500], aspect='auto',
                    vmax = 1*zz.max(),vmin = -1*zz.max(), cmap=cmap)
     ax.set_xlabel('Time (ms)')
-    ax.set_ylabel('Y ($\mu$m)')
+    if ylabel:
+        ax.set_ylabel('Y ($\mu$m)')
     if 'Pot' in title: ax.set_ylabel('Y ($\mu$m)')
     ax.set_title(title)
+    ticks = np.linspace(-zz.max(), zz.max(), 3, endpoint=True)
     if 'CSD' in title:
-        plt.colorbar(im, orientation='vertical', format='%.2f', ticks = [-0.01,0,0.01])
+        plt.colorbar(im, orientation='horizontal', format='%.2f', ticks = ticks)
     else:
-        plt.colorbar(im, orientation='vertical', format='%.1f', ticks = [-0.6,0,0.6]) 
+        plt.colorbar(im, orientation='horizontal', format='%.1f', ticks = ticks) 
     # plt.gca().invert_yaxis()
 
 def make_plot(ax, xx, yy, zz, title='True CSD', cmap=cm.bwr):
@@ -57,13 +59,13 @@ def eles_to_coords(eles):
     ys = eles_to_ycoord(eles)
     return np.array((xs, ys)).T
 
-def plot_1D_pics(k, est_csd, est_pots, tp, cut=9):
+def plot_1D_pics(k, est_csd, est_pots, tp, Fs, cut=9):
     plt.figure(figsize=(12, 8))
     # plt.suptitle('plane: '+str(k.estm_x[cut,0])+' $\mu$m '+' $\lambda$ : '+str(k.lambd)+
                  # '  R: '+ str(k.R))
     ax1 = plt.subplot(122)
     set_axis(ax1, -0.05, 1.05, letter= 'D')
-    make_plot_spacetime(ax1, k.estm_x, k.estm_y, est_csd[cut,:,:], 
+    make_plot_spacetime(ax1, k.estm_x, k.estm_y, est_csd[cut,:,:], Fs,
               title='Estimated CSD', cmap='bwr')
     for lvl, name in zip([-500,-850,-2000], ['II/III', 'IV', 'V/VI']):
         plt.axhline(lvl, ls='--', color='grey')
@@ -80,7 +82,7 @@ def plot_1D_pics(k, est_csd, est_pots, tp, cut=9):
     plt.tight_layout()
     plt.savefig('figure_1D_pics', dpi=300)
 
-def plot_2D_pics(k, est_csd, est_pots, tp, cut, save=0):
+def plot_2D_pics(k, est_csd, est_pots, tp, Fs, cut, save=0):
     plt.figure(figsize=(12, 8))
     ax1 = plt.subplot(122)
     set_axis(ax1, -0.05, 1.05, letter= 'B')
@@ -127,5 +129,5 @@ if __name__ == '__main__':
     
     k, est_csd, est_pots, ele_pos = do_kcsd(ele_pos_for_csd, pots_for_csd, ele_limit = (0,320))
     
-    plot_1D_pics(k, est_csd, est_pots, tp, 15) 
-    plot_2D_pics(k, est_csd, est_pots, tp=tp, cut=15)
+    plot_1D_pics(k, est_csd, est_pots, tp, Fs, 15) 
+    plot_2D_pics(k, est_csd, est_pots, tp, Fs, cut=15)
