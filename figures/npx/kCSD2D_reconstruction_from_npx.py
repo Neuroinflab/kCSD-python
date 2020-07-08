@@ -62,20 +62,23 @@ def plot_1D_pics(k, est_csd, est_pots, tp, cut=9):
     # plt.suptitle('plane: '+str(k.estm_x[cut,0])+' $\mu$m '+' $\lambda$ : '+str(k.lambd)+
                  # '  R: '+ str(k.R))
     ax1 = plt.subplot(122)
-    set_axis(ax1, -0.05, 1.05, letter= 'B')
+    set_axis(ax1, -0.05, 1.05, letter= 'D')
     make_plot_spacetime(ax1, k.estm_x, k.estm_y, est_csd[cut,:,:], 
               title='Estimated CSD', cmap='bwr')
     for lvl, name in zip([-500,-850,-2000], ['II/III', 'IV', 'V/VI']):
         plt.axhline(lvl, ls='--', color='grey')
         plt.text(340, lvl+20, name)
     plt.xlim(250, 400)
+    plt.xticks([250, 300, 350, 400], [-50, 0, 50, 100])
     ax2 = plt.subplot(121)
-    set_axis(ax2, -0.05, 1.05, letter= 'A')
+    set_axis(ax2, -0.05, 1.05, letter= 'C')
     make_plot_spacetime(ax2, k.estm_x, k.estm_y, est_pots[cut,:,:],
               title='Estimated LFP', cmap='PRGn')
     plt.axvline(tp/Fs*1000, ls='--', color ='grey', lw=2)
     plt.xlim(250, 400)
+    plt.xticks([250, 300, 350, 400], [-50, 0, 50, 100])
     plt.tight_layout()
+    plt.savefig('figure_1D_pics', dpi=300)
 
 def plot_2D_pics(k, est_csd, est_pots, tp, cut, save=0):
     plt.figure(figsize=(12, 8))
@@ -91,6 +94,7 @@ def plot_2D_pics(k, est_csd, est_pots, tp, cut, save=0):
               title='Estimated LFP', cmap='PRGn')
     # plt.suptitle(' $\lambda$ : '+str(k.lambd)+ '  R: '+ str(k.R))
     plt.tight_layout()
+    plt.savefig('figure_2D_pics', dpi=300)
 
 def do_kcsd(ele_pos_for_csd, pots_for_csd, ele_limit):
     ele_position = ele_pos_for_csd[:ele_limit[1]][0::1]
