@@ -1195,7 +1195,6 @@ class oKCSD1D(KCSD1D):
 
         """
         self.estm_x = self.own_est
-        self.src_x = self.own_src
         self.n_estm = self.estm_x.size
 
     def place_basis(self):
@@ -1290,8 +1289,31 @@ class oKCSD2D(KCSD2D):
 
         """
         self.estm_x, self.estm_y = self.own_est
-        self.src_x, self.src_y = self.own_src
         self.n_estm = self.estm_x.size
+
+    def place_basis(self):
+        """Places basis sources of the defined type.
+
+        Checks if a given source_type is defined, if so then defines it
+        self.basis, This function gives locations of the basis sources,
+        Defines
+        source_type : basis_fuctions.basis_2D.keys()
+        self.R based on R_init
+        self.nsx, self.nsy = self.src_x.shape
+        self.src_x, self.src_y : Locations at which basis sources are placed.
+
+        """
+        source_type = self.src_type
+        try:
+            self.basis = basis.basis_2D[source_type]
+        except KeyError:
+            raise KeyError('Invalid source_type for basis! available are:',
+                           basis.basis_2D.keys())
+
+        self.R = self.R_init
+        self.src_x, self.src_y = self.own_src
+        self.n_src = self.src_x.size
+        self.nsx, self.nsy = self.src_x.shape
 
 class oKCSD3D(KCSD3D):
     """oKCSD - The variant for the Kernel Current Source Density method that 
@@ -1360,8 +1382,31 @@ class oKCSD3D(KCSD3D):
 
         """
         self.estm_x, self.estm_y, self.estm_z = self.own_est
-        self.src_x, self.src_y, self.src_z = self.own_src
         self.n_estm = self.estm_x.size
+
+    def place_basis(self):
+        """Places basis sources of the defined type.
+
+        Checks if a given source_type is defined, if so then defines it
+        self.basis, This function gives locations of the basis sources,
+        Defines
+        source_type : basis_fuctions.basis_3D.keys()
+        self.R based on R_init
+        self.nsx, self.nsy, self.nsz = self.src_x.shape
+        self.src_x, self.src_y, self.src_z : Locations at which basis sources are placed.
+
+        """
+        source_type = self.src_type
+        try:
+            self.basis = basis.basis_3D[source_type]
+        except KeyError:
+            raise KeyError('Invalid source_type for basis! available are:',
+                           basis.basis_3D.keys())
+
+        self.R = self.R_init
+        self.src_x, self.src_y, self.src_z = self.own_src
+        self.n_src = self.src_x.size
+        self.nsx, self.nsy, self.nsz = self.src_x.shape
 
 if __name__ == '__main__':
     print('Checking 1D')
