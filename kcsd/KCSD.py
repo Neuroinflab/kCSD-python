@@ -1197,7 +1197,6 @@ class oKCSD1D(KCSD1D):
         self.estm_x = self.own_est
         self.src_x = self.own_src
         self.n_estm = self.estm_x.size
-        print('here', self.src_x)
 
     def place_basis(self):
         """Places basis sources of the defined type.
