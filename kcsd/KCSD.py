@@ -1197,6 +1197,32 @@ class oKCSD1D(KCSD1D):
         self.estm_x = self.own_est
         self.src_x = self.own_src
         self.n_estm = self.estm_x.size
+        print('here', self.src_x)
+
+    def place_basis(self):
+        """Places basis sources of the defined type.
+
+        Checks if a given source_type is defined, if so then defines it
+        self.basis, This function gives locations of the basis sources,
+        Defines
+        source_type : basis_fuctions.basis_1D.keys()
+        self.R based on R_init
+        self.dist_max as maximum distance between electrode and basis
+        self.nsx = self.src_x.shape
+        self.src_x : Locations at which basis sources are placed.
+
+        """
+        source_type = self.src_type
+        try:
+            self.basis = basis.basis_1D[source_type]
+        except KeyError:
+            raise KeyError('Invalid source_type for basis! available are:',
+                           basis.basis_1D.keys())
+
+        self.R = self.R_init
+        self_src_x = self.own_src
+        self.n_src = self.src_x.size
+        self.nsx = self.src_x.shape
     
 class oKCSD2D(KCSD2D):
     """oKCSD - The variant for the Kernel Current Source Density method that 
