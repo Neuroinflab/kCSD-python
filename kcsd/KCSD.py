@@ -1217,7 +1217,7 @@ class oKCSD1D(KCSD1D):
                            basis.basis_1D.keys())
 
         self.R = self.R_init
-        self_src_x = self.own_src
+        self.src_x = self.own_src
         self.n_src = self.src_x.size
         self.nsx = self.src_x.shape
     
