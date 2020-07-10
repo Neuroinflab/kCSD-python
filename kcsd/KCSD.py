@@ -677,7 +677,8 @@ class KCSD2D(KCSD):
         nx = int(np.rint((self.xmax - self.xmin)/self.gdx)) + 1
         ny = int(np.rint((self.ymax - self.ymin)/self.gdy)) + 1
         self.estm_pos = np.meshgrid(np.linspace(self.xmin, self.xmax, nx),
-                                    np.linspace(self.ymin, self.ymax, ny))
+                                    np.linspace(self.ymin, self.ymax, ny),
+                                    indexing='ij')
         self.estm_x, self.estm_y = self.estm_pos
         self.n_estm = self.estm_x.size
         self.ngx, self.ngy = self.estm_x.shape
@@ -990,7 +991,8 @@ class KCSD3D(KCSD):
         nz = int(np.rint((self.zmax - self.zmin)/self.gdz)) + 1
         self.estm_pos = np.meshgrid(np.linspace(self.xmin, self.xmax, nx),
                                     np.linspace(self.ymin, self.ymax, ny),
-                                    np.linspace(self.zmin, self.zmax, nz))
+                                    np.linspace(self.zmin, self.zmax, nz),
+                                    indexing='ij')
         self.estm_x, self.estm_y, self.estm_z = self.estm_pos
         self.n_estm = self.estm_x.size
         self.ngx, self.ngy, self.ngz = self.estm_x.shape
