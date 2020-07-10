@@ -501,10 +501,9 @@ class KCSD1D(KCSD):
         self.estm_x : Locations at which CSD is requested.
 
         """
-        nx = int(np.rint((self.xmax - self.xmin)/self.gdx)) + 1
-        self.estm_x = np.linspace(self.xmin, self.xmax, nx)
+        self.ngx = int(np.rint((self.xmax - self.xmin)/self.gdx)) + 1
+        self.estm_x = np.linspace(self.xmin, self.xmax, self.ngx)
         self.n_estm = self.estm_x.size
-        self.ngx = self.estm_x.shape[0]
         self.estm_pos = self.estm_x.reshape(self.n_estm, 1)
         
     def place_basis(self):
@@ -674,14 +673,13 @@ class KCSD2D(KCSD):
         self.estm_x, self.estm_y : Locations at which CSD is requested.
 
         """
-        nx = int(np.rint((self.xmax - self.xmin)/self.gdx)) + 1
-        ny = int(np.rint((self.ymax - self.ymin)/self.gdy)) + 1
-        self.estm_pos = np.meshgrid(np.linspace(self.xmin, self.xmax, nx),
-                                    np.linspace(self.ymin, self.ymax, ny),
+        self.ngx = int(np.rint((self.xmax - self.xmin)/self.gdx)) + 1
+        self.ngy = int(np.rint((self.ymax - self.ymin)/self.gdy)) + 1
+        self.estm_pos = np.meshgrid(np.linspace(self.xmin, self.xmax, self.ngx),
+                                    np.linspace(self.ymin, self.ymax, self.ngy),
                                     indexing='ij')
         self.estm_x, self.estm_y = self.estm_pos
         self.n_estm = self.estm_x.size
-        self.ngx, self.ngy = self.estm_x.shape
 
     def place_basis(self):
         """Places basis sources of the defined type.
@@ -986,16 +984,15 @@ class KCSD3D(KCSD):
         self.estm_x, self.estm_y, self.estm_z : Pts. at which CSD is requested
 
         """
-        nx = int(np.rint((self.xmax - self.xmin)/self.gdx)) + 1
-        ny = int(np.rint((self.ymax - self.ymin)/self.gdy)) + 1
-        nz = int(np.rint((self.zmax - self.zmin)/self.gdz)) + 1
-        self.estm_pos = np.meshgrid(np.linspace(self.xmin, self.xmax, nx),
-                                    np.linspace(self.ymin, self.ymax, ny),
-                                    np.linspace(self.zmin, self.zmax, nz),
+        self.ngx = int(np.rint((self.xmax - self.xmin)/self.gdx)) + 1
+        self.ngy = int(np.rint((self.ymax - self.ymin)/self.gdy)) + 1
+        self.ngz = int(np.rint((self.zmax - self.zmin)/self.gdz)) + 1
+        self.estm_pos = np.meshgrid(np.linspace(self.xmin, self.xmax, self.ngx),
+                                    np.linspace(self.ymin, self.ymax, self.ngy),
+                                    np.linspace(self.zmin, self.zmax, self.ngz),
                                     indexing='ij')
         self.estm_x, self.estm_y, self.estm_z = self.estm_pos
         self.n_estm = self.estm_x.size
-        self.ngx, self.ngy, self.ngz = self.estm_x.shape
 
     def place_basis(self):
         """Places basis sources of the defined type.
