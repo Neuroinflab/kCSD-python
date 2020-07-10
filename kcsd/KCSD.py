@@ -11,6 +11,7 @@ from scipy.spatial import distance
 from . import utility_functions as utils
 from . import basis_functions as basis
 
+
 class CSD(object):
     """CSD - The base class for CSD methods."""
     def __init__(self, ele_pos, pots):
@@ -602,6 +603,7 @@ class KCSD1D(KCSD):
         m *= basis_func(abs(xp), R)  # xp is the distance
         return m
 
+
 class KCSD2D(KCSD):
     """The 2D variant for the Kernel Current Source Density method.
 
@@ -1127,6 +1129,7 @@ class KCSD3D(KCSD):
         pot *= basis_func(dist, R)
         return pot
 
+
 class oKCSD1D(KCSD1D):
     """oKCSD - The variant for the Kernel Current Source Density method that 
     allows to reconstruct potential and CSD in given 1D space points.
@@ -1220,7 +1223,8 @@ class oKCSD1D(KCSD1D):
         self.src_x = self.own_src
         self.n_src = self.src_x.size
         self.nsx = self.src_x.shape
-    
+
+
 class oKCSD2D(KCSD2D):
     """oKCSD - The variant for the Kernel Current Source Density method that 
     allows to reconstruct potential and CSD in given 2D space points.
@@ -1314,6 +1318,7 @@ class oKCSD2D(KCSD2D):
         self.n_src = self.src_x.size
         self.nsx, self.nsy = self.src_x.shape
 
+
 class oKCSD3D(KCSD3D):
     """oKCSD - The variant for the Kernel Current Source Density method that 
     allows to reconstruct potential and CSD in given 3D space points.
@@ -1406,6 +1411,7 @@ class oKCSD3D(KCSD3D):
         self.src_x, self.src_y, self.src_z = self.own_src
         self.n_src = self.src_x.size
         self.nsx, self.nsy, self.nsz = self.src_x.shape
+
 
 if __name__ == '__main__':
     print('Checking 1D')
