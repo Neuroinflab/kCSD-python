@@ -220,12 +220,8 @@ class KCSD(CSD):
             print('Invalid quantity to be measured, pass either CSD or POT')
         kernel = self.k_pot + self.lambd * np.identity(self.k_pot.shape[0])
         estimation = np.zeros((self.n_estm, self.n_time))
-        for t in range(self.n_time):
-            # C*(x) [Potworowski 2018 Eq 2.18]
-            # `inv(K) V` calculated by solving `K X = V` for `X`
-            estimation[:, t] = np.dot(estimation_table,
-                                      np.linalg.solve(kernel,
-                                                      self.pots[:, t]))
+        beta_new = np.dot(np.linalg.inv(kernel), self.pots)
+        estimation = np.dot(estimation_table, beta_new)
         return self.process_estimate(estimation)
 
     def process_estimate(self, estimation):
@@ -1221,7 +1217,6 @@ class oKCSD1D(KCSD1D):
         self.R = self.R_init
         self.src_x = self.own_src
         self.n_src = self.src_x.size
-        self.nsx = self.src_x.shape
 
 
 class oKCSD2D(KCSD2D):
@@ -1315,7 +1310,6 @@ class oKCSD2D(KCSD2D):
         self.R = self.R_init
         self.src_x, self.src_y = self.own_src
         self.n_src = self.src_x.size
-        self.nsx, self.nsy = self.src_x.shape
 
 
 class oKCSD3D(KCSD3D):
@@ -1409,8 +1403,6 @@ class oKCSD3D(KCSD3D):
         self.R = self.R_init
         self.src_x, self.src_y, self.src_z = self.own_src
         self.n_src = self.src_x.size
-        self.nsx, self.nsy, self.nsz = self.src_x.shape
-
 
 if __name__ == '__main__':
     print('Checking 1D')
