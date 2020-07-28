@@ -219,7 +219,6 @@ class KCSD(CSD):
         else:
             print('Invalid quantity to be measured, pass either CSD or POT')
         kernel = self.k_pot + self.lambd * np.identity(self.k_pot.shape[0])
-        estimation = np.zeros((self.n_estm, self.n_time))
         beta_new = np.dot(np.linalg.inv(kernel), self.pots)
         estimation = np.dot(estimation_table, beta_new)
         return self.process_estimate(estimation)
@@ -245,6 +244,10 @@ class KCSD(CSD):
         elif self.dim == 3:
             estimation = estimation.reshape(self.ngx, self.ngy, self.ngz,
                                             self.n_time)
+        try: 
+            self.own_src
+            return estimation
+        except: pass
         return estimation
 
     def update_R(self, R):
@@ -1203,7 +1206,6 @@ class oKCSD1D(KCSD1D):
         source_type : basis_fuctions.basis_1D.keys()
         self.R based on R_init
         self.dist_max as maximum distance between electrode and basis
-        self.nsx = self.src_x.shape
         self.src_x : Locations at which basis sources are placed.
 
         """
@@ -1296,7 +1298,6 @@ class oKCSD2D(KCSD2D):
         Defines
         source_type : basis_fuctions.basis_2D.keys()
         self.R based on R_init
-        self.nsx, self.nsy = self.src_x.shape
         self.src_x, self.src_y : Locations at which basis sources are placed.
 
         """
@@ -1389,7 +1390,6 @@ class oKCSD3D(KCSD3D):
         Defines
         source_type : basis_fuctions.basis_3D.keys()
         self.R based on R_init
-        self.nsx, self.nsy, self.nsz = self.src_x.shape
         self.src_x, self.src_y, self.src_z : Locations at which basis sources are placed.
 
         """
@@ -1403,6 +1403,7 @@ class oKCSD3D(KCSD3D):
         self.R = self.R_init
         self.src_x, self.src_y, self.src_z = self.own_src
         self.n_src = self.src_x.size
+
 
 if __name__ == '__main__':
     print('Checking 1D')
