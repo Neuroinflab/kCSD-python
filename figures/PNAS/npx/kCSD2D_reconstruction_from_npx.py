@@ -9,10 +9,10 @@ plt.close('all')
 def make_plot_spacetime(ax, xx, yy, zz, Fs, title='True CSD', cmap=cm.bwr_r, ymin=0, ymax=10000, ylabel=True):
     im = ax.imshow(zz,extent=[0, zz.shape[1]/Fs*1000,-3500, 500], aspect='auto',
                    vmax = 1*zz.max(),vmin = -1*zz.max(), cmap=cmap)
-    ax.set_xlabel('Time (ms)')
+    ax.set_xlabel('Time (ms)', fontsize=20)
     if ylabel:
-        ax.set_ylabel('Y ($\mu$m)')
-    if 'Pot' in title: ax.set_ylabel('Y ($\mu$m)')
+        ax.set_ylabel('Y ($\mu$m)', fontsize=20)
+    if 'Pot' in title: ax.set_ylabel('Y ($\mu$m)', fontsize=20)
     ax.set_title(title, fontsize=20, pad=30)
     ticks = np.linspace(-zz.max(), zz.max(), 3, endpoint=True)
     if 'CSD' in title:
@@ -25,8 +25,8 @@ def make_plot(ax, xx, yy, zz, title='True CSD', cmap=cm.bwr):
     ax.set_aspect('auto')
     levels = np.linspace(zz.min(), -zz.min(), 61)
     im = ax.contourf(xx, -(yy-500), zz, levels=levels, cmap=cmap)
-    ax.set_xlabel('X ($\mu$m)')
-    ax.set_ylabel('Y ($\mu$m)')
+    ax.set_xlabel('X ($\mu$m)', fontsize=20)
+    ax.set_ylabel('Y ($\mu$m)', fontsize=20)
     ax.set_title(title)
     if 'CSD' in title: 
         plt.colorbar(im, orientation='vertical',  format='%.2f', ticks=[-0.02,0,0.02])
@@ -69,7 +69,7 @@ def plot_1D_pics(k, est_csd, est_pots, tp, Fs, cut=9):
               title='Estimated CSD', cmap='bwr')
     for lvl, name in zip([-500,-850,-2000], ['II/III', 'IV', 'V/VI']):
         plt.axhline(lvl, ls='--', color='grey')
-        plt.text(340, lvl+20, name)
+        plt.text(340, lvl+20, name, fontsize=15)
     plt.xlim(250, 400)
     plt.xticks([250, 300, 350, 400], [-50, 0, 50, 100])
     ax2 = plt.subplot(121)

@@ -80,8 +80,8 @@ def make_subplot(ax, true_csd, est_csd, estm_x, title=None, ele_pos=None,
 
     x = np.linspace(0, 1, 100)
     if basis is not None:
-        l4 = ax.plot(estm_x, 0.125*basis, c='Grey', lw=0.35, alpha=1)
-        plt.text(text_pos[0], text_pos[1], 'base sources', fontsize=17)
+        l4 = ax.plot(estm_x, 0.13*basis, c='Grey', lw=0.4, alpha=1)
+        plt.text(text_pos[0], text_pos[1], 'base sources', fontsize=16)
     l1 = ax.plot(x, true_csd, label='True CSD', lw=2.)
     if est_csd_LC is not None:
         l2 = ax.plot(estm_x, est_csd, '--', label='kCSD Cross-validation', lw=2.)
@@ -117,6 +117,8 @@ def make_subplot(ax, true_csd, est_csd, estm_x, title=None, ele_pos=None,
         s2.set_clip_on(False)
         ax.set_yticks([-70, 0, 70])
     ax.set_xticks([0, 0.5, 1])
+    ax.xaxis.set_tick_params(labelsize=18)
+    ax.yaxis.set_tick_params(labelsize=18)
     set_axis(ax, letter=letter)
     # ax.legend(frameon=False, loc='upper center', ncol=3)
     ax.spines['right'].set_visible(False)

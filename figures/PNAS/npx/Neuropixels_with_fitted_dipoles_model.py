@@ -23,10 +23,12 @@ def make_plot(ax, xx, yy, zz, ele_pos, title='True CSD', cmap=cm.bwr, ylabel=Fal
     levels = np.linspace(-tmax, tmax, 251)
     #levels = np.linspace(zz.min(), -zz.min(), 61)
     im = ax.contourf(xx, -(yy-500), zz, levels=levels, cmap=cmap)
-    ax.set_xlabel('X ($\mu$m)')
+    ax.set_xlabel('X ($\mu$m)', fontsize=18)
     if ylabel:
-        ax.set_ylabel('Y ($\mu$m)')
-    ax.set_title(title)
+        ax.set_ylabel('Y ($\mu$m)', fontsize=18)
+    ax.set_title(title, fontsize=20)
+    ax.xaxis.set_tick_params(labelsize=18)
+    ax.yaxis.set_tick_params(labelsize=18)
     if cmap=='bwr': 
         plt.colorbar(im, orientation='horizontal',  format='%.2f', ticks=[-0.02,0,0.02])
     else: plt.colorbar(im, orientation='horizontal',  format='%.1f', ticks=[-0.6,0,0.6])
@@ -167,8 +169,8 @@ if __name__ == '__main__':
 
     k, est_csd, est_pots, ele_pos = npx.do_kcsd(ele_pos_for_csd, pots_for_csd, ele_limit = (0,320))
 
-    csd_at = np.mgrid[0.:0.021:21j,
-                      0.:1.:1000j]
+    csd_at = np.mgrid[0.:0.021:22j,
+                      0.:1.:1001j]
     true_csd = gauss_2d_small_f(csd_at)
 
     cut = 15

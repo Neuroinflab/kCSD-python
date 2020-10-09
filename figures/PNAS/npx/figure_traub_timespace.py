@@ -37,12 +37,14 @@ def make_plot_spacetime(ax, val, cut=9, title='True CSD',
         for i, value in enumerate(layer_level):
             plt.axhline(y=value, xmin=xx.min(), xmax=xx.max(), linewidth=1,
                         color='k', ls='--')
-            plt.text(60, value+100, name[i], fontsize=10, va='top', ha='center')
-    ax.set_xlabel('Time (ms)')
+            plt.text(60, value+145, name[i], fontsize=15, va='top', ha='center')
+    ax.set_xlabel('Time (ms)', fontsize=20)
     if ylabel:
-        ax.set_ylabel('Y ($\mu$m)')
+        ax.set_ylabel('Y ($\mu$m)', fontsize=20)
     ax.set_title(title, fontsize=20, pad=30)
     ax.set_xlim(-50, 100)
+    ax.xaxis.set_tick_params(labelsize=18)
+    ax.yaxis.set_tick_params(labelsize=18)
     ticks = np.linspace(-max_val, max_val, 3, endpoint=True)
     plt.colorbar(im, orientation='horizontal', format='%.3f', ticks=ticks)
     set_axis(ax, letter=letter)
@@ -58,13 +60,13 @@ def make_plot_1D_pics(ax, k, est_val, tp, Fs, cut=9, title='Experimental data',
     if letter == 'D':
         for lvl, name in zip([-500,-850,-2000], ['II/III', 'IV', 'V/VI']):
             plt.axhline(lvl, ls='--', color='grey')
-            plt.text(340, lvl+20, name)
+            plt.text(340, lvl+20, name, fontsize=15)
     elif letter == 'C':
         plt.axvline(tp/Fs*1000, ls='--', color ='grey', lw=2)
     
     plt.xlim(250, 400)
     plt.xticks([250, 300, 350, 400], [-50, 0, 50, 100])
-    
+    plt.tick_params(labelsize=18)
     plt.tight_layout()
     #plt.savefig('figure_1D_pics', dpi=300)
 
