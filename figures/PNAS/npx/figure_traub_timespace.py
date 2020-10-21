@@ -118,7 +118,7 @@ if __name__ == '__main__':
     resamp = 12
     tp= 760
     
-    forfilt=np.load('npx_data.npy')
+    forfilt=np.load('npx_data_2.npy')
     
     [b,a] = butter(3, [lowpass/(Fs/2.0), highpass/(Fs/2.0)] ,btype = 'bandpass')
     filtData = filtfilt(b,a, forfilt)
@@ -130,7 +130,7 @@ if __name__ == '__main__':
     ele_pos_def = npx.eles_to_coords(np.arange(384,0,-1))
     ele_pos_for_csd = np.delete(ele_pos_def, 191, axis=0)
     
-    k_e, est_csd_e, est_pots_e, ele_pos_e = npx.do_kcsd(ele_pos_for_csd, pots_for_csd, ele_limit = (0,320))
+    k_e, est_csd_e, est_pots_e, ele_pos_e = npx.do_kcsd(ele_pos_for_csd, pots_for_csd, ele_limit = (0,384))
     
     time_pts_ds = int(time_pts/4)
     cut1 = 9

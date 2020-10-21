@@ -127,7 +127,7 @@ if __name__ == '__main__':
     ele_pos_def = eles_to_coords(np.arange(384,0,-1))
     ele_pos_for_csd = np.delete(ele_pos_def, 191, axis=0)
     
-    k, est_csd, est_pots, ele_pos = do_kcsd(ele_pos_for_csd, pots_for_csd, ele_limit = (0,320))
+    k, est_csd, est_pots, ele_pos = do_kcsd(ele_pos_for_csd, pots_for_csd, ele_limit = (0,384))
     
     plot_1D_pics(k, est_csd, est_pots, tp, Fs, 15) 
     plot_2D_pics(k, est_csd, est_pots, tp, Fs, cut=15)

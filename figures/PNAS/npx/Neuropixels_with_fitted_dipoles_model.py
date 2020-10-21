@@ -144,7 +144,14 @@ def gauss_2d_small_f(csd_at):
     d4source = gauss2d(x, y, [0.0205, 0.45, 0.0021, 0.02, 0.0075, 0.])
     d5source = gauss2d(x, y, [0.01, 0.51, 0.1, 0.059, 0.009, 0.])
     d5sink = gauss2d(x, y, [0.01, 0.27, 0.1, 0.072, -0.014, 0.])
-    f = d1source + d1sink + d2source + d2sink + d3source + d3sink + d4source + d4sink + d5source + d5sink 
+    d6source = gauss2d(x, y, [0.0005, 0.125, 0.0032, 0.03, 0.015, 0.])
+    d6sink = gauss2d(x, y, [0.0065, 0.14, 0.0025, 0.0075, -0.015, 0.])
+    d7source = gauss2d(x, y, [0.0138, 0.13, 0.00165, 0.011, 0.018, 0.])
+    d7sink = gauss2d(x, y, [0.01, 0.09, 0.0018, 0.007, -0.018, 0.])
+    d8source = gauss2d(x, y, [0.0165, 0.09, 0.0028, 0.0065, 0.017, 0.])
+    d8sink = gauss2d(x, y, [0.0209, 0.13, 0.0001, 0.006, -0.017, 0.])
+    
+    f = d1source + d1sink + d2source + d2sink + d3source + d3sink + d4source + d4sink + d5source + d5sink + d6source + d6sink + d7source + d7sink + d8source + d8sink
     return f
 
 
@@ -167,7 +174,7 @@ if __name__ == '__main__':
     ele_pos_def = eles_to_coords(np.arange(384,0,-1))
     ele_pos_for_csd = np.delete(ele_pos_def, 191, axis=0)
 
-    k, est_csd, est_pots, ele_pos = npx.do_kcsd(ele_pos_for_csd, pots_for_csd, ele_limit = (0,320))
+    k, est_csd, est_pots, ele_pos = npx.do_kcsd(ele_pos_for_csd, pots_for_csd, ele_limit = (0,384))
 
     csd_at = np.mgrid[0.:0.021:22j,
                       0.:1.:1001j]
