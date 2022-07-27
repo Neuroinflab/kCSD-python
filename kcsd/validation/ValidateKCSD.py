@@ -162,22 +162,22 @@ class ValidateKCSD(object):
             if csd_at is None:
                 csd_at = np.mgrid[self.true_csd_xlims[0]:
                                   self.true_csd_xlims[1]:
-                                  np.complex(0, self.csd_xres),
+                                  complex(0, self.csd_xres),
                                   self.true_csd_ylims[0]:
                                   self.true_csd_ylims[1]:
-                                  np.complex(0, self.csd_yres)]
+                                  complex(0, self.csd_yres)]
             true_csd = csd_profile(csd_at, csd_seed)
         else:
             if csd_at is None:
                 csd_at = np.mgrid[self.true_csd_xlims[0]:
                                   self.true_csd_xlims[1]:
-                                  np.complex(0, self.csd_xres),
+                                  complex(0, self.csd_xres),
                                   self.true_csd_ylims[0]:
                                   self.true_csd_ylims[1]:
-                                  np.complex(0, self.csd_yres),
+                                  complex(0, self.csd_yres),
                                   self.true_csd_zlims[0]:
                                   self.true_csd_zlims[1]:
-                                  np.complex(0, self.csd_zres)]
+                                  complex(0, self.csd_zres)]
             true_csd = csd_profile(csd_at, csd_seed)
         return csd_at, true_csd
 
@@ -261,32 +261,32 @@ class ValidateKCSD(object):
         elif self.dim == 2:
             if ele_lims is None:
                 ele_x, ele_y = np.mgrid[self.ele_lims[0]:self.ele_lims[1]:
-                                        np.complex(0, int(np.sqrt(total_ele))),
+                                        complex(0, int(np.sqrt(total_ele))),
                                         self.ele_lims[0]:self.ele_lims[1]:
-                                        np.complex(0, int(np.sqrt(total_ele)))]
+                                        complex(0, int(np.sqrt(total_ele)))]
             else:
                 ele_x, ele_y = np.mgrid[ele_lims[0]:ele_lims[1]:
-                                        np.complex(0, int(np.sqrt(total_ele))),
+                                        complex(0, int(np.sqrt(total_ele))),
                                         ele_lims[0]:ele_lims[1]:
-                                        np.complex(0, int(np.sqrt(total_ele)))]
+                                        complex(0, int(np.sqrt(total_ele)))]
             ele_pos = np.vstack((ele_x.flatten(), ele_y.flatten())).T
         elif self.dim == 3:
             if ele_lims is None:
                 ele_x, ele_y, ele_z = np.mgrid[
                     self.ele_lims[0]:self.ele_lims[1]:
-                    np.complex(0, int(round((total_ele)**(1./3), 1))),
+                    complex(0, int(round((total_ele)**(1./3), 1))),
                     self.ele_lims[0]:self.ele_lims[1]:
-                    np.complex(0, int(round((total_ele)**(1./3), 1))),
+                    complex(0, int(round((total_ele)**(1./3), 1))),
                     self.ele_lims[0]:self.ele_lims[1]:
-                    np.complex(0, int(round((total_ele)**(1./3), 1)))]
+                    complex(0, int(round((total_ele)**(1./3), 1)))]
             else:
                 ele_x, ele_y, ele_z = np.mgrid[
                     ele_lims[0]:ele_lims[1]:
-                    np.complex(0, int(round((total_ele)**(1./3), 1))),
+                    complex(0, int(round((total_ele)**(1./3), 1))),
                     ele_lims[0]:ele_lims[1]:
-                    np.complex(0, int(round((total_ele)**(1./3), 1))),
+                    complex(0, int(round((total_ele)**(1./3), 1))),
                     ele_lims[0]:ele_lims[1]:
-                    np.complex(0, int(round((total_ele)**(1./3), 1)))]
+                    complex(0, int(round((total_ele)**(1./3), 1)))]
             ele_pos = np.vstack((ele_x.flatten(), ele_y.flatten(),
                                  ele_z.flatten())).T
         if nr_broken_ele is not None:
@@ -654,8 +654,8 @@ class ValidateKCSD(object):
         x = x.flatten()
         y = y.flatten()
         z = z.flatten()
-        xi, yi = np.mgrid[min(x):max(x):np.complex(0, resX),
-                          min(y):max(y):np.complex(0, resY)]
+        xi, yi = np.mgrid[min(x):max(x):complex(0, resX),
+                          min(y):max(y):complex(0, resY)]
         zi = griddata((x, y), z, (xi, yi), method='linear')
         return xi, yi, zi
 
@@ -1279,7 +1279,7 @@ class ValidateKCSD3D(ValidateKCSD):
         gs = gridspec.GridSpec(z_steps+1, 3, height_ratios=height_ratios)
         t_max = np.max(np.abs(true_csd))
         levels = np.linspace(-1*t_max, t_max, 16)
-        ind_interest = np.mgrid[0:kcsd.estm_z.shape[2]:np.complex(0,
+        ind_interest = np.mgrid[0:kcsd.estm_z.shape[2]:complex(0,
                                                                   z_steps+2)]
         ind_interest = np.array(ind_interest, dtype=np.int)[1:-1]
         for ii, idx in enumerate(ind_interest):
@@ -1326,7 +1326,7 @@ class ValidateKCSD3D(ValidateKCSD):
         # KCSD
 #        t_max = np.max(np.abs(est_csd[:, :, :, 0]))
 #        levels = np.linspace(-1*t_max, t_max, 16)
-        ind_interest = np.mgrid[0:kcsd.estm_z.shape[2]:np.complex(0,
+        ind_interest = np.mgrid[0:kcsd.estm_z.shape[2]:complex(0,
                                                                   z_steps+2)]
         ind_interest = np.array(ind_interest, dtype=np.int)[1:-1]
         for ii, idx in enumerate(ind_interest):
@@ -1683,14 +1683,14 @@ if __name__ == '__main__':
 
     KK = ValidateKCSD2D(CSD_SEED, h=50., sigma=1., n_src_init=4)
     KK.make_reconstruction(CSD_PROFILE, CSD_SEED, total_ele=100, noise=noise,
-                           Rs=Rs, lambdas=lambdas, method=method)
+                            Rs=Rs, lambdas=lambdas, method=method)
 
-    print('Checking 3D')
-    CSD_PROFILE = CSD.gauss_3d_small
-    CSD_SEED = 20  # 0-49 are small sources, 50-99 are large sources
-    TIC = time.time()
-    KK = ValidateKCSD3D(CSD_SEED, h=50, sigma=1)
-    KK.make_reconstruction(CSD_PROFILE, CSD_SEED, total_ele=125, noise=noise,
-                           Rs=Rs, lambdas=lambdas, method=method)
-    TOC = time.time() - TIC
-    print('time', TOC)
+    # print('Checking 3D')
+    # CSD_PROFILE = CSD.gauss_3d_small
+    # CSD_SEED = 20  # 0-49 are small sources, 50-99 are large sources
+    # TIC = time.time()
+    # KK = ValidateKCSD3D(CSD_SEED, h=50, sigma=1)
+    # KK.make_reconstruction(CSD_PROFILE, CSD_SEED, total_ele=125, noise=noise,
+    #                         Rs=Rs, lambdas=lambdas, method=method)
+    # TOC = time.time() - TIC
+    # print('time', TOC)
