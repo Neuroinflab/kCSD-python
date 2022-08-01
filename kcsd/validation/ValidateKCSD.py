@@ -959,7 +959,6 @@ class ValidateKCSD2D(ValidateKCSD):
                        pots, title)
         SpectralStructure(k)
         point_error = self.calculate_point_error(test_csd, est_csd[:, :, 0])
-        print(k.n_src)
         return k, rms, point_error
 
     def make_plot(self, csd_at, true_csd, test_csd, kcsd, est_csd, ele_pos,
@@ -985,7 +984,6 @@ class ValidateKCSD2D(ValidateKCSD):
             Title of the plot.
 
         """
-        print(pots.shape)
         csd_x = csd_at[0]
         csd_y = csd_at[1]
         fig = plt.figure(figsize=(15, 7))
@@ -1072,10 +1070,11 @@ class ValidateMoIKCSD(ValidateKCSD):
             Configuration parameters.
 
         """
-        super(ValidateMoIKCSD, self).__init__(dim=2)
+        super(ValidateMoIKCSD, self).__init__(dim=2, **kwargs)
+        self.csd_seed = csd_seed
 
     def do_kcsd(self, pots, ele_pos, method='cross-validation', Rs=None,
-                lambdas=None, **params):
+                lambdas=None):
         """
         Calls MoIKCSD class to reconstruct current source density.
 
@@ -1104,7 +1103,14 @@ class ValidateMoIKCSD(ValidateKCSD):
 
         """
         pots = pots.reshape((len(ele_pos), 1))
-        k = MoIKCSD(ele_pos, pots, **params)
+        k = MoIKCSD(ele_pos, pots, h=self.h, sigma=self.sigma,
+                    xmin=np.min(self.kcsd_xlims),
+                    xmax=np.max(self.kcsd_xlims),
+                    ymin=np.min(self.kcsd_ylims),
+                    ymax=np.max(self.kcsd_ylims),
+                    n_src_init=self.n_src_init, src_type=self.src_type,
+                    ext_x=self.ext_x, ext_y=self.ext_y,
+                    gdx=self.est_xres, gdy=self.est_yres)
         if method == 'cross-validation':
             k.cross_validate(Rs=Rs, lambdas=lambdas)
         elif method == 'L-curve':
@@ -1114,6 +1120,156 @@ class ValidateMoIKCSD(ValidateKCSD):
                              'pass either cross-validation or L-curve')
         est_csd = k.values('CSD')
         return k, est_csd
+
+    def make_reconstruction(self, csd_profile, csd_seed, total_ele,
+                            ele_lims=None, noise=0, nr_broken_ele=None,
+                            Rs=None, lambdas=None, method='cross-validation'):
+        """
+        Main method, makes the whole kCSD reconstruction.
+
+        Parameters
+        ----------
+        csd_profile: function
+            Function to produce csd profile.
+        csd_seed: int
+            Seed for random generator to choose random CSD profile.
+        total_ele: int
+            Number of electrodes.
+        ele_lims: list
+            Electrodes limits.
+            Default: None.
+        noise: float
+            Determines the level of noise in the data.
+            Default: 0.
+        nr_broken_ele: int
+            How many electrodes are broken (excluded from analysis)
+            Default: None.
+        Rs: numpy 1D array
+            Basis source parameter for crossvalidation.
+            Default: None.
+        lambdas: numpy 1D array
+            Regularization parameter for crossvalidation.
+            Default: None.
+        method: string
+            Determines the method of regularization.
+            Default: cross-validation.
+
+        Returns
+        -------
+        k: instance of the class
+            Instance of class KCSD1D.
+        rms: float
+            Error of reconstruction.
+        point_error: numpy array
+            Error of reconstruction calculated at every point of reconstruction
+            space.
+
+        """
+        csd_at, true_csd = self.generate_csd(csd_profile, csd_seed)
+        ele_pos, pots = self.electrode_config(csd_profile, csd_seed, total_ele,
+                                              ele_lims, self.h, self.sigma,
+                                              noise, nr_broken_ele)
+        k, est_csd = self.do_kcsd(pots, ele_pos, method=method, Rs=Rs,
+                                  lambdas=lambdas)
+        test_csd = csd_profile([k.estm_x, k.estm_y], csd_seed)
+        rms = self.calculate_rms(test_csd, est_csd[:, :, 0])
+        title = "Lambda: %0.2E; R: %0.2f; RMS: %0.2E; CV_Error: %0.2E; "\
+                % (k.lambd, k.R, rms, k.cv_error)
+        self.make_plot(csd_at, true_csd, test_csd, k, est_csd, ele_pos,
+                        pots, title)
+        SpectralStructure(k)
+        point_error = self.calculate_point_error(test_csd, est_csd[:, :, 0])
+        return k, rms, point_error
+
+    def make_plot(self, csd_at, true_csd, test_csd, kcsd, est_csd, ele_pos,
+                  pots, fig_title):
+        """
+        Creates plot of ground truth data, calculated potentials and
+        reconstruction
+
+        Parameters
+        ----------
+        csd_at: numpy array
+            Coordinates of ground truth (true_csd).
+        true_csd: numpy array
+            Values of generated CSD.
+        kcsd: object of the class
+        est_csd: numpy array
+            Reconstructed csd.
+        ele_pos: numpy array
+            Positions of electrodes.
+        pots: numpy array
+            Potentials measured on electrodes.
+        fig_title: string
+            Title of the plot.
+
+        """
+        csd_x = csd_at[0]
+        csd_y = csd_at[1]
+        fig = plt.figure(figsize=(15, 7))
+#        fig.suptitle(fig_title)
+        ax1 = plt.subplot(141, aspect='equal')
+        t_max = np.max(np.abs(true_csd))
+        levels = np.linspace(-1 * t_max, t_max, 16)
+        im1 = ax1.contourf(csd_x, csd_y, true_csd, levels=levels,
+                           cmap=cm.bwr)
+        ax1.set_xlabel('x [mm]')
+        ax1.set_ylabel('y [mm]')
+        ax1.set_title('A) True CSD')
+        ticks = np.linspace(-1 * t_max, t_max, 7, endpoint=True)
+        plt.colorbar(im1, orientation='horizontal', format='%.2f',
+                     ticks=ticks)
+
+        ax2 = plt.subplot(143, aspect='equal')
+        levels2 = np.linspace(0, 1, 10)
+        t_max = np.max(np.abs(est_csd[:, :, 0]))
+        levels_kcsd = np.linspace(-1 * t_max, t_max, 16, endpoint=True)
+        im2 = ax2.contourf(kcsd.estm_x, kcsd.estm_y, est_csd[:, :, 0],
+                           levels=levels_kcsd, alpha=1, cmap=cm.bwr)
+        if self.mask is not False:
+            ax2.contourf(kcsd.estm_x, kcsd.estm_y, self.mask, levels=levels2,
+                         alpha=0.3, cmap='Greys')
+            ax2.set_title('C) kCSD with error mask')
+        else:
+            ax2.set_title('C) kCSD')
+        ax2.set_ylabel('y [mm]')
+        ax2.set_xlim([0., 1.])
+        ax2.set_ylim([0., 1.])
+        ticks = np.linspace(-1 * t_max, t_max, 7, endpoint=True)
+        plt.colorbar(im2, orientation='horizontal', format='%.2f',
+                     ticks=ticks)
+
+        ax3 = plt.subplot(142, aspect='equal')
+        v_max = np.max(np.abs(pots))
+        levels_pot = np.linspace(-1 * v_max, v_max, 32)
+        X, Y, Z = self.grid(ele_pos[:, 0], ele_pos[:, 1], pots)
+        im3 = plt.contourf(X, Y, Z, levels=levels_pot, cmap=cm.PRGn)
+        plt.scatter(ele_pos[:, 0], ele_pos[:, 1], 10, c='k')
+        ax3.set_xlim([0., 1.])
+        ax3.set_ylim([0., 1.])
+        ax3.set_title('B) Pots, Ele_pos')
+        ticks = np.linspace(-1 * v_max, v_max, 7, endpoint=True)
+        plt.colorbar(im3, orientation='horizontal', format='%.2f',
+                     ticks=ticks)
+
+        ax4 = plt.subplot(144, aspect='equal')
+        difference = abs(test_csd-est_csd[:, :, 0])
+        cmap = colors.LinearSegmentedColormap.from_list("",
+                                                        ["white",
+                                                         "darkorange"])
+        im4 = ax4.contourf(kcsd.estm_x, kcsd.estm_y, difference,
+                           cmap=cmap,
+                           levels=np.linspace(0, np.max(difference), 15))
+        if self.mask is not False:
+            ax4.contourf(kcsd.estm_x, kcsd.estm_y, self.mask, levels=levels2,
+                         alpha=0.3, cmap='Greys')
+        ax4.set_xlim([0., 1.])
+        ax4.set_ylim([0., 1.])
+        ax4.set_xlabel('x [mm]')
+        ax4.set_title('D) |True CSD - kCSD|')
+        v = np.linspace(0, np.max(difference), 7, endpoint=True)
+        plt.colorbar(im4, orientation='horizontal', format='%.2f', ticks=v)
+        plt.show()
 
 
 class ValidateKCSD3D(ValidateKCSD):
@@ -1534,7 +1690,6 @@ class SpectralStructure(object):
                               'slightly')
         idx = eigenvalues.argsort()[::-1]
         eigenvalues = eigenvalues[idx]
-        print(eigenvalues.shape)
         eigenvectors = eigenvectors[:, idx]
 #        self.plot_evd_sigma(eigenvalues)
 #        self.plot_evd_sigma_lambd(eigenvalues)
@@ -1673,24 +1828,31 @@ if __name__ == '__main__':
     KK = ValidateKCSD1D(CSD_SEED, n_src_init=N_SRC_INIT, h=0.25, R_init=0.23,
                         ele_lims=ELE_LIMS, true_csd_xlims=[0., 1.], sigma=0.3,
                         src_type='gauss')
-
     KK.make_reconstruction(CSD_PROFILE, CSD_SEED, total_ele=16, noise=noise,
-                           Rs=Rs, lambdas=lambdas, method=method)
+                            Rs=Rs, lambdas=lambdas, method=method)
 
     print('Checking 2D')
     CSD_PROFILE = CSD.gauss_2d_large
     CSD_SEED = 5
 
-    KK = ValidateKCSD2D(CSD_SEED, h=50., sigma=1., n_src_init=4)
+    KK = ValidateKCSD2D(CSD_SEED, h=50., sigma=1., n_src_init=100)
     KK.make_reconstruction(CSD_PROFILE, CSD_SEED, total_ele=100, noise=noise,
                             Rs=Rs, lambdas=lambdas, method=method)
 
-    # print('Checking 3D')
-    # CSD_PROFILE = CSD.gauss_3d_small
-    # CSD_SEED = 20  # 0-49 are small sources, 50-99 are large sources
-    # TIC = time.time()
-    # KK = ValidateKCSD3D(CSD_SEED, h=50, sigma=1)
-    # KK.make_reconstruction(CSD_PROFILE, CSD_SEED, total_ele=125, noise=noise,
-    #                         Rs=Rs, lambdas=lambdas, method=method)
-    # TOC = time.time() - TIC
-    # print('time', TOC)
+    print('Checking 2D MoI')
+    CSD_PROFILE = CSD.gauss_2d_large
+    CSD_SEED = 5
+
+    KK = ValidateMoIKCSD(CSD_SEED, h=50., sigma=1., n_src_init=100)
+    KK.make_reconstruction(CSD_PROFILE, CSD_SEED, total_ele=100, noise=noise,
+                            Rs=Rs, lambdas=lambdas, method=method)
+
+    print('Checking 3D')
+    CSD_PROFILE = CSD.gauss_3d_small
+    CSD_SEED = 20  # 0-49 are small sources, 50-99 are large sources
+    TIC = time.time()
+    KK = ValidateKCSD3D(CSD_SEED, h=50, sigma=1)
+    KK.make_reconstruction(CSD_PROFILE, CSD_SEED, total_ele=125, noise=noise,
+                            Rs=Rs, lambdas=lambdas, method=method)
+    TOC = time.time() - TIC
+    print('time', TOC)
