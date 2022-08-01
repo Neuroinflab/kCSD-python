@@ -11,7 +11,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
 
-from kcsd import ValidateKCSD1D, ValidateKCSD2D, ValidateKCSD3D
+from kcsd import ValidateKCSD1D, ValidateKCSD2D, ValidateKCSD3D, ValidateMoIKCSD
 from kcsd import csd_profile as CSD
 
 try:
@@ -202,6 +202,179 @@ class VisibilityMap2D(ValidateKCSD2D):
 
         """
         super(VisibilityMap2D, self).__init__(1, **kwargs)
+        self.total_ele = total_ele
+
+    def make_reconstruction(self, csd_profile, csd_seed, noise=0,
+                            nr_broken_ele=None, Rs=None, lambdas=None,
+                            method='cross-validation'):
+        """
+        Makes the whole kCSD reconstruction.
+
+        Parameters
+        ----------
+        csd_profile: function
+            function to produce csd profile
+        csd_seed: int
+            Seed for random generator to choose random CSD profile.
+        noise: float
+            Determines the level of noise in the data.
+            Default: 0.
+        nr_broken_ele: int
+            How many electrodes are broken (excluded from analysis)
+            Default: None.
+        Rs: numpy 1D array
+            Basis source parameter for crossvalidation.
+            Default: None.
+        lambdas: numpy 1D array
+            Regularization parameter for crossvalidation.
+            Default: None.
+        method: string
+            Determines the method of regularization.
+            Default: cross-validation.
+
+        Returns
+        -------
+        rms: float
+            Error of reconstruction.
+        point_error: numpy array
+            Error of reconstruction calculated at every point of reconstruction
+            space.
+
+        """
+        ele_pos, pots = self.electrode_config(csd_profile, csd_seed,
+                                              self.total_ele, self.ele_lims,
+                                              self.h, self.sigma,
+                                              noise=noise,
+                                              nr_broken_ele=nr_broken_ele)
+        k, est_csd = self.do_kcsd(pots, ele_pos, method=method, Rs=Rs,
+                                  lambdas=lambdas)
+        test_csd = csd_profile([k.estm_x, k.estm_y], csd_seed)
+        rms = self.calculate_rms(test_csd, est_csd[:, :, 0])
+        point_error = self.calculate_point_error(test_csd, est_csd[:, :, 0])
+        return rms, point_error
+
+    def calculate_error_map(self, csd_profile, n=100, noise=0,
+                            nr_broken_ele=None, Rs=None, lambdas=None,
+                            method='cross-validation'):
+        """
+        Makes reconstructions for n random simulated ground truth profiles and
+        returns errors of CSD estimation with kCSD method.
+
+        Parameters
+        ----------
+        csd_profile: function
+            Function to produce csd profile.
+        n: int
+            Number of simulations included in reliability map calculations.
+            Default: 100.
+        noise: float
+            Determines the level of noise in the data.
+            Default: 0.
+        nr_broken_ele: int
+            How many electrodes are broken (excluded from analysis)
+            Default: None.
+        Rs: numpy 1D array
+            Basis source parameter for crossvalidation.
+            Default: None.
+        lambdas: numpy 1D array
+            Regularization parameter for crossvalidation.
+            Default: None.
+        method: string
+            Determines the method of regularization.
+            Default: cross-validation.
+
+        Returns
+        -------
+        rms: float
+            Error of reconstruction.
+        point_error: numpy array
+            Error of reconstruction calculated at every point of reconstruction
+            space.
+
+        """
+        tic = time.time()
+        if PARALLEL_AVAILABLE:
+            err = Parallel(n_jobs=NUM_CORES)(delayed
+                                             (self.make_reconstruction)
+                                             (csd_profile, i, noise=noise,
+                                              nr_broken_ele=nr_broken_ele,
+                                              Rs=Rs, lambdas=lambdas,
+                                              method=method)
+                                             for i in range(n))
+            rms = np.array([item[0] for item in err])
+            point_error = np.array([item[1] for item in err])
+        else:
+            rms = np.zeros(n)
+            point_error = []
+            for i in range(n):
+                data, error = self.make_reconstruction(csd_profile, i,
+                                                       noise=noise,
+                                                       nr_broken_ele=nr_broken_ele,
+                                                       Rs=Rs,
+                                                       lambdas=lambdas,
+                                                       method=method)
+                rms[i] = data
+                point_error.append(error)
+        point_error = np.array(point_error)
+        toc = time.time() - tic
+        print('time: ', toc)
+        return rms, point_error
+
+    def plot_error_map(self, point_error, ele_pos):
+        """
+        Creates plot of mean error calculated separately for every point of
+        estimation space
+
+        Parameters
+        ----------
+        point_error: numpy array
+            Error of reconstruction calculated at every point of reconstruction
+            space.
+        ele_pos: numpy array
+            Positions of electrodes.
+
+        Returns
+        -------
+        mean_error: numpy array
+            Accuracy mask.
+
+        """
+        ele_x, ele_y = ele_pos[:, 0], ele_pos[:, 1]
+        x, y = np.mgrid[self.kcsd_xlims[0]:self.kcsd_xlims[1]:
+                        np.complex(0, point_error.shape[1]),
+                        self.kcsd_ylims[0]:self.kcsd_ylims[1]:
+                        np.complex(0, point_error.shape[2])]
+        mean_error = self.sigmoid_mean(point_error)
+        plt.figure(figsize=(12, 7))
+        ax1 = plt.subplot(111, aspect='equal')
+#        levels = np.linspace(0, 1., 25)
+        im = ax1.contourf(x, y, mean_error, cmap='Greys')
+        plt.colorbar(im)
+        plt.scatter(ele_x, ele_y, 10, c='k')
+        ax1.set_xlabel('Depth x [mm]')
+        ax1.set_ylabel('Depth y [mm]')
+        ax1.set_title('Sigmoidal mean point error')
+        plt.show()
+        return mean_error
+
+
+class VisibilityMap2DMoI(ValidateMoIKCSD):
+    """
+    Class that produces error map for 2D CSD reconstruction.
+    """
+    def __init__(self, total_ele, **kwargs):
+        """
+        Initialize ErrorMap2D class.
+
+        Parameters
+        ----------
+        total_ele: int
+            Number of electrodes.
+        **kwargs
+            Configuration parameters.
+
+        """
+        super(VisibilityMap2DMoI, self).__init__(1, **kwargs)
         self.total_ele = total_ele
 
     def make_reconstruction(self, csd_profile, csd_seed, noise=0,
@@ -553,7 +726,7 @@ if __name__ == '__main__':
                         true_csd_xlims=TRUE_CSD_XLIMS, sigma=0.3,
                         src_type='gauss', n_src_init=100, ext_x=0.1)
     rms, point_error = k.calculate_error_map(CSD_PROFILE,
-                                             Rs=np.arange(0.2, 0.5, 0.1))
+                                              Rs=np.arange(0.2, 0.5, 0.1))
 
     print('Checking 2D')
     ELE_LIMS = [0.118, 0.882]
@@ -562,8 +735,18 @@ if __name__ == '__main__':
                         ele_lims=ELE_LIMS, true_csd_xlims=TRUE_CSD_XLIMS,
                         est_xres=0.01, est_yres=0.01)
     rms, point_error = a.calculate_error_map(CSD_PROFILE,
-                                             Rs=np.arange(0.05, 0.5, 0.05),
-                                             lambdas=np.array(0), n=2)
+                                              Rs=np.arange(0.05, 0.5, 0.05),
+                                              lambdas=np.array(0), n=2)
+
+    print('Checking 2D MoI')
+    ELE_LIMS = [0.118, 0.882]
+    CSD_PROFILE = CSD.gauss_2d_large
+    a = VisibilityMap2DMoI(total_ele=9, h=50., sigma=1., n_src_init=1000,
+                            ele_lims=ELE_LIMS, true_csd_xlims=TRUE_CSD_XLIMS,
+                            est_xres=0.01, est_yres=0.01)
+    rms, point_error = a.calculate_error_map(CSD_PROFILE,
+                                              Rs=np.arange(0.05, 0.5, 0.05),
+                                              lambdas=np.array(0), n=2)
 
     print('Checking 3D')
     CSD_PROFILE = CSD.gauss_3d_small
