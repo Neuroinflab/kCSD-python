@@ -5,6 +5,7 @@
 """
 import scipy.spatial
 import numpy as np
+from numpy.linalg import LinAlgError
 import h5py as h5
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid.inset_locator import inset_axes
@@ -187,7 +188,7 @@ def extract_csd_timepoint(h, pop_names, time_pts, field_name):
         src = fetch_mid_pts(h, pop_name)
         print()
         idx = find_map_idx(h, pop_name, field_name)
-        src_time = h['/data/uniform/' + pop_name + '/' + field_name].value
+        src_time = h['/data/uniform/' + pop_name + '/' + field_name][()]
         src_time = src_time[idx]  # Order according to correct indices
 
     # different way:
@@ -208,6 +209,7 @@ def extract_csd_timepoint(h, pop_names, time_pts, field_name):
     return np.array(all_x), np.array(all_y), np.array(all_z), np.array(all_val)
 
 
+
 def calculate_smoothed_csd(X, Y, Z, Val, nX=32, nY=100, l=3009):
     #resX, resY = 25, 25
     nX = nX #int(800/resX)
@@ -216,8 +218,10 @@ def calculate_smoothed_csd(X, Y, Z, Val, nX=32, nY=100, l=3009):
     if len(Val.shape) == 2:
         nT = Val.shape[1]
         csd_smoothed = np.zeros((nX, nY, nT))
+        normalization = np.zeros((nX, nY, nT))
     else:
         csd_smoothed = np.zeros((nX, nY))
+        normalization = np.zeros((nX, nY))
     csd_smoothed_Z = 0
 
     linX = np.linspace(-400, 400, nX)
@@ -227,15 +231,22 @@ def calculate_smoothed_csd(X, Y, Z, Val, nX=32, nY=100, l=3009):
     A = ((2*np.pi)**(3/2))*(sigma**3)
     denominator = 2*np.pi*sigma**3
     for i_source in range(Val.shape[0]):
+        print('percent done: ', i_source/Val.shape[0])
         for ii in range(nX):
             for jj in range(nY):
                 csd_smoothed[ii, jj] += A * Val[i_source] *\
                     np.exp(-((linX[ii]-X[i_source])**2 +
                               (linY[jj]-Y[i_source])**2 +
                               (csd_smoothed_Z-Z[i_source])**2)/denominator)
+                normalization[ii, jj] += A *\
+                    np.exp(-((linX[ii]-X[i_source])**2 +
+                              (linY[jj]-Y[i_source])**2 +
+                              (csd_smoothed_Z-Z[i_source])**2)/denominator)
 
     XX, YY = np.meshgrid(linX, linY)
-    return csd_smoothed
+    print('normalization', normalization)
+    print('csd/noramlization', csd_smoothed/normalization)
+    return csd_smoothed, normalization
 
 
 def plot_all_currents(ax, xmin, xmax, ymin, ymax, all_x, all_y, all_z, all_val,
@@ -538,7 +549,7 @@ if __name__ == '__main__':
     #true_csd = calculate_smoothed_csd(all_x, all_y, all_z, all_val)
     #make_column_plot(h, pop_names, time_pts, time_pt_interest, elec_pos_list,
     #                  all_x, all_y, all_z, all_val, true_csd)
-    true_csd = calculate_smoothed_csd(all_x, all_y, all_z, all_val)
-    true_csd_p = calculate_smoothed_csd(all_x, all_y, all_z, all_val, nX=200, nY=625)
-    make_column_plot(h, pop_names, time_pts, time_pt_interest, elec_pos_list, names_list,
-                     all_x, all_y, all_z, all_val, true_csd, true_csd_p)
+    true_csd, normalization = calculate_smoothed_csd(all_x, all_y, all_z, all_val)
+    # true_csd_p = calculate_smoothed_csd(all_x, all_y, all_z, all_val, nX=200, nY=625)
+    # make_column_plot(h, pop_names, time_pts, time_pt_interest, elec_pos_list, names_list,
+    #                  all_x, all_y, all_z, all_val, true_csd, true_csd_p)

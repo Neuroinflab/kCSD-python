@@ -94,7 +94,7 @@ def make_subplot(ax, true_csd, est_csd, estm_x, title=None, ele_pos=None,
     if xlabel:
         ax.set_xlabel('Depth ($mm$)', fontsize=18)
     if ylabel:
-        ax.set_ylabel(ylabel + 'CSD ($mA/mm$)', fontsize=18)
+        ax.set_ylabel('CSD ($mA/mm$)', fontsize=18)
     if title is not None:
         ax.set_title(title, fontsize=20)
     if np.max(est_csd) < 1.2:

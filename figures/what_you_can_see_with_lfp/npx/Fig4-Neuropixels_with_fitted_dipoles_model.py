@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import scipy
 import numpy as np
+from numpy.linalg import LinAlgError
 from scipy.signal import filtfilt, butter
 
 
@@ -17,24 +18,36 @@ def set_axis(ax, x, y, letter=None):
     return ax
 
 
-def make_plot(ax, xx, yy, zz, ele_pos, title='True CSD', cmap=cm.bwr, ylabel=False):
+def make_plot(ax, xx, yy, zz, ele_pos, title='True CSD', cmap=cm.bwr, ylabel=False, label=''):
     ax.set_aspect('auto')
     tmax = np.max(abs(zz))
     levels = np.linspace(-tmax, tmax, 251)
+    if cmap=='bwr':
+        levels = np.linspace(-0.03, 0.03, 251)
+    else:
+        levels = np.linspace(-1.2, 1.2, 251)
     #levels = np.linspace(zz.min(), -zz.min(), 61)
     im = ax.contourf(xx, -(yy-500), zz, levels=levels, cmap=cmap)
     ax.set_xlabel('X ($\mu$m)', fontsize=18)
     if ylabel:
         ax.set_ylabel('Y ($\mu$m)', fontsize=18)
+    else:
+        ax.set_yticks([])
     ax.set_title(title, fontsize=20)
     ax.xaxis.set_tick_params(labelsize=18)
     ax.yaxis.set_tick_params(labelsize=18)
+
+    # cb = plt.colorbar(im, orientation='horizontal', format='%.3f', ticks=ticks)
     if cmap=='bwr': 
-        plt.colorbar(im, orientation='horizontal',  format='%.2f', ticks=[-0.02,0,0.02])
-    else: plt.colorbar(im, orientation='horizontal',  format='%.1f', ticks=[-0.6,0,0.6])
+        ticks = np.linspace(-0.03, 0.03, 3, endpoint=True)
+        cb= plt.colorbar(im, orientation='horizontal',  format='%.2f', ticks=ticks)
+    else: 
+        ticks = np.linspace(-1, 1, 3, endpoint=True)
+        cb = plt.colorbar(im, orientation='horizontal',  format='%.1f', ticks=ticks)
     plt.scatter(ele_pos[:, 0], 
                 -(ele_pos[:, 1]-500),
                 s=0.8, color='black')
+    cb.set_label(label)
     # plt.gca().invert_yaxis()
     return ax
 
@@ -74,20 +87,20 @@ def eles_to_coords(eles):
         coord_list.append(ele_map[ele])
     return np.array(coord_list)
 
-def get_npx(path, time_start, time_stop):
-    binFullPath = Path(path)
-    meta = readSGLX.readMeta(binFullPath)
-    rawData = readSGLX.makeMemMapRaw(binFullPath, meta)
-    # get electrode positions
-    electrodes, channels, reference_electrode = fetch_electrodes(meta)
-    ele_pos_def = eles_to_coords(electrodes)
-    # convData is the potential in uV or mV
-    Fs = readSGLX.SampRate(meta)
-    time_start, time_stop = int(time_start*Fs), int(time_stop*Fs)
-    selectData = rawData[:, time_start:time_stop]
-    if meta['typeThis'] == 'imec': rawData = 1e3*readSGLX.GainCorrectIM(selectData, channels, meta)
-    else: rawData = 1e3*readSGLX.GainCorrectNI(rawData, channels, meta)
-    return rawData, ele_pos_def, channels, meta, reference_electrode
+# def get_npx(path, time_start, time_stop):
+#     binFullPath = Path(path)
+#     meta = readSGLX.readMeta(binFullPath)
+#     rawData = readSGLX.makeMemMapRaw(binFullPath, meta)
+#     # get electrode positions
+#     electrodes, channels, reference_electrode = fetch_electrodes(meta)
+#     ele_pos_def = eles_to_coords(electrodes)
+#     # convData is the potential in uV or mV
+#     Fs = readSGLX.SampRate(meta)
+#     time_start, time_stop = int(time_start*Fs), int(time_stop*Fs)
+#     selectData = rawData[:, time_start:time_stop]
+#     if meta['typeThis'] == 'imec': rawData = 1e3*readSGLX.GainCorrectIM(selectData, channels, meta)
+#     else: rawData = 1e3*readSGLX.GainCorrectNI(rawData, channels, meta)
+#     return rawData, ele_pos_def, channels, meta, reference_electrode
 
 
 def calculate_eigensources(obj):        
@@ -185,19 +198,19 @@ if __name__ == '__main__':
     ax1 = plt.subplot(142)
     set_axis(ax1, -0.05, 1.05, letter= 'B')
     make_plot(ax1, k.estm_x, k.estm_y, est_csd[:,:,tp], ele_pos,
-              title='Estimated CSD', cmap='bwr')
+              title='Estimated CSD', cmap='bwr',label='$\mu$A/mm$^3$')
     # for i in range(383): plt.text(ele_pos_for_csd[i,0], ele_pos_for_csd[i,1]+8, str(i+1))
     plt.axvline(k.estm_x[cut][0], ls='--', color ='grey', lw=2)
 
     ax2 = plt.subplot(141)
     set_axis(ax2, -0.05, 1.05, letter= 'A')
     make_plot(ax2, k.estm_x, k.estm_y, est_pots[:,:,tp], ele_pos,
-              title='Estimated LFP', cmap='PRGn', ylabel=True)
+              title='Estimated LFP', cmap='PRGn', ylabel=True,label='mV')
 
     ax3 = plt.subplot(143)
     set_axis(ax3, -0.05, 1.05, letter= 'C')
     make_plot(ax3, k.estm_x, k.estm_y, true_csd, ele_pos,
-                  title='Model CSD', cmap='bwr')
+                  title='Model CSD', cmap='bwr',label='$\mu$A/mm$^3$')
 
     eigensources = calculate_eigensources(k)
     projection = csd_into_eigensource_projection(true_csd.flatten(), eigensources)
@@ -205,6 +218,6 @@ if __name__ == '__main__':
     ax4 = plt.subplot(144)
     set_axis(ax4, -0.05, 1.05, letter= 'D')
     make_plot(ax4, k.estm_x, k.estm_y, projection.reshape(true_csd.shape), ele_pos,
-                  title='Projection', cmap='bwr')
+                  title='Projection', cmap='bwr',label='$\mu$A/mm$^3$')
     plt.tight_layout()
-    plt.savefig('Neuropixels_with_fitted_model.png', dpi=300)
+    plt.savefig('Fig5_h=1_final.png', dpi=300)

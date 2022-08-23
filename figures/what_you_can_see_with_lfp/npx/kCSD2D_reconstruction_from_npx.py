@@ -6,7 +6,7 @@ from scipy.signal import filtfilt, butter
 from figure_properties import *
 plt.close('all')
 #%%
-def make_plot_spacetime(ax, xx, yy, zz, Fs, title='True CSD', cmap=cm.bwr_r, ymin=0, ymax=10000, ylabel=True):
+def make_plot_spacetime(ax, xx, yy, zz, Fs, title='True CSD', cmap=cm.bwr_r, ymin=0, ymax=10000, ylabel=True, label=''):
     im = ax.imshow(zz,extent=[0, zz.shape[1]/Fs*1000,-3500, 500], aspect='auto',
                    vmax = 1*zz.max(),vmin = -1*zz.max(), cmap=cmap)
     ax.set_xlabel('Time (ms)', fontsize=20)
@@ -16,9 +16,10 @@ def make_plot_spacetime(ax, xx, yy, zz, Fs, title='True CSD', cmap=cm.bwr_r, ymi
     ax.set_title(title, fontsize=20, pad=30)
     ticks = np.linspace(-zz.max(), zz.max(), 3, endpoint=True)
     if 'CSD' in title:
-        plt.colorbar(im, orientation='horizontal', format='%.2f', ticks = ticks)
+        cb = plt.colorbar(im, orientation='horizontal', format='%.2f', ticks = ticks)
     else:
-        plt.colorbar(im, orientation='horizontal', format='%.1f', ticks = ticks) 
+        cb = plt.colorbar(im, orientation='horizontal', format='%.1f', ticks = ticks)
+    cb.set_label(label)
     # plt.gca().invert_yaxis()
 
 def make_plot(ax, xx, yy, zz, title='True CSD', cmap=cm.bwr):
@@ -74,7 +75,7 @@ def plot_1D_pics(k, est_csd, est_pots, tp, Fs, cut=9):
     plt.xticks([250, 300, 350, 400], [-50, 0, 50, 100])
     ax2 = plt.subplot(121)
     set_axis(ax2, -0.05, 1.05, letter= 'C')
-    make_plot_spacetime(ax2, k.estm_x, k.estm_y, est_pots[cut,:,:],
+    make_plot_spacetime(ax2, k.estm_x, k.estm_y, est_pots[cut,:,:], Fs,
               title='Estimated LFP', cmap='PRGn')
     plt.axvline(tp/Fs*1000, ls='--', color ='grey', lw=2)
     plt.xlim(250, 400)
@@ -101,7 +102,7 @@ def plot_2D_pics(k, est_csd, est_pots, tp, Fs, cut, save=0):
 def do_kcsd(ele_pos_for_csd, pots_for_csd, ele_limit):
     ele_position = ele_pos_for_csd[:ele_limit[1]][0::1]
     csd_pots = pots_for_csd[:ele_limit[1]][0::1]
-    k = KCSD2D(ele_position, csd_pots,
+    k = KCSD2D(ele_position, csd_pots, n_src_init=5000,
                h=1, sigma=1, R_init=32, lambd=1e-9,
                xmin= -42, xmax=42, gdx=4,
                ymin=0, ymax=4000, gdy=4)
@@ -127,7 +128,7 @@ if __name__ == '__main__':
     ele_pos_def = eles_to_coords(np.arange(384,0,-1))
     ele_pos_for_csd = np.delete(ele_pos_def, 191, axis=0)
     
-    k, est_csd, est_pots, ele_pos = do_kcsd(ele_pos_for_csd, pots_for_csd, ele_limit = (0,384))
+    k, est_csd, est_pots, ele_pos = do_kcsd(ele_pos_for_csd, pots_for_csd, ele_limit = (0,330))
     
     plot_1D_pics(k, est_csd, est_pots, tp, Fs, 15) 
     plot_2D_pics(k, est_csd, est_pots, tp, Fs, cut=15)
