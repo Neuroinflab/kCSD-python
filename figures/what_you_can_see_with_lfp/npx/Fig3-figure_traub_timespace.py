@@ -12,13 +12,12 @@ from scipy.signal import filtfilt, butter
 
 
 def set_axis(ax, letter=None):
-    ax.text(
-        -0.05,
-        1.05,
-        letter,
-        fontsize=20,
-        weight='bold',
-        transform=ax.transAxes)
+    ax.text(-0.05,
+            1.05,
+            letter,
+            fontsize=20,
+            weight='bold',
+            transform=ax.transAxes)
     return ax
 
 

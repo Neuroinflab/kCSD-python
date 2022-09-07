@@ -726,7 +726,7 @@ if __name__ == '__main__':
                         true_csd_xlims=TRUE_CSD_XLIMS, sigma=0.3,
                         src_type='gauss', n_src_init=100, ext_x=0.1)
     rms, point_error = k.calculate_error_map(CSD_PROFILE,
-                                              Rs=np.arange(0.2, 0.5, 0.1))
+                                             Rs=np.arange(0.2, 0.5, 0.1))
 
     print('Checking 2D')
     ELE_LIMS = [0.118, 0.882]
@@ -735,18 +735,18 @@ if __name__ == '__main__':
                         ele_lims=ELE_LIMS, true_csd_xlims=TRUE_CSD_XLIMS,
                         est_xres=0.01, est_yres=0.01)
     rms, point_error = a.calculate_error_map(CSD_PROFILE,
-                                              Rs=np.arange(0.05, 0.5, 0.05),
-                                              lambdas=np.array(0), n=2)
+                                             Rs=np.arange(0.05, 0.5, 0.05),
+                                             lambdas=np.array(0), n=2)
 
     print('Checking 2D MoI')
     ELE_LIMS = [0.118, 0.882]
     CSD_PROFILE = CSD.gauss_2d_large
     a = VisibilityMap2DMoI(total_ele=9, h=50., sigma=1., n_src_init=1000,
-                            ele_lims=ELE_LIMS, true_csd_xlims=TRUE_CSD_XLIMS,
-                            est_xres=0.01, est_yres=0.01)
+                           ele_lims=ELE_LIMS, true_csd_xlims=TRUE_CSD_XLIMS,
+                           est_xres=0.01, est_yres=0.01)
     rms, point_error = a.calculate_error_map(CSD_PROFILE,
-                                              Rs=np.arange(0.05, 0.5, 0.05),
-                                              lambdas=np.array(0), n=2)
+                                             Rs=np.arange(0.05, 0.5, 0.05),
+                                             lambdas=np.array(0), n=2)
 
     print('Checking 3D')
     CSD_PROFILE = CSD.gauss_3d_small

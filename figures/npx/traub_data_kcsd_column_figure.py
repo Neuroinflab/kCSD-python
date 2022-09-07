@@ -209,7 +209,6 @@ def extract_csd_timepoint(h, pop_names, time_pts, field_name):
     return np.array(all_x), np.array(all_y), np.array(all_z), np.array(all_val)
 
 
-
 def calculate_smoothed_csd(X, Y, Z, Val, nX=32, nY=100, l=3009):
     #resX, resY = 25, 25
     nX = nX #int(800/resX)
