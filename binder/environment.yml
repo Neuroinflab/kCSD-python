@@ -45,6 +45,5 @@ dependencies:
   - tornado=4.5.3=py36_0
   - wheel=0.30.0=py36hfd4bba0_1
   - xz=5.2.3=h55aa19d_2
-  - zlib=1.2.11=ha838bed_2
   - pip:
     - "git+https://github.com/Neuroinflab/kCSD-python.git"
