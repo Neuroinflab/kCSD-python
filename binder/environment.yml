@@ -12,8 +12,8 @@ dependencies:
   - libstdcxx-ng=11.2.0=h1234567_1
   - ncurses=6.3=h5eee18b_3
   - openssl=1.1.1q=h7f8727e_0
-  - pip=22.1.2=py39h06a4308_0
-  - python=3.9.13=haa1d7c7_1
+  - pip
+  - python=3.9
   - readline=8.1.2=h7f8727e_1
   - setuptools=63.4.1=py39h06a4308_0
   - sqlite
