@@ -26,8 +26,8 @@ def grid(x, y, z):
     x = x.flatten()
     y = y.flatten()
     z = z.flatten()
-    xi, yi = np.mgrid[min(x):max(x):np.complex(0, 100),
-                      min(y):max(y):np.complex(0, 100)]
+    xi, yi = np.mgrid[min(x):max(x):complex(0, 100),
+                      min(y):max(y):complex(0, 100)]
     zi = griddata((x, y), z, (xi, yi), method='linear')
     return xi, yi, zi
 
@@ -94,8 +94,8 @@ def do_kcsd(CSD_PROFILE, data, csd_seed, prefix, missing_ele):
     rstate = np.random.RandomState(42)  # just a random seed
     rmv = rstate.choice(ele_pos.shape[0], remove_num, replace=False)
     ele_pos = np.delete(ele_pos, rmv, 0)
-    
-    # Potentials generated 
+
+    # Potentials generated
     pots = np.zeros(ele_pos.shape[0])
     pots = data['pots']
     h = 50.
@@ -132,7 +132,7 @@ def do_kcsd(CSD_PROFILE, data, csd_seed, prefix, missing_ele):
     v_max = np.max(np.abs(pots))
     levels_pot = np.linspace(-1 * v_max, v_max, 16)
     im = ax.contourf(pot_X, pot_Y, pot_Z,
-                     levels=levels_pot, cmap=cm.PRGn) 
+                     levels=levels_pot, cmap=cm.PRGn)
     ax.scatter(ele_pos[:, 0], ele_pos[:, 1], 10, c='k')
     ax.set_xlim([0, 1])
     ax.set_ylim([0, 1])
@@ -148,7 +148,7 @@ def do_kcsd(CSD_PROFILE, data, csd_seed, prefix, missing_ele):
     t_max = np.max(np.abs(est_csd_pre_cv[:, :, 0]))
     levels_kcsd = np.linspace(-1 * t_max, t_max, 16, endpoint=True)
     im = ax.contourf(k.estm_x, k.estm_y, est_csd_pre_cv[:, :, 0],
-                     levels=levels_kcsd, cmap=cm.bwr) 
+                     levels=levels_kcsd, cmap=cm.bwr)
     ax.set_xlim([0, 1])
     ax.set_ylim([0, 1])
     ax.set_xticks([0, 0.5, 1])
@@ -163,7 +163,7 @@ def do_kcsd(CSD_PROFILE, data, csd_seed, prefix, missing_ele):
     t_max = np.max(np.abs(est_csd_post_cv[:, :, 0]))
     levels_kcsd = np.linspace(-1 * t_max, t_max, 16, endpoint=True)
     im = ax.contourf(k.estm_x, k.estm_y, est_csd_post_cv[:, :, 0],
-                     levels=levels_kcsd, cmap=cm.bwr) 
+                     levels=levels_kcsd, cmap=cm.bwr)
     ax.set_xlim([0, 1])
     ax.set_ylim([0, 1])
     ax.set_xticks([0, 0.5, 1])
@@ -180,7 +180,7 @@ def do_kcsd(CSD_PROFILE, data, csd_seed, prefix, missing_ele):
     t_max = np.max(abs(error1))
     levels_kcsd = np.linspace(0, t_max, 16, endpoint=True)
     im = ax.contourf(k.estm_x, k.estm_y, error1,
-                     levels=levels_kcsd, cmap=cm.Greys) 
+                     levels=levels_kcsd, cmap=cm.Greys)
     ax.set_xlim([0, 1])
     ax.set_ylim([0, 1])
     ax.set_xticks([0, 0.5, 1])
@@ -197,7 +197,7 @@ def do_kcsd(CSD_PROFILE, data, csd_seed, prefix, missing_ele):
     t_max = np.max(abs(error2))
     levels_kcsd = np.linspace(0, t_max, 16, endpoint=True)
     im = ax.contourf(k.estm_x, k.estm_y, error2,
-                     levels=levels_kcsd, cmap=cm.Greys) 
+                     levels=levels_kcsd, cmap=cm.Greys)
     ax.set_xlim([0, 1])
     ax.set_ylim([0, 1])
     ax.set_xticks([0, 0.5, 1])
@@ -206,7 +206,7 @@ def do_kcsd(CSD_PROFILE, data, csd_seed, prefix, missing_ele):
     ax.set_title('Normalized difference')
     ticks = np.linspace(0, t_max, 3, endpoint=True)
     plt.colorbar(im, orientation='horizontal', format='%.2f', ticks=ticks, pad=0.25)
-    
+
     ax = plt.subplot(247)
     error3 = calculate_rdm(true_csd, est_csd_post_cv[:, :, 0])
     print(error3.shape)
@@ -214,7 +214,7 @@ def do_kcsd(CSD_PROFILE, data, csd_seed, prefix, missing_ele):
     t_max = np.max(abs(error3))
     levels_kcsd = np.linspace(0, t_max, 16, endpoint=True)
     im = ax.contourf(k.estm_x, k.estm_y, error3,
-                     levels=levels_kcsd, cmap=cm.Greys) 
+                     levels=levels_kcsd, cmap=cm.Greys)
     ax.set_xlim([0, 1])
     ax.set_ylim([0, 1])
     ax.set_xticks([0, 0.5, 1])
@@ -231,7 +231,7 @@ def do_kcsd(CSD_PROFILE, data, csd_seed, prefix, missing_ele):
     t_max = np.max(abs(error4))
     levels_kcsd = np.linspace(0, t_max, 16, endpoint=True)
     im = ax.contourf(k.estm_x, k.estm_y, error4,
-                     levels=levels_kcsd, cmap=cm.Greys) 
+                     levels=levels_kcsd, cmap=cm.Greys)
     ax.set_xlim([0, 1])
     ax.set_ylim([0, 1])
     ax.set_xticks([0, 0.5, 1])
@@ -249,7 +249,7 @@ def do_kcsd(CSD_PROFILE, data, csd_seed, prefix, missing_ele):
 
 if __name__ == '__main__':
     CSD_PROFILE =  CSD.gauss_2d_large #CSD.gauss_2d_small #
-    
+
     prefix = '/home/mkowalska/Marta/kCSD-python/figures/kCSD_properties/small_srcs_all_ele'
     for csd_seed in range(100):
         data = np.load(prefix + '/' + str(csd_seed) + '.npz')

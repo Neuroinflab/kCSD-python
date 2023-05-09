@@ -20,6 +20,7 @@ from . import sKCSD_utils as utils
 from . import basis_functions as basis
 from .KCSD import KCSD1D
 
+
 class sKCSDcell(object):
     """
     sKCSDcell -- construction of the morphology loop for sKCSD method
@@ -31,9 +32,10 @@ class sKCSDcell(object):
     by Dorottya Cserpan et al., 2017.
 
     """
+
     def __init__(self, morphology, ele_pos, n_src, **kwargs):
-        """ Initialize sKCSDcell class
-        
+        """Initialize sKCSDcell class
+
         Parameters
         ----------
         morphology : np.array
@@ -49,7 +51,7 @@ class sKCSDcell(object):
         self.morphology = morphology  # morphology file
         self.ele_pos = ele_pos  # electrode_positions
         self.n_src = n_src  # number of sources
-        assert n_src 
+        assert n_src
         self.max_dist = 0  # maximum distance
         self.segments = {}  # segment dictionary with loops as keys
         self.segment_counter = 0  # which segment we're on
@@ -59,21 +61,25 @@ class sKCSDcell(object):
         self.source_pos = np.zeros((n_src, 1))
         # positions of sources on the morphology (1D),
         # necessary for source division
-        self.source_pos[:, 0] = np.linspace(0, self.max_dist - self.max_dist/n_src, n_src)
+        self.source_pos[:, 0] = np.linspace(
+            0, self.max_dist - self.max_dist / n_src, n_src
+        )
         # Cartesian coordinates of the sources
         self.source_xyz = np.zeros(shape=(n_src, 3))
-        self.tolerance = kwargs.pop('tolerance', 2e-6)  # smallest dendrite used for visualisation
+        self.tolerance = kwargs.pop(
+            "tolerance", 2e-6
+        )  # smallest dendrite used for visualisation
         # max and min points of the neuron's morphology, unless given
-        self.xmin = kwargs.pop('xmin', np.min(self.morphology[:, 2]))
-        self.xmax = kwargs.pop('xmax', np.max(self.morphology[:, 2]))
-        self.ymin = kwargs.pop('ymin', np.min(self.morphology[:, 3]))
-        self.ymax = kwargs.pop('ymax', np.max(self.morphology[:, 3]))
-        self.zmin = kwargs.pop('zmin', np.min(self.morphology[:, 4]))
-        self.zmax = kwargs.pop('zmax', np.max(self.morphology[:, 4]))
+        self.xmin = kwargs.pop("xmin", np.min(self.morphology[:, 2]))
+        self.xmax = kwargs.pop("xmax", np.max(self.morphology[:, 2]))
+        self.ymin = kwargs.pop("ymin", np.min(self.morphology[:, 3]))
+        self.ymax = kwargs.pop("ymax", np.max(self.morphology[:, 3]))
+        self.zmin = kwargs.pop("zmin", np.min(self.morphology[:, 4]))
+        self.zmax = kwargs.pop("zmax", np.max(self.morphology[:, 4]))
         self.dxs = self.get_dxs()
         self.dims = self.get_grid()
         if kwargs:
-            raise TypeError('Invalid keyword arguments:', kwargs.keys())
+            raise TypeError("Invalid keyword arguments:", kwargs.keys())
         self.distribute_srcs_3D_morph()
 
     def add_segment(self, mp1, mp2):
@@ -113,26 +119,22 @@ class sKCSDcell(object):
         self.max_dist += np.linalg.norm(xyz1 - xyz2)
 
     def morphology_loop(self):
-        """Cover the morphology of the cell with loops.
-
-        """
+        """Cover the morphology of the cell with loops."""
         # loop over morphology
         self.loops = []
         for morph_pnt in range(1, self.morphology.shape[0]):
-            if self.morphology[morph_pnt-1, 0] == self.morphology[morph_pnt,
-                                                                  6]:
-                self.add_loop(morph_pnt, morph_pnt-1)
+            if self.morphology[morph_pnt - 1, 0] == self.morphology[morph_pnt, 6]:
+                self.add_loop(morph_pnt, morph_pnt - 1)
             elif self.morphology[morph_pnt, 6] in self.branching:
-                last_branch = int(self.morphology[morph_pnt, 6])-1
+                last_branch = int(self.morphology[morph_pnt, 6]) - 1
                 last_point = morph_pnt - 1
                 while True:
                     parent = int(self.morphology[last_point, 6]) - 1
                     self.add_loop(parent, last_point)
                     if parent == last_branch:
-                         break
+                        break
                     last_point = parent
-                self.add_loop(morph_pnt, int(self.morphology[morph_pnt,
-                                                             6]) - 1)
+                self.add_loop(morph_pnt, int(self.morphology[morph_pnt, 6]) - 1)
 
         last_point = morph_pnt
         while True:
@@ -143,24 +145,23 @@ class sKCSDcell(object):
             last_point = parent
         # find estimation points
         self.loops = np.array(self.loops)
-        self.est_pos = np.zeros((len(self.loops)+1, 1))
-        self.est_xyz = np.zeros((len(self.loops)+1, 3))
+        self.est_pos = np.zeros((len(self.loops) + 1, 1))
+        self.est_xyz = np.zeros((len(self.loops) + 1, 3))
         self.est_xyz[0, :] = self.morphology[self.loops[0][0], 2:5]
         for i, loop in enumerate(self.loops):
-            length = utils.calculate_distance(self.morphology[loop[1],2:5],
-                                              self.morphology[loop[0], 2:5])
-            self.est_pos[i+1] = self.est_pos[i] + length
-            self.est_xyz[i+1, :] = self.morphology[loop[1], 2:5]
+            length = utils.calculate_distance(
+                self.morphology[loop[1], 2:5], self.morphology[loop[0], 2:5]
+            )
+            self.est_pos[i + 1] = self.est_pos[i] + length
+            self.est_xyz[i + 1, :] = self.morphology[loop[1], 2:5]
         self.loop_pos = self.est_pos[1:]
 
     def distribute_srcs_3D_morph(self):
-        """Calculate 3D coordinates of sources placed on the morphology loop.
-
-        """
+        """Calculate 3D coordinates of sources placed on the morphology loop."""
         for i, x in enumerate(self.source_pos):
             self.source_xyz[i] = self.get_xyz(x)
         return self.source_pos
-    
+
     def get_src_ele_mesh(self, electrode_no):
         """Calculate mesh with coordinates of sources and electrodes number
         for exact b_pot calculation.
@@ -175,9 +176,7 @@ class sKCSDcell(object):
         list[1]: electrode number
 
         """
-        return np.meshgrid(self.source_pos,
-                           electrode_no,
-                           indexing='ij')
+        return np.meshgrid(self.source_pos, electrode_no, indexing="ij")
 
     def get_src_ele_dists(self):
         """
@@ -194,35 +193,31 @@ class sKCSDcell(object):
         list[1]: 3D electrode coordinates
         """
         electrode_no = np.arange(0, self.ele_pos.shape[0], 1, dtype=int)
-        src_ele_help =  self.get_src_ele_mesh(electrode_no)
+        src_ele_help = self.get_src_ele_mesh(electrode_no)
         positions = self.ele_pos[src_ele_help[1]]
         src_ele_dists = [src_ele_help[0]]
         src_ele_dists.append(positions)
         return src_ele_dists
-        
+
     def get_src_estm_dists(self):
         """
         Calculate Euclidean distance between source position on the morphology
-        loop and positions of estimation points on the morphology loop 
+        loop and positions of estimation points on the morphology loop
         (segment ends).
-        
+
         Parameters
         ----------
         None
-        
+
         Returns
         -------
         numpy array with distances of the shape (n_src, len(morphology))
         """
-        return distance.cdist(self.source_pos,
-                              self.loop_pos,
-                              'euclidean')
-    
+        return distance.cdist(self.source_pos, self.loop_pos, "euclidean")
+
     def get_src_estm_dists_pot(self):
-        return np.meshgrid(self.source_pos,
-                           self.loop_pos,
-                           indexing='ij')
-    
+        return np.meshgrid(self.source_pos, self.loop_pos, indexing="ij")
+
     def get_xyz(self, v):
         """Find cartesian coordinates of a point (v) on the morphology loop.
         Use morphology point cartesian coordinates (from the morphology file,
@@ -236,9 +231,10 @@ class sKCSDcell(object):
         -------
         tuple of length 3
         """
-        return interpolate.interp1d(self.est_pos[:, 0], self.est_xyz,
-                                    kind='slinear', axis=0)(v)
-    
+        return interpolate.interp1d(
+            self.est_pos[:, 0], self.est_xyz, kind="slinear", axis=0
+        )(v)
+
     def calculate_total_distance(self):
         """
         Calculates doubled total legth of the cell.
@@ -257,7 +253,7 @@ class sKCSDcell(object):
 
     def corrected_x(self, xp):
         """
-        Function calculating x position if x is outside the bounds 
+        Function calculating x position if x is outside the bounds
         of the morphology loop
 
         Parameters
@@ -268,8 +264,8 @@ class sKCSDcell(object):
         -------
         float
         """
-        return xp + (xp<0)*self.max_dist - (xp>self.max_dist)*self.max_dist
-    
+        return xp + (xp < 0) * self.max_dist - (xp > self.max_dist) * self.max_dist
+
     def points_in_between(self, p1, p0, last):
         """Wrapper for the Bresenheim algorythm, which accepts only 2D vector
         coordinates. The last point -- p0 is included in output
@@ -287,7 +283,7 @@ class sKCSDcell(object):
         # bresenhamline only works with 2D vectors with coordinates
         if p1[0] == p0[0] and p1[1] == p0[1] and p1[2] == p0[2]:
             return [np.array(p1)]
-        new_p1, new_p0 = np.ndarray((1, 3), dtype=np.int), np.ndarray((1, 3), dtype=np.int)
+        new_p1, new_p0 = np.ndarray((1, 3), dtype=int), np.ndarray((1, 3), dtype=int)
         for i in range(3):
             new_p1[0, i], new_p0[0, i] = p1[i], p0[i]
         intermediate_points = utils.bresenhamline(new_p0, new_p1, -1)
@@ -303,7 +299,7 @@ class sKCSDcell(object):
         Parameters
         ----------
         None
-        
+
         Returns
         -------
         dxs: np.array of 3 floats
@@ -314,8 +310,10 @@ class sKCSDcell(object):
             dx = abs(self.est_xyz[1:, i] - self.est_xyz[:-1, i])
             differences += list(dx[dx > self.tolerance])
         if len(differences) == 0:
-            sys.exit('tolerance = %f, which is the minimum pixel width for 3D visiualizations, is too low. Exiting')
-        return min(differences)*np.ones((3,))
+            sys.exit(
+                "tolerance = %f, which is the minimum pixel width for 3D visiualizations, is too low. Exiting"
+            )
+        return min(differences) * np.ones((3,))
 
     def get_grid(self):
         """Calculate size of the 3D grid used to transform CSD
@@ -332,16 +330,12 @@ class sKCSDcell(object):
         dims: np.array of 3 ints
         CSD/potential array 3D coordinates
         """
-        vals = [
-            [self.xmin, self.xmax],
-            [self.ymin, self.ymax],
-            [self.zmin, self.zmax]
-        ]
-        dims = np.ones((3, ), dtype=np.int)
+        vals = [[self.xmin, self.xmax], [self.ymin, self.ymax], [self.zmin, self.zmax]]
+        dims = np.ones((3,), dtype=int)
         for i, dx in enumerate(self.dxs):
             dims[i] = 1
             if dx:
-                dims[i] += np.floor((vals[i][1] - vals[i][0])/dx)
+                dims[i] += np.floor((vals[i][1] - vals[i][0]) / dx)
         return dims
 
     def point_coordinates(self, morpho, dxs=None):
@@ -355,7 +349,7 @@ class sKCSDcell(object):
            array with a morphology (either segements or morphology loop)
         dxs : sequence of length 3
            size of the voxel
-           
+
         Returns
         -------
         coor_3D : np.array
@@ -363,15 +357,14 @@ class sKCSDcell(object):
            indices of morpho's initial point
         """
         minis = np.array([self.xmin, self.ymin, self.zmin])
-        zero_coords = np.zeros((3, ), dtype=int)
-        coor_3D = np.zeros((morpho.shape[0] - 1, morpho.shape[1]),
-                           dtype=np.int)
+        zero_coords = np.zeros((3,), dtype=int)
+        coor_3D = np.zeros((morpho.shape[0] - 1, morpho.shape[1]), dtype=int)
         if dxs is None:
             dxs = self.dxs
         for i, dx in enumerate(dxs):
             if dx:
-                coor_3D[:, i] = np.floor((morpho[1:, i] - minis[i])/dx)
-                zero_coords[i] = np.floor((morpho[0, i] - minis[i])/dx)
+                coor_3D[:, i] = np.floor((morpho[1:, i] - minis[i]) / dx)
+                zero_coords[i] = np.floor((morpho[0, i] - minis[i]) / dx)
         return coor_3D, zero_coords
 
     def coordinates_3D_loops(self, dxs1=None):
@@ -393,10 +386,10 @@ class sKCSDcell(object):
         coor_3D, p0 = self.point_coordinates(self.est_xyz, dxs=dxs1)
         segment_coordinates = {}
         for i, p1 in enumerate(coor_3D):
-            last = (i+1 == len(coor_3D))
+            last = i + 1 == len(coor_3D)
             segment_coordinates[i] = self.points_in_between(p0, p1, last)
             p0 = p1
-            
+
         return segment_coordinates
 
     def coordinates_3D_segments(self, dxs1=None):
@@ -417,14 +410,14 @@ class sKCSDcell(object):
         coor_3D, p0 = self.point_coordinates(self.morphology[:, 2:5], dxs=dxs1)
         segment_coordinates = {}
 
-        parentage = self.morphology[1:, 6]-2
+        parentage = self.morphology[1:, 6] - 2
         i = 0
         p1 = coor_3D[0]
 
         while True:
-            last = (i+1 == len(coor_3D))
+            last = i + 1 == len(coor_3D)
             segment_coordinates[i] = self.points_in_between(p0, p1, last)
-            
+
             if i + 1 == len(coor_3D):
                 break
             if i:
@@ -457,7 +450,7 @@ class sKCSDcell(object):
         elif what == "morpho":
             coor_3D = self.coordinates_3D_segments()
         else:
-            sys.exit('Unknown type of neuron morphology %s\n' % what)
+            sys.exit("Unknown type of neuron morphology %s\n" % what)
 
         assert len(coor_3D) == to_estimate.shape[0]
 
@@ -468,7 +461,11 @@ class sKCSDcell(object):
         for i in coor_3D:
             coor = coor_3D[i]
             for p in coor:
-                x, y, z, = p
+                (
+                    x,
+                    y,
+                    z,
+                ) = p
                 result[x, y, z, :] += estimated[i, :]
         return result
 
@@ -486,14 +483,13 @@ class sKCSDcell(object):
         result : np.array
 
         """
-        result = np.zeros((self.morphology.shape[0]-1, estimated.shape[1]))
+        result = np.zeros((self.morphology.shape[0] - 1, estimated.shape[1]))
         for i, loop in enumerate(self.loops):
             key = "%d_%d" % (loop[0], loop[1])
             seg_no = self.segments[key]
             result[seg_no, :] += estimated[i, :]
         return result
 
-    
     def draw_cell2D(self, axis=2, resolution=None, segments=True):
         """
         Cell morphology in 3D grid in projection of axis.
@@ -504,7 +500,7 @@ class sKCSDcell(object):
           0: x axis, 1: y axis, 2: z axis
         resolution : sequence of length 3
           size of the 2D image depicting the morphology
-          default None, in such case default neuron resolution, 
+          default None, in such case default neuron resolution,
           which is based on the smallest neurite in the morphology,
           is used
         """
@@ -516,13 +512,11 @@ class sKCSDcell(object):
             assert resolution[1] > 0
             assert resolution[2] > 0
             dxs = np.zeros((3,))
-            vals = np.array([
-                [self.xmin, self.xmax],
-                [self.ymin, self.ymax],
-                [self.zmin, self.zmax]
-            ])
+            vals = np.array(
+                [[self.xmin, self.xmax], [self.ymin, self.ymax], [self.zmin, self.zmax]]
+            )
             for i, dx in enumerate(dxs):
-                dxs[i] = abs(vals[i][1]-vals[i][0])/resolution[i]
+                dxs[i] = abs(vals[i][1] - vals[i][0]) / resolution[i]
 
         if segments == True:
             coor_3D = self.coordinates_3D_segments(dxs)
@@ -538,17 +532,16 @@ class sKCSDcell(object):
         image = image_3D.sum(axis=axis)
 
         if axis == 0:
-            extent = [self.ymin, self.ymax,
-                      self.zmin, self.zmax]
+            extent = [self.ymin, self.ymax, self.zmin, self.zmax]
         elif axis == 1:
-            extent = [self.xmin, self.xmax,
-                      self.zmin, self.zmax]
+            extent = [self.xmin, self.xmax, self.zmin, self.zmax]
         elif axis == 2:
-            extent = [self.xmin, self.xmax,
-                      self.ymin, self.ymax]
+            extent = [self.xmin, self.xmax, self.ymin, self.ymax]
         else:
-            sys.exit('In drawing 2D morphology unknown axis %d' % axis)
-        rgb_image = np.ones(shape=(image.shape[0], image.shape[1], 4), dtype=np.uint8)*255
+            sys.exit("In drawing 2D morphology unknown axis %d" % axis)
+        rgb_image = (
+            np.ones(shape=(image.shape[0], image.shape[1], 4), dtype=np.uint8) * 255
+        )
         rgb_image[:, :, 3] = 0
         indices = np.where(image >= 1)
         for i, x in enumerate(indices[0]):
@@ -564,6 +557,7 @@ class sKCSD(KCSD1D):
     This estimates the Current Source Density,
     using the skCSD method Cserpan et.al (2017).
     """
+
     def __init__(self, ele_pos, pots, morphology, **kwargs):
         """
         Initialize sKCSD Class.
@@ -604,8 +598,8 @@ class sKCSD(KCSD1D):
                 and potential
                 Defaults to 2 um
             exact : bool
-                switch for exact computation of b_pot instead of 
-                interpolating results 
+                switch for exact computation of b_pot instead of
+                interpolating results
                 (a faster solution for lower number of electrodes and less
                  complicated morphology)
                 Defaults to False
@@ -624,18 +618,18 @@ class sKCSD(KCSD1D):
         super(sKCSD, self).__init__(ele_pos, pots, **kwargs)
 
     def parameters(self, **kwargs):
-        self.src_type = kwargs.pop('src_type', 'gauss')
-        self.sigma = kwargs.pop('sigma', 1.0)
-        self.h = kwargs.pop('h', 1e-5)
-        self.n_src_init = kwargs.pop('n_src_init', 1000)
-        self.lambd = kwargs.pop('lambd', 1e-4)
-        self.R_init = kwargs.pop('R_init', 2.3e-5)  # microns
-        self.dist_table_density = kwargs.pop('dist_table_density', 20)
-        self.dim = 'skCSD'
-        self.tolerance = kwargs.pop('tolerance', 2e-06)
-        self.exact = kwargs.pop('exact', False)
+        self.src_type = kwargs.pop("src_type", "gauss")
+        self.sigma = kwargs.pop("sigma", 1.0)
+        self.h = kwargs.pop("h", 1e-5)
+        self.n_src_init = kwargs.pop("n_src_init", 1000)
+        self.lambd = kwargs.pop("lambd", 1e-4)
+        self.R_init = kwargs.pop("R_init", 2.3e-5)  # microns
+        self.dist_table_density = kwargs.pop("dist_table_density", 20)
+        self.dim = "skCSD"
+        self.tolerance = kwargs.pop("tolerance", 2e-06)
+        self.exact = kwargs.pop("exact", False)
         if kwargs:
-            raise TypeError('Invalid keyword arguments:', kwargs.keys())
+            raise TypeError("Invalid keyword arguments:", kwargs.keys())
 
     def estimate_at(self):
         """Defines locations where the estimation is wanted
@@ -644,10 +638,11 @@ class sKCSD(KCSD1D):
         self.n_estm = len(self.cell.estm_x)
 
         """
-        self.cell = sKCSDcell(self.morphology, self.ele_pos,
-                              self.n_src_init, tolerance=self.tolerance)
+        self.cell = sKCSDcell(
+            self.morphology, self.ele_pos, self.n_src_init, tolerance=self.tolerance
+        )
         self.n_estm = len(self.cell.loop_pos)
-        
+
     def place_basis(self):
         """Places basis sources of the defined type.
         Checks if a given source_type is defined, if so then defines it
@@ -664,8 +659,9 @@ class sKCSD(KCSD1D):
         try:
             self.basis = basis.basis_1D[source_type]
         except:
-            print('Invalid source_type for basis! available are:',
-                  basis.basis_1D.keys())
+            print(
+                "Invalid source_type for basis! available are:", basis.basis_1D.keys()
+            )
             raise KeyError
         self.src_x = self.cell.source_pos
         self.n_src = self.cell.n_src
@@ -674,17 +670,15 @@ class sKCSD(KCSD1D):
         if not self.exact:
             return
         self.src_ele_dists = self.cell.get_src_ele_dists()
-        
-    def create_src_dist_tables(self):
-        """Creates distance tables between sources, electrode and estm points
 
-        """
+    def create_src_dist_tables(self):
+        """Creates distance tables between sources, electrode and estm points"""
 
         self.src_estm_dists = self.cell.get_src_estm_dists()
         self.src_estm_dists_pot = self.cell.get_src_estm_dists_pot()
         self.get_src_ele_dists()
         self.dist_max = np.max(self.src_x) + self.R
-    
+
     def forward_model_1D(self, src, dist, R, sigma, src_type):
         """FWD model functions
 
@@ -703,19 +697,20 @@ class sKCSD(KCSD1D):
             value of potential at specified distance from the source
 
         """
-        pot, err = integrate.quad(self.int_pot_1D,
-                                  -2*R*np.sqrt(2),
-                                  self.cell.max_dist + 2*R*np.sqrt(2),
-                                  args=(src, dist, R, src_type))
-           
-        return pot/(4.0*np.pi*sigma)
+        pot, err = integrate.quad(
+            self.int_pot_1D,
+            -2 * R * np.sqrt(2),
+            self.cell.max_dist + 2 * R * np.sqrt(2),
+            args=(src, dist, R, src_type),
+        )
 
-    
-    def forward_model_3D(self, src, dist, R,  sigma, src_type):
+        return pot / (4.0 * np.pi * sigma)
+
+    def forward_model_3D(self, src, dist, R, sigma, src_type):
         """FWD model functions
 
         Evaluates potential at point (x,0) by a basis source located at (0,0)
- 
+
         Parameters
         ----------
         x : float
@@ -729,14 +724,15 @@ class sKCSD(KCSD1D):
             value of potential at specified distance from the source
 
         """
-        pot, err = integrate.quad(self.int_pot_3D,
-                                  -2*R*np.sqrt(2),
-                                  self.cell.max_dist + 2*R*np.sqrt(2),
-                                  args=(src, dist[0], dist[1], dist[2], R,
-                                        src_type))
-        
-        return pot/(4.0*np.pi*sigma)
-    
+        pot, err = integrate.quad(
+            self.int_pot_3D,
+            -2 * R * np.sqrt(2),
+            self.cell.max_dist + 2 * R * np.sqrt(2),
+            args=(src, dist[0], dist[1], dist[2], R, src_type),
+        )
+
+        return pot / (4.0 * np.pi * sigma)
+
     def create_lookup(self):
         """Create two lookup tables for easy potential and CSD estimation.
         Because maximum source-electrode distance can be two orders
@@ -746,42 +742,36 @@ class sKCSD(KCSD1D):
         can be of an order of mm), we create two separate look-up tables
         one for b_pot and one for b_interp_pot.
 
-        In case of exact calculations (self.exact=True) the interpolation table 
+        In case of exact calculations (self.exact=True) the interpolation table
         for b_interp_pot is not created.
-        
+
         """
-        assert 2*self.R < self.cell.max_dist
-        
-        xs = np.logspace(0.,
-                         np.log10(self.dist_max+1.),
-                         self.dist_table_density)
-        xs = xs - 1.
-        positions = np.meshgrid(xs, xs, indexing='ij')
+        assert 2 * self.R < self.cell.max_dist
+
+        xs = np.logspace(0.0, np.log10(self.dist_max + 1.0), self.dist_table_density)
+        xs = xs - 1.0
+        positions = np.meshgrid(xs, xs, indexing="ij")
         dist_table = np.zeros_like(positions[0])
         for i, pos in enumerate(positions[0]):
             for j, p in enumerate(pos):
-               dist_table[i, j] = self.forward_model_1D(p,
-                                                        positions[1][i, j],
-                                                        self.R,
-                                                        self.sigma,
-                                                        self.basis)
-            
-        self.interpolate_pot_at = interpolate.RectBivariateSpline(xs,
-                                                                  xs,
-                                                                  dist_table)
+                dist_table[i, j] = self.forward_model_1D(
+                    p, positions[1][i, j], self.R, self.sigma, self.basis
+                )
+
+        self.interpolate_pot_at = interpolate.RectBivariateSpline(xs, xs, dist_table)
         if not self.exact:
             interpolate_at_electrode = []
             for ele_pos in self.ele_pos:
                 dist_table = np.zeros_like(xs)
                 for i, pos in enumerate(xs):
-                    dist_table[i] = self.forward_model_3D(pos,
-                                                          ele_pos,
-                                                          self.R,
-                                                          self.sigma,
-                                                          self.basis)
-                interpolate_at_electrode.append(interpolate.interp1d(xs, dist_table, kind="cubic"))
+                    dist_table[i] = self.forward_model_3D(
+                        pos, ele_pos, self.R, self.sigma, self.basis
+                    )
+                interpolate_at_electrode.append(
+                    interpolate.interp1d(xs, dist_table, kind="cubic")
+                )
             self.interpolate_at_electrode = np.array(interpolate_at_electrode)
-                
+
     def update_R(self, R):
         """Update the width of the basis fuction - Used in Cross validation
 
@@ -802,7 +792,7 @@ class sKCSD(KCSD1D):
         the potential basis functions in all the electrode positions
         (essential for calculating the cross_matrix).
 
-        If self.exact is False, an interpolation table created 
+        If self.exact is False, an interpolation table created
         by self.create_lookup() is used, otherwise the potential
         is calculated for every source and electrode position.
 
@@ -811,20 +801,21 @@ class sKCSD(KCSD1D):
             dims = (self.n_src, len(self.ele_pos))
             self.b_pot = np.zeros(dims)
             for i in range(len(self.ele_pos)):
-                self.b_pot[:, i] = self.interpolate_at_electrode[i](self.src_x[:,0])
+                self.b_pot[:, i] = self.interpolate_at_electrode[i](self.src_x[:, 0])
         else:
             dims = self.src_ele_dists[0].shape
             self.b_pot = np.zeros(dims)
             for i in range(dims[0]):
                 for j in range(dims[1]):
-                    self.b_pot[i, j] = self.forward_model_3D(self.src_ele_dists[0][i,j],
-                                                             self.src_ele_dists[1][i,j],
-                                                             self.R,
-                                                             self.sigma,
-                                                             self.basis)
+                    self.b_pot[i, j] = self.forward_model_3D(
+                        self.src_ele_dists[0][i, j],
+                        self.src_ele_dists[1][i, j],
+                        self.R,
+                        self.sigma,
+                        self.basis,
+                    )
         self.k_pot = np.dot(self.b_pot.T, self.b_pot)  # K(x,x') Eq9,Jan2012
         self.k_pot /= self.n_src
-        
 
     def update_b_interp_pot(self):
         """Compute the matrix of potentials generated by every source
@@ -834,13 +825,12 @@ class sKCSD(KCSD1D):
 
         """
         shape = self.src_estm_dists_pot[0].shape
-        src = self.src_estm_dists_pot[0].reshape(shape[0]*shape[1])
-        est_points = self.src_estm_dists_pot[1].reshape(shape[0]*shape[1])
+        src = self.src_estm_dists_pot[0].reshape(shape[0] * shape[1])
+        est_points = self.src_estm_dists_pot[1].reshape(shape[0] * shape[1])
         b_interp_pot = self.interpolate_pot_at(src, est_points, grid=False)
         self.b_interp_pot = b_interp_pot.reshape(shape[0], shape[1])
         self.k_interp_pot = np.dot(self.b_interp_pot.T, self.b_pot)
         self.k_interp_pot /= self.n_src
-
 
     def potential_at_the_electrodes(self):
         """
@@ -853,16 +843,17 @@ class sKCSD(KCSD1D):
 
         """
         estimation = np.zeros((self.n_ele, self.n_time))
-        k_inv = np.linalg.inv(self.k_pot + self.lambd *
-                              np.identity(self.k_pot.shape[0]))
+        k_inv = np.linalg.inv(
+            self.k_pot + self.lambd * np.identity(self.k_pot.shape[0])
+        )
         for t in range(self.n_time):
             beta = np.dot(k_inv, self.pots[:, t])
             for i in range(self.n_ele):
-                estimation[:, t] += self.k_pot[:, i]*beta[i]  # C*(x) Eq 18
+                estimation[:, t] += self.k_pot[:, i] * beta[i]  # C*(x) Eq 18
         return estimation
 
-    def values(self, estimate='CSD', transformation='3D'):
-        '''Computes the values of the quantity of interest
+    def values(self, estimate="CSD", transformation="3D"):
+        """Computes the values of the quantity of interest
 
         Parameters
         ----------
@@ -880,17 +871,16 @@ class sKCSD(KCSD1D):
         estimation : np.array
             estimated quantity
 
-        '''
+        """
         estimated = super(sKCSD, self).values(estimate=estimate)
         if transformation is None:
             return estimated
-        if transformation == 'segments':
+        if transformation == "segments":
             return self.cell.transform_to_segments(estimated)
-        if transformation == '3D':
+        if transformation == "3D":
             return self.cell.transform_to_3D(estimated, what="loop")
 
-        raise Exception("Unknown transformation %s of %s" %
-                        (transformation, estimate))
+        raise Exception("Unknown transformation %s of %s" % (transformation, estimate))
 
     def int_pot_3D(self, xp, src, x, y, z, R, basis_func):
         """FWD model function.
@@ -919,10 +909,9 @@ class sKCSD(KCSD1D):
         xp_coor = self.cell.get_xyz(self.cell.corrected_x(xp))
         new_x = [x, y, z]
         dist = utils.calculate_distance(xp_coor, new_x)
-        pot = basis_func(xp-src, R)/dist
+        pot = basis_func(xp - src, R) / dist
         return pot
 
-    
     def int_pot_1D(self, xp, src, x, R, basis_func):
         """FWD model function.
         Returns contribution of a point xp belonging to a basis source
@@ -950,5 +939,5 @@ class sKCSD(KCSD1D):
         xp_coor = self.cell.get_xyz(self.cell.corrected_x(xp))
         x_coor = self.cell.get_xyz(self.cell.corrected_x(x))
         dist = utils.calculate_distance(xp_coor, x_coor)
-        pot = basis_func(xp-src, R)/dist
+        pot = basis_func(xp - src, R) / dist
         return pot

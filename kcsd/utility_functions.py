@@ -29,11 +29,12 @@ from scipy import interpolate
 
 try:
     from joblib.parallel import Parallel, delayed
+
     PARALLEL_AVAILABLE = True
 except ImportError:
     PARALLEL_AVAILABLE = False
 
-    
+
 def check_for_duplicated_electrodes(elec_pos):
     """Checks for duplicate electrodes
 
@@ -73,8 +74,7 @@ def distribute_srcs_1D(X, n_src, ext_x, R_init):
         effective radius of the basis element
 
     """
-    X_src = np.mgrid[(np.min(X) - ext_x):(np.max(X) + ext_x):
-                     np.complex(0, n_src)]
+    X_src = np.mgrid[(np.min(X) - ext_x) : (np.max(X) + ext_x) : complex(0, n_src)]
     R = R_init
     return X_src, R
 
@@ -111,10 +111,10 @@ def distribute_srcs_2D(X, Y, n_src, ext_x, ext_y, R_init):
     [nx, ny, Lx_nn, Ly_nn, ds] = get_src_params_2D(Lx_n, Ly_n, n_src)
     ext_x_n = (Lx_nn - Lx) / 2
     ext_y_n = (Ly_nn - Ly) / 2
-    X_src, Y_src = np.mgrid[(np.min(X) - ext_x_n):(np.max(X) + ext_x_n):
-                            np.complex(0, nx),
-                            (np.min(Y) - ext_y_n):(np.max(Y) + ext_y_n):
-                            np.complex(0, ny)]
+    X_src, Y_src = np.mgrid[
+        (np.min(X) - ext_x_n) : (np.max(X) + ext_x_n) : complex(0, nx),
+        (np.min(Y) - ext_y_n) : (np.max(Y) + ext_y_n) : complex(0, ny),
+    ]
     # d = round(R_init / ds)
     R = R_init  # R = d * ds
     return X_src, Y_src, R
@@ -144,7 +144,7 @@ def get_src_params_2D(Lx, Ly, n_src):
     """
     S = Lx * Ly
     S_unit = S / n_src
-    L_unit = S_unit**(1. / 2.)
+    L_unit = S_unit ** (1.0 / 2.0)
     nx = np.ceil(Lx / L_unit)
     ny = np.ceil(Ly / L_unit)
     ds = Lx / (nx - 1)
@@ -186,19 +186,15 @@ def distribute_srcs_3D(X, Y, Z, n_src, ext_x, ext_y, ext_z, R_init):
     Lx_n = Lx + 2 * ext_x
     Ly_n = Ly + 2 * ext_y
     Lz_n = Lz + 2 * ext_z
-    (nx, ny, nz, Lx_nn, Ly_nn, Lz_nn, ds) = get_src_params_3D(Lx_n,
-                                                              Ly_n,
-                                                              Lz_n,
-                                                              n_src)
+    (nx, ny, nz, Lx_nn, Ly_nn, Lz_nn, ds) = get_src_params_3D(Lx_n, Ly_n, Lz_n, n_src)
     ext_x_n = (Lx_nn - Lx) / 2
     ext_y_n = (Ly_nn - Ly) / 2
     ext_z_n = (Lz_nn - Lz) / 2
-    X_src, Y_src, Z_src = np.mgrid[(np.min(X) - ext_x_n):(np.max(X) + ext_x_n):
-                                   np.complex(0, nx),
-                                   (np.min(Y) - ext_y_n):(np.max(Y) + ext_y_n):
-                                   np.complex(0, ny),
-                                   (np.min(Z) - ext_z_n):(np.max(Z) + ext_z_n):
-                                   np.complex(0, nz)]
+    X_src, Y_src, Z_src = np.mgrid[
+        (np.min(X) - ext_x_n) : (np.max(X) + ext_x_n) : complex(0, nx),
+        (np.min(Y) - ext_y_n) : (np.max(Y) + ext_y_n) : complex(0, ny),
+        (np.min(Z) - ext_z_n) : (np.max(Z) + ext_z_n) : complex(0, nz),
+    ]
     # d = np.round(R_init / ds)
     R = R_init
     return (X_src, Y_src, Z_src, R)
@@ -229,7 +225,7 @@ def get_src_params_3D(Lx, Ly, Lz, n_src):
     """
     V = Lx * Ly * Lz
     V_unit = V / n_src
-    L_unit = V_unit**(1. / 3.)
+    L_unit = V_unit ** (1.0 / 3.0)
     nx = np.ceil(Lx / L_unit)
     ny = np.ceil(Ly / L_unit)
     nz = np.ceil(Lz / L_unit)
@@ -250,7 +246,7 @@ def get_estm_places(wsp_plot, gdx, gdy, gdz):
     wsp_plot : np.arrays
         electrode XYZ coordinates
     gdx, gdy, gdz : ints
-        distance beetwen estimation/source points 
+        distance beetwen estimation/source points
 
     Returns
     -------
@@ -265,20 +261,22 @@ def get_estm_places(wsp_plot, gdx, gdy, gdz):
     zmin = np.min(wsp_plot[2])
     zmax = np.max(wsp_plot[2])
 
-    lnx = int((xmax - xmin)/gdx)
-    lny = int((ymax - ymin)/gdy)
-    lnz = int((zmax - zmin)/gdz)
+    lnx = int((xmax - xmin) / gdx)
+    lny = int((ymax - ymin) / gdy)
+    lnz = int((zmax - zmin) / gdz)
 
-    grid_x, grid_y = np.mgrid[xmin:xmax:lnx*1j, ymin:ymax:lny*1j]
+    grid_x, grid_y = np.mgrid[xmin : xmax : lnx * 1j, ymin : ymax : lny * 1j]
     points = np.array([wsp_plot[0], wsp_plot[1]]).T
     values = wsp_plot[2]
-    grid_z = interpolate.griddata(points, values, (grid_x, grid_y), method='nearest')
-    estm_x, estm_y, estm_z = np.mgrid[xmin:xmax:np.complex(0,int(lnx)), 
-                                      ymin:ymax:np.complex(0,int(lny)),
-                                      zmin:zmax:np.complex(0,int(lnz))]
+    grid_z = interpolate.griddata(points, values, (grid_x, grid_y), method="nearest")
+    estm_x, estm_y, estm_z = np.mgrid[
+        xmin : xmax : complex(0, int(lnx)),
+        ymin : ymax : complex(0, int(lny)),
+        zmin : zmax : complex(0, int(lnz)),
+    ]
     mask_mtrx = np.zeros(estm_x.shape)
     for z in range(lnz):
-        mask_mtrx[:,:,z] = estm_z[:,:,z]<grid_z
+        mask_mtrx[:, :, z] = estm_z[:, :, z] < grid_z
     estm_z_new = mask_mtrx * estm_z
 
     xpos = estm_x.ravel()
@@ -290,8 +288,9 @@ def get_estm_places(wsp_plot, gdx, gdy, gdz):
     ypos = np.delete(ypos, idx_to_remove)
     zpos = np.delete(zpos, idx_to_remove)
 
-    est_xyz = np.array([xpos,ypos,zpos])
+    est_xyz = np.array([xpos, ypos, zpos])
     return est_xyz
+
 
 def L_model_fast(k_pot, pots, lamb, i):
     """Method for Fast L-curve computation
@@ -309,10 +308,10 @@ def L_model_fast(k_pot, pots, lamb, i):
     residual : float
 
     """
-    k_inv = np.linalg.inv(k_pot + lamb*np.identity(k_pot.shape[0]))
+    k_inv = np.linalg.inv(k_pot + lamb * np.identity(k_pot.shape[0]))
     beta_new = np.dot(k_inv, pots)
     V_est = np.dot(k_pot, beta_new)
-    modelnorm = np.einsum('ij,ji->i', beta_new.T, V_est)
+    modelnorm = np.einsum("ij,ji->i", beta_new.T, V_est)
     residual = np.linalg.norm(V_est - pots)
     modelnorm = np.max(modelnorm)
     return modelnorm, residual
@@ -334,9 +333,11 @@ def parallel_search(k_pot, pots, lambdas, n_jobs=4):
 
     """
     if PARALLEL_AVAILABLE:
-        jobs = (delayed(L_model_fast)(k_pot, pots, lamb, i)
-                for i, lamb in enumerate(lambdas))
-        modelvsres = Parallel(n_jobs=n_jobs, backend='threading')(jobs)
+        jobs = (
+            delayed(L_model_fast)(k_pot, pots, lamb, i)
+            for i, lamb in enumerate(lambdas)
+        )
+        modelvsres = Parallel(n_jobs=n_jobs, backend="threading")(jobs)
     else:
         # Please verify this!
         modelvsres = []
@@ -344,5 +345,3 @@ def parallel_search(k_pot, pots, lambdas, n_jobs=4):
             modelvsres.append(L_model_fast(k_pot, pots, lamb, i))
     modelnormseq, residualseq = zip(*modelvsres)
     return modelnormseq, residualseq
-
-
