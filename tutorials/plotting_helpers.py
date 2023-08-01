@@ -66,7 +66,7 @@ def show_csd(csd_at, csd, show_ele=None, show_kcsd=False, show_mask=None):
         t_max = np.max(np.abs(csd))
         levels = np.linspace(-1*t_max, t_max, 12)
         ind_interest = np.mgrid[0:csd_at[2].shape[2]:np.complex(0, z_steps+2)]
-        ind_interest = np.array(ind_interest, dtype=np.int)[1:-1]
+        ind_interest = np.array(ind_interest, dtype=int)[1:-1]
         for ii, idx in enumerate(ind_interest):
             ax = plt.subplot(gs[ii, 0])
             if show_kcsd is False:

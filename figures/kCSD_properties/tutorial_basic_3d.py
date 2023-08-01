@@ -71,7 +71,7 @@ def make_plots(fig_title,
     t_max = np.max(np.abs(true_csd))
     levels = np.linspace(-1*t_max, t_max, 16)
     ind_interest = np.mgrid[0:t_csd_z.shape[2]:np.complex(0,z_steps+2)]
-    ind_interest = np.array(ind_interest, dtype=np.int)[1:-1]
+    ind_interest = np.array(ind_interest, dtype=int)[1:-1]
     for ii, idx in enumerate(ind_interest):
         ax = plt.subplot(gs[ii, 0])
         im = plt.contourf(t_csd_x[:,:,idx], t_csd_y[:,:,idx], true_csd[:,:,idx], 
@@ -131,7 +131,7 @@ def make_plots(fig_title,
     t_max = np.max(np.abs(pre_cv[:,:,:,0]))
     levels_kcsd = np.linspace(-1*t_max, t_max, 16)
     ind_interest = np.mgrid[0:k_csd_z.shape[2]:np.complex(0,z_steps+2)]
-    ind_interest = np.array(ind_interest, dtype=np.int)[1:-1]
+    ind_interest = np.array(ind_interest, dtype=int)[1:-1]
     for ii, idx in enumerate(ind_interest):
         ax = plt.subplot(gs[ii, 2])
         im = plt.contourf(k_csd_x[:,:,idx], k_csd_y[:,:,idx], pre_cv[:,:,idx,0], 
@@ -159,7 +159,7 @@ def make_plots(fig_title,
     t_max = np.max(np.abs(est_csd[:,:,:,0]))
     levels_kcsd = np.linspace(-1*t_max, t_max, 16)
     ind_interest = np.mgrid[0:k_csd_z.shape[2]:np.complex(0,z_steps+2)]
-    ind_interest = np.array(ind_interest, dtype=np.int)[1:-1]
+    ind_interest = np.array(ind_interest, dtype=int)[1:-1]
     for ii, idx in enumerate(ind_interest):
         ax = plt.subplot(gs[ii, 3])
         im = plt.contourf(k_csd_x[:,:,idx], k_csd_y[:,:,idx], est_csd[:,:,idx,0], 

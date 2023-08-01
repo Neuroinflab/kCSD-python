@@ -287,7 +287,8 @@ class sKCSDcell(object):
         # bresenhamline only works with 2D vectors with coordinates
         if p1[0] == p0[0] and p1[1] == p0[1] and p1[2] == p0[2]:
             return [np.array(p1)]
-        new_p1, new_p0 = np.ndarray((1, 3), dtype=np.int), np.ndarray((1, 3), dtype=np.int)
+        new_p1, new_p0 = np.ndarray((1, 3), dtype=int), np.ndarray((1, 3),
+                                                                   dtype=int)
         for i in range(3):
             new_p1[0, i], new_p0[0, i] = p1[i], p0[i]
         intermediate_points = utils.bresenhamline(new_p0, new_p1, -1)
@@ -337,7 +338,7 @@ class sKCSDcell(object):
             [self.ymin, self.ymax],
             [self.zmin, self.zmax]
         ]
-        dims = np.ones((3, ), dtype=np.int)
+        dims = np.ones((3, ), dtype=int)
         for i, dx in enumerate(self.dxs):
             dims[i] = 1
             if dx:
@@ -365,7 +366,7 @@ class sKCSDcell(object):
         minis = np.array([self.xmin, self.ymin, self.zmin])
         zero_coords = np.zeros((3, ), dtype=int)
         coor_3D = np.zeros((morpho.shape[0] - 1, morpho.shape[1]),
-                           dtype=np.int)
+                           dtype=int)
         if dxs is None:
             dxs = self.dxs
         for i, dx in enumerate(dxs):
