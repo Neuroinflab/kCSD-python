@@ -12,7 +12,8 @@ import matplotlib.gridspec as gridspec
 import os
 import sys
 import argparse
-import kcsd.sKCSD_utils as sKCSD_utils
+import kcsd.KCSD_utils as sKCSD_utils
+from kcsd import sKCSDcell
 import glob
 from matplotlib.patches import Circle
 from matplotlib.collections import PatchCollection
@@ -157,7 +158,7 @@ def load_data(data_dir):
 
     try:
         est_csd, est_pot, morphology, ele_pos, n_src = sKCSD_utils.load_sim(data_dir)
-        cell_object = kcsd.sKCSDcell(morphology, ele_pos, n_src)
+        cell_object = sKCSDcell(morphology, ele_pos, n_src)
     except IOError:
         if sys.version_info < (3, 0):
             path = os.path.join(data_dir, "preprocessed_data/Python_2")
@@ -165,7 +166,7 @@ def load_data(data_dir):
             path = os.path.join(data_dir, "preprocessed_data/Python_3")
 
         est_csd, est_pot, morphology, ele_pos, n_src = sKCSD_utils.load_sim(path)
-        cell_object = kcsd.sKCSDcell(morphology, ele_pos, n_src)
+        cell_object = sKCSDcell(morphology, ele_pos, n_src)
         
     return (pots, est_csd, est_pot, cell_obj)
 
