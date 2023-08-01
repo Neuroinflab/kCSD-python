@@ -1,10 +1,12 @@
+from pathlib import Path
 import kCSD2D_reconstruction_from_npx as npx
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import scipy
 import numpy as np
+from numpy.linalg import LinAlgError
 from scipy.signal import filtfilt, butter
-
+import DemoReadSGLXData.readSGLX as readSGLX
 
 def set_axis(ax, x, y, letter=None):
     ax.text(
