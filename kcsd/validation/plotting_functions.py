@@ -12,7 +12,7 @@ import matplotlib.gridspec as gridspec
 import os
 import sys
 import argparse
-import kcsd.KCSD_utils as sKCSD_utils
+import kcsd.sKCSD_utils as sKCSD_utils
 from kcsd import sKCSDcell
 import glob
 from matplotlib.patches import Circle

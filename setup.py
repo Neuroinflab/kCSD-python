@@ -35,13 +35,24 @@ setup(name='kcsd',
       url='https://github.com/Neuroinflab/kCSD-python',
       author='Chaitanya Chintaluri et al',
       license='BSD',
-      packages=find_packages(),
-      # package_data={'tests': [
+      packages=find_packages(where="."),
+      include_package_data=True,
+      package_data={'kcsd':
+                    ['data/*',
+                     'data/ball_and_stick_128/*',
+                     'data/ball_and_stick_16/*',
+                     'data/ball_and_stick_8/*',
+                     'data/gang_7x7_200/*',
+                     'data/morphology/*',
+                     'data/Simple_with_branches/*',
+                     'data/Y_shaped_neuron/*',
+                    ]
+                    },
       # https://stackoverflow.com/questions/14422340/manifest-in-package-data-and-data-files-clarification
       # https://github.com/pypa/sampleproject/issues/30#issuecomment-143947944
       #     os.path.join('sKCSD', 'test.mat')
       # ]},
-      include_package_data=True,
+
       install_requires=['future>=0.16.0',
                         'numpy>=1.8.0',
                         'scipy>=0.14.0',
