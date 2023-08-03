@@ -258,6 +258,9 @@ class KCSD(CSD):
         R : float
 
         """
+        if self.R == R:
+            return
+
         self.R = R
         self.dist_max = max(np.max(self.src_ele_dists),
                             np.max(self.src_estm_dists)) + self.R
