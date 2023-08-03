@@ -273,7 +273,7 @@ class KCSD(CSD):
         """
         self.lambd = lambd
 
-    def cross_validate(self, lambdas=None, Rs=None):
+    def cross_validate(self, lambdas=None, Rs=None, regression_test=False):
         """Method defines the cross validation.
 
         By default only cross_validates over lambda,
@@ -286,6 +286,7 @@ class KCSD(CSD):
         ----------
         lambdas : numpy array
         Rs : numpy array
+        regression_test : bool
 
         Returns
         -------
@@ -302,18 +303,18 @@ class KCSD(CSD):
         if Rs is None:                                # when None
             Rs = np.array((self.R)).flatten()         # Default over one R value
         self.errs = np.zeros((Rs.size, lambdas.size))
-        index_generator = []
-        for ii in range(self.n_ele):
-            idx_test = [ii]
-            idx_train = list(range(self.n_ele))
-            idx_train.remove(ii)                      # Leave one out
-            index_generator.append((idx_train, idx_test))
+        if regression_test:
+            index_generator = self._get_index_generator()
+            self.errs_regression = self.errs.copy()
+
         for R_idx, R in enumerate(Rs):                # Iterate over R
             self.update_R(R)
             print('Cross validating R (all lambda) :', R)
             for lambd_idx, lambd in enumerate(lambdas):  # Iterate over lambdas
-                self.errs[R_idx, lambd_idx] = self.compute_cverror(lambd,
-                                                              index_generator)
+                self.errs[R_idx, lambd_idx] = self._compute_cverr(lambd)
+                if regression_test:
+                    self.errs_regression[R_idx, lambd_idx] = self.compute_cverror(lambd,
+                                                                  index_generator)
         err_idx = np.where(self.errs == np.min(self.errs))     # Index of the least error
         cv_R = Rs[err_idx[0]][0]      # First occurance of the least error's
         cv_lambda = lambdas[err_idx[1]][0]
@@ -321,7 +322,34 @@ class KCSD(CSD):
         self.update_R(cv_R)           # Update solver
         self.update_lambda(cv_lambda)
         print('R, lambda :', cv_R, cv_lambda)
+        if regression_test:
+            err_idx = np.where(self.errs_regression == np.min(self.errs_regression))
+            print("R, lambda :", Rs[err_idx[0]][0], lambdas[err_idx[1]][0], "OLD")
+            print("max diff :", abs(self.errs - self.errs_regression).max())
+            print("new min, old min :", self.cv_error, np.min(self.errs_regression))
         return cv_R, cv_lambda
+
+    def _get_index_generator(self):
+        index_generator = []
+        for ii in range(self.n_ele):
+            idx_test = [ii]
+            idx_train = list(range(self.n_ele))
+            idx_train.remove(ii)  # Leave one out
+            index_generator.append((idx_train, idx_test))
+        return index_generator
+
+    def _compute_cverr(self, lambd):
+        n = self.k_pot.shape[0]  # self.n_ele
+        K = self.k_pot + np.identity(n) * lambd
+        IDX_N = np.arange(n)
+        return sum(map(np.linalg.norm,
+                       [self._leave_one_out_estimate(K, i, IDX_N != i) - ROW
+                        for i, ROW in enumerate(self.pots)]))
+
+    def _leave_one_out_estimate(self, KERNEL, i, IDX):
+        return np.matmul(self.k_pot[np.ix_([i], IDX)],
+                         np.linalg.solve(KERNEL[np.ix_(IDX, IDX)],
+                                         self.pots[IDX]))[0]
 
     def compute_cverror(self, lambd, index_generator):
         """Useful for Cross validation error calculations
