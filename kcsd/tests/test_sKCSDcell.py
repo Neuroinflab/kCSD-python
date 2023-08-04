@@ -268,7 +268,7 @@ class testsKCDcell(unittest.TestCase):
 
     def test_coordinates_3D_loops_is_every_point_except_ending_at_least_twice_small(self):
         idxs = np.where(self.small_points[:-1]<2)[0]
-        self.assertFalse(idxs)
+        self.assertFalse(idxs.size>0)
 
     def test_coordinates_3D_loops_last_point_once_small(self):
         self.assertTrue(self.small_points[-1] == 1)

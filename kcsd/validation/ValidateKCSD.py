@@ -1437,7 +1437,7 @@ class ValidateKCSD3D(ValidateKCSD):
         levels = np.linspace(-1*t_max, t_max, 16)
         ind_interest = np.mgrid[0:kcsd.estm_z.shape[2]:complex(0,
                                                                   z_steps+2)]
-        ind_interest = np.array(ind_interest, dtype=np.int)[1:-1]
+        ind_interest = np.array(ind_interest, dtype=int)[1:-1]
         for ii, idx in enumerate(ind_interest):
             ax = plt.subplot(gs[ii, 0])
             im = plt.contourf(kcsd.estm_x[:, :, idx], kcsd.estm_y[:, :, idx],
@@ -1484,7 +1484,7 @@ class ValidateKCSD3D(ValidateKCSD):
 #        levels = np.linspace(-1*t_max, t_max, 16)
         ind_interest = np.mgrid[0:kcsd.estm_z.shape[2]:complex(0,
                                                                   z_steps+2)]
-        ind_interest = np.array(ind_interest, dtype=np.int)[1:-1]
+        ind_interest = np.array(ind_interest, dtype=int)[1:-1]
         for ii, idx in enumerate(ind_interest):
             ax = plt.subplot(gs[ii, 2])
             im = plt.contourf(kcsd.estm_x[:, :, idx], kcsd.estm_y[:, :, idx],

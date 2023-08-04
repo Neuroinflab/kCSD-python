@@ -8,7 +8,7 @@ from matplotlib import gridspec
 def eles_to_rows(eles):
     rows = []
     for ele in eles:
-        rows.append(np.int(np.ceil(ele/2)))
+        rows.append(int(np.ceil(ele/2)))
     return rows
 
 def eles_to_ycoord(eles):

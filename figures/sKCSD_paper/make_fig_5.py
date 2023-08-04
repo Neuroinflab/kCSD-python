@@ -122,7 +122,8 @@ if __name__ == '__main__':
             utils.save_sim(path, ker)
             est_skcsd = ker.values(estimate='CSD')
         except NameError:
-            skcsd, pot, cell_obj = utils.load_sim(path)
+            skcsd, pot, morphology, ele_pos, n_src = utils.load_sim(path)
+            cell_obj =  sKCSDcell(morphology, ele_pos, n_src)
             est_skcsd = cell_itself[i].transform_to_3D(skcsd)
 
         xmin = cell_itself[i].xmin

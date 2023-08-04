@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import sys
 import os
 from kcsd import sKCSD, sKCSDcell
-from  kcsd import sKCSD_utils as utils
+from kcsd import sKCSD_utils as utils
 import kcsd.validation.plotting_functions as pl
 import sKCSD_utils
 import numpy.random
@@ -87,6 +87,7 @@ if __name__ == '__main__':
     L1 = []
     
     for i, nl in enumerate(noise_levels):
+        new_LFP = data.LFP
         if nl:
             noise = numpy.random.normal(scale=std/nl, size=shape)
             snr = np.round((new_LFP.var()**.5/noise.var()**.5))
@@ -94,10 +95,10 @@ if __name__ == '__main__':
         else:
             noise = 0
             snr = 0
-            
+        new_LFP += noise    
         snrs.append(snr)
             
-        new_LFP = data.LFP + noise
+
         
 
         

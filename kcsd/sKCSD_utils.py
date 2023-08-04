@@ -105,7 +105,7 @@ def load_sim(path):
     morphology = np.array(cell_data['morphology'])
     ele_pos = np.array(cell_data['ele_pos'])
     n_src = cell_data['n_src']
-    return est_csd, est_pot, cell_obj, morphology, ele_pos, n_src
+    return est_csd, est_pot, morphology, ele_pos, n_src
 
 
 def load_elpos(path):
