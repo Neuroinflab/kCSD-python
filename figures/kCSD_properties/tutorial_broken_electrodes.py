@@ -40,7 +40,7 @@ def load_files(folderpaths, seeds):
 def set_axis(ax, letter=None):
     ax.text(
         -0.05,
-        1.05,
+        1.1,
         letter,
         fontsize=20,
         weight='bold',
@@ -121,7 +121,7 @@ def make_subplot(ax, val_type, xs, ys, values, cax, title=None, ele_pos=None, xl
     if ylabel:
         ax.set_ylabel('Y (mm)')
     if title is not None:
-        ax.set_title(title)
+        ax.set_title(title, pad=10)
     ax.set_xticks([0, 0.5, 1])
     ax.set_yticks([0, 0.5, 1])
     ticks = np.linspace(0, t_max, 3, endpoint=True)
@@ -154,6 +154,7 @@ def generate_figure():
     make_subplot(ax, 'err', csd_x, csd_y, errs[0], ele_pos=electrode_positions(missing_ele=0),
                  cax=cax, title='Error CSD', xlabel=True, ylabel=True, letter='A',
                  t_max=err_max)
+    ax.text(-0.4, 0.5, 'Small sources', fontsize=20, rotation=90, va='center')
     ax = plt.subplot(gs[0, 1])
     cax = plt.subplot(gs[1, 1])
     make_subplot(ax, 'err', csd_x, csd_y, errs[1], ele_pos=electrode_positions(missing_ele=5),
@@ -179,6 +180,7 @@ def generate_figure():
     make_subplot(ax, 'err', csd_x, csd_y, errs[0], ele_pos=electrode_positions(missing_ele=0),
                  cax=cax, xlabel=True, ylabel=True, letter='E',
                  t_max=err_max)
+    ax.text(-0.4, 0.5, 'Large sources', fontsize=20, rotation=90, va='center')
     ax = plt.subplot(gs[0, 1])
     cax = plt.subplot(gs[1, 1])
     make_subplot(ax, 'err', csd_x, csd_y, errs[1], ele_pos=electrode_positions(missing_ele=5),

@@ -38,7 +38,7 @@ def load_files(folderpaths, seeds):
 def set_axis(ax, letter=None):
     ax.text(
         -0.05,
-        1.05,
+        1.10,
         letter,
         fontsize=20,
         weight='bold',
@@ -145,7 +145,7 @@ def make_subplot(ax, val_type, xs, ys, values, cax, title=None, ele_pos=None,
     if ylabel:
         ax.set_ylabel('Y (mm)')
     if title is not None:
-        ax.set_title(title)
+        ax.set_title(title, pad=10)
     ax.set_xticks([0, 0.5, 1])
     ax.set_yticks([0, 0.5, 1])
     ticks = np.linspace(0, t_max, 3, endpoint=True)
@@ -277,20 +277,22 @@ def generate_figure2():
     make_subplot(ax, 'err', csd_x, csd_y, errs[0], ele_pos=electrode_positions(missing_ele=0),
                  cax=cax, title='Error CSD', xlabel=True, ylabel=True, letter='A',
                  t_max=.2)
+    ax.text(-0.4, 0.5, 'Small+Large sources', fontsize=20, rotation=90, va='center')
+
     ax = plt.subplot(gs[0, 1])
     cax = plt.subplot(gs[1, 1])
     make_subplot(ax, 'err', csd_x, csd_y, abs(errs[1] - errs[0]), ele_pos=electrode_positions(missing_ele=5),
-                 cax=cax, title='Error Diff CSD 5 broken', xlabel=True,  letter='B',
+                 cax=cax, title='5 broken - Error CSD ', xlabel=True,  letter='B',
                  t_max=err_max)
     ax = plt.subplot(gs[0, 2])
     cax = plt.subplot(gs[1, 2])
     make_subplot(ax, 'err', csd_x, csd_y, abs(errs[2] - errs[0]), ele_pos=electrode_positions(missing_ele=10),
-                 cax=cax, title='Error Diff CSD 10 broken', xlabel=True, letter='C',
+                 cax=cax, title='10 broken - Error CSD', xlabel=True, letter='C',
                  t_max=err_max)
     ax = plt.subplot(gs[0, 3])
     cax = plt.subplot(gs[1, 3])
     make_subplot(ax, 'err', csd_x, csd_y, abs(errs[3] - errs[0]), ele_pos=electrode_positions(missing_ele=20),
-                 cax=cax, title='Error Diff CSD 20 broken', xlabel=True, letter='D',
+                 cax=cax, title='20 broken - Error CSD', xlabel=True, letter='D',
                  t_max=err_max)
 
     errs = fetch_values('small')
@@ -302,6 +304,7 @@ def generate_figure2():
     make_subplot(ax, 'err', csd_x, csd_y, errs[0], ele_pos=electrode_positions(missing_ele=0),
                  cax=cax, xlabel=True, ylabel=True, letter='E',
                  t_max=.2)
+    ax.text(-0.4, 0.5, 'Small sources', fontsize=20, rotation=90, va='center')
     ax = plt.subplot(gs[0, 1])
     cax = plt.subplot(gs[1, 1])
     make_subplot(ax, 'err', csd_x, csd_y, abs(errs[1] - errs[0]), ele_pos=electrode_positions(missing_ele=5),
@@ -327,6 +330,7 @@ def generate_figure2():
     make_subplot(ax, 'err', csd_x, csd_y, errs[0], ele_pos=electrode_positions(missing_ele=0),
                  cax=cax, xlabel=True, ylabel=True, letter='I',
                  t_max=.2)
+    ax.text(-0.4, 0.5, 'Large sources', fontsize=20, rotation=90, va='center')
     ax = plt.subplot(gs[0, 1])
     cax = plt.subplot(gs[1, 1])
     make_subplot(ax, 'err', csd_x, csd_y, abs(errs[1] - errs[0]), ele_pos=electrode_positions(missing_ele=5),

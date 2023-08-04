@@ -28,15 +28,15 @@ def grid(x, y, z):
     x = x.flatten()
     y = y.flatten()
     z = z.flatten()
-    xi, yi = np.mgrid[min(x):max(x):np.complex(0, 100),
-                      min(y):max(y):np.complex(0, 100)]
+    xi, yi = np.mgrid[min(x):max(x):complex(0, 100),
+                      min(y):max(y):complex(0, 100)]
     zi = griddata((x, y), z, (xi, yi), method='linear')
     return xi, yi, zi
 
 def set_axis(ax, letter=None):
     ax.text(
         -0.05,
-        1.05,
+        1.1,
         letter,
         fontsize=20,
         weight='bold',
@@ -77,7 +77,7 @@ def make_subplot(ax, val_type, xs, ys, values, cax, title=None, ele_pos=None, xl
     if ylabel:
         ax.set_ylabel('Y (mm)')
     if title is not None:
-        ax.set_title(title)
+        ax.set_title(title, pad=10)
     ax.set_xticks([0, 0.5, 1])
     ax.set_yticks([0, 0.5, 1])
     ticks = np.linspace(0, t_max, 3, endpoint=True)
@@ -97,12 +97,11 @@ def do_kcsd(CSD_PROFILE, csd_seed, noise_level):
 #        R_final = np.linspace(0.1, 1.5, 15)
         R_final = np.linspace(0.05, 1., 20)
     # True CSD_PROFILE
-    csd_at = np.mgrid[0.:1.:100j,
-                      0.:1.:100j]
+    csd_at = np.mgrid[0.:1.:101j,
+                      0.:1.:101j]
     csd_x, csd_y = csd_at
     # Small source
     true_csd = CSD_PROFILE(csd_at, seed=csd_seed) 
-
     # Electrode positions
     ele_x, ele_y = np.mgrid[0.05: 0.95: 10j,
                             0.05: 0.95: 10j]
@@ -153,12 +152,12 @@ def generate_figure(small_seed, large_seed):
     cax = plt.subplot(gs[1, 0])
     make_subplot(ax, 'err', csd_x, csd_y, err, ele_pos=ele_pos,
                  cax=cax, title='Error CSD', xlabel=True, ylabel=True, letter='A', t_max=t_max_1)
-    
+    ax.text(-0.4, 0.5, 'Small sources', fontsize=20, rotation=90, va='center')
     csd_x, csd_y, err, ele_pos = do_kcsd(CSD.gauss_2d_small, csd_seed=small_seed, noise_level=5)
     ax = plt.subplot(gs[0, 1])
     cax = plt.subplot(gs[1, 1])
     make_subplot(ax, 'err', csd_x, csd_y, err, ele_pos=ele_pos,
-                 cax=cax, title='Error CSD 5% noise', xlabel=True, ylabel=True, letter='B', t_max=t_max_1)
+                 cax=cax, title='Error CSD 5% noise', xlabel=True, letter='B', t_max=t_max_1)
 
     csd_x, csd_y, err, ele_pos = do_kcsd(CSD.gauss_2d_small, csd_seed=small_seed, noise_level=10)
     ax = plt.subplot(gs[0, 2])
@@ -180,7 +179,7 @@ def generate_figure(small_seed, large_seed):
     cax = plt.subplot(gs[1, 0])
     make_subplot(ax, 'err', csd_x, csd_y, err, ele_pos=ele_pos,
                  cax=cax, xlabel=True, ylabel=True, letter='E', t_max=0.55)
-    
+    ax.text(-0.4, 0.5, 'Large sources', fontsize=20, rotation=90, va='center')
     csd_x, csd_y, err, ele_pos = do_kcsd(CSD.gauss_2d_large, csd_seed=large_seed, noise_level=5)
     ax = plt.subplot(gs[0, 1])
     cax = plt.subplot(gs[1, 1])
@@ -199,7 +198,7 @@ def generate_figure(small_seed, large_seed):
     make_subplot(ax, 'err', csd_x, csd_y, err, ele_pos=ele_pos,
                  cax=cax,  xlabel=True,  letter='H', t_max=0.55)
     plt.savefig('tutorial_noise.png', dpi=300)
-    plt.show()
+    # plt.show()
 
 if __name__ == '__main__':
     small_seed = 15

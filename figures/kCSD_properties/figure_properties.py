@@ -17,3 +17,5 @@ plt.rcParams.update({
 })
 
 
+def cm_to_inches(vals):
+    return [0.393701*ii for ii in vals]
