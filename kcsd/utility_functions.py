@@ -74,7 +74,7 @@ def distribute_srcs_1D(X, n_src, ext_x, R_init):
 
     """
     X_src = np.mgrid[(np.min(X) - ext_x):(np.max(X) + ext_x):
-                     np.complex(0, n_src)]
+                     complex(0, n_src)]
     R = R_init
     return X_src, R
 
@@ -112,9 +112,9 @@ def distribute_srcs_2D(X, Y, n_src, ext_x, ext_y, R_init):
     ext_x_n = (Lx_nn - Lx) / 2
     ext_y_n = (Ly_nn - Ly) / 2
     X_src, Y_src = np.mgrid[(np.min(X) - ext_x_n):(np.max(X) + ext_x_n):
-                            np.complex(0, nx),
+                            complex(0, nx),
                             (np.min(Y) - ext_y_n):(np.max(Y) + ext_y_n):
-                            np.complex(0, ny)]
+                            complex(0, ny)]
     # d = round(R_init / ds)
     R = R_init  # R = d * ds
     return X_src, Y_src, R
@@ -194,11 +194,11 @@ def distribute_srcs_3D(X, Y, Z, n_src, ext_x, ext_y, ext_z, R_init):
     ext_y_n = (Ly_nn - Ly) / 2
     ext_z_n = (Lz_nn - Lz) / 2
     X_src, Y_src, Z_src = np.mgrid[(np.min(X) - ext_x_n):(np.max(X) + ext_x_n):
-                                   np.complex(0, nx),
+                                   complex(0, nx),
                                    (np.min(Y) - ext_y_n):(np.max(Y) + ext_y_n):
-                                   np.complex(0, ny),
+                                   complex(0, ny),
                                    (np.min(Z) - ext_z_n):(np.max(Z) + ext_z_n):
-                                   np.complex(0, nz)]
+                                   complex(0, nz)]
     # d = np.round(R_init / ds)
     R = R_init
     return (X_src, Y_src, Z_src, R)
@@ -273,9 +273,9 @@ def get_estm_places(wsp_plot, gdx, gdy, gdz):
     points = np.array([wsp_plot[0], wsp_plot[1]]).T
     values = wsp_plot[2]
     grid_z = interpolate.griddata(points, values, (grid_x, grid_y), method='nearest')
-    estm_x, estm_y, estm_z = np.mgrid[xmin:xmax:np.complex(0,int(lnx)), 
-                                      ymin:ymax:np.complex(0,int(lny)),
-                                      zmin:zmax:np.complex(0,int(lnz))]
+    estm_x, estm_y, estm_z = np.mgrid[xmin:xmax:complex(0,int(lnx)), 
+                                      ymin:ymax:complex(0,int(lny)),
+                                      zmin:zmax:complex(0,int(lnz))]
     mask_mtrx = np.zeros(estm_x.shape)
     for z in range(lnz):
         mask_mtrx[:,:,z] = estm_z[:,:,z]<grid_z

@@ -65,7 +65,7 @@ def show_csd(csd_at, csd, show_ele=None, show_kcsd=False, show_mask=None):
         gs = gridspec.GridSpec(z_steps, 2, height_ratios=height_ratios, width_ratios=width_ratios)
         t_max = np.max(np.abs(csd))
         levels = np.linspace(-1*t_max, t_max, 12)
-        ind_interest = np.mgrid[0:csd_at[2].shape[2]:np.complex(0, z_steps+2)]
+        ind_interest = np.mgrid[0:csd_at[2].shape[2]:complex(0, z_steps+2)]
         ind_interest = np.array(ind_interest, dtype=int)[1:-1]
         for ii, idx in enumerate(ind_interest):
             ax = plt.subplot(gs[ii, 0])
@@ -176,7 +176,7 @@ def grid(x, y, z, resX=100, resY=100):
     Convert 3 column data to matplotlib grid
     """
     z = z.flatten()
-    xx, yy = np.mgrid[min(x):max(x):np.complex(0, resX),
-                      min(y):max(y):np.complex(0, resY)]
+    xx, yy = np.mgrid[min(x):max(x):complex(0, resX),
+                      min(y):max(y):complex(0, resY)]
     zz = griddata((x, y), z, (xx, yy), method='linear')
     return xx, yy, zz

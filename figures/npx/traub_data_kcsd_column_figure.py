@@ -264,8 +264,8 @@ def plot_all_currents(ax, xmin, xmax, ymin, ymax, all_x, all_y, all_z, all_val,
 def plot_csd_slice(ax, xmin, xmax, ymin, ymax, all_x, all_y, all_z, all_val,
                    letter='', title=''):
     nx, ny = int(800/50), int(2500/50)
-    vx, vy = np.mgrid[-400:400:np.complex(0, nx+1),
-                      -2000:500:np.complex(0, ny+1)]
+    vx, vy = np.mgrid[-400:400:complex(0, nx+1),
+                      -2000:500:complex(0, ny+1)]
     voxels_csd = np.zeros((nx, ny))
 
     counter = 0
@@ -308,7 +308,7 @@ def plot_dense_potentials(ax, h, pop_names, time_pts, time_pt_interest,
     z = 0
     tot_ele = nx * ny
     zz = np.ones((tot_ele, 1)) * z
-    xx, yy = np.mgrid[-450:450:np.complex(0, nx), -2000:500:np.complex(0, ny)]
+    xx, yy = np.mgrid[-450:450:complex(0, nx), -2000:500:complex(0, ny)]
     xx = xx.reshape(tot_ele, 1)
     yy = yy.reshape(tot_ele, 1)
     elec_pos = np.hstack((xx, yy, zz))
@@ -352,7 +352,7 @@ def prepare_electrodes():
     dist_from_center_axis = 1.5*22.5+20
     od, do = 0, -(10+22.5)*ny
     xx, yy = np.mgrid[-dist_from_center_axis:dist_from_center_axis:
-                      np.complex(0, nx), od:do:np.complex(0, ny)]
+                      complex(0, nx), od:do:complex(0, ny)]
     xx = xx.reshape(tot_ele, 1)
     yy = yy.reshape(tot_ele, 1)
     elec4 = np.hstack((xx, yy, zz))
@@ -372,14 +372,14 @@ def prepare_electrodes():
     left_border = -30
 
     od, do = 500, -(40*ny/2 - 500)
-    x1, y1 = np.mgrid[left_border:left_border+2*dist_h:np.complex(0, nx/2),
-                      od:do:np.complex(0, ny/2)]
+    x1, y1 = np.mgrid[left_border:left_border+2*dist_h:complex(0, nx/2),
+                      od:do:complex(0, ny/2)]
     x1 = x1.reshape(int(tot_ele/2), 1)
     y1 = y1.reshape(int(tot_ele/2), 1)
 
     x2, y2 = np.mgrid[left_border+dist_h:left_border +
-                      3*dist_h:np.complex(0, nx/2),
-                      od-dist_v:do-dist_v:np.complex(0, ny/2)]
+                      3*dist_h:complex(0, nx/2),
+                      od-dist_v:do-dist_v:complex(0, ny/2)]
     x2 = x2.reshape(int(tot_ele/2), 1)
     y2 = y2.reshape(int(tot_ele/2), 1)
 
@@ -434,8 +434,8 @@ def make_column_plot(h, pop_names, time_pts, time_pt_interest, elec_pos_list, na
                           letter='C', filt=False)
     
     ax4 = plt.subplot(244, aspect='equal')
-    xx, yy = np.mgrid[xmin:xmax:np.complex(0, true_csd.shape[0]),
-                      ymin:ymax:np.complex(0, true_csd.shape[1])]
+    xx, yy = np.mgrid[xmin:xmax:complex(0, true_csd.shape[0]),
+                      ymin:ymax:complex(0, true_csd.shape[1])]
     plot_csd_smooth(ax4, xmin, xmax, ymin, ymax, true_csd[:, :],
                     xx, yy, letter='D')
 
