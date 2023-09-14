@@ -19,9 +19,9 @@ def generate_csd_3D(csd_profile, csd_seed,
     """
     Gives CSD profile at the requested spatial location, at 'res' resolution
     """
-    csd_at = np.mgrid[start_x:end_x:np.complex(0,res_x), 
-                      start_y:end_y:np.complex(0,res_y), 
-                      start_z:end_z:np.complex(0,res_z)]
+    csd_at = np.mgrid[start_x:end_x:complex(0,res_x), 
+                      start_y:end_y:complex(0,res_y), 
+                      start_z:end_z:complex(0,res_z)]
     f = csd_profile(csd_at, seed=csd_seed) 
     f = f / np.max(np.abs(f))
     return csd_at, f
@@ -42,9 +42,9 @@ def generate_electrodes(xlims=[0.1,0.9], ylims=[0.1,0.9], zlims=[0.1,0.9], res=5
     """
     Places electrodes in a square grid
     """
-    ele_x, ele_y, ele_z = np.mgrid[xlims[0]:xlims[1]:np.complex(0,res), 
-                                   ylims[0]:ylims[1]:np.complex(0,res), 
-                                   zlims[0]:zlims[1]:np.complex(0,res)]
+    ele_x, ele_y, ele_z = np.mgrid[xlims[0]:xlims[1]:complex(0,res), 
+                                   ylims[0]:ylims[1]:complex(0,res), 
+                                   zlims[0]:zlims[1]:complex(0,res)]
     ele_x = ele_x.flatten()
     ele_y = ele_y.flatten()
     ele_z = ele_z.flatten()
@@ -70,7 +70,7 @@ def make_plots(fig_title,
     gs = gridspec.GridSpec(z_steps+1, 4, height_ratios=height_ratios)
     t_max = np.max(np.abs(true_csd))
     levels = np.linspace(-1*t_max, t_max, 16)
-    ind_interest = np.mgrid[0:t_csd_z.shape[2]:np.complex(0,z_steps+2)]
+    ind_interest = np.mgrid[0:t_csd_z.shape[2]:complex(0,z_steps+2)]
     ind_interest = np.array(ind_interest, dtype=int)[1:-1]
     for ii, idx in enumerate(ind_interest):
         ax = plt.subplot(gs[ii, 0])
@@ -130,7 +130,7 @@ def make_plots(fig_title,
     # #KCSD - pre_cv
     t_max = np.max(np.abs(pre_cv[:,:,:,0]))
     levels_kcsd = np.linspace(-1*t_max, t_max, 16)
-    ind_interest = np.mgrid[0:k_csd_z.shape[2]:np.complex(0,z_steps+2)]
+    ind_interest = np.mgrid[0:k_csd_z.shape[2]:complex(0,z_steps+2)]
     ind_interest = np.array(ind_interest, dtype=int)[1:-1]
     for ii, idx in enumerate(ind_interest):
         ax = plt.subplot(gs[ii, 2])
@@ -158,7 +158,7 @@ def make_plots(fig_title,
     # kCSD post CV
     t_max = np.max(np.abs(est_csd[:,:,:,0]))
     levels_kcsd = np.linspace(-1*t_max, t_max, 16)
-    ind_interest = np.mgrid[0:k_csd_z.shape[2]:np.complex(0,z_steps+2)]
+    ind_interest = np.mgrid[0:k_csd_z.shape[2]:complex(0,z_steps+2)]
     ind_interest = np.array(ind_interest, dtype=int)[1:-1]
     for ii, idx in enumerate(ind_interest):
         ax = plt.subplot(gs[ii, 3])

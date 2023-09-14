@@ -50,8 +50,8 @@ def grid(x, y, z):
     x = x.flatten()
     y = y.flatten()
     z = z.flatten()
-    xi, yi = np.mgrid[min(x):max(x):np.complex(0, 100),
-                      min(y):max(y):np.complex(0, 100)]
+    xi, yi = np.mgrid[min(x):max(x):complex(0, 100),
+                      min(y):max(y):complex(0, 100)]
     zi = griddata((x, y), z, (xi, yi), method='linear')
     return xi, yi, zi
 

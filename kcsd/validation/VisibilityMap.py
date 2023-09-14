@@ -341,9 +341,9 @@ class VisibilityMap2D(ValidateKCSD2D):
         """
         ele_x, ele_y = ele_pos[:, 0], ele_pos[:, 1]
         x, y = np.mgrid[self.kcsd_xlims[0]:self.kcsd_xlims[1]:
-                        np.complex(0, point_error.shape[1]),
+                        complex(0, point_error.shape[1]),
                         self.kcsd_ylims[0]:self.kcsd_ylims[1]:
-                        np.complex(0, point_error.shape[2])]
+                        complex(0, point_error.shape[2])]
         mean_error = self.sigmoid_mean(point_error)
         plt.figure(figsize=(12, 7))
         ax1 = plt.subplot(111, aspect='equal')
@@ -514,9 +514,9 @@ class VisibilityMap2DMoI(ValidateMoIKCSD):
         """
         ele_x, ele_y = ele_pos[:, 0], ele_pos[:, 1]
         x, y = np.mgrid[self.kcsd_xlims[0]:self.kcsd_xlims[1]:
-                        np.complex(0, point_error.shape[1]),
+                        complex(0, point_error.shape[1]),
                         self.kcsd_ylims[0]:self.kcsd_ylims[1]:
-                        np.complex(0, point_error.shape[2])]
+                        complex(0, point_error.shape[2])]
         mean_error = self.sigmoid_mean(point_error)
         plt.figure(figsize=(12, 7))
         ax1 = plt.subplot(111, aspect='equal')
@@ -685,11 +685,11 @@ class VisibilityMap3D(ValidateKCSD3D):
         """
 #        ele_x, ele_y, ele_z = ele_pos[0], ele_pos[1], ele_pos[2]
         x, y, z = np.mgrid[self.kcsd_xlims[0]:self.kcsd_xlims[1]:
-                           np.complex(0, point_error.shape[1]),
+                           complex(0, point_error.shape[1]),
                            self.kcsd_ylims[0]:self.kcsd_ylims[1]:
-                           np.complex(0, point_error.shape[2]),
+                           complex(0, point_error.shape[2]),
                            self.kcsd_zlims[0]:self.kcsd_zlims[1]:
-                           np.complex(0, point_error.shape[3])]
+                           complex(0, point_error.shape[3])]
         mean_error = self.sigmoid_mean(point_error)
         plt.figure(figsize=(7, 9))
         z_steps = 5
@@ -698,8 +698,8 @@ class VisibilityMap3D(ValidateKCSD3D):
         gs = gridspec.GridSpec(z_steps, 2, height_ratios=height_ratios,
                                width_ratios=width_ratios)
         levels = np.linspace(0, 1., 25)
-        ind_interest = np.mgrid[0:z.shape[2]:np.complex(0, z_steps+2)]
-        ind_interest = np.array(ind_interest, dtype=np.int)[1:-1]
+        ind_interest = np.mgrid[0:z.shape[2]:complex(0, z_steps+2)]
+        ind_interest = np.array(ind_interest, dtype=int)[1:-1]
         for ii, idx in enumerate(ind_interest):
             ax = plt.subplot(gs[ii, 0])
             im = plt.contourf(x[:, :, idx], y[:, :, idx],
