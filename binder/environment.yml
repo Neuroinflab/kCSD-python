@@ -1,15 +1,15 @@
 channels:
   - defaults
 dependencies:
-  - _libgcc_mutex=0.1=main
-  - _openmp_mutex=5.1=1_gnu
+  - _libgcc_mutex
+  - _openmp_mutex
   - ca-certificates=2022.07.19=h06a4308_0
   - certifi=2022.6.15=py39h06a4308_0
   - ld_impl_linux-64=2.38=h1181459_1
-  - libffi=3.3=he6710b0_2
-  - libgcc-ng=11.2.0=h1234567_1
-  - libgomp=11.2.0=h1234567_1
-  - libstdcxx-ng=11.2.0=h1234567_1
+  - libffi
+  - libgcc-ng
+  - libgomp
+  - libstdcxx-ng
   - ncurses=6.3=h5eee18b_3
   - openssl=1.1.1q=h7f8727e_0
   - pip
