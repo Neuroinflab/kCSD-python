@@ -103,11 +103,11 @@ if __name__=='__main__':
 #    os.chdir("./LCurve/LC2")
     noises = 3
     noise_lvl = np.linspace(0, 0.5, noises)
-#    df = np.load('data_fig4_and_fig13_lc_noise25.0.npz')
+    #df = np.load('data_fig4_and_fig13_lc_noise25.0.npz')
     Rs = np.linspace(0.025, 8*0.025, 8)
     title = ['nazwa_pliku']
     save_as = 'noise'
-#    make_plots(title, df['m_norm'], df['m_resi'], df['true_csd'], 
-#               df['curve_surf'], df['ele_y'], df['pots_n'],
-#               df['pots'], df['estm_x'], df['est_pot'], df['est_csd'], 
-#               df['noreg_csd'], save_as)
+    make_plots(title, df['m_norm'], df['m_resi'], df['true_csd'], 
+               df['curve_surf'], df['ele_y'], df['pots_n'],
+               df['pots'], df['estm_x'], df['est_pot'], df['est_csd'], 
+               df['noreg_csd'], save_as)

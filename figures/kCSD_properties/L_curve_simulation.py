@@ -112,7 +112,7 @@ def main_loop(src_width, total_ele, inpos, lpos, nm, noise=0, srcs=1):
     t_csd_x, t_csd_y, true_csd = generate_csd_1D(src_width, nm, srcs=srcs,
                                                  start_x=0, end_x=1.,
                                                  start_y=0, end_y=1,
-                                                 res_x=100, res_y=100)
+                                                 res_x=101, res_y=101)
     if type(noise) ==  float: n_spec = [noise]
     else: n_spec = noise
     for i, noise in enumerate(n_spec):
@@ -142,6 +142,7 @@ def main_loop(src_width, total_ele, inpos, lpos, nm, noise=0, srcs=1):
                         'pots':pots, 'estm_x':k.estm_x, 'est_pot':est_pot, 
                         'est_csd':est_csd, 'noreg_csd':noreg_csd, 'errsy':errsy}
         np.savez('data_fig4_and_fig13_'+save_as, **vals_to_save)
+        print(true_csd.shape, est_csd[:,0].shape)
         RMS_wek[0, i] = np.linalg.norm(true_csd/np.linalg.norm(true_csd) - est_csd[:,0]/np.linalg.norm(est_csd[:,0]))
         RMS_wek[1, i] = np.linalg.norm(true_csd/np.linalg.norm(true_csd) - est_csd_cv[:,0]/np.linalg.norm(est_csd_cv[:,0]))
 

@@ -36,7 +36,7 @@ def grid(x, y, z):
 def set_axis(ax, letter=None):
     ax.text(
         -0.05,
-        1.05,
+        1.10,
         letter,
         fontsize=20,
         weight='bold',
@@ -63,7 +63,7 @@ def make_subplot(ax, val_type, xs, ys, values, cax, title=None, ele_pos=None, xl
     if ylabel:
         ax.set_ylabel('Y (mm)')
     if title is not None:
-        ax.set_title(title)
+        ax.set_title(title, pad=10)
     ax.set_xticks([0, 0.5, 1])
     ax.set_yticks([0, 0.5, 1])
     ticks = np.linspace(-1 * t_max, t_max, 3, endpoint=True)
@@ -128,6 +128,7 @@ def generate_figure(small_seed, large_seed):
     cax = plt.subplot(gs[1, 0])
     t_max_1 = 0.50
     make_subplot(ax, 'csd', csd_x, csd_y, true_csd, cax, 'True CSD', xlabel=True, ylabel=True, letter='A', t_max=t_max_1)
+    ax.text(-0.4, 0.5, 'Small sources', fontsize=20, rotation=90, va='center')
     ax = plt.subplot(gs[0, 1])
     cax = plt.subplot(gs[1, 1])
     make_subplot(ax, 'pot', pot_X, pot_Y, pot_Z, cax, 'Interpolated potentials', xlabel=True, ele_pos=ele_pos, letter='B')
@@ -145,9 +146,10 @@ def generate_figure(small_seed, large_seed):
     cax = plt.subplot(gs[1, 0])
     t_max_2 = 0.52
     make_subplot(ax, 'csd', csd_x, csd_y, true_csd, cax,  ylabel=True, xlabel=True, letter='E', t_max=t_max_2)
+    ax.text(-0.4, 0.5, 'Large sources', fontsize=20, rotation=90, va='center')
     ax = plt.subplot(gs[0, 1])
     cax = plt.subplot(gs[1, 1])
-    make_subplot(ax, 'pot', pot_X, pot_Y, pot_Z, cax,  xlabel=True, ele_pos=ele_pos, letter='F')
+    make_subplot(ax, 'pot', pot_X, pot_Y, pot_Z, cax,  xlabel=True, ele_pos=ele_pos, letter='F', t_max=1)
     ax = plt.subplot(gs[0, 2])
     cax = plt.subplot(gs[1, 2])
     make_subplot(ax, 'csd', k.estm_x, k.estm_y, est_csd_pre_cv[:, :, 0], cax, xlabel=True, letter='G', t_max=t_max_2)
