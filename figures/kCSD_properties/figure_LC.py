@@ -105,7 +105,7 @@ if __name__=='__main__':
     noise_lvl = np.linspace(0, 0.5, noises)
     #df = np.load('data_fig4_and_fig13_lc_noise25.0.npz')
     Rs = np.linspace(0.025, 8*0.025, 8)
-    title = ['nazwa_pliku']
+    title = ['file_name']
     save_as = 'noise'
     make_plots(title, df['m_norm'], df['m_resi'], df['true_csd'], 
                df['curve_surf'], df['ele_y'], df['pots_n'],
