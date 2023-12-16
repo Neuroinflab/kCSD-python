@@ -179,5 +179,5 @@ if __name__=='__main__':
         os.chdir('..')
     np.save('sim_results', sim_results)
     sim_results = np.load('sim_results.npy')
-    make_plot_perf(sim_results)
+    make_plot_perf(sim_results, noise_lvl)
 

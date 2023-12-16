@@ -20,7 +20,7 @@ def set_axis(ax, x, y, letter=None):
             transform=ax.transAxes)
     return ax
 
-def make_plot_perf(sim_results):
+def make_plot_perf(sim_results, noise_lvl):
     rms_lc = sim_results[0, 2]
     lam_lc = sim_results[0, 0]
     rms_cv = sim_results[1, 2]
@@ -81,4 +81,4 @@ if __name__=='__main__':
     noises = 9
     noise_lvl = np.linspace(0, 0.5, noises)
     sim_results = np.load('sim_results.npy')
-    make_plot_perf(sim_results)
+    make_plot_perf(sim_results, noise_lvl)
