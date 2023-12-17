@@ -80,8 +80,8 @@ ext_y = 0.0
 h = 50. # distance between the electrode plane and the CSD plane
 conductivity = 1.0 # S/m
 
-csd_at = np.mgrid[0.:1.:100j,
-                  0.:1.:100j]
+csd_at = np.mgrid[0.:1.:101j,
+                  0.:1.:101j]
 csd_x, csd_y = csd_at
 
 D = 2 - 1.618
