@@ -5,7 +5,7 @@ from numpy import exp, linspace
 import matplotlib.pyplot as plt
 from matplotlib import cm
 from matplotlib import gridspec
-from matplotlib.mlab import griddata
+from scipy.interpolate import griddata
 from scipy.spatial import distance
 from kcsd import csd_profile as CSD
 from kcsd import KCSD3D
