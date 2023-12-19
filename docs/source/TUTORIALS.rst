@@ -53,8 +53,8 @@ interact with it in a browser, no installation necessary.
 	 :target: https://mybinder.org/v2/gh/Neuroinflab/kCSD-python/master?filepath=tutorials%2Ftutorial_basic.ipynb
 
 	    
-For a non-interactive version of this tutorial, see
-`Tutorail1 <https://github.com/Neuroinflab/kCSD-python/blob/master/tutorials/tutorial_basic.ipynb>`_.
+For a non-interactive static version of this tutorial, see
+`Tutorial1 <https://github.com/Neuroinflab/kCSD-python/blob/master/tutorials/tutorial_basic.ipynb>`_.
 
 	    
 	    
@@ -81,8 +81,8 @@ interact with it in a browser, no installation necessary.
       :target: https://mybinder.org/v2/gh/Neuroinflab/kCSD-python/master?filepath=tutorials%2Ftutorial_advanced.ipynb
 
 
-For a non-inteactive version of this tutorial, see
-`Tutorail2 <https://github.com/Neuroinflab/kCSD-python/blob/master/tutorials/tutorial_advanced.ipynb>`_.
+For a non-interactive static version of this tutorial, see
+`Tutorial2 <https://github.com/Neuroinflab/kCSD-python/blob/master/tutorials/tutorial_advanced.ipynb>`_.
 
 sKCSD Tutorial
 ~~~~~~~~~~~~~~
@@ -95,7 +95,7 @@ This methods has been described extensively here: https://doi.org/10.7554/eLife.
 `sKCSD tutorial <https://colab.research.google.com/drive/1tjOvC5-OTteiGT_f-MBQ3hqN7P3i1P8e?usp=sharing>`_
 
 
-For a non-inteactive version of this tutorial, see
+For a non-interactive static version of this tutorial, see
 `sKCSD Tutorial <https://github.com/Neuroinflab/kCSD-python/blob/master/tutorials/skcsd_tutorial.ipynb>`_
 
 
