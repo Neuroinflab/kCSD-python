@@ -1,13 +1,33 @@
 Tutorials
 ---------
 
-Online version
+kcsd-python library comes with three extensive tutorials. These
+tutorials can be explored online or installed on your desktop computer
+depending on your usage. To simple test it out try the online version
+first, and if required install the python package.
 
-kcsd-python library comes with three extensive tutorials (at this
-moment, more soon). These can be tested using Jupyter notebook on your
-desktop after installing the kCSD-python package. Alternatively, they
-can be played around with without any installation on Google collaboratory in a
-web-browser. **Note: the results from a browser are not saved, and cannot be retreived.**
+**Online version**
+
+To play around with the library without any installation, you can run
+the tutorials on Google collaboratory in a web-browser. **Note:** the
+results from a browser are not saved and cannot be retreived. If you
+wish to have the results stored somewhere, please use the desktop
+version.
+
+**Desktop version**
+
+This requires you to install the kCSD-package and additionally to
+install jupyter notebook on your desktop.
+
+..  code-block:: bash
+
+		 git clone https://github.com/Neuroinflab/kCSD-python.git
+		 cd kCSD-python
+		 pip install .
+		 pip install jupyterlab
+
+
+
 
 Basic Features
 ~~~~~~~~~~~~~~
@@ -26,7 +46,7 @@ reconstructions.
 The tutorial is provided with Google collaboratory, click the button below to
 interact with it in a browser, no installation necessary.
 
-`Basic tutorial<https://colab.research.google.com/drive/1M7fCR5iZ9c7SAZWWoq9WLfFpk7pCaufd?usp=sharing>`_
+`Basic tutorial <https://colab.research.google.com/drive/1M7fCR5iZ9c7SAZWWoq9WLfFpk7pCaufd?usp=sharing>`_
 
 ..
       .. image:: https://mybinder.org/badge.svg
@@ -34,7 +54,7 @@ interact with it in a browser, no installation necessary.
 
 	    
 For a non-interactive version of this tutorial, see
-`Tutorail1<https://github.com/Neuroinflab/kCSD-python/blob/master/tutorials/tutorial_basic.ipynb>`_.
+`Tutorail1 <https://github.com/Neuroinflab/kCSD-python/blob/master/tutorials/tutorial_basic.ipynb>`_.
 
 	    
 	    
@@ -54,7 +74,7 @@ buttons (Kernel>Restart & Run All).
 The tutorial is provided with Google collaboratory, click the button below to
 interact with it in a browser, no installation necessary.
 
-`Advanced tutorial<https://colab.research.google.com/drive/1gIuBJ2XzOGmgnRuxKguHevcYoE6eY_o1?usp=sharing>`_
+`Advanced tutorial <https://colab.research.google.com/drive/1gIuBJ2XzOGmgnRuxKguHevcYoE6eY_o1?usp=sharing>`_
 
 ..
    .. image:: https://mybinder.org/badge.svg
@@ -62,7 +82,7 @@ interact with it in a browser, no installation necessary.
 
 
 For a non-inteactive version of this tutorial, see
-`Tutorail2<https://github.com/Neuroinflab/kCSD-python/blob/master/tutorials/tutorial_advanced.ipynb>`_.
+`Tutorail2 <https://github.com/Neuroinflab/kCSD-python/blob/master/tutorials/tutorial_advanced.ipynb>`_.
 
 sKCSD Tutorial
 ~~~~~~~~~~~~~~
@@ -72,11 +92,11 @@ of a single neuron provided the morphology of the said neuron is known.
 This methods has been described extensively here: https://doi.org/10.7554/eLife.29384
 
 
-`sKCSD tutorial<https://colab.research.google.com/drive/1tjOvC5-OTteiGT_f-MBQ3hqN7P3i1P8e?usp=sharing>`_
+`sKCSD tutorial <https://colab.research.google.com/drive/1tjOvC5-OTteiGT_f-MBQ3hqN7P3i1P8e?usp=sharing>`_
 
 
 For a non-inteactive version of this tutorial, see
-`sKCSD Tutorial<https://github.com/Neuroinflab/kCSD-python/blob/master/tutorials/skcsd_tutorial.ipynb>`_
+`sKCSD Tutorial <https://github.com/Neuroinflab/kCSD-python/blob/master/tutorials/skcsd_tutorial.ipynb>`_
 
 
 More Tutorials
