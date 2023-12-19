@@ -6,17 +6,17 @@ This 2.0 version of kCSD inverse method proposed in python3
 Relevant Papers
 ---------------
 
-1. J. Potworowski, W. Jakuczun, S. Łȩski, D. K. Wójcik
+#. J. Potworowski, W. Jakuczun, S. Łȩski, D. K. Wójcik
   "Kernel Current Source Density Method"
   Neural Comput 2012; 24 (2): 541–575.
   doi: https://doi.org/10.1162/NECO_a_00236
 
-2. C. Chintaluri, M. Bejtka, W. Średniawa, M. Czerwiński, J. M. Dzik, J. Jędrzejewska-Szmek, K. Kondrakiewicz, E. Kublik, D. K. Wójcik
+#. C. Chintaluri, M. Bejtka, W. Średniawa, M. Czerwiński, J. M. Dzik, J. Jędrzejewska-Szmek, K. Kondrakiewicz, E. Kublik, D. K. Wójcik
   "What we can and what we cannot see with extracellular multielectrodes"
   PLoS Computational Biology (2021), 17(5): e1008615.
   doi: https://doi.org/10.1371/journal.pcbi.1008615
 
-3. C. Chintaluri, M. Bejtka, W. Średniawa, M. Czerwiński, J. M. Dzik, J. Jędrzejewska-Szmek, D. K. Wójck
+#. C. Chintaluri, M. Bejtka, W. Średniawa, M. Czerwiński, J. M. Dzik, J. Jędrzejewska-Szmek, D. K. Wójck
   "kCSD-python, reliable current source density estimation with quality control"
   bioRxiv
   doi: https://doi.org/10.1101/708511
