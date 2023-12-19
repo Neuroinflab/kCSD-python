@@ -1,16 +1,26 @@
 Kernel Current Source Density
 =============================
 
-This is the 2.0 version of kCSD inverse method proposed in
+This is python3 based library 2.0 version of kCSD inverse method proposed.
 
-J. Potworowski, W. Jakuczun, S. Łęski, D. K. Wójcik
-"Kernel Current Source Density Method"
-Neural Computation 24 (2012), 541–575
+1. J. Potworowski, W. Jakuczun, S. Łȩski, D. K. Wójcik
+  "Kernel Current Source Density Method"
+  Neural Comput 2012; 24 (2): 541–575.
+  doi: https://doi.org/10.1162/NECO_a_00236
 
-For details see the `bioRxiv pre-print`_
+2. C. Chintaluri, M. Bejtka, W. Średniawa, M. Czerwiński, J. M. Dzik, J. Jędrzejewska-Szmek, K. Kondrakiewicz, E. Kublik, D. K. Wójcik
+  "What we can and what we cannot see with extracellular multielectrodes"
+  PLoS Computational Biology (2021), 17(5): e1008615.
+  doi: https://doi.org/10.1371/journal.pcbi.1008615
 
-.. _bioRxiv pre-print : https://doi.org/10.1101/708511 
+3. C. Chintaluri, M. Bejtka, W. Średniawa, M. Czerwiński, J. M. Dzik, J. Jędrzejewska-Szmek, D. K. Wójck
+  "kCSD-python, reliable current source density estimation with quality control"
+  bioRxiv
+  doi: https://doi.org/10.1101/708511
 
+Paper 1 is the original paper with software code in Matlab.
+Paper 2 is an improvement and development of the paper 1.
+Paper 3 is a feature showcase and walk-through of the method and its applications. 
 
 Health Report
 -------------
@@ -30,7 +40,39 @@ Documentation Status:
 .. image:: https://readthedocs.org/projects/kcsd-python/badge/?version=latest
    :target: https://kcsd-python.readthedocs.io/en/latest/?badge=latest
 
+Tutorials
+---------
 
+This library comes with three tutorials that **do not require any installation**.
+
+1. `Basic tutorial<https://colab.research.google.com/drive/1M7fCR5iZ9c7SAZWWoq9WLfFpk7pCaufd?usp=sharing>`_
+2. `Advanced tutorial<https://colab.research.google.com/drive/1gIuBJ2XzOGmgnRuxKguHevcYoE6eY_o1?usp=sharing>`_
+3. `sKCSD tutorial<https://colab.research.google.com/drive/1tjOvC5-OTteiGT_f-MBQ3hqN7P3i1P8e?usp=sharing>`_
+   
+More information on these **online only** tutorials is provided here `Tutorials!`_
+
+.. _Tutorials!: /docs/source/TUTORIALS.rst
+
+To have these tutorials and saved on your desktop, you will also need jupyter-notebook installed
+
+..  code-block:: bash
+		 pip install jupyterlab
+
+
+Figures
+-------
+
+This library includes all the necessary scripts to generate the figures for papers 2 and 3.
+
+`Figures for Paper 2!`_
+
+.. _Figures for Paper 2!: /figures/what_you_can_see_with_lfp/README.txt
+
+`Figures for Paper 3!`_
+
+.. _Figures for Paper 3!: /figures/kCSD_properties/README.txt
+
+	    
 Documentation
 -------------
 
@@ -44,12 +86,6 @@ Also included here are installation instructions, authors and their
 contributions, citation policy, contacts etc.,
 
 
-Also included are `Tutorials!`_
-
-.. _Tutorials!: /docs/source/TUTORIALS.rst
-
-
-	    
 Earlier Stable versions
 -----------------------
 Please see git tags for earlier versions
