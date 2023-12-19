@@ -6,25 +6,21 @@ This 2.0 version of kCSD inverse method proposed in python3
 Relevant Papers
 ---------------
 
-Paper 1
+Paper 1: "Kernel Current Source Density
+Method", J. Potworowski, W. Jakuczun, S. Łȩski, D. K. Wójcik; Neural
+Comput 2012; 24 (2): 541–575, doi:
+https://doi.org/10.1162/NECO_a_00236
 
-J. Potworowski, W. Jakuczun, S. Łȩski, D. K. Wójcik
 
-"Kernel Current Source Density Method", Neural Comput 2012; 24 (2): 541–575, doi: https://doi.org/10.1162/NECO_a_00236
+Paper 2 : "What we can and what we cannot see with extracellular
+multielectrodes", J. Potworowski, W. Jakuczun, S. Łȩski, D. K. Wójcik;
+PLoS Computational Biology (2021), 17(5): e1008615, doi:
+https://doi.org/10.1371/journal.pcbi.1008615
 
-----
-Paper 2
-
-C. Chintaluri, M. Bejtka, W. Średniawa, M. Czerwiński, J. M. Dzik, J. Jędrzejewska-Szmek, K. Kondrakiewicz, E. Kublik, D. K. Wójcik
-
-"What we can and what we cannot see with extracellular multielectrodes", PLoS Computational Biology (2021), 17(5): e1008615, doi: https://doi.org/10.1371/journal.pcbi.1008615
-----
-Paper 3
-
-C. Chintaluri, M. Bejtka, W. Średniawa, M. Czerwiński, J. M. Dzik, J. Jędrzejewska-Szmek, D. K. Wójck
-
-"kCSD-python, reliable current source density estimation with quality control", bioRxiv, doi: https://doi.org/10.1101/708511
-----
+Paper 3 : "kCSD-python, reliable current source density estimation
+with quality
+control", C. Chintaluri, M. Bejtka, W. Średniawa, M. Czerwiński, J. M. Dzik, J. Jędrzejewska-Szmek, D. K. Wójcik;
+bioRxiv, doi: https://doi.org/10.1101/708511
 
 Paper 1 is the original paper with software code in Matlab.
 Paper 2 is an improvement and development of the paper 1.
@@ -33,13 +29,13 @@ Paper 3 is a feature showcase and walk-through of the method and its application
 Tutorials
 ---------
 
-This library comes with three tutorials that **do not require any installation**.
+This library comes with three tutorials and **does not require any installation**.
 
 1. `Basic tutorial <https://colab.research.google.com/drive/1M7fCR5iZ9c7SAZWWoq9WLfFpk7pCaufd?usp=sharing>`_
 2. `Advanced tutorial <https://colab.research.google.com/drive/1gIuBJ2XzOGmgnRuxKguHevcYoE6eY_o1?usp=sharing>`_
 3. `sKCSD tutorial <https://colab.research.google.com/drive/1tjOvC5-OTteiGT_f-MBQ3hqN7P3i1P8e?usp=sharing>`_
    
-More information on the **online and installed version** of tutorials is provided here `Tutorials!`_
+More information on the tutorials is provided here `Tutorials!`_
 
 .. _Tutorials!: /docs/source/TUTORIALS.rst
 
