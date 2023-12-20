@@ -45,7 +45,7 @@ To have these tutorials and saved on your desktop, you will also need jupyter-no
 
 ..  code-block:: bash
 
-		 pip install jupyterlab
+		 pip install jupyter notebook
 
 
 Figures

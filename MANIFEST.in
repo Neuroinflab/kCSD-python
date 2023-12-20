@@ -1,8 +1,26 @@
 include LICENSE.txt
 include README.rst
-graft data
+include kcsd/data/gang_7x7_200/electrode_positions/elcoord_x_y_z
+include kcsd/data/gang_7x7_200/LFP/myLFP
+include kcsd/data/gang_7x7_200/morphology/*
+include kcsd/data/ball_and_stick_8/electrode_positions/elcoord_x_y_z
+include kcsd/data/ball_and_stick_8/LFP/myLFP
+include kcsd/data/ball_and_stick_8/morphology/*
+include kcsd/data/ball_and_stick_16/electrode_positions/elcoord_x_y_z
+include kcsd/data/ball_and_stick_16/LFP/myLFP
+include kcsd/data/ball_and_stick_16/morphology/*
+include kcsd/data/ball_and_stick_128/electrode_positions/elcoord_x_y_z
+include kcsd/data/ball_and_stick_128/LFP/myLFP
+include kcsd/data/ball_and_stick_128/morphology/*
+include kcsd/data/Y_shaped_neuron/electrode_positions/elcoord_x_y_z
+include kcsd/data/Y_shaped_neuron/LFP/myLFP
+include kcsd/data/Y_shaped_neuron/morphology/*
+include kcsd/data/Simple_with_branches/electrode_positions/elcoord_x_y_z
+include kcsd/data/Simple_with_branches/LFP/myLFP
+include kcsd/data/Simple_with_branches/morphology/*
+include kcsd/data/morphology/*
+include kcsd/data/sinsyn.mod
 graft figures
-graft doc
-graft tests
-graft validation
-global-exclude *.py[cod] __pycache__ *.so
+graft docs
+graft tutorials
+global-exclude *.py[cod] __pycache__ *.so *.pdf *.npz *.png *.npy
