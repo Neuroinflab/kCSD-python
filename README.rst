@@ -13,8 +13,10 @@ https://doi.org/10.1162/NECO_a_00236
 
 
 Paper 2 : "What we can and what we cannot see with extracellular
-multielectrodes", J. Potworowski, W. Jakuczun, S. Łȩski, D. K. Wójcik;
-PLoS Computational Biology (2021), 17(5): e1008615, doi:
+multielectrodes", C. Chintaluri, M. Bejtka, W.
+Średniawa, M. Czerwiński, J. M. Dzik, J.
+Jędrzejewska-Szmek, K. Kondrakiewicz, E. Kublik, D. K. Wójcik; PLoS
+Computational Biology (2021), 17(5): e1008615, doi:
 https://doi.org/10.1371/journal.pcbi.1008615
 
 Paper 3 : "kCSD-python, reliable current source density estimation
