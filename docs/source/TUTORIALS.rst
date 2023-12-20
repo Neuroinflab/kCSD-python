@@ -1,12 +1,33 @@
 Tutorials
 ---------
 
-kcsd-python library comes with two extensive tutorials (at this
-moment, more soon). These can be tested using Jupyter notebook on your
-desktop after installing the kCSD-python package. Alternatively, they
-can be played around with without any installation on Binder in a
-web-browser. Note that in this case, the results from a browser are
-not saved, and cannot be retreived.
+kcsd-python library comes with three extensive tutorials. These
+tutorials can be explored online or installed on your desktop computer
+depending on your usage. To simple test it out try the online version
+first, and if required install the python package.
+
+**Online version**
+
+To play around with the library without any installation, you can run
+the tutorials on Google collaboratory in a web-browser. **Note:** the
+results from a browser are not saved and cannot be retreived. If you
+wish to have the results stored somewhere, please use the desktop
+version.
+
+**Desktop version**
+
+This requires you to install the kCSD-package and additionally to
+install jupyter notebook on your desktop.
+
+..  code-block:: bash
+
+		 git clone https://github.com/Neuroinflab/kCSD-python.git
+		 cd kCSD-python
+		 pip install .
+		 pip install jupyterlab
+
+
+
 
 Basic Features
 ~~~~~~~~~~~~~~
@@ -22,15 +43,18 @@ and repeat the procedure. We also explore the situation when certain
 number of the electrode are broken, and how that would effect the
 reconstructions.
 
-The tutorial is provided with Binder access, click the button below to
+The tutorial is provided with Google collaboratory, click the button below to
 interact with it in a browser, no installation necessary.
 
-.. image:: https://mybinder.org/badge.svg
-   :target: https://mybinder.org/v2/gh/Neuroinflab/kCSD-python/master?filepath=tutorials%2Ftutorial_basic.ipynb
+`Basic tutorial <https://colab.research.google.com/drive/1M7fCR5iZ9c7SAZWWoq9WLfFpk7pCaufd?usp=sharing>`_
+
+..
+      .. image:: https://mybinder.org/badge.svg
+	 :target: https://mybinder.org/v2/gh/Neuroinflab/kCSD-python/master?filepath=tutorials%2Ftutorial_basic.ipynb
 
 	    
-For a non-interactive version of this tutorial, see
-`Tutorail1<https://github.com/Neuroinflab/kCSD-python/blob/master/tutorials/tutorial_basic.ipynb>`_.
+For a non-interactive static version of this tutorial, see
+`Tutorial1 <https://github.com/Neuroinflab/kCSD-python/blob/master/tutorials/tutorial_basic.ipynb>`_.
 
 	    
 	    
@@ -47,15 +71,32 @@ Features tutorial and expands it to the other dimensions. NOTE, the
 user might have to 'Reset this tutorial' before using to enable the
 buttons (Kernel>Restart & Run All).
 
-The tutorial is provided with Binder access, click the button below to
+The tutorial is provided with Google collaboratory, click the button below to
 interact with it in a browser, no installation necessary.
 
-.. image:: https://mybinder.org/badge.svg
-   :target: https://mybinder.org/v2/gh/Neuroinflab/kCSD-python/master?filepath=tutorials%2Ftutorial_advanced.ipynb
+`Advanced tutorial <https://colab.research.google.com/drive/1gIuBJ2XzOGmgnRuxKguHevcYoE6eY_o1?usp=sharing>`_
+
+..
+   .. image:: https://mybinder.org/badge.svg
+      :target: https://mybinder.org/v2/gh/Neuroinflab/kCSD-python/master?filepath=tutorials%2Ftutorial_advanced.ipynb
 
 
-For a non-inteactive version of this tutorial, see
-`Tutorail2<https://github.com/Neuroinflab/kCSD-python/blob/master/tutorials/tutorial_advanced.ipynb>`_.
+For a non-interactive static version of this tutorial, see
+`Tutorial2 <https://github.com/Neuroinflab/kCSD-python/blob/master/tutorials/tutorial_advanced.ipynb>`_.
+
+sKCSD Tutorial
+~~~~~~~~~~~~~~
+
+This tutorial showcases the possibility to reconstruct the current sources
+of a single neuron provided the morphology of the said neuron is known.
+This methods has been described extensively here: https://doi.org/10.7554/eLife.29384
+
+
+`sKCSD tutorial <https://colab.research.google.com/drive/1tjOvC5-OTteiGT_f-MBQ3hqN7P3i1P8e?usp=sharing>`_
+
+
+For a non-interactive static version of this tutorial, see
+`sKCSD Tutorial <https://github.com/Neuroinflab/kCSD-python/blob/master/tutorials/skcsd_tutorial.ipynb>`_
 
 
 More Tutorials
