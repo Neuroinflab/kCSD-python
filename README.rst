@@ -1,7 +1,11 @@
 Kernel Current Source Density
 =============================
 
-This 2.0 version of kCSD inverse method proposed in python3
+This 2.0 version of kCSD method.
+
+Only supported for python 3.
+
+
 
 Relevant Papers
 ---------------
@@ -41,7 +45,8 @@ More information on the tutorials is provided here `Tutorials!`_
 
 .. _Tutorials!: /docs/source/TUTORIALS.rst
 
-To have these tutorials and saved on your desktop, you will also need jupyter-notebook installed
+You can also save these tutorials on your desktop, for this you will
+need to install jupyter-notebook. Do this by
 
 ..  code-block:: bash
 
@@ -83,7 +88,7 @@ Also included here are authors and their contributions, citation policy, contact
 
 Earlier Stable versions
 -----------------------
-Please see git tags for earlier versions
+Please see git tags for earlier versions. These are not available as packages unfortunately.
 
 - v1.2 corresponds to the first time kCSD-python released as a python package
 - v1.0 corresponds to the version with the test cases written inside tests folder
