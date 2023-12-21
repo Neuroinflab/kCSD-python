@@ -4,21 +4,21 @@ Created on Mon Jun 26 15:11:07 2017
 
 @author: Joanna Jędrzejewska-Szmek, Jan Maka
 """
-from __future__ import print_function, division, absolute_import
-import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.widgets import Slider, Button, RadioButtons
-import matplotlib.gridspec as gridspec
 import os
 import sys
 import argparse
+
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
+from matplotlib.widgets import Slider, Button
+
 import kcsd.sKCSD_utils as sKCSD_utils
 from kcsd import sKCSDcell
-import glob
-from matplotlib.patches import Circle
-from matplotlib.collections import PatchCollection
 
-max_r = 5 #times a point
+max_r = 5  # times a point
+
+
 def skCSD_reconstruction_plot_z(pots, est_csd, est_pot, cell_obj,
                                 t_min=0, electrode=5):
     """Displays interactive skCSD reconstruction plot in z plane

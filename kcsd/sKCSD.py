@@ -9,7 +9,6 @@ Jan Mąka [1, 3*] Grzegorz Parka[2] Daniel K. Wojcik[1]
 [1] Laboratory of Neuroinformatics, Nencki Institute of Experimental Biology, Warsaw, Poland [2] Google Summer of Code 2014, INCF/pykCSD [3] University of Warsaw, Poland
 
 """
-from __future__ import print_function, division, absolute_import
 import numpy as np
 import os
 from scipy.spatial import distance

@@ -1,4 +1,3 @@
-from __future__ import print_function, division, absolute_import
 from kcsd.sKCSD_utils import check_estimated_shape
 import os
 import unittest

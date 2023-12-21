@@ -5,7 +5,6 @@ kCSD method Jan et.al (2012) for 1D,2D and 3D cases.
 Two 'types' are described here, gaussian and step source,
 These can be easily extended.
 """
-from __future__ import division, print_function, absolute_import
 import numpy as np
 
 

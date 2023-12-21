@@ -2,7 +2,6 @@
 kCSD method Jan et.al (2012).
 
 """
-from __future__ import division, print_function, absolute_import
 
 import numpy as np
 from numpy.linalg import LinAlgError, svd
