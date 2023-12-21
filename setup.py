@@ -19,7 +19,7 @@ def readme():
 
 
 setup(name='kcsd',
-      version='2.0',
+      version='2.0.3',
       description='kernel current source density methods',
       long_description=readme(),
       classifiers=[
@@ -54,10 +54,10 @@ setup(name='kcsd',
                      'figures/*'
                      ]
                     },
-      install_requires=['numpy>=1.8.0',
-                        'scipy>=0.14.0',
-                        'matplotlib>=2.0'],
-      extras_require={'docs': ['numpydoc>=0.5',
-                               'sphinx>=1.2.2']},
+      install_requires=['numpy>=1.19',
+                        'scipy>=1.8.0',
+                        'matplotlib>=3.6'],
+      extras_require={'docs': ['numpydoc>=1.6.0',
+                               'sphinx>=5']},
       test_suite='kcsd.tests',
       zip_safe=False)
