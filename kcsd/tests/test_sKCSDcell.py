@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # encoding: utf-8
-from __future__ import print_function, division, absolute_import
 import os
 import unittest
 import numpy as np

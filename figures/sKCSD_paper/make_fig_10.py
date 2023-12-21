@@ -1,4 +1,3 @@
-from __future__ import division, print_function
 import run_LFP
 import numpy as np
 import matplotlib.pyplot as plt
