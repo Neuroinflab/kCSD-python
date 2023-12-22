@@ -123,11 +123,11 @@ def generate_figure(true_csd_xlims, total_ele, ele_lims, R_init=0.23):
     for i in range(len(ele_pos)):
         ax = fig.add_subplot(gs[plt_cord[i][0],
                                 plt_cord[i][1]:plt_cord[i][1]+2])
-        ax.plot(np.linspace(0, 1, 100), est_csd[i], lw=2, c='red',
+        ax.plot(np.linspace(0, 1, 101), est_csd[i], lw=2, c='red',
                 label='kCSD')
         ax.scatter(ele_pos, np.zeros(len(ele_pos)), c='k', label='Electrodes')
         ax2 = ax.twinx()
-        ax2.plot(np.linspace(0, 1, 100), OBJ_M[i].values('POT'), c='green',
+        ax2.plot(np.linspace(0, 1, 101), OBJ_M[i].values('POT'), c='green',
                  label='Potentials')
         ax2.set_ylim([-1.5, 1.5])
         ax.set_ylim([-150, 150])

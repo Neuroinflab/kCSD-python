@@ -74,7 +74,7 @@ if __name__=='__main__':
     df = np.load(os.path.join('LC2', 'data_fig4_and_fig13_LC_noise25.0.npz'))
 
     Rs = np.linspace(0.025, 8*0.025, 8)
-    title = ['nazwa_pliku']
+    title = ['file_name']
     save_as = 'noise'
     plot_surface(df['curve_surf'], df['errsy'], save_as+'surf')
     plt.close('all')

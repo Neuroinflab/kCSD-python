@@ -118,7 +118,7 @@ def main_loop(src_width, total_ele, inpos, lpos, nm, noise=0, srcs=1):
     for i, noise in enumerate(n_spec):
         plt.close('all')
         noise = np.round(noise, 5)
-        print('numer rekonstrukcji: ', i, 'noise level: ', noise)
+        print('number of reconstruction: ', i, 'noise level: ', noise)
         #Electrodes
         ele_pos, pots = electrode_config(total_ele, true_csd, t_csd_x, t_csd_y, inpos, lpos)
         ele_y = ele_pos[:, 1]
@@ -179,5 +179,5 @@ if __name__=='__main__':
         os.chdir('..')
     np.save('sim_results', sim_results)
     sim_results = np.load('sim_results.npy')
-    make_plot_perf(sim_results)
+    make_plot_perf(sim_results, noise_lvl)
 
