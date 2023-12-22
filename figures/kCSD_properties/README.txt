@@ -79,19 +79,6 @@ Figure 11 - Error propagation maps for 1D
 
 pots_propagation.py
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-Figure 13-Figure supplement 1 - Eigensurces 7-12 ('start=6', 'stop=12'),
-Figure 13-Figure supplement 2 - Eigensurces 13-18 ('start=12', 'stop=18'),
-Figure 13-Figure supplement 3 - Eigensurces 19-24 ('start=18', 'stop=24'),
-Figure 13-Figure supplement 4 - Eigensurces 25-30 ('start=24', 'stop=30'),
-Figure 13-Figure supplement 5 - Eigensurces 31-36 ('start=30', 'stop=36'),
-Figure 13-Figure supplement 6 - Eigensurces 37-42 ('start=36', 'stop=42'),
-Figure 13-Figure supplement 7 - Eigensurces 43-48 ('start=42', 'stop=48')
-
-All supplementary figures to Figure 13 were created using different
-'start' and 'stop'parameters at:
-npx/figure_traub_eigensources.py
-
 ~~~~~~~~~~~~~~~~~~~~~~~
 Figure 12 - 3D source reconstruction
 
@@ -99,5 +86,8 @@ tutorial_basic_3d.py
 
 ~~~~~~~~~~~~~~~~~~~~~~~
 Figure 13 - sKCSD example
+
+You will need to install LFPy package first:
+pip install lfpy
 
 skcsd_and_l_curve_complex_morphology.py
