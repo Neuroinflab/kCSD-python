@@ -19,7 +19,7 @@ def readme():
 
 
 setup(name='kcsd',
-      version='2.0.3',
+      version='2.0.1',
       description='kernel current source density methods',
       long_description=readme(),
       classifiers=[
