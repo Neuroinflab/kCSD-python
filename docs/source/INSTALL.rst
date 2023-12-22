@@ -1,30 +1,31 @@
 Installation
 ------------
 
-Clone repository
+From PyPi
+~~~~~~~~~
+
+.. code-block:: bash
+
+   user:~$ pip install kcsd
+
+
+From repository
 ~~~~~~~~~~~~~~~~
 
 .. code-block:: bash
 
    user:~$ git clone https://github.com/Neuroinflab/kCSD-python.git
    user:~$ cd kCSD-python
-   user:~/kCSD-python$
+   user:~/kCSD-python$ python setup.py install
    
 
-Bash or Anaconda env
-~~~~~~~~~~~~~~~~~~~~
+On Anaconda
+~~~~~~~~~~~
 
 .. code-block:: bash
-
-   user:~/kCSD-python$ pip install .
-
-
-or
-
-.. code-block:: bash
-
-   user:~/kCSD-python$ python setup.py install
-
+		
+   (base)user:~/kCSD-python$ conda activate testkcsd
+   (testkcsd)user:~/kCSD-python$ pip install kcsd
 
 
 Development and testing
