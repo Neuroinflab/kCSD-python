@@ -50,7 +50,7 @@ need to install jupyter-notebook. Do this by
 
 ..  code-block:: bash
 
-		 pip install jupyter notebook
+   pip install jupyter notebook
 
 
 Figures
@@ -69,9 +69,13 @@ This library includes all the necessary scripts to generate the figures for pape
 Installation
 ------------
 
-`kCSD-python Installation`_
+..  code-block:: bash
 
-.. _kCSD-python Installation : https://kcsd-python.readthedocs.io/en/latest/INSTALL.html
+   user:~/$ pip install kcsd
+
+`More Installations`_
+
+.. _More Installations : https://kcsd-python.readthedocs.io/en/latest/INSTALL.html
 
 
 Documentation

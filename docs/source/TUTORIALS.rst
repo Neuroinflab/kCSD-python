@@ -21,10 +21,8 @@ install jupyter notebook on your desktop.
 
 ..  code-block:: bash
 
-		 git clone https://github.com/Neuroinflab/kCSD-python.git
-		 cd kCSD-python
-		 pip install .
-		 pip install jupyterlab
+		 pip install kcsd
+		 pip install jupyter notebook
 
 
 
