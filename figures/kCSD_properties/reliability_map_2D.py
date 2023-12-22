@@ -77,7 +77,7 @@ def make_single_subplot(ax, val_type, xs, ys, values, cax, title=None,
     plt.colorbar(im, cax=cax, orientation='horizontal', format='%.2f',
                  ticks=ticks)
     set_axis(ax, letter=letter)
-    plt.tight_layout()
+    #plt.tight_layout()
     return ax, cax
 
 

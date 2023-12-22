@@ -106,7 +106,7 @@ def make_reconstruction(KK, csd_profile, csd_seed, total_ele,
 
 def make_subplot(ax, val_type, xs, ys, values, cax, title=None, ele_pos=None,
                  xlabel=False, ylabel=False, letter='', t_max=None,
-                 mask=False, level=False):
+                 mask=False, mask_x=False, mask_y=False, level=False):
     if val_type == 'csd':
         cmap = cm.bwr
     elif val_type == 'pot':
@@ -128,7 +128,10 @@ def make_subplot(ax, val_type, xs, ys, values, cax, title=None, ele_pos=None,
                          levels=levels, cmap=cmap, alpha=1,
                          extent=(0, 0.5, 0, 0.5))
     if mask is not False:
-        CS = ax.contour(xs, ys, mask, cmap='Greys')
+        if mask_x is not False:
+            CS = ax.contour(mask_x, mask_y, mask, cmap='Greys')
+        else:
+            CS = ax.contour(xs, ys, mask, cmap='Greys')
         ax.clabel(CS,  # label every second level
                   inline=1,
                   fmt='%1.2f',
@@ -186,7 +189,7 @@ def generate_figure(k, true_csd, ele_pos, pots, mask=False):
 #    gs.update(top=.95, bottom=0.53)
     ax = plt.subplot(gs[0, 0])
     cax = plt.subplot(gs[1, 0])
-    make_subplot(ax, 'csd', csd_x, csd_y, true_csd, cax=cax, ele_pos=ele_pos,
+    make_subplot(ax, 'csd', k.estm_x, k.estm_y, true_csd, cax=cax, ele_pos=ele_pos,
                  title='True CSD', xlabel=True, ylabel=True, letter='A',
                  t_max=np.max(abs(true_csd)))
     ax = plt.subplot(gs[0, 1])
@@ -199,10 +202,10 @@ def generate_figure(k, true_csd, ele_pos, pots, mask=False):
     make_subplot(ax, 'csd', k.estm_x, k.estm_y, k.values('CSD')[:, :, 0],
                  cax=cax, ele_pos=ele_pos, title='kCSD with Reliability Map',
                  xlabel=True, letter='C', t_max=np.max(abs(true_csd)),
-                 mask=mask)
+                 mask=mask, mask_x=csd_x, mask_y=csd_y)
     ax = plt.subplot(gs[0, 3])
     cax = plt.subplot(gs[1, 3])
-    make_subplot(ax, 'diff', csd_x, csd_y,
+    make_subplot(ax, 'diff', k.estm_x, k.estm_y,
                  abs(true_csd-k.values('CSD')[:, :, 0]), cax=cax,
                  ele_pos=ele_pos, title='|True CSD - kCSD|', xlabel=True,
                  letter='D',
@@ -245,9 +248,10 @@ if __name__ == '__main__':
                                                              Rs=Rs,
                                                              lambdas=lambdas,
                                                              method=method)
+    test_csd = CSD_PROFILE([k.estm_x, k.estm_y], CSD_SEED)
     error_l = np.load('error_maps_2D/point_error_large_100_all_ele.npy')
     error_s = np.load('error_maps_2D/point_error_small_100_all_ele.npy')
     error_all = np.concatenate((error_l, error_s))
     symm_array_all = matrix_symmetrization(error_all)
-    generate_figure(k, true_csd, ele_pos, pots,
+    generate_figure(k, test_csd, ele_pos, pots,
                     mask=np.mean(symm_array_all, axis=0))
