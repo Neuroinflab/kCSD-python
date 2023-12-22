@@ -182,13 +182,14 @@ class CellModel():
         segments = self.cell.get_idx()
         nseg = len(segments)
         self.morphology = np.zeros((nseg+1, 7))
-        coords = np.array((self.cell.xstart,
-                           self.cell.ystart,
-                           self.cell.zstart)).T
-        ends = np.array((self.cell.xend,
-                         self.cell.yend,
-                         self.cell.zend)).T
-        segdiam = self.cell.diam
+        print(self.cell.x.shape)
+        coords = np.array((self.cell.x[:, 0],
+                           self.cell.y[:, 0],
+                           self.cell.z[:, 0])).T
+        ends = np.array((self.cell.x[:, 1],
+                         self.cell.y[:, 1],
+                         self.cell.z[:, 1])).T
+        segdiam = self.cell.d
         parents = {}
         self.morphology[0, 0] = 1
         self.morphology[0, 1] = 1
@@ -253,7 +254,8 @@ class CellModel():
         self.electrode_parameters['y'] = self.ele_coordinates[:, 1],
         self.electrode_parameters['z'] = self.ele_coordinates[:, 2],
         self.electrode_parameters['sigma'] = self.sigma
-        electrode = LFPy.RecExtElectrode(**self.electrode_parameters)
+        electrode = LFPy.RecExtElectrode(self.cell,
+                                         **self.electrode_parameters)
         self.simulation_parameters['electrode'] = electrode
 
     def setup_LFPy_2D_grid(self,
@@ -465,13 +467,14 @@ class CellModel():
         self.cell.simulate(**self.simulation_parameters)
 
     def save_LFP(self, directory=''):
-        self.simulation_parameters['electrode'].calc_lfp()
+        M = self.simulation_parameters['electrode'].get_transformation_matrix()
+        V_ex = M @ self.cell.imem
         LFP_path = os.path.join(self.new_path, directory)
         if not os.path.exists(LFP_path):
             print("Creating", LFP_path)
             os.makedirs(LFP_path)
         fname = os.path.join(LFP_path, 'MyLFP')
-        np.savetxt(fname, self.simulation_parameters['electrode'].LFP)
+        np.savetxt(fname, V_ex)
 
     def save_electrode_pos(self, directory=''):
         electr = np.hstack((self.ele_coordinates[:, 0],
@@ -527,7 +530,7 @@ class CellModel():
         np.savetxt(os.path.join(new_path, 'coordsend_x_y_z'),
                    coordsend)
         # diameter of the segments
-        segdiam = np.hstack((self.cell.diam))
+        segdiam = np.hstack((self.cell.d))
         np.savetxt(os.path.join(new_path, 'segdiam_x_y_z'),
                    segdiam)
         # time in the simulation
