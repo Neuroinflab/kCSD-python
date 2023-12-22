@@ -1,6 +1,7 @@
 # Requirements for building documentation
 scipy
 numpy
+matplotlib
 numpydoc
 sphinx
 
