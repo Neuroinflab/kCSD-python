@@ -1,7 +1,7 @@
 Kernel Current Source Density
 =============================
 
-This 2.0 version of kCSD method.
+This is version 2.0 of kCSD-python implementing kCSD method and related functionality.
 
 Only supported for python 3.
 
@@ -23,9 +23,8 @@ Jędrzejewska-Szmek, K. Kondrakiewicz, E. Kublik, D. K. Wójcik; PLoS
 Computational Biology (2021), 17(5): e1008615, doi:
 https://doi.org/10.1371/journal.pcbi.1008615
 
-Paper 3 : "kCSD-python, reliable current source density estimation
-with quality
-control", C. Chintaluri, M. Bejtka, W. Średniawa, M. Czerwiński, J. M. Dzik, J. Jędrzejewska-Szmek, D. K. Wójcik;
+Paper 3 : "kCSD-python, reliable current source density estimation with quality control", 
+C. Chintaluri, M. Bejtka, W. Średniawa, M. Czerwiński, J. M. Dzik, J. Jędrzejewska-Szmek, D. K. Wójcik;
 bioRxiv, doi: https://doi.org/10.1101/708511
 
 Paper 1 is the original paper with software code in Matlab.
