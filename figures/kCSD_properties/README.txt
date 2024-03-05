@@ -23,7 +23,7 @@ Figure 4 - Reliability map 2D
 
 reliability_map_2d.py
 
-Download kCSD_properties.zip file from here: http://bit.ly/kCSD-supplementary
+Download kCSD_properties.zip file from here: https://doi.org/10.18150/KRYNCA
 and unzip the data
 kCSD_properties/error_maps_2D/point_error_large_100_all_ele.npy
 kCSD_properties/error_maps_2D/point_error_small_100_all_ele.npy
@@ -33,7 +33,7 @@ Figure 5 - Reliability map; Use case in a 2D dipolar large source
 
 kCSD_with_reliability_map_2D.py
 
-Download kCSD_properties.zip file from here http://bit.ly/kCSD-supplementary
+Download kCSD_properties.zip file from here https://doi.org/10.18150/KRYNCA
 and unzip the data
 kCSD_properties/error_maps_2D/point_error_large_100_all_ele.npy
 kCSD_properties/error_maps_2D/point_error_small_100_all_ele.npy
@@ -42,7 +42,7 @@ kCSD_properties/error_maps_2D/point_error_small_100_all_ele.npy
 Figure 6 - Average Error (Diff) when broken electrode and loss in reconstruction quality
 
 You will need to run tutorial3.py first or download kCSD_properties.zip file from here
-http://bit.ly/kCSD-supplementary
+https://doi.org/10.18150/KRYNCA
 
 tutorial_broken_electrodes_diff_err.py
 
@@ -59,7 +59,7 @@ figure_LCandCV.py
 Figure 8 - Basic features tutorial
 
 You will need to run tutorial3.py first or download kCSD_properties.zip file from here
-http://bit.ly/kCSD-supplementary
+https://doi.org/10.18150/KRYNCA
 
 tutorial_basic.py
 
@@ -73,7 +73,7 @@ tutorial_noisy_electrodes.py
 Figure 10 - Broken electrodes tutorial
 
 Download kCSD_properties.zip file first from
-http://bit.ly/kCSD-supplementary
+https://doi.org/10.18150/KRYNCA
 (generated from tweaking tutorial3.py)
 
 tutorial_broken_electrodes.py
